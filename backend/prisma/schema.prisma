@@ -1,0 +1,411 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  password         String
+  fullName         String
+  phoneNumber      String?
+  isEmailVerified  Boolean  @default(false)
+  isPhoneVerified  Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  profile          UserProfile?
+  applications     JobApplication[]
+  notifications    Notification[]
+  reviews          Review[]
+  resumeAnswers    ResumeAnswer[] 
+  savedJobs   SavedJob[]
+
+  @@map("users")
+}
+
+
+// In your schema.prisma file, update the UserProfile model:
+model UserProfile {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique
+  
+  // Personal Information
+  dateOfBirth        DateTime?
+  gender             Gender?
+  nationality        String?
+  address            String?
+  city               String?
+  state              String?
+  postcode           String?
+  profilePicture     String?   @db.Text  // Change to TEXT to store longer strings
+  
+  // Job Preferences
+  preferredSalaryMin Int?
+  preferredSalaryMax Int?
+  availableFrom      DateTime?
+  workingHours       WorkingHours?
+  transportMode      TransportMode?
+  maxTravelDistance  Int?      // in kilometers
+  
+  // Skills and Experience
+  experienceYears    Int       @default(0)
+  certifications     String?   // JSON array of certifications
+  
+  // Resume
+  resumeUrl          String?
+  
+  // Profile completion
+  profileCompleted   Boolean   @default(false)
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  industries         UserIndustry[]
+  skills             UserSkill[]
+  languages          UserLanguage[]
+
+
+  @@map("user_profiles")
+}
+
+
+// ========================
+// Skills & Languages
+// ========================
+model Skill {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  users     UserSkill[]
+}
+
+model UserSkill {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  skillId   Int
+
+  // Relations
+  user      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  skill     Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@map("user_skills")
+}
+
+model Language {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  users     UserLanguage[]
+}
+
+model UserLanguage {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  languageId Int
+
+  // Relations
+  user       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  language   Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, languageId])
+  @@map("user_languages")
+}
+
+// Industries that users are interested in (from onboarding)
+model Industry {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  users       UserIndustry[]
+  jobs        Job[]
+
+  @@map("industries")
+}
+
+// Many-to-many relationship between users and industries
+model UserIndustry {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  industryId Int
+
+  // Relations
+  user       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  industry   Industry    @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, industryId])
+  @@map("user_industries")
+}
+
+model ResumeQuestion {
+  id              Int      @id @default(autoincrement())
+  questionId      String   @unique   // e.g., "hasWorkExperience"
+  question        String
+  type            String   // "select", "multiline", "multiselect", "file"
+  options         Json?    // store select/multiselect options
+  required        Boolean  @default(false)
+  conditionalOn   String?  // if it depends on another answer
+  conditionalValue String? // value that triggers this question
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  answers ResumeAnswer[]
+}
+
+model ResumeAnswer {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  questionId String   // FK to ResumeQuestion.questionId
+  answer     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question ResumeQuestion? @relation(fields: [questionId], references: [questionId])
+
+  @@unique([userId, questionId])
+  @@map("resume_answers")
+}
+
+// Employers/Companies
+model Company {
+  id              Int      @id @default(autoincrement())
+  name            String
+  slug            String   @unique
+  description     String?
+  logo            String?
+  website         String?
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  postcode        String?
+  companySize     CompanySize?
+  isVerified      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  jobs            Job[]
+
+  @@map("companies")
+}
+
+// Job Postings
+model Job {
+  id                Int         @id @default(autoincrement())
+  title             String
+  slug              String      @unique
+  description       String      @db.Text
+  requirements      String?     @db.Text
+  benefits          String?     @db.Text
+  
+  // Job Details
+  industryId        Int
+  companyId         Int
+  jobType           JobType
+  workingHours      WorkingHours
+  experienceLevel   ExperienceLevel
+  
+  // Location
+  address           String?
+  city              String
+  state             String
+  postcode          String?
+  isRemote          Boolean     @default(false)
+  
+  // Salary
+  salaryMin         Int?
+  salaryMax         Int?
+  salaryType        SalaryType?
+  
+  // Job Status
+  isActive          Boolean     @default(true)
+  isFeatured        Boolean     @default(false)
+  applicationDeadline DateTime?
+  startDate         DateTime?
+  
+  // SEO and Tracking
+  viewCount         Int         @default(0)
+  applicationCount  Int         @default(0)
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  industry          Industry    @relation(fields: [industryId], references: [id])
+  company           Company     @relation(fields: [companyId], references: [id])
+  applications      JobApplication[]
+  savedJobs         SavedJob[]
+
+  @@map("jobs")
+}
+
+// Job Applications
+model JobApplication {
+  id            Int               @id @default(autoincrement())
+  userId        Int
+  jobId         Int
+  status        ApplicationStatus @default(PENDING)
+  coverLetter   String?           @db.Text
+  resumeUrl     String?
+  appliedAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relations
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job           Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("job_applications")
+}
+
+// Saved Jobs
+model SavedJob {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  jobId     Int
+  savedAt   DateTime @default(now())
+
+  // Relations
+ user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+// Notifications
+model Notification {
+  id          Int              @id @default(autoincrement())
+  userId      Int
+  title       String
+  message     String           @db.Text
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  actionUrl   String?
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Company/Job Reviews
+model Review {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  companyId   Int?
+  rating      Int      // 1-5 stars
+  title       String?
+  comment     String?  @db.Text
+  isAnonymous Boolean  @default(false)
+  isApproved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+// Enums
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  FREELANCE
+}
+
+enum WorkingHours {
+  DAY_SHIFT
+  NIGHT_SHIFT
+  ROTATING_SHIFT
+  FLEXIBLE
+  WEEKEND_ONLY
+}
+
+enum ExperienceLevel {
+  ENTRY_LEVEL
+  JUNIOR
+  MID_LEVEL
+  SENIOR
+  EXPERT
+}
+
+enum SalaryType {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  PER_PROJECT
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  INTERVIEWED
+  REJECTED
+  HIRED
+  WITHDRAWN
+}
+
+enum NotificationType {
+  JOB_MATCH
+  APPLICATION_UPDATE
+  NEW_MESSAGE
+  PROFILE_UPDATE
+  SYSTEM_UPDATE
+}
+
+enum TransportMode {
+  OWN_VEHICLE
+  PUBLIC_TRANSPORT
+  COMPANY_TRANSPORT
+  MOTORCYCLE
+  BICYCLE
+  WALKING
+}
+
+enum CompanySize {
+  STARTUP         // 1-10 employees
+  SMALL           // 11-50 employees
+  MEDIUM          // 51-200 employees
+  LARGE           // 201-1000 employees
+  ENTERPRISE      // 1000+ employees
+}
