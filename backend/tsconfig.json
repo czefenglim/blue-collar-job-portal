@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // good balance for Node.js
+    "module": "commonjs", // Node.js ecosystem default
+    "rootDir": "./src", // keep code inside src/
+    "outDir": "./dist", // compiled JS will go here
+    "strict": true, // enable strict type checking
+    "esModuleInterop": true, // allows default imports for commonjs modules
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true, // faster compile
+    "forceConsistentCasingInFileNames": true,
+
+    // For Node.js + Express
+    "types": ["node"],
+
+    // Source maps for debugging
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
