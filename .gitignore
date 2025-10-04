@@ -1,28 +1,24 @@
 # Node dependencies
-node_modules/
-npm-debug.log
-yarn-error.log
+**/node_modules/
 
 # Expo / React Native
-.expo/
-.expo-shared/
-android/
-ios/
+frontend/.expo/
+frontend/.expo-shared/
+frontend/android/
+frontend/ios/
 
 # Build output
-dist/
-build/
+**/dist/
+**/build/
 
 # Environment variables
-.env
-.env.local
-.env.production
-.env.development
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
 
-# IDE files
+# IDE / System files
 .vscode/
 .idea/
-
-# System files
 .DS_Store
 Thumbs.db
