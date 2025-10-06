@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { WebView } from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -126,66 +127,61 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [resumeKey, setResumeKey] = useState<string | null>(null);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   const onboardingSteps = [
     {
-      title: 'Welcome to Blue-Collar Jobs!',
-      subtitle: 'Find your next job opportunity',
-      description:
-        'We help connect skilled workers like you with great employers across Malaysia.',
-      buttonText: 'Get Started',
+      title: t('onboarding.welcome.title'),
+      subtitle: t('onboarding.welcome.subtitle'),
+      description: t('onboarding.welcome.description'),
+      buttonText: t('onboarding.welcome.buttonText'),
       showSkip: true,
     },
     {
-      title: 'How It Works',
-      subtitle: 'Simple job searching',
-      description:
-        '1. Complete your profile\n2. Choose your industries\n3. Answer a few questions\n4. Start applying for jobs',
-      buttonText: 'Continue',
+      title: t('onboarding.howItWorks.title'),
+      subtitle: t('onboarding.howItWorks.subtitle'),
+      description: t('onboarding.howItWorks.description'),
+      buttonText: t('onboarding.howItWorks.buttonText'),
       showSkip: true,
     },
     {
-      title: 'Complete Your Profile',
-      subtitle: 'Help employers know more about you',
-      description: 'Fill in your basic information and job preferences.',
-      buttonText: 'Continue',
+      title: t('onboarding.completeProfile.title'),
+      subtitle: t('onboarding.completeProfile.subtitle'),
+      description: t('onboarding.completeProfile.description'),
+      buttonText: t('onboarding.completeProfile.buttonText'),
       showSkip: false,
       isProfileForm: true,
     },
     {
-      title: 'Choose Your Industries',
-      subtitle: 'What type of work are you looking for?',
-      description:
-        'Select up to 3 industries that match your skills and interests.',
-      buttonText: 'Continue',
+      title: t('onboarding.chooseIndustries.title'),
+      subtitle: t('onboarding.chooseIndustries.subtitle'),
+      description: t('onboarding.chooseIndustries.description'),
+      buttonText: t('onboarding.chooseIndustries.buttonText'),
       showSkip: false,
       isIndustrySelection: true,
     },
     {
-      title: 'Help Us Build Your Resume',
-      subtitle: 'Answer a few questions',
-      description:
-        "We'll use your answers to create a professional resume for you.",
-      buttonText: 'Generate Resume',
+      title: t('onboarding.buildResume.title'),
+      subtitle: t('onboarding.buildResume.subtitle'),
+      description: t('onboarding.buildResume.description'),
+      buttonText: t('onboarding.buildResume.buttonText'),
       showSkip: false,
       isResumeQuestions: true,
     },
     {
-      title: 'Preview Your Resume',
-      subtitle: 'Check your generated resume',
-      description: 'You can regenerate if needed, or continue to proceed.',
-      primaryButtonText: 'Continue',
-      secondaryButtonText: 'Regenerate',
+      title: t('onboarding.previewResume.title'),
+      subtitle: t('onboarding.previewResume.subtitle'),
+      description: t('onboarding.previewResume.description'),
+      primaryButtonText: t('onboarding.previewResume.primaryButtonText'),
+      secondaryButtonText: t('onboarding.previewResume.secondaryButtonText'),
       showSkip: false,
       isResumePreview: true,
     },
-
     {
-      title: "You're All Set!",
-      subtitle: 'Start finding jobs now',
-      description:
-        "Your profile is ready. You'll receive job notifications based on your selected industries.",
-      buttonText: 'Start Job Search',
+      title: t('onboarding.completion.title'),
+      subtitle: t('onboarding.completion.subtitle'),
+      description: t('onboarding.completion.description'),
+      buttonText: t('onboarding.completion.buttonText'),
       showSkip: false,
     },
   ];
@@ -254,6 +250,57 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       console.error('Error fetching industries:', error);
     }
   }, []);
+
+  const getGenderLabel = (value: string) => {
+    switch (value) {
+      case 'MALE':
+        return t('onboarding.profileForm.male');
+      case 'FEMALE':
+        return t('onboarding.profileForm.female');
+      case 'OTHER':
+        return t('onboarding.profileForm.other');
+      case 'PREFER_NOT_TO_SAY':
+        return t('onboarding.profileForm.preferNotToSay');
+      default:
+        return t('onboarding.profileForm.selectGender');
+    }
+  };
+
+  const getWorkingHoursLabel = (value: string) => {
+    switch (value) {
+      case 'DAY_SHIFT':
+        return t('onboarding.profileForm.dayShift');
+      case 'NIGHT_SHIFT':
+        return t('onboarding.profileForm.nightShift');
+      case 'ROTATING_SHIFT':
+        return t('onboarding.profileForm.rotatingShift');
+      case 'FLEXIBLE':
+        return t('onboarding.profileForm.flexible');
+      case 'WEEKEND_ONLY':
+        return t('onboarding.profileForm.weekendOnly');
+      default:
+        return t('onboarding.profileForm.selectWorkingHours');
+    }
+  };
+
+  const getTransportLabel = (value: string) => {
+    switch (value) {
+      case 'OWN_VEHICLE':
+        return t('onboarding.profileForm.ownVehicle');
+      case 'PUBLIC_TRANSPORT':
+        return t('onboarding.profileForm.publicTransport');
+      case 'COMPANY_TRANSPORT':
+        return t('onboarding.profileForm.companyTransport');
+      case 'MOTORCYCLE':
+        return t('onboarding.profileForm.motorcycle');
+      case 'BICYCLE':
+        return t('onboarding.profileForm.bicycle');
+      case 'WALKING':
+        return t('onboarding.profileForm.walking');
+      default:
+        return t('onboarding.profileForm.selectTransport');
+    }
+  };
 
   const saveUserProfile = async (profile: UserProfile, token: string) => {
     try {
@@ -483,14 +530,13 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const handleIndustryToggle = (industryId: number) => {
     setSelectedIndustries((prev) => {
       const isSelected = prev.includes(industryId);
-
       if (isSelected) {
         return prev.filter((id) => id !== industryId);
       } else {
         if (prev.length >= 3) {
           Alert.alert(
-            'Limit Reached',
-            'You can select up to 3 industries only.'
+            t('onboarding.chooseIndustries.limitReached'),
+            t('onboarding.chooseIndustries.limitMessage')
           );
           return prev;
         }
@@ -501,59 +547,42 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const validateCurrentStep = () => {
     if (currentStep === 2) {
-      // Profile validation
       if (!userProfile.city || !userProfile.state) {
-        Alert.alert('Required Fields', 'Please fill in your city and state.');
+        Alert.alert(
+          t('onboarding.profileForm.validation.requiredFields'),
+          t('onboarding.profileForm.validation.cityStateRequired')
+        );
         return false;
       }
     }
 
     if (currentStep === 3) {
-      // Industry selection validation
       if (selectedIndustries.length === 0) {
         Alert.alert(
-          'Selection Required',
-          'Please select at least one industry.'
+          t('onboarding.chooseIndustries.selectionRequired'),
+          t('onboarding.chooseIndustries.selectionMessage')
         );
         return false;
       }
     }
 
     if (currentStep === 4) {
-      // Resume questions validation - FIXED: use question.questionId
       const requiredQuestions = questions.filter((q) => q.required);
-
-      console.log('🔍 Validating resume questions:', {
-        requiredQuestions: requiredQuestions.map((q) => ({
-          questionId: q.questionId,
-          question: q.question,
-          answer: resumeAnswers[q.questionId],
-        })),
-        allAnswers: resumeAnswers,
-      });
-
       for (const question of requiredQuestions) {
         if (
-          !resumeAnswers[question.questionId] || // ✅ Fixed: use questionId
+          !resumeAnswers[question.questionId] ||
           resumeAnswers[question.questionId].toString().trim() === ''
         ) {
-          console.log('❌ Missing answer for question:', {
-            questionId: question.questionId,
-            question: question.question,
-            currentAnswer: resumeAnswers[question.questionId],
-          });
-
           Alert.alert(
-            'Required Question',
-            `Please answer: ${question.question}`
+            t('onboarding.buildResume.requiredQuestion'),
+            t('onboarding.buildResume.requiredMessage', {
+              question: question.question,
+            })
           );
           return false;
         }
       }
-
-      console.log('✅ All required questions answered');
     }
-
     return true;
   };
 
@@ -730,7 +759,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.stepSelectorContainer}>
-          <Text style={styles.stepSelectorTitle}>Go to Step</Text>
+          <Text style={styles.stepSelectorTitle}>
+            {t('onboarding.stepSelector.title')}
+          </Text>
           {onboardingSteps.map((step, index) => (
             <TouchableOpacity
               key={index}
@@ -759,7 +790,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             style={styles.stepSelectorCloseButton}
             onPress={() => setShowStepSelector(false)}
           >
-            <Text style={styles.stepSelectorCloseText}>Close</Text>
+            <Text style={styles.stepSelectorCloseText}>
+              {t('onboarding.stepSelector.close')}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -775,7 +808,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     >
       {/* Profile Picture Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Profile Picture</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.profilePicture')}
+        </Text>
         <View style={styles.profilePictureContainer}>
           <TouchableOpacity
             style={styles.profilePictureButton}
@@ -789,7 +824,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             ) : (
               <View style={styles.profilePicturePlaceholder}>
                 <Text style={styles.profilePicturePlaceholderText}>+</Text>
-                <Text style={styles.profilePictureLabel}>Add Photo</Text>
+                <Text style={styles.profilePictureLabel}>
+                  {t('onboarding.profileForm.addPhoto')}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -798,8 +835,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* Skills Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <Text style={styles.inputLabel}>Select your skills</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.skills')}
+        </Text>
+        <Text style={styles.inputLabel}>
+          {t('onboarding.profileForm.selectSkills')}
+        </Text>
         <View style={styles.multiselectContainer}>
           {skills.map((skill) => (
             <TouchableOpacity
@@ -830,8 +871,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* Languages Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Languages</Text>
-        <Text style={styles.inputLabel}>Select languages you speak</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.languages')}
+        </Text>
+        <Text style={styles.inputLabel}>
+          {t('onboarding.profileForm.selectLanguages')}
+        </Text>
         <View style={styles.multiselectContainer}>
           {languages.map((language) => (
             <TouchableOpacity
@@ -862,31 +907,39 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* Certification Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Certifications</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.certifications')}
+        </Text>
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Add your certifications</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.addCertifications')}
+          </Text>
           <TextInput
             style={[styles.textInput, styles.multilineInput]}
             value={userProfile.certifications || ''}
             onChangeText={(text) =>
               handleProfileInputChange('certifications', text)
             }
-            placeholder="Enter your certifications (e.g., Forklift License, Safety Training, etc.)"
+            placeholder={t('onboarding.profileForm.certificationsPlaceholder')}
             multiline
             numberOfLines={3}
           />
           <Text style={styles.helperText}>
-            Separate multiple certifications with commas
+            {t('onboarding.profileForm.certificationsHelper')}
           </Text>
         </View>
       </View>
 
       {/* Personal Information Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.personalInfo')}
+        </Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Date of Birth</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.dateOfBirth')}
+          </Text>
           <TouchableOpacity
             style={styles.dateInput}
             onPress={() => setShowDatePicker('dob')}
@@ -894,13 +947,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <Text style={styles.dateInputText}>
               {userProfile.dateOfBirth
                 ? userProfile.dateOfBirth.toDateString()
-                : 'Select Date'}
+                : t('onboarding.profileForm.selectDate')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Gender</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.gender')}
+          </Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={userProfile.gender}
@@ -908,14 +963,25 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('gender', value)
               }
               style={styles.picker}
-              itemStyle={styles.pickerItem}
             >
-              <Picker.Item label="Select Gender" value="" />
-              <Picker.Item label="Male" value="MALE" />
-              <Picker.Item label="Female" value="FEMALE" />
-              <Picker.Item label="Other" value="OTHER" />
               <Picker.Item
-                label="Prefer not to say"
+                label={t('onboarding.profileForm.selectGender')}
+                value=""
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.male')}
+                value="MALE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.female')}
+                value="FEMALE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.other')}
+                value="OTHER"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.preferNotToSay')}
                 value="PREFER_NOT_TO_SAY"
               />
             </Picker>
@@ -923,61 +989,73 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Nationality</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.nationality')}
+          </Text>
           <TextInput
             style={styles.textInput}
             value={userProfile.nationality || ''}
             onChangeText={(text) =>
               handleProfileInputChange('nationality', text)
             }
-            placeholder="e.g., Malaysian"
+            placeholder={t('onboarding.profileForm.nationalityPlaceholder')}
           />
         </View>
       </View>
 
       {/* Address Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Address</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.addressSection')}
+        </Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Address</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.address')}
+          </Text>
           <TextInput
             style={styles.textInput}
             value={userProfile.address || ''}
             onChangeText={(text) => handleProfileInputChange('address', text)}
-            placeholder="Street address"
+            placeholder={t('onboarding.profileForm.streetAddress')}
             multiline
           />
         </View>
 
         <View style={styles.rowInputs}>
           <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>City *</Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.city')} *
+            </Text>
             <TextInput
               style={styles.textInput}
               value={userProfile.city || ''}
               onChangeText={(text) => handleProfileInputChange('city', text)}
-              placeholder="City"
+              placeholder={t('onboarding.profileForm.cityPlaceholder')}
             />
           </View>
           <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>State *</Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.state')} *
+            </Text>
             <TextInput
               style={styles.textInput}
               value={userProfile.state || ''}
               onChangeText={(text) => handleProfileInputChange('state', text)}
-              placeholder="State"
+              placeholder={t('onboarding.profileForm.statePlaceholder')}
             />
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Postcode</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.postcode')}
+          </Text>
           <TextInput
             style={styles.textInput}
             value={userProfile.postcode || ''}
             onChangeText={(text) => handleProfileInputChange('postcode', text)}
-            placeholder="Postcode"
+            placeholder={t('onboarding.profileForm.postcodePlaceholder')}
             keyboardType="numeric"
           />
         </View>
@@ -985,11 +1063,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* Job Preferences Section */}
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>Job Preferences</Text>
+        <Text style={styles.sectionTitle}>
+          {t('onboarding.profileForm.jobPreferences')}
+        </Text>
 
         <View style={styles.rowInputs}>
           <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>Min Salary (RM)</Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.minSalary')}
+            </Text>
             <TextInput
               style={styles.textInput}
               value={userProfile.preferredSalaryMin?.toString() || ''}
@@ -999,12 +1081,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   parseInt(text) || undefined
                 )
               }
-              placeholder="2000"
+              placeholder={t('onboarding.profileForm.minSalaryPlaceholder')}
               keyboardType="numeric"
             />
           </View>
           <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>Max Salary (RM)</Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.maxSalary')}
+            </Text>
             <TextInput
               style={styles.textInput}
               value={userProfile.preferredSalaryMax?.toString() || ''}
@@ -1014,14 +1098,16 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                   parseInt(text) || undefined
                 )
               }
-              placeholder="5000"
+              placeholder={t('onboarding.profileForm.maxSalaryPlaceholder')}
               keyboardType="numeric"
             />
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Available From</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.availableFrom')}
+          </Text>
           <TouchableOpacity
             style={styles.dateInput}
             onPress={() => setShowDatePicker('available')}
@@ -1029,13 +1115,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <Text style={styles.dateInputText}>
               {userProfile.availableFrom
                 ? userProfile.availableFrom.toDateString()
-                : 'Select Date'}
+                : t('onboarding.profileForm.selectDate')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Preferred Working Hours</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.workingHours')}
+          </Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={userProfile.workingHours}
@@ -1043,20 +1131,39 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('workingHours', value)
               }
               style={styles.picker}
-              itemStyle={styles.pickerItem}
             >
-              <Picker.Item label="Select Working Hours" value="" />
-              <Picker.Item label="Day Shift" value="DAY_SHIFT" />
-              <Picker.Item label="Night Shift" value="NIGHT_SHIFT" />
-              <Picker.Item label="Rotating Shift" value="ROTATING_SHIFT" />
-              <Picker.Item label="Flexible" value="FLEXIBLE" />
-              <Picker.Item label="Weekend Only" value="WEEKEND_ONLY" />
+              <Picker.Item
+                label={t('onboarding.profileForm.selectWorkingHours')}
+                value=""
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.dayShift')}
+                value="DAY_SHIFT"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.nightShift')}
+                value="NIGHT_SHIFT"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.rotatingShift')}
+                value="ROTATING_SHIFT"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.flexible')}
+                value="FLEXIBLE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.weekendOnly')}
+                value="WEEKEND_ONLY"
+              />
             </Picker>
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Transport Mode</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.transportMode')}
+          </Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={userProfile.transportMode}
@@ -1064,24 +1171,43 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('transportMode', value)
               }
               style={styles.picker}
-              itemStyle={styles.pickerItem}
             >
-              <Picker.Item label="Select Transport Mode" value="" />
-              <Picker.Item label="Own Vehicle" value="OWN_VEHICLE" />
-              <Picker.Item label="Public Transport" value="PUBLIC_TRANSPORT" />
               <Picker.Item
-                label="Company Transport"
+                label={t('onboarding.profileForm.selectTransport')}
+                value=""
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.ownVehicle')}
+                value="OWN_VEHICLE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.publicTransport')}
+                value="PUBLIC_TRANSPORT"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.companyTransport')}
                 value="COMPANY_TRANSPORT"
               />
-              <Picker.Item label="Motorcycle" value="MOTORCYCLE" />
-              <Picker.Item label="Bicycle" value="BICYCLE" />
-              <Picker.Item label="Walking" value="WALKING" />
+              <Picker.Item
+                label={t('onboarding.profileForm.motorcycle')}
+                value="MOTORCYCLE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.bicycle')}
+                value="BICYCLE"
+              />
+              <Picker.Item
+                label={t('onboarding.profileForm.walking')}
+                value="WALKING"
+              />
             </Picker>
           </View>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Max Travel Distance (km)</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.maxTravelDistance')}
+          </Text>
           <TextInput
             style={styles.textInput}
             value={userProfile.maxTravelDistance?.toString() || ''}
@@ -1091,20 +1217,22 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 parseInt(text) || undefined
               )
             }
-            placeholder="20"
+            placeholder={t('onboarding.profileForm.maxTravelPlaceholder')}
             keyboardType="numeric"
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Years of Experience</Text>
+          <Text style={styles.inputLabel}>
+            {t('onboarding.profileForm.experienceYears')}
+          </Text>
           <TextInput
             style={styles.textInput}
             value={userProfile.experienceYears?.toString() || ''}
             onChangeText={(text) =>
               handleProfileInputChange('experienceYears', parseInt(text) || 0)
             }
-            placeholder="5"
+            placeholder={t('onboarding.profileForm.experiencePlaceholder')}
             keyboardType="numeric"
           />
         </View>
@@ -1135,7 +1263,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const renderIndustrySelection = () => (
     <View style={styles.industriesContainer}>
       <Text style={styles.selectionCounter}>
-        Selected: {selectedIndustries.length}/3
+        {t('onboarding.chooseIndustries.selectionCounter', {
+          count: selectedIndustries.length,
+        })}
       </Text>
       <ScrollView
         style={styles.industriesScroll}
@@ -1184,94 +1314,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     </View>
   );
 
-  // const renderResumePreview = () => (
-  //   <View style={{ flex: 1 }}>
-  //     {isGeneratingResume ? (
-  //       <View
-  //         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-  //       >
-  //         <ActivityIndicator size="large" color="#007AFF" />
-  //         <Text style={{ marginTop: 10 }}>Generating resume...</Text>
-  //       </View>
-  //     ) : resumeUrl ? (
-  //       <WebView
-  //         source={{
-  //           uri: `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(
-  //             resumeUrl
-  //           )}`,
-  //         }}
-  //         style={{ flex: 1 }}
-  //         startInLoadingState
-  //         originWhitelist={['*']} // Allow all origins
-  //         javaScriptEnabled={true} // Enable JavaScript
-  //         domStorageEnabled={true} // Enable DOM storage
-  //         renderLoading={() => (
-  //           <ActivityIndicator
-  //             size="large"
-  //             color="#007AFF"
-  //             style={{ marginTop: 20 }}
-  //           />
-  //         )}
-  //         onError={(syntheticEvent) => {
-  //           const { nativeEvent } = syntheticEvent;
-  //           console.warn('WebView error: ', nativeEvent);
-  //           Alert.alert(
-  //             'Error',
-  //             'Failed to load PDF preview. URL: ' + resumeUrl
-  //           );
-  //         }}
-  //         onLoadStart={() => console.log('WebView loading started')}
-  //         onLoadEnd={() => console.log('WebView loading ended')}
-  //         onHttpError={(syntheticEvent) => {
-  //           const { nativeEvent } = syntheticEvent;
-  //           console.warn(
-  //             'HTTP error:',
-  //             nativeEvent.statusCode,
-  //             nativeEvent.url
-  //           );
-  //         }}
-  //       />
-  //     ) : (
-  //       <View
-  //         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-  //       >
-  //         <Text>No resume available. Please generate first.</Text>
-  //       </View>
-  //     )}
-
-  //     {/* Bottom Buttons */}
-  //     <View style={styles.previewButtonsContainer}>
-  //       <TouchableOpacity
-  //         style={[styles.button, styles.regenerateButton]}
-  //         onPress={async () => {
-  //           try {
-  //             setIsGeneratingResume(true);
-  //             const result = await generateResume();
-  //             const resume = await fetchResumeUrl(result.key);
-  //             setResumeUrl(resume.resumeUrl);
-  //           } catch (err) {
-  //             Alert.alert(
-  //               'Error',
-  //               'Failed to regenerate resume. Please try again.'
-  //             );
-  //           } finally {
-  //             setIsGeneratingResume(false);
-  //           }
-  //         }}
-  //       >
-  //         <Text style={styles.buttonText}>Regenerate</Text>
-  //       </TouchableOpacity>
-
-  //       <TouchableOpacity
-  //         style={[styles.button, styles.continueButton]}
-  //         onPress={handleNext}
-  //       >
-  //         <Text style={styles.buttonText}>Continue</Text>
-  //       </TouchableOpacity>
-  //     </View>
-  //   </View>
-  // );
-
   const renderResumePreview = () => (
     <View style={{ flex: 1 }}>
       {isGeneratingResume ? (
@@ -1279,26 +1321,27 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={{ marginTop: 10 }}>Generating resume...</Text>
+          <Text style={{ marginTop: 10 }}>
+            {t('onboarding.previewResume.generating')}
+          </Text>
         </View>
       ) : resumeUrl ? (
         <View style={styles.resumePreviewContainer}>
-          {/* Preview placeholder */}
           <View style={styles.resumePlaceholder}>
             <Text style={styles.resumeIcon}>📄</Text>
-            <Text style={styles.resumeTitle}>Your Resume is Ready!</Text>
+            <Text style={styles.resumeTitle}>
+              {t('onboarding.previewResume.resumeReady')}
+            </Text>
             <Text style={styles.resumeDescription}>
-              Tap the button below to view your generated resume in the browser.
+              {t('onboarding.previewResume.resumeDescription')}
             </Text>
           </View>
-
-          {/* View Resume Button */}
           <TouchableOpacity
             style={styles.viewResumeButton}
             onPress={() => WebBrowser.openBrowserAsync(resumeUrl)}
           >
             <Text style={styles.viewResumeButtonText}>
-              📱 View Resume in Browser
+              {t('onboarding.previewResume.viewResume')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1306,7 +1349,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <Text>No resume available. Please generate first.</Text>
+          <Text>{t('onboarding.previewResume.noResume')}</Text>
         </View>
       )}
     </View>
@@ -1369,7 +1412,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         <View style={styles.headerLeft}>
           {currentStep > 0 && (
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <Text style={styles.backButtonText}>← Back</Text>
+              <Text style={styles.backButtonText}>← {t('common.back')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1379,7 +1422,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         <View style={styles.headerRight}>
           {currentStepData.showSkip && (
             <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-              <Text style={styles.skipButtonText}>Skip</Text>
+              <Text style={styles.skipButtonText}>{t('common.skip')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1389,7 +1432,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       {isGeneratingResume && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loadingText}>Generating your resume...</Text>
+          <Text style={styles.loadingText}>
+            {t('onboarding.previewResume.generating')}
+          </Text>
         </View>
       )}
 
@@ -1424,27 +1469,16 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       {/* Bottom Button */}
       {currentStepData.isResumePreview ? (
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginHorizontal: 24,
-            marginBottom: 50,
-          }}
-        >
+        <View style={styles.previewButtonsContainer}>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={generateResume} // <- you create this function
+            onPress={generateResume}
           >
             <Text style={styles.buttonText}>
               {currentStepData.secondaryButtonText}
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleNext} // same as your normal flow
-          >
+          <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
             <Text style={styles.buttonText}>
               {currentStepData.primaryButtonText}
             </Text>

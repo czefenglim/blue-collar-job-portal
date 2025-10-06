@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -63,6 +64,7 @@ const JobDetailsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string>('');
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadJobDetails();
@@ -74,9 +76,11 @@ const JobDetailsScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('jobDetails.authenticationRequired'),
+          t('jobDetails.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -84,7 +88,7 @@ const JobDetailsScreen: React.FC = () => {
       await fetchJobDetails(userToken);
     } catch (error) {
       console.error('Error loading job details:', error);
-      Alert.alert('Error', 'Failed to load job details. Please try again.');
+      Alert.alert(t('common.error'), t('jobDetails.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +132,7 @@ const JobDetailsScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Error toggling save job:', error);
-      Alert.alert('Error', 'Failed to save job. Please try again.');
+      Alert.alert(t('common.error'), t('jobDetails.errors.saveFailed'));
     }
   };
 
@@ -137,10 +141,10 @@ const JobDetailsScreen: React.FC = () => {
 
     if (job.hasApplied) {
       Alert.alert(
-        'Already Applied',
-        `You have already applied to this position. Status: ${formatApplicationStatus(
-          job.applicationStatus
-        )}`
+        t('jobDetails.alreadyApplied.title'),
+        t('jobDetails.alreadyApplied.message', {
+          status: formatApplicationStatus(job.applicationStatus),
+        })
       );
       return;
     }
@@ -162,36 +166,58 @@ const JobDetailsScreen: React.FC = () => {
     max: number | null,
     type: string | null
   ) => {
-    if (!min && !max) return 'Salary not specified';
+    if (!min && !max) return t('jobDetails.salary.notSpecified');
 
     const formatAmount = (amount: number) => `RM ${amount.toLocaleString()}`;
 
     if (min && max) {
       return `${formatAmount(min)} - ${formatAmount(max)}${
-        type ? ` per ${type.toLowerCase()}` : ''
+        type ? ` ${t('jobDetails.salary.per')} ${type.toLowerCase()}` : ''
       }`;
     }
     return `${formatAmount(min || max!)}${
-      type ? ` per ${type.toLowerCase()}` : ''
+      type ? ` ${t('jobDetails.salary.per')} ${type.toLowerCase()}` : ''
     }`;
   };
 
   const formatJobType = (type: string) => {
-    return type
+    const formatted = type
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    // Map to translations if available
+    const translationMap: { [key: string]: string } = {
+      'Full Time': t('jobTypes.fullTime'),
+      'Part Time': t('jobTypes.partTime'),
+      Contract: t('jobTypes.contract'),
+      Temporary: t('jobTypes.temporary'),
+      Internship: t('jobTypes.internship'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatWorkingHours = (hours: string) => {
-    return hours
+    const formatted = hours
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    // Map to translations if available
+    const translationMap: { [key: string]: string } = {
+      'Day Shift': t('workingHours.dayShift'),
+      'Night Shift': t('workingHours.nightShift'),
+      'Rotating Shift': t('workingHours.rotatingShift'),
+      Flexible: t('workingHours.flexible'),
+      'Weekend Only': t('workingHours.weekendOnly'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatExperienceLevel = (level: string) => {
@@ -204,18 +230,33 @@ const JobDetailsScreen: React.FC = () => {
   };
 
   const formatCompanySize = (size: string | null) => {
-    if (!size) return 'Not specified';
+    if (!size) return t('jobDetails.company.notSpecified');
     return size.charAt(0) + size.slice(1).toLowerCase();
   };
 
   const formatApplicationStatus = (status: string | null) => {
-    if (!status) return 'Unknown';
-    return status
+    if (!status) return t('jobDetails.applicationStatus.unknown');
+
+    const formatted = status
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    // Map to translations if available
+    const translationMap: { [key: string]: string } = {
+      Pending: t('applications.status.pending'),
+      Reviewing: t('applications.status.reviewing'),
+      Shortlisted: t('applications.status.shortlisted'),
+      'Interview Scheduled': t('applications.status.interviewScheduled'),
+      Interviewed: t('applications.status.interviewed'),
+      Rejected: t('applications.status.rejected'),
+      Hired: t('applications.status.hired'),
+      Withdrawn: t('applications.status.withdrawn'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -224,11 +265,17 @@ const JobDetailsScreen: React.FC = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return 'Posted today';
-    if (diffDays === 2) return 'Posted yesterday';
-    if (diffDays <= 7) return `Posted ${diffDays} days ago`;
-    if (diffDays <= 30) return `Posted ${Math.floor(diffDays / 7)} weeks ago`;
-    return `Posted ${Math.floor(diffDays / 30)} months ago`;
+    if (diffDays === 1) return t('jobDetails.posted.today');
+    if (diffDays === 2) return t('jobDetails.posted.yesterday');
+    if (diffDays <= 7)
+      return t('jobDetails.posted.daysAgo', { days: diffDays });
+    if (diffDays <= 30)
+      return t('jobDetails.posted.weeksAgo', {
+        weeks: Math.floor(diffDays / 7),
+      });
+    return t('jobDetails.posted.monthsAgo', {
+      months: Math.floor(diffDays / 30),
+    });
   };
 
   if (isLoading) {
@@ -241,12 +288,12 @@ const JobDetailsScreen: React.FC = () => {
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Job Details</Text>
+          <Text style={styles.headerTitle}>{t('jobDetails.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading job details...</Text>
+          <Text style={styles.loadingText}>{t('jobDetails.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -262,12 +309,14 @@ const JobDetailsScreen: React.FC = () => {
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Job Details</Text>
+          <Text style={styles.headerTitle}>{t('jobDetails.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>Job not found</Text>
+          <Text style={styles.errorText}>
+            {t('jobDetails.errors.notFound')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -282,7 +331,7 @@ const JobDetailsScreen: React.FC = () => {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Job Details</Text>
+        <Text style={styles.headerTitle}>{t('jobDetails.title')}</Text>
         <TouchableOpacity style={styles.saveButton} onPress={toggleSaveJob}>
           <Text style={styles.saveIcon}>{job.isSaved ? '🔖' : '📑'}</Text>
         </TouchableOpacity>
@@ -302,7 +351,7 @@ const JobDetailsScreen: React.FC = () => {
             <Text style={styles.locationIcon}>📍</Text>
             <Text style={styles.locationText}>
               {job.city}, {job.state}
-              {job.isRemote && ' • Remote'}
+              {job.isRemote && ` • ${t('jobDetails.remote')}`}
             </Text>
           </View>
           <Text style={styles.postedTime}>{getTimeAgo(job.createdAt)}</Text>
@@ -312,25 +361,33 @@ const JobDetailsScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.quickInfoGrid}>
             <View style={styles.quickInfoItem}>
-              <Text style={styles.quickInfoLabel}>Job Type</Text>
+              <Text style={styles.quickInfoLabel}>
+                {t('jobDetails.quickInfo.jobType')}
+              </Text>
               <Text style={styles.quickInfoValue}>
                 {formatJobType(job.jobType)}
               </Text>
             </View>
             <View style={styles.quickInfoItem}>
-              <Text style={styles.quickInfoLabel}>Experience</Text>
+              <Text style={styles.quickInfoLabel}>
+                {t('jobDetails.quickInfo.experience')}
+              </Text>
               <Text style={styles.quickInfoValue}>
                 {formatExperienceLevel(job.experienceLevel)}
               </Text>
             </View>
             <View style={styles.quickInfoItem}>
-              <Text style={styles.quickInfoLabel}>Working Hours</Text>
+              <Text style={styles.quickInfoLabel}>
+                {t('jobDetails.quickInfo.workingHours')}
+              </Text>
               <Text style={styles.quickInfoValue}>
                 {formatWorkingHours(job.workingHours)}
               </Text>
             </View>
             <View style={styles.quickInfoItem}>
-              <Text style={styles.quickInfoLabel}>Industry</Text>
+              <Text style={styles.quickInfoLabel}>
+                {t('jobDetails.quickInfo.industry')}
+              </Text>
               <Text style={styles.quickInfoValue}>{job.industry.name}</Text>
             </View>
           </View>
@@ -338,7 +395,9 @@ const JobDetailsScreen: React.FC = () => {
 
         {/* Salary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💰 Salary</Text>
+          <Text style={styles.sectionTitle}>
+            💰 {t('jobDetails.salary.title')}
+          </Text>
           <Text style={styles.salaryText}>
             {formatSalary(job.salaryMin, job.salaryMax, job.salaryType)}
           </Text>
@@ -346,14 +405,18 @@ const JobDetailsScreen: React.FC = () => {
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 Job Description</Text>
+          <Text style={styles.sectionTitle}>
+            📋 {t('jobDetails.description.title')}
+          </Text>
           <Text style={styles.bodyText}>{job.description}</Text>
         </View>
 
         {/* Requirements */}
         {job.requirements && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>✅ Requirements</Text>
+            <Text style={styles.sectionTitle}>
+              ✅ {t('jobDetails.requirements.title')}
+            </Text>
             <Text style={styles.bodyText}>{job.requirements}</Text>
           </View>
         )}
@@ -361,25 +424,34 @@ const JobDetailsScreen: React.FC = () => {
         {/* Benefits */}
         {job.benefits && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎁 Benefits</Text>
+            <Text style={styles.sectionTitle}>
+              🎁 {t('jobDetails.benefits.title')}
+            </Text>
             <Text style={styles.bodyText}>{job.benefits}</Text>
           </View>
         )}
 
         {/* Company Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🏢 About {job.company.name}</Text>
+          <Text style={styles.sectionTitle}>
+            🏢{' '}
+            {t('jobDetails.company.about', { companyName: job.company.name })}
+          </Text>
           {job.company.description && (
             <Text style={styles.bodyText}>{job.company.description}</Text>
           )}
           <View style={styles.companyInfoRow}>
-            <Text style={styles.companyInfoLabel}>Company Size:</Text>
+            <Text style={styles.companyInfoLabel}>
+              {t('jobDetails.company.size')}
+            </Text>
             <Text style={styles.companyInfoValue}>
               {formatCompanySize(job.company.companySize)}
             </Text>
           </View>
           <View style={styles.companyInfoRow}>
-            <Text style={styles.companyInfoLabel}>Location:</Text>
+            <Text style={styles.companyInfoLabel}>
+              {t('jobDetails.company.location')}
+            </Text>
             <Text style={styles.companyInfoValue}>
               {job.company.city}, {job.company.state}
             </Text>
@@ -389,7 +461,9 @@ const JobDetailsScreen: React.FC = () => {
               style={styles.websiteButton}
               onPress={openWebsite}
             >
-              <Text style={styles.websiteButtonText}>Visit Website</Text>
+              <Text style={styles.websiteButtonText}>
+                {t('jobDetails.company.visitWebsite')}
+              </Text>
               <Text style={styles.websiteIcon}>🔗</Text>
             </TouchableOpacity>
           )}
@@ -400,12 +474,16 @@ const JobDetailsScreen: React.FC = () => {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{job.viewCount}</Text>
-              <Text style={styles.statLabel}>Views</Text>
+              <Text style={styles.statLabel}>
+                {t('jobDetails.stats.views')}
+              </Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{job.applicationCount}</Text>
-              <Text style={styles.statLabel}>Applicants</Text>
+              <Text style={styles.statLabel}>
+                {t('jobDetails.stats.applicants')}
+              </Text>
             </View>
           </View>
         </View>
@@ -419,15 +497,20 @@ const JobDetailsScreen: React.FC = () => {
           <View style={styles.appliedContainer}>
             <Text style={styles.appliedIcon}>✅</Text>
             <View style={styles.appliedTextContainer}>
-              <Text style={styles.appliedText}>Application Submitted</Text>
+              <Text style={styles.appliedText}>
+                {t('jobDetails.applied.submitted')}
+              </Text>
               <Text style={styles.appliedStatus}>
-                Status: {formatApplicationStatus(job.applicationStatus)}
+                {t('jobDetails.applied.status')}:{' '}
+                {formatApplicationStatus(job.applicationStatus)}
               </Text>
             </View>
           </View>
         ) : (
           <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-            <Text style={styles.applyButtonText}>Apply Now</Text>
+            <Text style={styles.applyButtonText}>
+              {t('jobDetails.applyButton')}
+            </Text>
           </TouchableOpacity>
         )}
       </View>

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -38,6 +39,7 @@ const PreferencesScreen: React.FC = () => {
   const [token, setToken] = useState<string>('');
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadData();
@@ -49,9 +51,11 @@ const PreferencesScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('preferences.authenticationRequired'),
+          t('preferences.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -63,7 +67,7 @@ const PreferencesScreen: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load preferences. Please try again.');
+      Alert.alert(t('common.error'), t('preferences.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -113,10 +117,10 @@ const PreferencesScreen: React.FC = () => {
         // Prevent selecting more than 3
         if (prev.length >= 3) {
           Alert.alert(
-            'Limit Reached',
-            'You can only select up to 3 industries.'
+            t('preferences.limitReached.title'),
+            t('preferences.limitReached.message')
           );
-          return prev; // don’t add
+          return prev; // don't add
         }
         return [...prev, industryId];
       }
@@ -126,8 +130,8 @@ const PreferencesScreen: React.FC = () => {
   const handleSave = async () => {
     if (selectedIndustries.length === 0) {
       Alert.alert(
-        'No Industries Selected',
-        'Please select at least one industry.'
+        t('preferences.noSelection.title'),
+        t('preferences.noSelection.message')
       );
       return;
     }
@@ -147,25 +151,37 @@ const PreferencesScreen: React.FC = () => {
       });
 
       if (response.ok) {
-        Alert.alert('Success', 'Your preferences have been updated!', [
+        Alert.alert(t('common.success'), t('preferences.success.message'), [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.back(),
           },
         ]);
       } else {
         const errorData = await response.json();
         Alert.alert(
-          'Error',
-          errorData.message || 'Failed to update preferences'
+          t('common.error'),
+          errorData.message || t('preferences.errors.updateFailed')
         );
       }
     } catch (error) {
       console.error('Error saving preferences:', error);
-      Alert.alert('Error', 'Failed to save preferences. Please try again.');
+      Alert.alert(t('common.error'), t('preferences.errors.updateFailed'));
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const getSelectionText = () => {
+    const count = selectedIndustries.length;
+    if (count === 0) {
+      return t('preferences.noIndustriesSelected');
+    }
+    return t('preferences.industriesSelected', {
+      count,
+      industry:
+        count === 1 ? t('preferences.industry') : t('preferences.industries'),
+    });
   };
 
   const renderIndustryItem = ({ item }: { item: Industry }) => {
@@ -200,7 +216,7 @@ const PreferencesScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading preferences...</Text>
+          <Text style={styles.loadingText}>{t('preferences.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -215,25 +231,23 @@ const PreferencesScreen: React.FC = () => {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Job Preferences</Text>
+        <Text style={styles.headerTitle}>{t('preferences.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Preferred Industries</Text>
+            <Text style={styles.sectionTitle}>
+              {t('preferences.preferredIndustries')}
+            </Text>
             <Text style={styles.sectionSubtitle}>
-              Select industries you are interested in
+              {t('preferences.industriesSubtitle')}
             </Text>
           </View>
 
           <View style={styles.selectionInfo}>
-            <Text style={styles.selectionText}>
-              {selectedIndustries.length}{' '}
-              {selectedIndustries.length === 1 ? 'industry' : 'industries'}{' '}
-              selected
-            </Text>
+            <Text style={styles.selectionText}>{getSelectionText()}</Text>
           </View>
 
           <FlatList
@@ -247,10 +261,7 @@ const PreferencesScreen: React.FC = () => {
 
         <View style={styles.infoBox}>
           <Text style={styles.infoIcon}>💡</Text>
-          <Text style={styles.infoText}>
-            Your preferences help us show you the most relevant job
-            opportunities
-          </Text>
+          <Text style={styles.infoText}>{t('preferences.infoText')}</Text>
         </View>
       </ScrollView>
 
@@ -260,7 +271,7 @@ const PreferencesScreen: React.FC = () => {
           onPress={() => router.back()}
           disabled={isSaving}
         >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -269,7 +280,7 @@ const PreferencesScreen: React.FC = () => {
           disabled={isSaving}
         >
           <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? t('preferences.saving') : t('preferences.saveChanges')}
           </Text>
         </TouchableOpacity>
       </View>

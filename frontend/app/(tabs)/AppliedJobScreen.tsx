@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
+import i18n from '@/locales/i18n';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -55,14 +57,15 @@ const AppliedJobsScreen: React.FC = () => {
   const [token, setToken] = useState<string>('');
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   const statusFilters = [
-    { key: 'ALL', label: 'All' },
-    { key: 'PENDING', label: 'Pending' },
-    { key: 'REVIEWING', label: 'Reviewing' },
-    { key: 'SHORTLISTED', label: 'Shortlisted' },
-    { key: 'INTERVIEW_SCHEDULED', label: 'Interview' },
-    { key: 'REJECTED', label: 'Rejected' },
+    { key: 'ALL', label: t('applications.filters.all') },
+    { key: 'PENDING', label: t('applications.filters.pending') },
+    { key: 'REVIEWING', label: t('applications.filters.reviewing') },
+    { key: 'SHORTLISTED', label: t('applications.filters.shortlisted') },
+    { key: 'INTERVIEW_SCHEDULED', label: t('applications.filters.interview') },
+    { key: 'REJECTED', label: t('applications.filters.rejected') },
   ];
 
   useEffect(() => {
@@ -75,9 +78,11 @@ const AppliedJobsScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('applications.authenticationRequired'),
+          t('applications.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -85,7 +90,7 @@ const AppliedJobsScreen: React.FC = () => {
       await fetchApplications(userToken);
     } catch (error) {
       console.error('Error loading applications:', error);
-      Alert.alert('Error', 'Failed to load applications. Please try again.');
+      Alert.alert(t('common.error'), t('applications.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +121,7 @@ const AppliedJobsScreen: React.FC = () => {
     try {
       await fetchApplications(token);
     } catch (error) {
-      Alert.alert('Error', 'Failed to refresh applications.');
+      Alert.alert(t('common.error'), t('applications.errors.refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
@@ -146,12 +151,26 @@ const AppliedJobsScreen: React.FC = () => {
   };
 
   const formatStatus = (status: string) => {
-    return status
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    const statusMap: { [key: string]: string } = {
+      PENDING: t('applications.status.pending'),
+      REVIEWING: t('applications.status.reviewing'),
+      SHORTLISTED: t('applications.status.shortlisted'),
+      INTERVIEW_SCHEDULED: t('applications.status.interviewScheduled'),
+      INTERVIEWED: t('applications.status.interviewed'),
+      REJECTED: t('applications.status.rejected'),
+      HIRED: t('applications.status.hired'),
+      WITHDRAWN: t('applications.status.withdrawn'),
+    };
+
+    return (
+      statusMap[status] ||
+      status
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    );
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -160,29 +179,50 @@ const AppliedJobsScreen: React.FC = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
+    if (diffDays === 1) return t('time.today');
+    if (diffDays === 2) return t('time.yesterday');
+    if (diffDays <= 7) return t('time.daysAgo', { days: diffDays });
+    if (diffDays <= 30)
+      return t('time.weeksAgo', { weeks: Math.floor(diffDays / 7) });
+    return t('time.monthsAgo', { months: Math.floor(diffDays / 30) });
   };
 
   const formatJobType = (type: string) => {
-    return type
+    const formatted = type
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    const translationMap: { [key: string]: string } = {
+      'Full Time': t('jobTypes.fullTime'),
+      'Part Time': t('jobTypes.partTime'),
+      Contract: t('jobTypes.contract'),
+      Temporary: t('jobTypes.temporary'),
+      Internship: t('jobTypes.internship'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatWorkingHours = (hours: string) => {
-    return hours
+    const formatted = hours
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    const translationMap: { [key: string]: string } = {
+      'Day Shift': t('workingHours.dayShift'),
+      'Night Shift': t('workingHours.nightShift'),
+      'Rotating Shift': t('workingHours.rotatingShift'),
+      Flexible: t('workingHours.flexible'),
+      'Weekend Only': t('workingHours.weekendOnly'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatAppliedDate = (dateString: string) => {
@@ -271,14 +311,16 @@ const AppliedJobsScreen: React.FC = () => {
 
         <View style={styles.cardFooter}>
           <View style={styles.footerLeft}>
-            <Text style={styles.appliedLabel}>Applied: </Text>
+            <Text style={styles.appliedLabel}>
+              {t('applications.applied')}{' '}
+            </Text>
             <Text style={styles.appliedDate}>
               {formatAppliedDate(item.appliedAt)}
             </Text>
           </View>
           {item.updatedAt !== item.appliedAt && (
             <Text style={styles.updatedText}>
-              Updated {getTimeAgo(item.updatedAt)}
+              {t('applications.updated')} {getTimeAgo(item.updatedAt)}
             </Text>
           )}
         </View>
@@ -291,20 +333,24 @@ const AppliedJobsScreen: React.FC = () => {
       <Text style={styles.emptyIcon}>📋</Text>
       <Text style={styles.emptyTitle}>
         {selectedFilter === 'ALL'
-          ? 'No Applications Yet'
-          : `No ${formatStatus(selectedFilter)} Applications`}
+          ? t('applications.emptyState.noApplications')
+          : t('applications.emptyState.noFilteredApplications', {
+              status: formatStatus(selectedFilter),
+            })}
       </Text>
       <Text style={styles.emptyText}>
         {selectedFilter === 'ALL'
-          ? 'Start applying to jobs and track your applications here'
-          : 'You have no applications with this status'}
+          ? t('applications.emptyState.description')
+          : t('applications.emptyState.filteredDescription')}
       </Text>
       {selectedFilter === 'ALL' && (
         <TouchableOpacity
           style={styles.browseButton}
           onPress={() => router.push('/HomeScreen')}
         >
-          <Text style={styles.browseButtonText}>Browse Jobs</Text>
+          <Text style={styles.browseButtonText}>
+            {t('applications.emptyState.browseButton')}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -320,12 +366,12 @@ const AppliedJobsScreen: React.FC = () => {
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Applications</Text>
+          <Text style={styles.headerTitle}>{t('applications.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading applications...</Text>
+          <Text style={styles.loadingText}>{t('applications.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -340,15 +386,21 @@ const AppliedJobsScreen: React.FC = () => {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Applications</Text>
+        <Text style={styles.headerTitle}>{t('applications.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       {applications.length > 0 && (
         <View style={styles.statsContainer}>
           <Text style={styles.statsText}>
-            {filteredApplications.length} of {applications.length}{' '}
-            {applications.length === 1 ? 'application' : 'applications'}
+            {t('applications.stats', {
+              filtered: filteredApplications.length,
+              total: applications.length,
+              application:
+                applications.length === 1
+                  ? t('applications.application')
+                  : t('applications.applications'),
+            })}
           </Text>
         </View>
       )}

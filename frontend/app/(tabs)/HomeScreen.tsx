@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -68,6 +69,7 @@ const HomeScreen: React.FC = () => {
   const isFocused = useIsFocused();
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadInitialData();
@@ -89,8 +91,8 @@ const HomeScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
+        Alert.alert(t('home.authRequired'), t('home.signInToContinue'), [
+          { text: t('common.ok'), onPress: () => router.replace('/') },
         ]);
         return;
       }
@@ -102,13 +104,9 @@ const HomeScreen: React.FC = () => {
         fetchIndustries(userToken),
         fetchJobs(userToken),
       ]);
-
-      console.log('User Token:', userToken); // Debug logs
-
-      console.log('User Preferences:', userPreferences); // Debug log
     } catch (error) {
       console.error('Error loading initial data:', error);
-      Alert.alert('Error', 'Failed to load data. Please try again.');
+      Alert.alert(t('common.error'), t('home.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -117,9 +115,7 @@ const HomeScreen: React.FC = () => {
   const fetchUserPreferences = async (userToken: string) => {
     try {
       const response = await fetch(`${URL}/api/users/getPreferences`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
+        headers: { Authorization: `Bearer ${userToken}` },
       });
 
       if (response.ok) {
@@ -130,18 +126,15 @@ const HomeScreen: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching user preferences:', error);
+      console.error('Error fetching preferences:', error);
     }
   };
 
   const fetchIndustries = async (userToken: string) => {
     try {
       const response = await fetch(`${URL}/api/industries`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
+        headers: { Authorization: `Bearer ${userToken}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         setIndustries(data.data);
@@ -154,18 +147,15 @@ const HomeScreen: React.FC = () => {
   const fetchJobs = async (userToken: string) => {
     try {
       const response = await fetch(`${URL}/api/jobs`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
+        headers: { Authorization: `Bearer ${userToken}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         setJobs(data.data);
       }
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      Alert.alert('Error', 'Failed to load jobs. Please try again.');
+      Alert.alert(t('common.error'), t('home.jobsLoadError'));
     }
   };
 
@@ -253,14 +243,14 @@ const HomeScreen: React.FC = () => {
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diff = Math.abs(now.getTime() - date.getTime());
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
+    if (days === 1) return t('home.today');
+    if (days === 2) return t('home.yesterday');
+    if (days <= 7) return t('home.daysAgo', { count: days });
+    if (days <= 30) return t('home.weeksAgo', { count: Math.floor(days / 7) });
+    return t('home.monthsAgo', { count: Math.floor(days / 30) });
   };
 
   const formatJobType = (type: string) => {
@@ -348,7 +338,7 @@ const HomeScreen: React.FC = () => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Industry</Text>
+            <Text style={styles.modalTitle}>{t('home.selectIndustry')}</Text>
             <TouchableOpacity onPress={() => setShowIndustryModal(false)}>
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
@@ -364,7 +354,9 @@ const HomeScreen: React.FC = () => {
               setShowIndustryModal(false);
             }}
           >
-            <Text style={styles.industryOptionText}>All Industries</Text>
+            <Text style={styles.industryOptionText}>
+              {t('home.allIndustries')}
+            </Text>
             {!selectedIndustry && <Text style={styles.checkmark}>✓</Text>}
           </TouchableOpacity>
 
@@ -400,7 +392,7 @@ const HomeScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading jobs...</Text>
+          <Text style={styles.loadingText}>{t('home.loadingJobs')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -414,7 +406,7 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.logoSmallText}>BC</Text>
           </View>
           <View>
-            <Text style={styles.appTitleSmall}>Blukers Job Platform</Text>
+            <Text style={styles.appTitleSmall}>{t('home.appTitle')}</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -428,7 +420,9 @@ const HomeScreen: React.FC = () => {
       {userPreferences && userPreferences.industries.length > 0 && (
         <View style={styles.preferencesSection}>
           <View style={styles.preferenceHeader}>
-            <Text style={styles.preferenceTitle}>Your Jobs Preferences</Text>
+            <Text style={styles.preferenceTitle}>
+              {t('home.yourJobPreferences')}
+            </Text>
             <TouchableOpacity onPress={() => router.push('/PreferencesScreen')}>
               <Text style={styles.editIcon}>✎</Text>
             </TouchableOpacity>
@@ -449,7 +443,7 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search jobs, companies..."
+            placeholder={t('home.searchPlaceholder')}
             placeholderTextColor="#94A3B8"
             value={searchKeyword}
             onChangeText={setSearchKeyword}
@@ -469,8 +463,8 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.filterButtonText}>
               {selectedIndustry
                 ? industries.find((i) => i.slug === selectedIndustry)?.name ||
-                  'Industry'
-                : 'Industry'}
+                  t('home.industry')
+                : t('home.industry')}
             </Text>
             <Text style={styles.filterArrow}>▼</Text>
           </TouchableOpacity>
@@ -479,7 +473,7 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.locationIcon}>📍</Text>
             <TextInput
               style={styles.locationInput}
-              placeholder="Location"
+              placeholder={t('home.locationPlaceholder')}
               placeholderTextColor="#94A3B8"
               value={locationFilter}
               onChangeText={setLocationFilter}
@@ -494,15 +488,19 @@ const HomeScreen: React.FC = () => {
             style={styles.clearFiltersButton}
             onPress={clearFilters}
           >
-            <Text style={styles.clearFiltersText}>Clear Filters</Text>
+            <Text style={styles.clearFiltersText}>
+              {t('home.clearFilters')}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsCount}>
-          {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'}{' '}
-          Found
+          {filteredJobs.length}{' '}
+          {filteredJobs.length === 1
+            ? t('home.oneJobFound')
+            : t('home.manyJobsFound')}
         </Text>
       </View>
 
@@ -522,8 +520,8 @@ const HomeScreen: React.FC = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🔍</Text>
-            <Text style={styles.emptyText}>No jobs found</Text>
-            <Text style={styles.emptySubtext}>Try adjusting your filters</Text>
+            <Text style={styles.emptyText}>{t('home.noJobs')}</Text>
+            <Text style={styles.emptySubtext}>{t('home.adjustFilters')}</Text>
           </View>
         }
       />

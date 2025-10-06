@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -50,6 +51,7 @@ const SavedJobsScreen: React.FC = () => {
   const [token, setToken] = useState<string>('');
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadSavedJobs();
@@ -61,9 +63,11 @@ const SavedJobsScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('savedJobs.authenticationRequired'),
+          t('savedJobs.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -71,7 +75,7 @@ const SavedJobsScreen: React.FC = () => {
       await fetchSavedJobs(userToken);
     } catch (error) {
       console.error('Error loading saved jobs:', error);
-      Alert.alert('Error', 'Failed to load saved jobs. Please try again.');
+      Alert.alert(t('common.error'), t('savedJobs.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +106,7 @@ const SavedJobsScreen: React.FC = () => {
     try {
       await fetchSavedJobs(token);
     } catch (error) {
-      Alert.alert('Error', 'Failed to refresh saved jobs.');
+      Alert.alert(t('common.error'), t('savedJobs.errors.refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
@@ -122,25 +126,25 @@ const SavedJobsScreen: React.FC = () => {
         // Remove job from list
         setSavedJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
       } else {
-        Alert.alert('Error', 'Failed to remove job. Please try again.');
+        Alert.alert(t('common.error'), t('savedJobs.errors.unsaveFailed'));
       }
     } catch (error) {
       console.error('Error unsaving job:', error);
-      Alert.alert('Error', 'Failed to remove job. Please try again.');
+      Alert.alert(t('common.error'), t('savedJobs.errors.unsaveFailed'));
     }
   };
 
   const confirmUnsave = (jobId: number, jobTitle: string) => {
     Alert.alert(
-      'Remove Saved Job',
-      `Remove "${jobTitle}" from your saved jobs?`,
+      t('savedJobs.removeJob'),
+      t('savedJobs.removeConfirmation', { jobTitle }),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Remove',
+          text: t('savedJobs.remove'),
           style: 'destructive',
           onPress: () => unsaveJob(jobId),
         },
@@ -154,29 +158,52 @@ const SavedJobsScreen: React.FC = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
+    if (diffDays === 1) return t('time.today');
+    if (diffDays === 2) return t('time.yesterday');
+    if (diffDays <= 7) return t('time.daysAgo', { days: diffDays });
+    if (diffDays <= 30)
+      return t('time.weeksAgo', { weeks: Math.floor(diffDays / 7) });
+    return t('time.monthsAgo', { months: Math.floor(diffDays / 30) });
   };
 
   const formatJobType = (type: string) => {
-    return type
+    const formatted = type
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    // Map to translations if available
+    const translationMap: { [key: string]: string } = {
+      'Full Time': t('jobTypes.fullTime'),
+      'Part Time': t('jobTypes.partTime'),
+      Contract: t('jobTypes.contract'),
+      Temporary: t('jobTypes.temporary'),
+      Internship: t('jobTypes.internship'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatWorkingHours = (hours: string) => {
-    return hours
+    const formatted = hours
       .replace(/_/g, ' ')
       .toLowerCase()
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+    // Map to translations if available
+    const translationMap: { [key: string]: string } = {
+      'Day Shift': t('workingHours.dayShift'),
+      'Night Shift': t('workingHours.nightShift'),
+      'Rotating Shift': t('workingHours.rotatingShift'),
+      Flexible: t('workingHours.flexible'),
+      'Weekend Only': t('workingHours.weekendOnly'),
+    };
+
+    return translationMap[formatted] || formatted;
   };
 
   const formatSavedAt = (dateString: string) => {
@@ -185,13 +212,15 @@ const SavedJobsScreen: React.FC = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return 'Saved today';
-    if (diffDays === 2) return 'Saved yesterday';
-    if (diffDays <= 7) return `Saved ${diffDays} days ago`;
-    return `Saved ${date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })}`;
+    if (diffDays === 1) return t('savedJobs.savedToday');
+    if (diffDays === 2) return t('savedJobs.savedYesterday');
+    if (diffDays <= 7) return t('savedJobs.savedDaysAgo', { days: diffDays });
+    return t('savedJobs.savedOnDate', {
+      date: date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+    });
   };
 
   const renderJobCard = ({ item }: { item: Job }) => (
@@ -251,7 +280,7 @@ const SavedJobsScreen: React.FC = () => {
 
       <View style={styles.jobFooter}>
         <Text style={styles.postedText}>
-          Posted {getTimeAgo(item.createdAt)}
+          {t('savedJobs.posted')} {getTimeAgo(item.createdAt)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -260,15 +289,17 @@ const SavedJobsScreen: React.FC = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>📑</Text>
-      <Text style={styles.emptyTitle}>No Saved Jobs Yet</Text>
+      <Text style={styles.emptyTitle}>{t('savedJobs.emptyState.title')}</Text>
       <Text style={styles.emptyText}>
-        Start browsing jobs and save the ones you are interested in
+        {t('savedJobs.emptyState.description')}
       </Text>
       <TouchableOpacity
         style={styles.browseButton}
         onPress={() => router.push('/HomeScreen')}
       >
-        <Text style={styles.browseButtonText}>Browse Jobs</Text>
+        <Text style={styles.browseButtonText}>
+          {t('savedJobs.emptyState.browseButton')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -283,12 +314,12 @@ const SavedJobsScreen: React.FC = () => {
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Saved Jobs</Text>
+          <Text style={styles.headerTitle}>{t('savedJobs.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading saved jobs...</Text>
+          <Text style={styles.loadingText}>{t('savedJobs.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -303,14 +334,20 @@ const SavedJobsScreen: React.FC = () => {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Saved Jobs</Text>
+        <Text style={styles.headerTitle}>{t('savedJobs.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       {savedJobs.length > 0 && (
         <View style={styles.statsContainer}>
           <Text style={styles.statsText}>
-            {savedJobs.length} {savedJobs.length === 1 ? 'job' : 'jobs'} saved
+            {t('savedJobs.jobCount', {
+              count: savedJobs.length,
+              jobs:
+                savedJobs.length === 1
+                  ? t('savedJobs.job')
+                  : t('savedJobs.jobs'),
+            })}
           </Text>
         </View>
       )}

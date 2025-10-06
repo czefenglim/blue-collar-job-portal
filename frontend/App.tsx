@@ -1,11 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
-import AuthNavigator from './navigation/AuthNavigator';
+
+import LanguageSelector from './components/LanguageSelector';
 
 export default function App() {
-  return (
-    <NavigationContainer>
-      <AuthNavigator />
-    </NavigationContainer>
-  );
+  return <LanguageSelector />;
 }

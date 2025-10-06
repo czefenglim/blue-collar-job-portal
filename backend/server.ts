@@ -7,6 +7,7 @@ import onboardingRoutes from './routes/onboarding';
 import jobRoutes from './routes/jobs';
 import userRoutes from './routes/users';
 import industryRoutes from './routes/industries';
+import languageRoutes from './routes/language';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/industries', industryRoutes);
+app.use('/api/language', languageRoutes); // Import language routes
 
 // Error handling middleware
 app.use(

@@ -1,367 +1,308 @@
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ScrollView,
+  StatusBar,
 } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
-interface LoginFormData {
-  email: string;
-  password: string;
-}
+const LANGUAGES = [
+  { code: 'en', label: 'EN', name: 'English', description: 'English' },
+  { code: 'zh', label: '中文', name: '中文', description: 'Chinese' },
+  { code: 'ms', label: 'BM', name: 'Bahasa Melayu', description: 'Malay' },
+  { code: 'ta', label: 'தமிழ்', name: 'தமிழ்', description: 'Tamil' },
+];
 
-interface LoginScreenProps {
-  onLogin?: (data: LoginFormData) => void;
-  onForgotPassword?: () => void;
-  onSignUp?: () => void;
-}
-
-const LoginScreen: React.FC<LoginScreenProps> = ({
-  onLogin,
-  onForgotPassword,
-  onSignUp,
-}) => {
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-  });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-
+const LanguageSelectPage: React.FC = () => {
+  const { currentLanguage, changeLanguage } = useLanguage();
   const router = useRouter();
+  const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage);
+  const token = AsyncStorage.getItem('jwtToken');
 
-  const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    if (!formData.email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
-      return false;
-    }
-
-    if (!formData.password.trim()) {
-      Alert.alert('Error', 'Please enter your password');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
+  const handleConfirm = async () => {
     try {
-      const response = await fetch(`${URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const token = data.data.token;
-
-        // Save the token
-        await AsyncStorage.setItem('jwtToken', token);
-
-        console.log('JWT Token (saved):', token);
-
-        Alert.alert('Success', 'Logged in successfully');
-        if (onLogin) onLogin(formData);
-
-        router.push('/HomeScreen');
-      } else {
-        Alert.alert('Error', data.message || 'Login failed');
-      }
+      await AsyncStorage.setItem('preferredLanguage', selectedLanguage);
+      changeLanguage(selectedLanguage);
+      router.push('/LoginScreen'); // Continue to login/signup
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', 'An error occurred during login. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error saving preferred language:', error);
     }
+  };
+
+  const getCurrentLanguage = () => {
+    return LANGUAGES.find((lang) => lang.code === selectedLanguage);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Logo Section */}
-          <View style={styles.logoSection}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>BC</Text>
-            </View>
-            <Text style={styles.appTitle}>Blue-Collar Job Portal</Text>
-            <Text style={styles.appSubtitle}>Find your next opportunity</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Select Language</Text>
+            <Text style={styles.subtitle}>Choose your preferred language</Text>
           </View>
 
-          {/* Login Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>Welcome Back</Text>
-            <Text style={styles.subtitleText}>
-              Sign in to continue job hunting
-            </Text>
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter your email"
-                placeholderTextColor="#94A3B8"
-                value={formData.email}
-                onChangeText={(value) => handleInputChange('email', value)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#94A3B8"
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange('password', value)}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.eyeButtonText}>
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
+          {/* Language Selection Cards */}
+          <View style={styles.languageGrid}>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageCard,
+                  selectedLanguage === lang.code && styles.languageCardActive,
+                ]}
+                onPress={() => setSelectedLanguage(lang.code)}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.languageHeader}>
+                    <Text
+                      style={[
+                        styles.languageLabel,
+                        selectedLanguage === lang.code &&
+                          styles.languageLabelActive,
+                      ]}
+                    >
+                      {lang.label}
+                    </Text>
+                    {selectedLanguage === lang.code && (
+                      <View style={styles.selectedIndicator}>
+                        <Text style={styles.selectedIcon}>✓</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.languageName,
+                      selectedLanguage === lang.code &&
+                        styles.languageNameActive,
+                    ]}
+                  >
+                    {lang.name}
                   </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Forgot Password Link */}
-            <TouchableOpacity
-              style={styles.forgotPasswordContainer}
-              onPress={() => router.push('/ForgotPasswordScreen')}
-              disabled={isLoading}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[
-                styles.loginButton,
-                isLoading && styles.loginButtonDisabled,
-              ]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Text style={styles.loginButtonText}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={styles.signUpButton}
-              onPress={() => router.push('/SignUpScreen')}
-              disabled={isLoading}
-            >
-              <Text style={styles.signUpButtonText}>
-                Don&apos;t have an account?{' '}
-                <Text style={styles.signUpLinkText}>Sign Up</Text>
-              </Text>
-            </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.languageDescription,
+                      selectedLanguage === lang.code &&
+                        styles.languageDescriptionActive,
+                    ]}
+                  >
+                    {lang.description}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {/* Selected Language Preview */}
+          <View style={styles.previewContainer}>
+            <Text style={styles.previewTitle}>Selected Language</Text>
+            <View style={styles.previewContent}>
+              <Text style={styles.previewLabel}>
+                {getCurrentLanguage()?.label}
+              </Text>
+              <Text style={styles.previewName}>
+                {getCurrentLanguage()?.name}
+              </Text>
+            </View>
+          </View>
+
+          {/* Confirm Button */}
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirm}
+          >
+            <Text style={styles.confirmButtonText}>Confirm Language</Text>
+          </TouchableOpacity>
+
+          {/* Cancel Button */}
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  scrollContent: {
+  scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
   },
-  logoSection: {
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  header: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#1E3A8A',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#1E3A8A',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  appTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 4,
+    marginBottom: 8,
     textAlign: 'center',
   },
-  appSubtitle: {
+  subtitle: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
+    lineHeight: 24,
   },
-  formContainer: {
+  languageGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  languageCard: {
+    width: '48%',
+    minWidth: 150,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 8,
-    textAlign: 'center',
+  languageCardActive: {
+    backgroundColor: '#1E3A8A',
+    borderColor: '#1E40AF',
+    shadowColor: '#1E3A8A',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    transform: [{ scale: 1.02 }],
   },
-  subtitleText: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: '#1E293B',
-    minHeight: 56,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    minHeight: 56,
-  },
-  passwordInput: {
+  cardContent: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
+  },
+  languageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  languageLabel: {
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1E293B',
   },
-  eyeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+  languageLabelActive: {
+    color: '#FFFFFF',
   },
-  eyeButtonText: {
-    fontSize: 18,
+  selectedIndicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginBottom: 32,
+  selectedIcon: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: '#1E3A8A',
+  languageName: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#475569',
+    marginBottom: 4,
   },
-  loginButton: {
+  languageNameActive: {
+    color: '#E2E8F0',
+  },
+  languageDescription: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  languageDescriptionActive: {
+    color: '#CBD5E1',
+  },
+  previewContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  previewTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  previewContent: {
+    alignItems: 'center',
+  },
+  previewLabel: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E3A8A',
+    marginBottom: 4,
+  },
+  previewName: {
+    fontSize: 16,
+    color: '#475569',
+    textAlign: 'center',
+  },
+  confirmButton: {
+    width: '100%',
     backgroundColor: '#1E3A8A',
     borderRadius: 12,
-    paddingVertical: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
     shadowColor: '#1E3A8A',
     shadowOffset: {
       width: 0,
@@ -369,45 +310,24 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
-  loginButtonDisabled: {
-    backgroundColor: '#94A3B8',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  loginButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  signUpButton: {
+  cancelButton: {
+    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
-  signUpButtonText: {
+  cancelButtonText: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#64748B',
-  },
-  signUpLinkText: {
-    color: '#1E3A8A',
-    fontWeight: 'bold',
   },
 });
 
-export default LoginScreen;
+export default LanguageSelectPage;

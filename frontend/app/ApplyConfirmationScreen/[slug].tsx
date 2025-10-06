@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -53,6 +54,7 @@ const ApplyConfirmationScreen: React.FC = () => {
   const [showIncompleteForm, setShowIncompleteForm] = useState(false);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadData();
@@ -64,9 +66,11 @@ const ApplyConfirmationScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('applyConfirmation.authenticationRequired'),
+          t('applyConfirmation.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -77,7 +81,7 @@ const ApplyConfirmationScreen: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
-      Alert.alert('Error', 'Failed to load application details.');
+      Alert.alert(t('common.error'), t('applyConfirmation.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -132,19 +136,31 @@ const ApplyConfirmationScreen: React.FC = () => {
   const updateProfileAndApply = async () => {
     // Validate required fields
     if (!phoneNumber.trim()) {
-      Alert.alert('Required', 'Please enter your phone number');
+      Alert.alert(
+        t('common.required'),
+        t('applyConfirmation.validation.phoneRequired')
+      );
       return;
     }
     if (!city.trim()) {
-      Alert.alert('Required', 'Please enter your city');
+      Alert.alert(
+        t('common.required'),
+        t('applyConfirmation.validation.cityRequired')
+      );
       return;
     }
     if (!state.trim()) {
-      Alert.alert('Required', 'Please enter your state');
+      Alert.alert(
+        t('common.required'),
+        t('applyConfirmation.validation.stateRequired')
+      );
       return;
     }
     if (!experienceYears.trim()) {
-      Alert.alert('Required', 'Please enter your years of experience');
+      Alert.alert(
+        t('common.required'),
+        t('applyConfirmation.validation.experienceRequired')
+      );
       return;
     }
 
@@ -174,7 +190,10 @@ const ApplyConfirmationScreen: React.FC = () => {
       await submitApplication();
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      Alert.alert(
+        t('common.error'),
+        t('applyConfirmation.errors.updateFailed')
+      );
       setIsSubmitting(false);
     }
   };
@@ -199,15 +218,15 @@ const ApplyConfirmationScreen: React.FC = () => {
 
       if (response.ok) {
         Alert.alert(
-          'Application Submitted!',
-          `Your application for ${job.title} has been submitted successfully.`,
+          t('applyConfirmation.success.title'),
+          t('applyConfirmation.success.message', { jobTitle: job.title }),
           [
             {
-              text: 'View Applications',
+              text: t('applyConfirmation.success.viewApplications'),
               onPress: () => router.push('/AppliedJobScreen'),
             },
             {
-              text: 'Back to Jobs',
+              text: t('applyConfirmation.success.backToJobs'),
               onPress: () => router.push('/HomeScreen'),
             },
           ]
@@ -215,13 +234,16 @@ const ApplyConfirmationScreen: React.FC = () => {
       } else {
         const errorData = await response.json();
         Alert.alert(
-          'Error',
-          errorData.message || 'Failed to submit application'
+          t('common.error'),
+          errorData.message || t('applyConfirmation.errors.submitFailed')
         );
       }
     } catch (error) {
       console.error('Error submitting application:', error);
-      Alert.alert('Error', 'Failed to submit application. Please try again.');
+      Alert.alert(
+        t('common.error'),
+        t('applyConfirmation.errors.submitFailed')
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -240,7 +262,9 @@ const ApplyConfirmationScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading application...</Text>
+          <Text style={styles.loadingText}>
+            {t('applyConfirmation.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -251,7 +275,7 @@ const ApplyConfirmationScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            Failed to load application details
+            {t('applyConfirmation.errors.loadFailed')}
           </Text>
         </View>
       </SafeAreaView>
@@ -267,7 +291,7 @@ const ApplyConfirmationScreen: React.FC = () => {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Apply for Job</Text>
+        <Text style={styles.headerTitle}>{t('applyConfirmation.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -284,14 +308,20 @@ const ApplyConfirmationScreen: React.FC = () => {
             </View>
           </View>
           <View style={styles.progressLabels}>
-            <Text style={styles.progressLabelActive}>Review Info</Text>
-            <Text style={styles.progressLabelInactive}>Submit</Text>
+            <Text style={styles.progressLabelActive}>
+              {t('applyConfirmation.progress.reviewInfo')}
+            </Text>
+            <Text style={styles.progressLabelInactive}>
+              {t('applyConfirmation.progress.submit')}
+            </Text>
           </View>
         </View>
 
         {/* Job Info Card */}
         <View style={styles.jobCard}>
-          <Text style={styles.jobCardLabel}>Applying for</Text>
+          <Text style={styles.jobCardLabel}>
+            {t('applyConfirmation.applyingFor')}
+          </Text>
           <Text style={styles.jobTitle}>{job.title}</Text>
           <Text style={styles.companyName}>{job.company.name}</Text>
         </View>
@@ -302,15 +332,19 @@ const ApplyConfirmationScreen: React.FC = () => {
             <View style={styles.alertBox}>
               <Text style={styles.alertIcon}>ℹ️</Text>
               <Text style={styles.alertText}>
-                Complete these required details to submit your application
+                {t('applyConfirmation.incompleteProfile.alert')}
               </Text>
             </View>
 
             <View style={styles.formSection}>
-              <Text style={styles.formTitle}>Required Information</Text>
+              <Text style={styles.formTitle}>
+                {t('applyConfirmation.incompleteProfile.title')}
+              </Text>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.inputLabel}>
+                  {t('editProfile.fullName')}
+                </Text>
                 <View style={styles.readOnlyInput}>
                   <Text style={styles.readOnlyText}>
                     {userProfile.fullName}
@@ -319,10 +353,14 @@ const ApplyConfirmationScreen: React.FC = () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Phone Number *</Text>
+                <Text style={styles.inputLabel}>
+                  {t('applyConfirmation.incompleteProfile.phoneNumber')}
+                </Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g., 012-3456-7890"
+                  placeholder={t(
+                    'applyConfirmation.incompleteProfile.phonePlaceholder'
+                  )}
                   placeholderTextColor="#94A3B8"
                   value={phoneNumber}
                   onChangeText={setPhoneNumber}
@@ -331,10 +369,12 @@ const ApplyConfirmationScreen: React.FC = () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>City *</Text>
+                <Text style={styles.inputLabel}>{t('profile.city')}</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g., Kuala Lumpur"
+                  placeholder={t(
+                    'applyConfirmation.incompleteProfile.cityPlaceholder'
+                  )}
                   placeholderTextColor="#94A3B8"
                   value={city}
                   onChangeText={setCity}
@@ -342,10 +382,12 @@ const ApplyConfirmationScreen: React.FC = () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>State *</Text>
+                <Text style={styles.inputLabel}>{t('profile.state')}</Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g., Wilayah Persekutuan"
+                  placeholder={t(
+                    'applyConfirmation.incompleteProfile.statePlaceholder'
+                  )}
                   placeholderTextColor="#94A3B8"
                   value={state}
                   onChangeText={setState}
@@ -353,10 +395,14 @@ const ApplyConfirmationScreen: React.FC = () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Years of Experience *</Text>
+                <Text style={styles.inputLabel}>
+                  {t('profile.yearsOfExperience')}
+                </Text>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g., 3"
+                  placeholder={t(
+                    'applyConfirmation.incompleteProfile.experiencePlaceholder'
+                  )}
                   placeholderTextColor="#94A3B8"
                   value={experienceYears}
                   onChangeText={setExperienceYears}
@@ -369,9 +415,13 @@ const ApplyConfirmationScreen: React.FC = () => {
           /* Complete Profile Summary */
           <View style={styles.summarySection}>
             <View style={styles.summaryHeader}>
-              <Text style={styles.summaryTitle}>Your Application Details</Text>
+              <Text style={styles.summaryTitle}>
+                {t('applyConfirmation.completeProfile.title')}
+              </Text>
               <View style={styles.completeBadge}>
-                <Text style={styles.completeBadgeText}>✓ Complete</Text>
+                <Text style={styles.completeBadgeText}>
+                  {t('applyConfirmation.completeProfile.badge')}
+                </Text>
               </View>
             </View>
 
@@ -379,7 +429,9 @@ const ApplyConfirmationScreen: React.FC = () => {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryIcon}>👤</Text>
                 <View style={styles.summaryInfo}>
-                  <Text style={styles.summaryLabel}>Name</Text>
+                  <Text style={styles.summaryLabel}>
+                    {t('editProfile.fullName')}
+                  </Text>
                   <Text style={styles.summaryValue}>
                     {userProfile.fullName}
                   </Text>
@@ -391,7 +443,7 @@ const ApplyConfirmationScreen: React.FC = () => {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryIcon}>📞</Text>
                 <View style={styles.summaryInfo}>
-                  <Text style={styles.summaryLabel}>Phone</Text>
+                  <Text style={styles.summaryLabel}>{t('profile.phone')}</Text>
                   <Text style={styles.summaryValue}>
                     {userProfile.phoneNumber}
                   </Text>
@@ -403,7 +455,7 @@ const ApplyConfirmationScreen: React.FC = () => {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryIcon}>📧</Text>
                 <View style={styles.summaryInfo}>
-                  <Text style={styles.summaryLabel}>Email</Text>
+                  <Text style={styles.summaryLabel}>{t('profile.email')}</Text>
                   <Text style={styles.summaryValue}>{userProfile.email}</Text>
                 </View>
               </View>
@@ -415,7 +467,9 @@ const ApplyConfirmationScreen: React.FC = () => {
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryIcon}>📍</Text>
                     <View style={styles.summaryInfo}>
-                      <Text style={styles.summaryLabel}>Location</Text>
+                      <Text style={styles.summaryLabel}>
+                        {t('profile.sections.address')}
+                      </Text>
                       <Text style={styles.summaryValue}>
                         {userProfile.profile.city}, {userProfile.profile.state}
                       </Text>
@@ -427,9 +481,12 @@ const ApplyConfirmationScreen: React.FC = () => {
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryIcon}>💼</Text>
                     <View style={styles.summaryInfo}>
-                      <Text style={styles.summaryLabel}>Experience</Text>
+                      <Text style={styles.summaryLabel}>
+                        {t('profile.yearsOfExperience')}
+                      </Text>
                       <Text style={styles.summaryValue}>
-                        {userProfile.profile.experienceYears} years
+                        {userProfile.profile.experienceYears}{' '}
+                        {t('profile.years')}
                       </Text>
                     </View>
                   </View>
@@ -440,7 +497,9 @@ const ApplyConfirmationScreen: React.FC = () => {
                       <View style={styles.summaryRow}>
                         <Text style={styles.summaryIcon}>🧰</Text>
                         <View style={styles.summaryInfo}>
-                          <Text style={styles.summaryLabel}>Skills</Text>
+                          <Text style={styles.summaryLabel}>
+                            {t('profile.skills')}
+                          </Text>
                           <View style={styles.skillsContainer}>
                             {userProfile.profile.skills
                               .slice(0, 5)
@@ -453,7 +512,8 @@ const ApplyConfirmationScreen: React.FC = () => {
                               ))}
                             {userProfile.profile.skills.length > 5 && (
                               <Text style={styles.moreText}>
-                                +{userProfile.profile.skills.length - 5} more
+                                +{userProfile.profile.skills.length - 5}{' '}
+                                {t('applyConfirmation.completeProfile.more')}
                               </Text>
                             )}
                           </View>
@@ -468,8 +528,14 @@ const ApplyConfirmationScreen: React.FC = () => {
                       <View style={styles.summaryRow}>
                         <Text style={styles.summaryIcon}>📄</Text>
                         <View style={styles.summaryInfo}>
-                          <Text style={styles.summaryLabel}>Resume</Text>
-                          <Text style={styles.summaryValue}>Attached</Text>
+                          <Text style={styles.summaryLabel}>
+                            {t('profile.viewResume')}
+                          </Text>
+                          <Text style={styles.summaryValue}>
+                            {t(
+                              'applyConfirmation.completeProfile.resumeAttached'
+                            )}
+                          </Text>
                         </View>
                       </View>
                     </>
@@ -482,7 +548,9 @@ const ApplyConfirmationScreen: React.FC = () => {
               style={styles.editProfileButton}
               onPress={() => router.push('/EditProfileScreen')}
             >
-              <Text style={styles.editProfileText}>Edit Profile Details</Text>
+              <Text style={styles.editProfileText}>
+                {t('applyConfirmation.completeProfile.editProfile')}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -501,7 +569,9 @@ const ApplyConfirmationScreen: React.FC = () => {
           disabled={isSubmitting}
         >
           <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Submitting...' : 'Confirm & Send Application'}
+            {isSubmitting
+              ? t('applyConfirmation.submitting')
+              : t('applyConfirmation.confirmApplication')}
           </Text>
         </TouchableOpacity>
       </View>
