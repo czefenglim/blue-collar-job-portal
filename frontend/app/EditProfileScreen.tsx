@@ -17,6 +17,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -62,6 +63,7 @@ interface UserProfile {
 
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [token, setToken] = useState<string>('');
@@ -136,9 +138,11 @@ const EditProfileScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('editProfile.authenticationRequired'),
+          t('editProfile.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -151,7 +155,7 @@ const EditProfileScreen: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Error loading initial data:', error);
-      Alert.alert('Error', 'Failed to load data. Please try again.');
+      Alert.alert(t('common.error'), t('editProfile.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -239,7 +243,10 @@ const EditProfileScreen: React.FC = () => {
 
       // Basic validation
       if (!formData.fullName.trim()) {
-        Alert.alert('Error', 'Please enter your full name');
+        Alert.alert(
+          t('common.error'),
+          t('editProfile.errors.fullNameRequired')
+        );
         return;
       }
 
@@ -253,15 +260,15 @@ const EditProfileScreen: React.FC = () => {
       });
 
       if (response.ok) {
-        Alert.alert('Success', 'Profile updated successfully', [
-          { text: 'OK', onPress: () => router.back() },
+        Alert.alert(t('common.success'), t('editProfile.success.message'), [
+          { text: t('common.ok'), onPress: () => router.back() },
         ]);
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      Alert.alert(t('common.error'), t('editProfile.errors.updateFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -291,7 +298,7 @@ const EditProfileScreen: React.FC = () => {
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Select date';
+    if (!dateString) return t('editProfile.selectDate');
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -301,6 +308,36 @@ const EditProfileScreen: React.FC = () => {
   };
 
   const formatEnumValue = (value: string) => {
+    const genderMap: { [key: string]: string } = {
+      MALE: t('profile.gender.male'),
+      FEMALE: t('profile.gender.female'),
+      OTHER: t('profile.gender.other'),
+      PREFER_NOT_TO_SAY: t('profile.gender.preferNotToSay'),
+    };
+
+    const workingHoursMap: { [key: string]: string } = {
+      DAY_SHIFT: t('workingHours.dayShift'),
+      NIGHT_SHIFT: t('workingHours.nightShift'),
+      ROTATING_SHIFT: t('workingHours.rotatingShift'),
+      FLEXIBLE: t('workingHours.flexible'),
+      WEEKEND_ONLY: t('workingHours.weekendOnly'),
+    };
+
+    const transportMap: { [key: string]: string } = {
+      OWN_VEHICLE: t('profile.transport.ownVehicle'),
+      PUBLIC_TRANSPORT: t('profile.transport.publicTransport'),
+      COMPANY_TRANSPORT: t('profile.transport.companyTransport'),
+      MOTORCYCLE: t('profile.transport.motorcycle'),
+      BICYCLE: t('profile.transport.bicycle'),
+      WALKING: t('profile.transport.walking'),
+    };
+
+    // Check all maps
+    if (genderMap[value]) return genderMap[value];
+    if (workingHoursMap[value]) return workingHoursMap[value];
+    if (transportMap[value]) return transportMap[value];
+
+    // Fallback to default formatting
     return value
       .replace(/_/g, ' ')
       .toLowerCase()
@@ -320,6 +357,34 @@ const EditProfileScreen: React.FC = () => {
         : [...current, id];
       return { ...prev, [type]: updated };
     });
+  };
+
+  const getModalTitle = (type: 'industries' | 'skills' | 'languages') => {
+    const titles = {
+      industries: t('editProfile.modals.industries'),
+      skills: t('editProfile.modals.skills'),
+      languages: t('editProfile.modals.languages'),
+    };
+    return titles[type];
+  };
+
+  const getSelectionText = (
+    type: 'industries' | 'skills' | 'languages',
+    count: number
+  ) => {
+    const baseTexts = {
+      industries: 'editProfile.industriesSelected',
+      skills: 'editProfile.skillsSelected',
+      languages: 'editProfile.languagesSelected',
+    };
+
+    const placeholderTexts = {
+      industries: t('editProfile.selectIndustries'),
+      skills: t('editProfile.selectSkills'),
+      languages: t('editProfile.selectLanguages'),
+    };
+
+    return count > 0 ? t(baseTexts[type], { count }) : placeholderTexts[type];
   };
 
   const renderModal = (
@@ -378,7 +443,7 @@ const EditProfileScreen: React.FC = () => {
                 colors={['#4F46E5', '#3730A3']}
                 style={styles.modalDoneGradient}
               >
-                <Text style={styles.modalDoneText}>Done</Text>
+                <Text style={styles.modalDoneText}>{t('common.done')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -392,7 +457,7 @@ const EditProfileScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading your profile...</Text>
+          <Text style={styles.loadingText}>{t('editProfile.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -419,8 +484,10 @@ const EditProfileScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>Edit Profile</Text>
-            <Text style={styles.headerSubtitle}>Update your information</Text>
+            <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
+            <Text style={styles.headerSubtitle}>
+              {t('editProfile.subtitle')}
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -437,7 +504,7 @@ const EditProfileScreen: React.FC = () => {
               {isSaving ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.saveButtonText}>Save</Text>
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
@@ -450,40 +517,44 @@ const EditProfileScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>👤</Text>
             <View>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
-              <Text style={styles.sectionSubtitle}>Your basic details</Text>
+              <Text style={styles.sectionTitle}>
+                {t('editProfile.sections.personalInfo')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('editProfile.sections.personalInfoSubtitle')}
+              </Text>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Full Name *</Text>
+            <Text style={styles.label}>{t('editProfile.fullName')} *</Text>
             <TextInput
               style={styles.input}
               value={formData.fullName}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, fullName: text }))
               }
-              placeholder="Enter your full name"
+              placeholder={t('editProfile.placeholders.fullName')}
               placeholderTextColor="#94A3B8"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>{t('profile.phoneNumber')}</Text>
             <TextInput
               style={styles.input}
               value={formData.phoneNumber}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, phoneNumber: text }))
               }
-              placeholder="Enter your phone number"
+              placeholder={t('editProfile.placeholders.phoneNumber')}
               placeholderTextColor="#94A3B8"
               keyboardType="phone-pad"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date of Birth</Text>
+            <Text style={styles.label}>{t('profile.dateOfBirth')}</Text>
             <TouchableOpacity
               style={styles.dateButton}
               onPress={() => openDatePicker('dateOfBirth')}
@@ -501,7 +572,7 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gender</Text>
+            <Text style={styles.label}>{t('profile.gender.title')}</Text>
             <View style={styles.optionsContainer}>
               {genderOptions.map((gender) => (
                 <TouchableOpacity
@@ -527,14 +598,14 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nationality</Text>
+            <Text style={styles.label}>{t('profile.nationality')}</Text>
             <TextInput
               style={styles.input}
               value={formData.nationality}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, nationality: text }))
               }
-              placeholder="Enter your nationality"
+              placeholder={t('editProfile.placeholders.nationality')}
               placeholderTextColor="#94A3B8"
             />
           </View>
@@ -545,20 +616,24 @@ const EditProfileScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>🏠</Text>
             <View>
-              <Text style={styles.sectionTitle}>Address</Text>
-              <Text style={styles.sectionSubtitle}>Your current location</Text>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.address')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('editProfile.sections.addressSubtitle')}
+              </Text>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Address</Text>
+            <Text style={styles.label}>{t('profile.address')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={formData.address}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, address: text }))
               }
-              placeholder="Enter your complete address"
+              placeholder={t('editProfile.placeholders.address')}
               placeholderTextColor="#94A3B8"
               multiline
               numberOfLines={3}
@@ -568,41 +643,41 @@ const EditProfileScreen: React.FC = () => {
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, styles.flex1]}>
-              <Text style={styles.label}>City</Text>
+              <Text style={styles.label}>{t('profile.city')}</Text>
               <TextInput
                 style={styles.input}
                 value={formData.city}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, city: text }))
                 }
-                placeholder="City"
+                placeholder={t('editProfile.placeholders.city')}
                 placeholderTextColor="#94A3B8"
               />
             </View>
 
             <View style={[styles.inputGroup, styles.flex1]}>
-              <Text style={styles.label}>State</Text>
+              <Text style={styles.label}>{t('profile.state')}</Text>
               <TextInput
                 style={styles.input}
                 value={formData.state}
                 onChangeText={(text) =>
                   setFormData((prev) => ({ ...prev, state: text }))
                 }
-                placeholder="State"
+                placeholder={t('editProfile.placeholders.state')}
                 placeholderTextColor="#94A3B8"
               />
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Postcode</Text>
+            <Text style={styles.label}>{t('profile.postcode')}</Text>
             <TextInput
               style={styles.input}
               value={formData.postcode}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, postcode: text }))
               }
-              placeholder="Postal code"
+              placeholder={t('editProfile.placeholders.postcode')}
               placeholderTextColor="#94A3B8"
               keyboardType="numeric"
             />
@@ -614,15 +689,17 @@ const EditProfileScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>💼</Text>
             <View>
-              <Text style={styles.sectionTitle}>Job Preferences</Text>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.jobPreferences')}
+              </Text>
               <Text style={styles.sectionSubtitle}>
-                Your career requirements
+                {t('editProfile.sections.jobPreferencesSubtitle')}
               </Text>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preferred Industries</Text>
+            <Text style={styles.label}>{t('profile.preferredIndustries')}</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
               onPress={() => setShowIndustryModal(true)}
@@ -633,16 +710,14 @@ const EditProfileScreen: React.FC = () => {
                   formData.industries.length === 0 && styles.placeholderText,
                 ]}
               >
-                {formData.industries.length > 0
-                  ? `${formData.industries.length} industry selected`
-                  : 'Select preferred industries'}
+                {getSelectionText('industries', formData.industries.length)}
               </Text>
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Expected Salary Range (RM)</Text>
+            <Text style={styles.label}>{t('profile.expectedSalary')} (RM)</Text>
             <View style={styles.row}>
               <View style={[styles.inputGroup, styles.flex1]}>
                 <TextInput
@@ -654,12 +729,12 @@ const EditProfileScreen: React.FC = () => {
                       preferredSalaryMin: text ? parseInt(text) : null,
                     }))
                   }
-                  placeholder="Minimum"
+                  placeholder={t('editProfile.placeholders.minSalary')}
                   placeholderTextColor="#94A3B8"
                   keyboardType="numeric"
                 />
               </View>
-              <Text style={styles.salarySeparator}>to</Text>
+              <Text style={styles.salarySeparator}>{t('editProfile.to')}</Text>
               <View style={[styles.inputGroup, styles.flex1]}>
                 <TextInput
                   style={styles.input}
@@ -670,7 +745,7 @@ const EditProfileScreen: React.FC = () => {
                       preferredSalaryMax: text ? parseInt(text) : null,
                     }))
                   }
-                  placeholder="Maximum"
+                  placeholder={t('editProfile.placeholders.maxSalary')}
                   placeholderTextColor="#94A3B8"
                   keyboardType="numeric"
                 />
@@ -679,7 +754,7 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Preferred Working Hours</Text>
+            <Text style={styles.label}>{t('profile.workingHours')}</Text>
             <View style={styles.optionsContainer}>
               {workingHoursOptions.map((hours) => (
                 <TouchableOpacity
@@ -708,7 +783,7 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Transport Mode</Text>
+            <Text style={styles.label}>{t('profile.transportMode')}</Text>
             <View style={styles.optionsContainer}>
               {transportModeOptions.map((mode) => (
                 <TouchableOpacity
@@ -737,7 +812,9 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Max Travel Distance (km)</Text>
+            <Text style={styles.label}>
+              {t('profile.maxTravelDistance')} (km)
+            </Text>
             <TextInput
               style={styles.input}
               value={formData.maxTravelDistance?.toString() || ''}
@@ -747,14 +824,14 @@ const EditProfileScreen: React.FC = () => {
                   maxTravelDistance: text ? parseInt(text) : null,
                 }))
               }
-              placeholder="Maximum commuting distance"
+              placeholder={t('editProfile.placeholders.maxTravelDistance')}
               placeholderTextColor="#94A3B8"
               keyboardType="numeric"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Available From</Text>
+            <Text style={styles.label}>{t('profile.availableFrom')}</Text>
             <TouchableOpacity
               style={styles.dateButton}
               onPress={() => openDatePicker('availableFrom')}
@@ -777,13 +854,17 @@ const EditProfileScreen: React.FC = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>🚀</Text>
             <View>
-              <Text style={styles.sectionTitle}>Skills & Experience</Text>
-              <Text style={styles.sectionSubtitle}>Your qualifications</Text>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.skillsExperience')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('editProfile.sections.skillsExperienceSubtitle')}
+              </Text>
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Years of Experience</Text>
+            <Text style={styles.label}>{t('profile.yearsOfExperience')}</Text>
             <TextInput
               style={styles.input}
               value={formData.experienceYears.toString()}
@@ -800,7 +881,7 @@ const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Skills</Text>
+            <Text style={styles.label}>{t('profile.skills')}</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
               onPress={() => setShowSkillsModal(true)}
@@ -811,16 +892,14 @@ const EditProfileScreen: React.FC = () => {
                   formData.skills.length === 0 && styles.placeholderText,
                 ]}
               >
-                {formData.skills.length > 0
-                  ? `${formData.skills.length} skills selected`
-                  : 'Select your skills'}
+                {getSelectionText('skills', formData.skills.length)}
               </Text>
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Languages</Text>
+            <Text style={styles.label}>{t('profile.languages')}</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
               onPress={() => setShowLanguagesModal(true)}
@@ -831,9 +910,7 @@ const EditProfileScreen: React.FC = () => {
                   formData.languages.length === 0 && styles.placeholderText,
                 ]}
               >
-                {formData.languages.length > 0
-                  ? `${formData.languages.length} languages selected`
-                  : 'Select languages you speak'}
+                {getSelectionText('languages', formData.languages.length)}
               </Text>
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
@@ -857,7 +934,7 @@ const EditProfileScreen: React.FC = () => {
       {renderModal(
         showIndustryModal,
         () => setShowIndustryModal(false),
-        'Select Industries',
+        getModalTitle('industries'),
         industries,
         'industries'
       )}
@@ -865,7 +942,7 @@ const EditProfileScreen: React.FC = () => {
       {renderModal(
         showSkillsModal,
         () => setShowSkillsModal(false),
-        'Select Skills',
+        getModalTitle('skills'),
         skills,
         'skills'
       )}
@@ -873,7 +950,7 @@ const EditProfileScreen: React.FC = () => {
       {renderModal(
         showLanguagesModal,
         () => setShowLanguagesModal(false),
-        'Select Languages',
+        getModalTitle('languages'),
         languages,
         'languages'
       )}
@@ -881,6 +958,7 @@ const EditProfileScreen: React.FC = () => {
   );
 };
 
+// Styles (keep all your existing styles exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

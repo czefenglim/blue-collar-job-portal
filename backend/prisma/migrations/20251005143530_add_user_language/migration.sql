@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `users` ADD COLUMN `preferredLanguage` ENUM('ENGLISH', 'CHINESE', 'MALAY', 'TAMIL') NOT NULL DEFAULT 'ENGLISH';

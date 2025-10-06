@@ -1,0 +1,597 @@
+{
+  "common": {
+    "success": "Berjaya",
+    "error": "Ralat",
+    "changeLanguage": "Tukar Bahasa",
+    "loading": "Sedang dimuat...",
+    "continue": "Teruskan",
+    "back": "Kembali",
+    "skip": "Langkau",
+    "next": "Seterusnya",
+    "confirm": "Sahkan",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "edit": "Edit",
+    "delete": "Padam",
+    "required": "Wajib",
+    "optional": "Pilihan",
+    "select": "Pilih",
+    "search": "Cari",
+    "ok": "OK",
+    "done": "Selesai"
+  },
+  "jobDetails": {
+    "title": "Maklumat Pekerjaan",
+    "loading": "Memuat maklumat pekerjaan...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "applyButton": "Mohon Sekarang",
+    "remote": "Kerja Dari Jauh",
+    "alreadyApplied": {
+      "title": "Sudah Memohon",
+      "message": "Anda telah memohon jawatan ini. Status: {status}"
+    },
+    "quickInfo": {
+      "jobType": "Jenis Jawatan",
+      "experience": "Pengalaman",
+      "workingHours": "Waktu Bekerja",
+      "industry": "Industri"
+    },
+    "salary": {
+      "title": "Gaji",
+      "notSpecified": "Gaji tidak dinyatakan",
+      "per": "sebelum"
+    },
+    "description": {
+      "title": "Penerangan Jawatan"
+    },
+    "requirements": {
+      "title": "Keperluan"
+    },
+    "benefits": {
+      "title": "Manfaat"
+    },
+    "company": {
+      "about": "Mengenai {companyName}",
+      "size": "Saiz Syarikat:",
+      "location": "Lokasi:",
+      "visitWebsite": "Lawati Laman Web",
+      "notSpecified": "Tidak dinyatakan"
+    },
+    "stats": {
+      "views": "Paparan",
+      "applicants": "Pemohon"
+    },
+    "applied": {
+      "submitted": "Permohonan Dihantar",
+      "status": "Status"
+    },
+    "posted": {
+      "today": "Dihantar hari ini",
+      "yesterday": "Dihantar semalam",
+      "daysAgo": "Dihantar {days} hari lalu",
+      "weeksAgo": "Dihantar {weeks} minggu lalu",
+      "monthsAgo": "Dihantar {months} bulan lalu"
+    },
+    "applicationStatus": {
+      "unknown": "Tidak diketahui"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuat maklumat pekerjaan. Sila cuba lagi.",
+      "saveFailed": "Gagal menyimpan pekerjaan. Sila cuba lagi.",
+      "notFound": "Pekerjaan tidak dijumpai"
+    }
+  },
+
+  "applyConfirmation": {
+    "title": "Mohon Pekerjaan",
+    "loading": "Sedang memuat permohonan...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "applyingFor": "Memohon untuk",
+    "submitting": "Sedang menghantar...",
+    "confirmApplication": "Sahkan & Hantar Permohonan",
+    "progress": {
+      "reviewInfo": "Semak Maklumat",
+      "submit": "Hantar"
+    },
+    "incompleteProfile": {
+      "alert": "Selesaikan maklumat wajib ini untuk menghantar permohonan anda",
+      "title": "Maklumat Wajib",
+      "phoneNumber": "Nombor Telefon *",
+      "phonePlaceholder": "cth: 012-3456-7890",
+      "cityPlaceholder": "cth: Kuala Lumpur",
+      "statePlaceholder": "cth: Wilayah Persekutuan",
+      "experiencePlaceholder": "cth: 3"
+    },
+    "completeProfile": {
+      "title": "Maklumat Permohonan Anda",
+      "badge": "✓ Lengkap",
+      "more": "lagi",
+      "resumeAttached": "Disertakan",
+      "editProfile": "Edit Maklumat Profil"
+    },
+    "success": {
+      "title": "Permohonan Dihantar!",
+      "message": "Permohonan anda untuk {jobTitle} telah berjaya dihantar.",
+      "viewApplications": "Lihat Permohonan",
+      "backToJobs": "Kembali ke Pekerjaan"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuat maklumat permohonan.",
+      "updateFailed": "Gagal mengemas kini profil. Sila cuba lagi.",
+      "submitFailed": "Gagal menghantar permohonan. Sila cuba lagi."
+    },
+    "validation": {
+      "phoneRequired": "Sila masukkan nombor telefon anda",
+      "cityRequired": "Sila masukkan bandar anda",
+      "stateRequired": "Sila masukkan negeri anda",
+      "experienceRequired": "Sila masukkan jumlah tahun pengalaman anda"
+    }
+  },
+
+  "preferences": {
+    "title": "Keutamaan Pekerjaan",
+    "loading": "Sedang memuat keutamaan...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "preferredIndustries": "Industri Pilihan",
+    "industriesSubtitle": "Pilih industri yang anda minati",
+    "noIndustriesSelected": "Tiada industri dipilih",
+    "industriesSelected": "{count} {industry} dipilih",
+    "industry": "industri",
+    "industries": "industri",
+    "saveChanges": "Simpan Perubahan",
+    "saving": "Menyimpan...",
+    "infoText": "Keutamaan anda membantu kami menunjukkan peluang pekerjaan yang paling relevan",
+    "limitReached": {
+      "title": "Had Tercapai",
+      "message": "Anda hanya boleh memilih sehingga 3 industri."
+    },
+    "noSelection": {
+      "title": "Tiada Industri Dipilih",
+      "message": "Sila pilih sekurang-kurangnya satu industri."
+    },
+    "success": {
+      "message": "Keutamaan anda telah dikemas kini!"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuat keutamaan. Sila cuba lagi.",
+      "updateFailed": "Gagal menyimpan keutamaan. Sila cuba lagi."
+    }
+  },
+  "editProfile": {
+    "title": "Edit Profil",
+    "subtitle": "Kemaskini maklumat anda",
+    "loading": "Memuatkan profil anda...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "fullName": "Nama Penuh",
+    "selectDate": "Pilih tarikh",
+    "to": "hingga",
+    "industriesSelected": "{count} industri dipilih",
+    "skillsSelected": "{count} kemahiran dipilih",
+    "languagesSelected": "{count} bahasa dipilih",
+    "selectIndustries": "Pilih industri pilihan",
+    "selectSkills": "Pilih kemahiran anda",
+    "selectLanguages": "Pilih bahasa yang anda tahu",
+    "sections": {
+      "personalInfo": "Maklumat Peribadi",
+      "personalInfoSubtitle": "Maklumat asas anda",
+      "addressSubtitle": "Lokasi semasa anda",
+      "jobPreferencesSubtitle": "Keperluan kerjaya anda",
+      "skillsExperienceSubtitle": "Kelayakan anda"
+    },
+    "placeholders": {
+      "fullName": "Masukkan nama penuh anda",
+      "phoneNumber": "Masukkan nombor telefon anda",
+      "nationality": "Masukkan kewarganegaraan anda",
+      "address": "Masukkan alamat lengkap",
+      "city": "Bandar",
+      "state": "Negeri",
+      "postcode": "Poskod",
+      "minSalary": "Minimum",
+      "maxSalary": "Maksimum",
+      "maxTravelDistance": "Jarak perjalanan maksimum"
+    },
+    "modals": {
+      "industries": "Pilih Industri",
+      "skills": "Pilih Kemahiran",
+      "languages": "Pilih Bahasa"
+    },
+    "success": {
+      "message": "Profil berjaya dikemaskini"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan data. Sila cuba lagi.",
+      "updateFailed": "Gagal mengemaskini profil. Sila cuba lagi.",
+      "fullNameRequired": "Sila masukkan nama penuh anda"
+    }
+  },
+  "profile": {
+    "title": "Profil Saya",
+    "loading": "Memuatkan profil...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "tryAgain": "Cuba Lagi",
+    "notSpecified": "Tidak ditetapkan",
+    "notProvided": "Tidak disediakan",
+    "email": "E-mel",
+    "phone": "Telefon",
+    "address": "Masukkan alamat lengkap anda",
+    "city": "Bandar",
+    "state": "Negeri",
+    "postcode": "Poskod",
+    "verified": "Disahkan",
+    "unverified": "Belum Disahkan",
+    "memberSince": "Ahli sejak",
+    "phoneNumber": "Nombor Telefon",
+    "dateOfBirth": "Tarikh Lahir",
+    "nationality": "Kewarganegaraan",
+    "expectedSalary": "Gaji Dijangka",
+    "workingHours": "Waktu Kerja",
+    "transportMode": "Mod Pengangkutan",
+    "maxTravelDistance": "Jarak Perjalanan Maksimum",
+    "availableFrom": "Boleh Dari",
+    "yearsOfExperience": "Tahun Pengalaman",
+    "years": "tahun",
+    "preferredIndustries": "Industri Pilihan",
+    "skills": "Kemahiran",
+    "languages": "Bahasa",
+    "viewResume": "Lihat Resume",
+    "noIndustries": "Tiada industri dipilih",
+    "noSkills": "Tiada kemahiran ditambah",
+    "noLanguages": "Tiada bahasa ditambah",
+    "gender": {
+      "title": "Jantina",
+      "male": "Lelaki",
+      "female": "Perempuan",
+      "other": "Lain-lain",
+      "preferNotToSay": "Tidak mahu nyatakan"
+    },
+    "transport": {
+      "ownVehicle": "Kenderaan Sendiri",
+      "publicTransport": "Pengangkutan Awam",
+      "companyTransport": "Pengangkutan Syarikat",
+      "motorcycle": "Motosikal",
+      "bicycle": "Basikal",
+      "walking": "Berjalan"
+    },
+    "completion": {
+      "title": "Lengkapkan Profil",
+      "hint": "Lengkapkan profil anda untuk meningkatkan kebolehlihatan kepada majikan"
+    },
+    "sections": {
+      "personalInfo": "Maklumat Peribadi",
+      "address": "Alamat",
+      "jobPreferences": "Pilihan Kerja",
+      "skillsExperience": "Kemahiran & Pengalaman",
+      "quickActions": "Tindakan Pantas"
+    },
+    "actions": {
+      "savedJobs": "Kerja Disimpan",
+      "myApplications": "Permohonan Saya",
+      "preferences": "Keutamaan"
+    },
+    "logout": {
+      "title": "Log Keluar",
+      "confirmation": "Adakah anda pasti mahu log keluar?",
+      "button": "Log Keluar"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan profil. Sila cuba lagi."
+    }
+  },
+  "applications": {
+    "title": "Permohonan Saya",
+    "loading": "Memuatkan permohonan...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "applied": "Dipohon",
+    "updated": "Dikemas kini",
+    "application": "permohonan",
+    "applications": "permohonan",
+    "stats": "{filtered} daripada {total} {application}",
+    "filters": {
+      "all": "Semua",
+      "pending": "Dalam Proses",
+      "reviewing": "Sedang Disemak",
+      "shortlisted": "Disenarai Pendek",
+      "interview": "Temuduga",
+      "rejected": "Ditolak"
+    },
+    "status": {
+      "pending": "Dalam Proses",
+      "reviewing": "Sedang Disemak",
+      "shortlisted": "Disenarai Pendek",
+      "interviewScheduled": "Temuduga Dijadualkan",
+      "interviewed": "Telah Ditemuduga",
+      "rejected": "Ditolak",
+      "hired": "Diterima",
+      "withdrawn": "Ditarik Balik"
+    },
+    "emptyState": {
+      "noApplications": "Tiada Permohonan Lagi",
+      "noFilteredApplications": "Tiada Permohonan {status}",
+      "description": "Mula memohon pekerjaan dan jejak permohonan anda di sini",
+      "filteredDescription": "Anda tiada permohonan dengan status ini",
+      "browseButton": "Layar Pekerjaan"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan permohonan. Sila cuba lagi.",
+      "refreshFailed": "Gagal menyegarkan permohonan."
+    }
+  },
+  "savedJobs": {
+    "title": "Pekerjaan Disimpan",
+    "loading": "Memuatkan pekerjaan disimpan...",
+    "authenticationRequired": "Pengesahan Diperlukan",
+    "pleaseSignIn": "Sila log masuk untuk meneruskan",
+    "removeJob": "Padam Pekerjaan Disimpan",
+    "removeConfirmation": "Padam \"{jobTitle}\" daripada pekerjaan disimpan?",
+    "remove": "Padam",
+    "savedToday": "Disimpan hari ini",
+    "savedYesterday": "Disimpan semalam",
+    "savedDaysAgo": "Disimpan {days} hari yang lalu",
+    "savedOnDate": "Disimpan pada {date}",
+    "posted": "Diterbitkan",
+    "jobCount": "{count} {jobs} disimpan",
+    "job": "pekerjaan",
+    "jobs": "pekerjaan",
+    "emptyState": {
+      "title": "Tiada pekerjaan disimpan",
+      "description": "Mula melayari pekerjaan dan simpan yang menarik minat anda",
+      "browseButton": "Layar Pekerjaan"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan pekerjaan disimpan. Sila cuba lagi.",
+      "refreshFailed": "Gagal menyegarkan pekerjaan disimpan.",
+      "unsaveFailed": "Gagal memadam pekerjaan. Sila cuba lagi."
+    }
+  },
+  "time": {
+    "today": "Hari ini",
+    "yesterday": "Semalam",
+    "daysAgo": "{days} hari yang lalu",
+    "weeksAgo": "{weeks} minggu yang lalu",
+    "monthsAgo": "{months} bulan yang lalu"
+  },
+  "jobTypes": {
+    "fullTime": "Sepenuh Masa",
+    "partTime": "Separuh Masa",
+    "contract": "Kontrak",
+    "temporary": "Sementara",
+    "internship": "Latihan Industri"
+  },
+  "workingHours": {
+    "dayShift": "Syif Siang",
+    "nightShift": "Syif Malam",
+    "rotatingShift": "Syif Bergilir",
+    "flexible": "Fleksibel",
+    "weekendOnly": "Hujung Minggu Sahaja"
+  },
+  "signUp": {
+    "appTitle": "Portal Pekerjaan Blue-Collar",
+    "appSubtitle": "Mulakan perjalanan kerjaya anda",
+    "createAccount": "Cipta Akaun",
+    "joinThousands": "Sertai ribuan pencari kerja",
+    "fullName": "Nama Penuh",
+    "fullNamePlaceholder": "Masukkan nama penuh anda",
+    "email": "Alamat E-mel",
+    "emailPlaceholder": "Masukkan e-mel anda",
+    "phoneNumber": "Nombor Telefon",
+    "phonePlaceholder": "012-3456-7890",
+    "phoneHint": "Nombor telefon Malaysia",
+    "password": "Kata Laluan",
+    "passwordPlaceholder": "Cipta kata laluan",
+    "passwordHint": "Sekurang-kurangnya 8 aksara dengan huruf besar, kecil, dan nombor",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "confirmPasswordPlaceholder": "Sahkan kata laluan anda",
+    "agreeToTerms": "Saya bersetuju dengan",
+    "termsOfService": "Terma Perkhidmatan",
+    "and": "dan",
+    "privacyPolicy": "Dasar Privasi",
+    "createAccountButton": "Cipta Akaun",
+    "creatingAccount": "Sedang mencipta akaun...",
+    "or": "ATAU",
+    "alreadyHaveAccount": "Sudah mempunyai akaun?",
+    "signIn": "Log Masuk",
+    "errors": {
+      "fullNameRequired": "Sila masukkan nama penuh anda",
+      "emailRequired": "Sila masukkan alamat e-mel anda",
+      "phoneRequired": "Sila masukkan nombor telefon anda",
+      "passwordRequired": "Sila masukkan kata laluan",
+      "confirmPasswordRequired": "Sila sahkan kata laluan anda",
+      "invalidEmail": "Sila masukkan alamat e-mel yang sah",
+      "invalidPhone": "Sila masukkan nombor telefon Malaysia yang sah (cth: 0123456789)",
+      "passwordTooShort": "Kata laluan mesti sekurang-kurangnya 8 aksara",
+      "passwordWeak": "Kata laluan mesti mengandungi sekurang-kurangnya satu huruf besar, satu huruf kecil, dan satu nombor",
+      "passwordMismatch": "Kata laluan tidak sepadan",
+      "termsRequired": "Sila bersetuju dengan Terma Perkhidmatan dan Dasar Privasi",
+      "signUpFailed": "Pendaftaran gagal. Sila cuba lagi.",
+      "accountExists": "Akaun dengan e-mel ini sudah wujud. Sila log masuk."
+    },
+    "success": {
+      "title": "Berjaya!",
+      "message": "Akaun berjaya dicipta. Selamat datang ke Blue-Collar Jobs!",
+      "continue": "Teruskan"
+    }
+  },
+  "login": {
+    "appTitle": "Kawalan Bajet",
+    "appSubtitle": "Kawal kewangan anda",
+    "welcomeBack": "Selamat Kembali!",
+    "signInToContinue": "Log masuk untuk meneruskan",
+    "email": "E-mel",
+    "emailPlaceholder": "Masukkan e-mel anda",
+    "password": "Kata Laluan",
+    "passwordPlaceholder": "Masukkan kata laluan anda",
+    "forgotPassword": "Lupa Kata Laluan?",
+    "signIn": "Log Masuk",
+    "signingIn": "Sedang log masuk...",
+    "or": "ATAU",
+    "noAccount": "Tiada akaun?",
+    "signUp": "Daftar Akaun",
+    "success": {
+      "loggedIn": "Berjaya log masuk!"
+    },
+    "errors": {
+      "emailRequired": "Sila masukkan e-mel anda",
+      "passwordRequired": "Sila masukkan kata laluan anda",
+      "invalidEmail": "Sila masukkan alamat e-mel yang sah",
+      "loginFailed": "Log masuk gagal. Sila semak maklumat anda.",
+      "unexpected": "Ralat tidak dijangka. Sila cuba lagi."
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Selamat Datang ke Blue-Collar Jobs!",
+      "subtitle": "Cari peluang kerja anda yang seterusnya",
+      "description": "Kami membantu pekerja mahir seperti anda berhubung dengan majikan di seluruh Malaysia.",
+      "buttonText": "Mulakan"
+    },
+    "howItWorks": {
+      "title": "Cara Ia Berfungsi",
+      "subtitle": "Pencarian kerja yang mudah",
+      "description": "1. Lengkapkan profil anda\n2. Pilih industri anda\n3. Jawab beberapa soalan\n4. Mula memohon kerja",
+      "buttonText": "Teruskan"
+    },
+    "completeProfile": {
+      "title": "Lengkapkan Profil Anda",
+      "subtitle": "Bantu majikan mengenali anda dengan lebih baik",
+      "description": "Isi maklumat asas dan keutamaan kerja anda.",
+      "buttonText": "Teruskan"
+    },
+    "chooseIndustries": {
+      "title": "Pilih Industri Anda",
+      "subtitle": "Jenis kerja apa yang anda cari?",
+      "description": "Pilih sehingga 3 industri yang sesuai dengan kemahiran dan minat anda.",
+      "buttonText": "Teruskan",
+      "selectionCounter": "Dipilih: {count}/3",
+      "limitReached": "Had Tercapai",
+      "limitMessage": "Anda hanya boleh memilih maksimum 3 industri.",
+      "selectionRequired": "Pilihan Diperlukan",
+      "selectionMessage": "Sila pilih sekurang-kurangnya satu industri."
+    },
+    "buildResume": {
+      "title": "Bantu Kami Bina Resume Anda",
+      "subtitle": "Jawab beberapa soalan",
+      "description": "Kami akan menggunakan jawapan anda untuk menghasilkan resume profesional.",
+      "buttonText": "Jana Resume",
+      "requiredQuestion": "Soalan Diperlukan",
+      "requiredMessage": "Sila jawab: {question}"
+    },
+    "previewResume": {
+      "title": "Pratonton Resume Anda",
+      "subtitle": "Semak resume yang dijana",
+      "description": "Anda boleh jana semula jika perlu, atau teruskan ke langkah seterusnya.",
+      "primaryButtonText": "Teruskan",
+      "secondaryButtonText": "Jana Semula",
+      "resumeReady": "Resume Anda Sedia!",
+      "resumeDescription": "Tekan butang di bawah untuk melihat resume anda dalam pelayar.",
+      "viewResume": "📱 Lihat Resume Dalam Pelayar",
+      "generating": "Menjana resume...",
+      "noResume": "Tiada resume. Sila jana terlebih dahulu.",
+      "regenerateError": "Gagal menjana semula resume. Sila cuba lagi."
+    },
+    "completion": {
+      "title": "Selesai!",
+      "subtitle": "Mula mencari kerja sekarang",
+      "description": "Profil anda telah siap. Anda akan menerima notifikasi kerja berdasarkan industri yang dipilih.",
+      "buttonText": "Mula Mencari Kerja"
+    },
+    "profileForm": {
+      "profilePicture": "Gambar Profil",
+      "addPhoto": "Tambah Gambar",
+      "skills": "Kemahiran",
+      "selectSkills": "Pilih kemahiran anda",
+      "languages": "Bahasa",
+      "selectLanguages": "Pilih bahasa yang anda tahu",
+      "certifications": "Sijil",
+      "addCertifications": "Tambah sijil anda",
+      "certificationsPlaceholder": "Masukkan sijil anda (cth: Lesen Forklift, Latihan Keselamatan, dll.)",
+      "certificationsHelper": "Pisahkan beberapa sijil dengan koma",
+      "personalInfo": "Maklumat Peribadi",
+      "dateOfBirth": "Tarikh Lahir",
+      "selectDate": "Pilih Tarikh",
+      "gender": "Jantina",
+      "selectGender": "Pilih Jantina",
+      "male": "Lelaki",
+      "female": "Perempuan",
+      "other": "Lain-lain",
+      "preferNotToSay": "Tidak mahu nyatakan",
+      "nationality": "Warganegara",
+      "nationalityPlaceholder": "cth: Rakyat Malaysia",
+      "address": "Alamat",
+      "addressSection": "Alamat",
+      "streetAddress": "Alamat Jalan",
+      "city": "Bandar",
+      "cityPlaceholder": "Bandar",
+      "state": "Negeri",
+      "statePlaceholder": "Negeri",
+      "postcode": "Poskod",
+      "postcodePlaceholder": "Poskod",
+      "jobPreferences": "Keutamaan Kerja",
+      "minSalary": "Gaji Minimum (RM)",
+      "minSalaryPlaceholder": "2000",
+      "maxSalary": "Gaji Maksimum (RM)",
+      "maxSalaryPlaceholder": "5000",
+      "availableFrom": "Tersedia Dari",
+      "workingHours": "Waktu Bekerja Dikehendaki",
+      "selectWorkingHours": "Pilih Waktu Bekerja",
+      "dayShift": "Syif Siang",
+      "nightShift": "Syif Malam",
+      "rotatingShift": "Syif Bergilir",
+      "flexible": "Fleksibel",
+      "weekendOnly": "Hujung Minggu Sahaja",
+      "transportMode": "Mod Pengangkutan",
+      "selectTransport": "Pilih Mod Pengangkutan",
+      "ownVehicle": "Kenderaan Sendiri",
+      "publicTransport": "Pengangkutan Awam",
+      "companyTransport": "Pengangkutan Syarikat",
+      "motorcycle": "Motosikal",
+      "bicycle": "Basikal",
+      "walking": "Berjalan",
+      "maxTravelDistance": "Jarak Perjalanan Maksimum (km)",
+      "maxTravelPlaceholder": "20",
+      "experienceYears": "Tahun Pengalaman",
+      "experiencePlaceholder": "5",
+      "validation": {
+        "requiredFields": "Medan Diperlukan",
+        "cityStateRequired": "Sila isi bandar dan negeri anda.",
+        "saveProfileError": "Gagal menyimpan profil. Sila cuba lagi.",
+        "saveIndustriesError": "Gagal menyimpan industri. Sila cuba lagi.",
+        "saveResumeError": "Gagal menyimpan jawapan resume. Sila cuba lagi.",
+        "generateResumeError": "Gagal menjana resume. Sila cuba lagi."
+      }
+    },
+    "stepSelector": {
+      "title": "Pergi ke Langkah",
+      "close": "Tutup"
+    }
+  },
+  "home": {
+    "appTitle": "Platform Kerja Blukers",
+    "authRequired": "Pengesahan Diperlukan",
+    "yourJobPreferences": "Pilihan Pekerjaan Anda",
+    "signInToContinue": "Sila log masuk untuk meneruskan",
+    "loadError": "Gagal memuat data. Sila cuba lagi.",
+    "jobsLoadError": "Gagal memuat pekerjaan. Sila cuba lagi.",
+    "loadingJobs": "Sedang memuat pekerjaan...",
+    "searchPlaceholder": "Cari pekerjaan, syarikat...",
+    "industry": "Industri",
+    "locationPlaceholder": "Lokasi",
+    "clearFilters": "Padam Penapis",
+    "oneJobFound": "1 Pekerjaan Ditemui",
+    "manyJobsFound": "Beberapa Pekerjaan Ditemui",
+    "noJobs": "Tiada pekerjaan ditemui",
+    "adjustFilters": "Cuba laraskan penapis anda",
+    "selectIndustry": "Pilih Industri",
+    "today": "Hari ini",
+    "yesterday": "Semalam",
+    "daysAgo": "{{count}} hari yang lalu",
+    "weeksAgo": "{{count}} minggu yang lalu",
+    "monthsAgo": "{{count}} bulan yang lalu",
+    "allIndustries": "Semua Industri"
+  }
+}

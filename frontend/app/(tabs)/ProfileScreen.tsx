@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -71,6 +72,7 @@ const ProfileScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string>('');
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadProfile();
@@ -82,9 +84,11 @@ const ProfileScreen: React.FC = () => {
       const userToken = await AsyncStorage.getItem('jwtToken');
 
       if (!userToken) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          { text: 'OK', onPress: () => router.replace('/') },
-        ]);
+        Alert.alert(
+          t('profile.authenticationRequired'),
+          t('profile.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
         return;
       }
 
@@ -92,7 +96,7 @@ const ProfileScreen: React.FC = () => {
       await fetchProfile(userToken);
     } catch (error) {
       console.error('Error loading profile:', error);
-      Alert.alert('Error', 'Failed to load profile. Please try again.');
+      Alert.alert(t('common.error'), t('profile.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -119,13 +123,13 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    Alert.alert(t('profile.logout.title'), t('profile.logout.confirmation'), [
       {
-        text: 'Cancel',
+        text: t('common.cancel'),
         style: 'cancel',
       },
       {
-        text: 'Logout',
+        text: t('profile.logout.button'),
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.removeItem('jwtToken');
@@ -138,37 +142,73 @@ const ProfileScreen: React.FC = () => {
   };
 
   const formatGender = (gender: string | null) => {
-    if (!gender) return 'Not specified';
-    return gender
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    if (!gender) return t('profile.notSpecified');
+
+    const genderMap: { [key: string]: string } = {
+      MALE: t('profile.gender.male'),
+      FEMALE: t('profile.gender.female'),
+      OTHER: t('profile.gender.other'),
+      PREFER_NOT_TO_SAY: t('profile.gender.preferNotToSay'),
+    };
+
+    return (
+      genderMap[gender] ||
+      gender
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    );
   };
 
   const formatWorkingHours = (hours: string | null) => {
-    if (!hours) return 'Not specified';
-    return hours
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    if (!hours) return t('profile.notSpecified');
+
+    const hoursMap: { [key: string]: string } = {
+      DAY_SHIFT: t('workingHours.dayShift'),
+      NIGHT_SHIFT: t('workingHours.nightShift'),
+      ROTATING_SHIFT: t('workingHours.rotatingShift'),
+      FLEXIBLE: t('workingHours.flexible'),
+      WEEKEND_ONLY: t('workingHours.weekendOnly'),
+    };
+
+    return (
+      hoursMap[hours] ||
+      hours
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    );
   };
 
   const formatTransportMode = (mode: string | null) => {
-    if (!mode) return 'Not specified';
-    return mode
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    if (!mode) return t('profile.notSpecified');
+
+    const transportMap: { [key: string]: string } = {
+      OWN_VEHICLE: t('profile.transport.ownVehicle'),
+      PUBLIC_TRANSPORT: t('profile.transport.publicTransport'),
+      COMPANY_TRANSPORT: t('profile.transport.companyTransport'),
+      MOTORCYCLE: t('profile.transport.motorcycle'),
+      BICYCLE: t('profile.transport.bicycle'),
+      WALKING: t('profile.transport.walking'),
+    };
+
+    return (
+      transportMap[mode] ||
+      mode
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    );
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Not specified';
+    if (!dateString) return t('profile.notSpecified');
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -178,7 +218,7 @@ const ProfileScreen: React.FC = () => {
   };
 
   const formatSalary = (min: number | null, max: number | null) => {
-    if (!min && !max) return 'Not specified';
+    if (!min && !max) return t('profile.notSpecified');
     const formatAmount = (amount: number) => `RM ${amount.toLocaleString()}`;
     if (min && max) return `${formatAmount(min)} - ${formatAmount(max)}`;
     return formatAmount(min || max!);
@@ -241,7 +281,7 @@ const ProfileScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <Text style={styles.loadingText}>{t('profile.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -251,9 +291,9 @@ const ProfileScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load profile</Text>
+          <Text style={styles.errorText}>{t('profile.errors.loadFailed')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadProfile}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>{t('profile.tryAgain')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -276,7 +316,7 @@ const ProfileScreen: React.FC = () => {
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Profile</Text>
+          <Text style={styles.headerTitle}>{t('profile.title')}</Text>
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => router.push('/EditProfileScreen')}
@@ -319,8 +359,10 @@ const ProfileScreen: React.FC = () => {
                       ]}
                     />
                     <Text style={styles.verificationText}>
-                      Email{' '}
-                      {userProfile.isEmailVerified ? 'Verified' : 'Unverified'}
+                      {t('profile.email')}{' '}
+                      {userProfile.isEmailVerified
+                        ? t('profile.verified')
+                        : t('profile.unverified')}
                     </Text>
                   </View>
                   {userProfile.phoneNumber && (
@@ -334,10 +376,10 @@ const ProfileScreen: React.FC = () => {
                         ]}
                       />
                       <Text style={styles.verificationText}>
-                        Phone{' '}
+                        {t('profile.phone')}{' '}
                         {userProfile.isPhoneVerified
-                          ? 'Verified'
-                          : 'Unverified'}
+                          ? t('profile.verified')
+                          : t('profile.unverified')}
                       </Text>
                     </View>
                   )}
@@ -347,7 +389,8 @@ const ProfileScreen: React.FC = () => {
 
             <View style={styles.memberSinceContainer}>
               <Text style={styles.memberSinceText}>
-                Member since {getMemberSince(userProfile.createdAt)}
+                {t('profile.memberSince')}{' '}
+                {getMemberSince(userProfile.createdAt)}
               </Text>
             </View>
           </LinearGradient>
@@ -356,7 +399,9 @@ const ProfileScreen: React.FC = () => {
         {/* Profile Completion Progress */}
         <View style={styles.section}>
           <View style={styles.completionHeader}>
-            <Text style={styles.sectionTitle}>Profile Completion</Text>
+            <Text style={styles.sectionTitle}>
+              {t('profile.completion.title')}
+            </Text>
             <Text style={styles.percentageText}>{completionPercentage}%</Text>
           </View>
           <View style={styles.progressBar}>
@@ -369,7 +414,7 @@ const ProfileScreen: React.FC = () => {
           </View>
           {completionPercentage < 100 && (
             <Text style={styles.completionHint}>
-              Complete your profile to increase visibility to employers
+              {t('profile.completion.hint')}
             </Text>
           )}
         </View>
@@ -378,27 +423,31 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>👤</Text>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={styles.sectionTitle}>
+              {t('profile.sections.personalInfo')}
+            </Text>
           </View>
 
           <InfoRow
-            label="Phone Number"
-            value={userProfile.phoneNumber || 'Not provided'}
+            label={t('profile.phoneNumber')}
+            value={userProfile.phoneNumber || t('profile.notProvided')}
           />
 
           {userProfile.profile && (
             <>
               <InfoRow
-                label="Date of Birth"
+                label={t('profile.dateOfBirth')}
                 value={formatDate(userProfile.profile.dateOfBirth)}
               />
               <InfoRow
-                label="Gender"
+                label={t('profile.gender.title')}
                 value={formatGender(userProfile.profile.gender)}
               />
               <InfoRow
-                label="Nationality"
-                value={userProfile.profile.nationality || 'Not specified'}
+                label={t('profile.nationality')}
+                value={
+                  userProfile.profile.nationality || t('profile.notSpecified')
+                }
               />
             </>
           )}
@@ -410,7 +459,9 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionIcon}>🏠</Text>
-                <Text style={styles.sectionTitle}>Address</Text>
+                <Text style={styles.sectionTitle}>
+                  {t('profile.sections.address')}
+                </Text>
               </View>
               <View style={styles.addressContainer}>
                 {userProfile.profile.address && (
@@ -436,11 +487,15 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionIcon}>💼</Text>
-              <Text style={styles.sectionTitle}>Job Preferences</Text>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.jobPreferences')}
+              </Text>
             </View>
 
             <View style={styles.preferenceItem}>
-              <Text style={styles.preferenceLabel}>Preferred Industries</Text>
+              <Text style={styles.preferenceLabel}>
+                {t('profile.preferredIndustries')}
+              </Text>
               {userProfile.profile.industries.length > 0 ? (
                 <View style={styles.tagsContainer}>
                   {userProfile.profile.industries.map((item) => (
@@ -452,12 +507,14 @@ const ProfileScreen: React.FC = () => {
                   ))}
                 </View>
               ) : (
-                <Text style={styles.emptyText}>No industries selected</Text>
+                <Text style={styles.emptyText}>
+                  {t('profile.noIndustries')}
+                </Text>
               )}
             </View>
 
             <InfoRow
-              label="Expected Salary"
+              label={t('profile.expectedSalary')}
               value={formatSalary(
                 userProfile.profile.preferredSalaryMin,
                 userProfile.profile.preferredSalaryMax
@@ -465,23 +522,23 @@ const ProfileScreen: React.FC = () => {
             />
 
             <InfoRow
-              label="Working Hours"
+              label={t('profile.workingHours')}
               value={formatWorkingHours(userProfile.profile.workingHours)}
             />
             <InfoRow
-              label="Transport Mode"
+              label={t('profile.transportMode')}
               value={formatTransportMode(userProfile.profile.transportMode)}
             />
 
             {userProfile.profile.maxTravelDistance && (
               <InfoRow
-                label="Max Travel Distance"
+                label={t('profile.maxTravelDistance')}
                 value={`${userProfile.profile.maxTravelDistance} km`}
               />
             )}
 
             <InfoRow
-              label="Available From"
+              label={t('profile.availableFrom')}
               value={formatDate(userProfile.profile.availableFrom)}
             />
           </View>
@@ -492,16 +549,20 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionIcon}>🚀</Text>
-              <Text style={styles.sectionTitle}>Skills & Experience</Text>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.skillsExperience')}
+              </Text>
             </View>
 
             <InfoRow
-              label="Years of Experience"
-              value={`${userProfile.profile.experienceYears} years`}
+              label={t('profile.yearsOfExperience')}
+              value={`${userProfile.profile.experienceYears} ${t(
+                'profile.years'
+              )}`}
             />
 
             <View style={styles.preferenceItem}>
-              <Text style={styles.preferenceLabel}>Skills</Text>
+              <Text style={styles.preferenceLabel}>{t('profile.skills')}</Text>
               {userProfile.profile.skills.length > 0 ? (
                 <View style={styles.tagsContainer}>
                   {userProfile.profile.skills.map((item) => (
@@ -511,12 +572,14 @@ const ProfileScreen: React.FC = () => {
                   ))}
                 </View>
               ) : (
-                <Text style={styles.emptyText}>No skills added</Text>
+                <Text style={styles.emptyText}>{t('profile.noSkills')}</Text>
               )}
             </View>
 
             <View style={styles.preferenceItem}>
-              <Text style={styles.preferenceLabel}>Languages</Text>
+              <Text style={styles.preferenceLabel}>
+                {t('profile.languages')}
+              </Text>
               {userProfile.profile.languages.length > 0 ? (
                 <View style={styles.tagsContainer}>
                   {userProfile.profile.languages.map((item) => (
@@ -528,14 +591,16 @@ const ProfileScreen: React.FC = () => {
                   ))}
                 </View>
               ) : (
-                <Text style={styles.emptyText}>No languages added</Text>
+                <Text style={styles.emptyText}>{t('profile.noLanguages')}</Text>
               )}
             </View>
 
             {userProfile.profile.resumeUrl && (
               <TouchableOpacity style={styles.resumeButton}>
                 <Text style={styles.resumeIcon}>📄</Text>
-                <Text style={styles.resumeButtonText}>View Resume</Text>
+                <Text style={styles.resumeButtonText}>
+                  {t('profile.viewResume')}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -545,22 +610,24 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionIcon}>⚡</Text>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionTitle}>
+              {t('profile.sections.quickActions')}
+            </Text>
           </View>
 
           <ActionButton
             icon="🔖"
-            title="Saved Jobs"
+            title={t('profile.actions.savedJobs')}
             onPress={() => router.push('/SavedJobsScreen')}
           />
           <ActionButton
             icon="📝"
-            title="My Applications"
+            title={t('profile.actions.myApplications')}
             onPress={() => router.push('/AppliedJobScreen')}
           />
           <ActionButton
             icon="⚙️"
-            title="Preferences"
+            title={t('profile.actions.preferences')}
             onPress={() => router.push('/PreferencesScreen')}
           />
         </View>
@@ -568,7 +635,7 @@ const ProfileScreen: React.FC = () => {
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutIcon}>🚪</Text>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('profile.logout.button')}</Text>
         </TouchableOpacity>
 
         <View style={styles.bottomSpacer} />
@@ -600,7 +667,7 @@ const ActionButton: React.FC<{
   </TouchableOpacity>
 );
 
-// Styles
+// Styles (keep all your existing styles exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

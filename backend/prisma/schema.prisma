@@ -14,6 +14,7 @@ model User {
   password         String
   fullName         String
   phoneNumber      String?
+  preferredLanguage LanguageType @default(ENGLISH)  // NEW FIELD
   isEmailVerified  Boolean  @default(false)
   isPhoneVerified  Boolean  @default(false)
   isActive         Boolean  @default(true)
@@ -27,7 +28,7 @@ model User {
   notifications    Notification[]
   reviews          Review[]
   resumeAnswers    ResumeAnswer[] 
-  savedJobs   SavedJob[]
+  savedJobs        SavedJob[]
 
   @@map("users")
 }
@@ -408,4 +409,11 @@ enum CompanySize {
   MEDIUM          // 51-200 employees
   LARGE           // 201-1000 employees
   ENTERPRISE      // 1000+ employees
+}
+
+enum LanguageType {
+  ENGLISH
+  CHINESE
+  MALAY
+  TAMIL
 }

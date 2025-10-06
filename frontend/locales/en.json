@@ -1,0 +1,595 @@
+{
+  "common": {
+    "success": "Success",
+    "error": "Error",
+    "changeLanguage": "Change Language",
+    "loading": "Loading...",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "next": "Next",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "required": "Required",
+    "optional": "Optional",
+    "select": "Select",
+    "search": "Search",
+    "ok": "OK",
+    "done": "Done"
+  },
+  "jobDetails": {
+    "title": "Job Details",
+    "loading": "Loading job details...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "applyButton": "Apply Now",
+    "remote": "Remote",
+    "alreadyApplied": {
+      "title": "Already Applied",
+      "message": "You have already applied to this position. Status: {status}"
+    },
+    "quickInfo": {
+      "jobType": "Job Type",
+      "experience": "Experience",
+      "workingHours": "Working Hours",
+      "industry": "Industry"
+    },
+    "salary": {
+      "title": "Salary",
+      "notSpecified": "Salary not specified",
+      "per": "per"
+    },
+    "description": {
+      "title": "Job Description"
+    },
+    "requirements": {
+      "title": "Requirements"
+    },
+    "benefits": {
+      "title": "Benefits"
+    },
+    "company": {
+      "about": "About {companyName}",
+      "size": "Company Size:",
+      "location": "Location:",
+      "visitWebsite": "Visit Website",
+      "notSpecified": "Not specified"
+    },
+    "stats": {
+      "views": "Views",
+      "applicants": "Applicants"
+    },
+    "applied": {
+      "submitted": "Application Submitted",
+      "status": "Status"
+    },
+    "posted": {
+      "today": "Posted today",
+      "yesterday": "Posted yesterday",
+      "daysAgo": "Posted {days} days ago",
+      "weeksAgo": "Posted {weeks} weeks ago",
+      "monthsAgo": "Posted {months} months ago"
+    },
+    "applicationStatus": {
+      "unknown": "Unknown"
+    },
+    "errors": {
+      "loadFailed": "Failed to load job details. Please try again.",
+      "saveFailed": "Failed to save job. Please try again.",
+      "notFound": "Job not found"
+    }
+  },
+  "applyConfirmation": {
+    "title": "Apply for Job",
+    "loading": "Loading application...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "applyingFor": "Applying for",
+    "submitting": "Submitting...",
+    "confirmApplication": "Confirm & Send Application",
+    "progress": {
+      "reviewInfo": "Review Info",
+      "submit": "Submit"
+    },
+    "incompleteProfile": {
+      "alert": "Complete these required details to submit your application",
+      "title": "Required Information",
+      "phoneNumber": "Phone Number *",
+      "phonePlaceholder": "e.g., 012-3456-7890",
+      "cityPlaceholder": "e.g., Kuala Lumpur",
+      "statePlaceholder": "e.g., Wilayah Persekutuan",
+      "experiencePlaceholder": "e.g., 3"
+    },
+    "completeProfile": {
+      "title": "Your Application Details",
+      "badge": "✓ Complete",
+      "more": "more",
+      "resumeAttached": "Attached",
+      "editProfile": "Edit Profile Details"
+    },
+    "success": {
+      "title": "Application Submitted!",
+      "message": "Your application for {jobTitle} has been submitted successfully.",
+      "viewApplications": "View Applications",
+      "backToJobs": "Back to Jobs"
+    },
+    "errors": {
+      "loadFailed": "Failed to load application details.",
+      "updateFailed": "Failed to update profile. Please try again.",
+      "submitFailed": "Failed to submit application. Please try again."
+    },
+    "validation": {
+      "phoneRequired": "Please enter your phone number",
+      "cityRequired": "Please enter your city",
+      "stateRequired": "Please enter your state",
+      "experienceRequired": "Please enter your years of experience"
+    }
+  },
+  "preferences": {
+    "title": "Job Preferences",
+    "loading": "Loading preferences...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "preferredIndustries": "Preferred Industries",
+    "industriesSubtitle": "Select industries you are interested in",
+    "noIndustriesSelected": "No industries selected",
+    "industriesSelected": "{count} {industry} selected",
+    "industry": "industry",
+    "industries": "industries",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "infoText": "Your preferences help us show you the most relevant job opportunities",
+    "limitReached": {
+      "title": "Limit Reached",
+      "message": "You can only select up to 3 industries."
+    },
+    "noSelection": {
+      "title": "No Industries Selected",
+      "message": "Please select at least one industry."
+    },
+    "success": {
+      "message": "Your preferences have been updated!"
+    },
+    "errors": {
+      "loadFailed": "Failed to load preferences. Please try again.",
+      "updateFailed": "Failed to save preferences. Please try again."
+    }
+  },
+  "editProfile": {
+    "title": "Edit Profile",
+    "subtitle": "Update your information",
+    "loading": "Loading your profile...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "fullName": "Full Name",
+    "selectDate": "Select date",
+    "to": "to",
+    "industriesSelected": "{count} industry selected",
+    "skillsSelected": "{count} skills selected",
+    "languagesSelected": "{count} languages selected",
+    "selectIndustries": "Select preferred industries",
+    "selectSkills": "Select your skills",
+    "selectLanguages": "Select languages you speak",
+    "sections": {
+      "personalInfo": "Personal Information",
+      "personalInfoSubtitle": "Your basic details",
+      "addressSubtitle": "Your current location",
+      "jobPreferencesSubtitle": "Your career requirements",
+      "skillsExperienceSubtitle": "Your qualifications"
+    },
+    "placeholders": {
+      "fullName": "Enter your full name",
+      "phoneNumber": "Enter your phone number",
+      "nationality": "Enter your nationality",
+      "address": "Enter your complete address",
+      "city": "City",
+      "state": "State",
+      "postcode": "Postal code",
+      "minSalary": "Minimum",
+      "maxSalary": "Maximum",
+      "maxTravelDistance": "Maximum commuting distance"
+    },
+    "modals": {
+      "industries": "Select Industries",
+      "skills": "Select Skills",
+      "languages": "Select Languages"
+    },
+    "success": {
+      "message": "Profile updated successfully"
+    },
+    "errors": {
+      "loadFailed": "Failed to load data. Please try again.",
+      "updateFailed": "Failed to update profile. Please try again.",
+      "fullNameRequired": "Please enter your full name"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "loading": "Loading profile...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "tryAgain": "Try Again",
+    "notSpecified": "Not specified",
+    "notProvided": "Not provided",
+    "email": "Email",
+    "phone": "Phone",
+    "city": "City",
+    "state": "State",
+    "postcode": "Postcode",
+    "address": "Address",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "memberSince": "Member since",
+    "phoneNumber": "Phone Number",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "expectedSalary": "Expected Salary",
+    "workingHours": "Working Hours",
+    "transportMode": "Transport Mode",
+    "maxTravelDistance": "Max Travel Distance",
+    "availableFrom": "Available From",
+    "yearsOfExperience": "Years of Experience",
+    "years": "years",
+    "preferredIndustries": "Preferred Industries",
+    "skills": "Skills",
+    "languages": "Languages",
+    "viewResume": "View Resume",
+    "noIndustries": "No industries selected",
+    "noSkills": "No skills added",
+    "noLanguages": "No languages added",
+    "gender": {
+      "title": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "preferNotToSay": "Prefer not to say"
+    },
+    "transport": {
+      "ownVehicle": "Own Vehicle",
+      "publicTransport": "Public Transport",
+      "companyTransport": "Company Transport",
+      "motorcycle": "Motorcycle",
+      "bicycle": "Bicycle",
+      "walking": "Walking"
+    },
+    "completion": {
+      "title": "Profile Completion",
+      "hint": "Complete your profile to increase visibility to employers"
+    },
+    "sections": {
+      "personalInfo": "Personal Information",
+      "address": "Address",
+      "jobPreferences": "Job Preferences",
+      "skillsExperience": "Skills & Experience",
+      "quickActions": "Quick Actions"
+    },
+    "actions": {
+      "savedJobs": "Saved Jobs",
+      "myApplications": "My Applications",
+      "preferences": "Preferences"
+    },
+    "logout": {
+      "title": "Logout",
+      "confirmation": "Are you sure you want to logout?",
+      "button": "Logout"
+    },
+    "errors": {
+      "loadFailed": "Failed to load profile. Please try again."
+    }
+  },
+  "applications": {
+    "title": "My Applications",
+    "loading": "Loading applications...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "applied": "Applied",
+    "updated": "Updated",
+    "application": "application",
+    "applications": "applications",
+    "stats": "{filtered} of {total} {application}",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "reviewing": "Reviewing",
+      "shortlisted": "Shortlisted",
+      "interview": "Interview",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "pending": "Pending",
+      "reviewing": "Reviewing",
+      "shortlisted": "Shortlisted",
+      "interviewScheduled": "Interview Scheduled",
+      "interviewed": "Interviewed",
+      "rejected": "Rejected",
+      "hired": "Hired",
+      "withdrawn": "Withdrawn"
+    },
+    "emptyState": {
+      "noApplications": "No Applications Yet",
+      "noFilteredApplications": "No {status} Applications",
+      "description": "Start applying to jobs and track your applications here",
+      "filteredDescription": "You have no applications with this status",
+      "browseButton": "Browse Jobs"
+    },
+    "errors": {
+      "loadFailed": "Failed to load applications. Please try again.",
+      "refreshFailed": "Failed to refresh applications."
+    }
+  },
+  "savedJobs": {
+    "title": "Saved Jobs",
+    "loading": "Loading saved jobs...",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "removeJob": "Remove Saved Job",
+    "removeConfirmation": "Remove \"{jobTitle}\" from your saved jobs?",
+    "remove": "Remove",
+    "savedToday": "Saved today",
+    "savedYesterday": "Saved yesterday",
+    "savedDaysAgo": "Saved {days} days ago",
+    "savedOnDate": "Saved {date}",
+    "posted": "Posted",
+    "jobCount": "{count} {jobs} saved",
+    "job": "job",
+    "jobs": "jobs",
+    "emptyState": {
+      "title": "No Saved Jobs Yet",
+      "description": "Start browsing jobs and save the ones you are interested in",
+      "browseButton": "Browse Jobs"
+    },
+    "errors": {
+      "loadFailed": "Failed to load saved jobs. Please try again.",
+      "refreshFailed": "Failed to refresh saved jobs.",
+      "unsaveFailed": "Failed to remove job. Please try again."
+    }
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{days} days ago",
+    "weeksAgo": "{weeks} weeks ago",
+    "monthsAgo": "{months} months ago"
+  },
+  "jobTypes": {
+    "fullTime": "Full Time",
+    "partTime": "Part Time",
+    "contract": "Contract",
+    "temporary": "Temporary",
+    "internship": "Internship"
+  },
+  "workingHours": {
+    "dayShift": "Day Shift",
+    "nightShift": "Night Shift",
+    "rotatingShift": "Rotating Shift",
+    "flexible": "Flexible",
+    "weekendOnly": "Weekend Only"
+  },
+  "signUp": {
+    "appTitle": "Blue-Collar Job Portal",
+    "appSubtitle": "Start your career journey",
+    "createAccount": "Create Account",
+    "joinThousands": "Join thousands of job seekers",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "012-3456-7890",
+    "phoneHint": "Malaysian phone number",
+    "password": "Password",
+    "passwordPlaceholder": "Create a password",
+    "passwordHint": "At least 8 characters with uppercase, lowercase, and number",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "agreeToTerms": "I agree to the",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "createAccountButton": "Create Account",
+    "creatingAccount": "Creating Account...",
+    "or": "OR",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "errors": {
+      "fullNameRequired": "Please enter your full name",
+      "emailRequired": "Please enter your email address",
+      "phoneRequired": "Please enter your phone number",
+      "passwordRequired": "Please enter a password",
+      "confirmPasswordRequired": "Please confirm your password",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid Malaysian phone number (e.g., 0123456789)",
+      "passwordTooShort": "Password must be at least 8 characters long",
+      "passwordWeak": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "passwordMismatch": "Passwords do not match",
+      "termsRequired": "Please agree to the Terms of Service and Privacy Policy",
+      "signUpFailed": "Sign up failed. Please try again.",
+      "accountExists": "An account with this email already exists. Please try signing in instead."
+    },
+    "success": {
+      "title": "Success!",
+      "message": "Account created successfully. Welcome to Blue-Collar Jobs!",
+      "continue": "Continue"
+    }
+  },
+  "login": {
+    "appTitle": "Budget Control",
+    "appSubtitle": "Take control of your finances",
+    "welcomeBack": "Welcome Back!",
+    "signInToContinue": "Sign in to continue",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "or": "OR",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "success": {
+      "loggedIn": "Successfully logged in!"
+    },
+    "errors": {
+      "emailRequired": "Please enter your email",
+      "passwordRequired": "Please enter your password",
+      "invalidEmail": "Please enter a valid email address",
+      "loginFailed": "Login failed. Please check your credentials.",
+      "unexpected": "An unexpected error occurred. Please try again."
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Blue-Collar Jobs!",
+      "subtitle": "Find your next job opportunity",
+      "description": "We help connect skilled workers like you with great employers across Malaysia.",
+      "buttonText": "Get Started"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Simple job searching",
+      "description": "1. Complete your profile\n2. Choose your industries\n3. Answer a few questions\n4. Start applying for jobs",
+      "buttonText": "Continue"
+    },
+    "completeProfile": {
+      "title": "Complete Your Profile",
+      "subtitle": "Help employers know more about you",
+      "description": "Fill in your basic information and job preferences.",
+      "buttonText": "Continue"
+    },
+    "chooseIndustries": {
+      "title": "Choose Your Industries",
+      "subtitle": "What type of work are you looking for?",
+      "description": "Select up to 3 industries that match your skills and interests.",
+      "buttonText": "Continue",
+      "selectionCounter": "Selected: {count}/3",
+      "limitReached": "Limit Reached",
+      "limitMessage": "You can select up to 3 industries only.",
+      "selectionRequired": "Selection Required",
+      "selectionMessage": "Please select at least one industry."
+    },
+    "buildResume": {
+      "title": "Help Us Build Your Resume",
+      "subtitle": "Answer a few questions",
+      "description": "We'll use your answers to create a professional resume for you.",
+      "buttonText": "Generate Resume",
+      "requiredQuestion": "Required Question",
+      "requiredMessage": "Please answer: {question}"
+    },
+    "previewResume": {
+      "title": "Preview Your Resume",
+      "subtitle": "Check your generated resume",
+      "description": "You can regenerate if needed, or continue to proceed.",
+      "primaryButtonText": "Continue",
+      "secondaryButtonText": "Regenerate",
+      "resumeReady": "Your Resume is Ready!",
+      "resumeDescription": "Tap the button below to view your generated resume in the browser.",
+      "viewResume": "📱 View Resume in Browser",
+      "generating": "Generating resume...",
+      "noResume": "No resume available. Please generate first.",
+      "regenerateError": "Failed to regenerate resume. Please try again."
+    },
+    "completion": {
+      "title": "You're All Set!",
+      "subtitle": "Start finding jobs now",
+      "description": "Your profile is ready. You'll receive job notifications based on your selected industries.",
+      "buttonText": "Start Job Search"
+    },
+    "profileForm": {
+      "profilePicture": "Profile Picture",
+      "addPhoto": "Add Photo",
+      "skills": "Skills",
+      "selectSkills": "Select your skills",
+      "languages": "Languages",
+      "selectLanguages": "Select languages you speak",
+      "certifications": "Certifications",
+      "addCertifications": "Add your certifications",
+      "certificationsPlaceholder": "Enter your certifications (e.g., Forklift License, Safety Training, etc.)",
+      "certificationsHelper": "Separate multiple certifications with commas",
+      "personalInfo": "Personal Information",
+      "dateOfBirth": "Date of Birth",
+      "selectDate": "Select Date",
+      "gender": "Gender",
+      "selectGender": "Select Gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "preferNotToSay": "Prefer not to say",
+      "nationality": "Nationality",
+      "nationalityPlaceholder": "e.g., Malaysian",
+      "address": "Address",
+      "addressSection": "Address",
+      "streetAddress": "Street address",
+      "city": "City",
+      "cityPlaceholder": "City",
+      "state": "State",
+      "statePlaceholder": "State",
+      "postcode": "Postcode",
+      "postcodePlaceholder": "Postcode",
+      "jobPreferences": "Job Preferences",
+      "minSalary": "Min Salary (RM)",
+      "minSalaryPlaceholder": "2000",
+      "maxSalary": "Max Salary (RM)",
+      "maxSalaryPlaceholder": "5000",
+      "availableFrom": "Available From",
+      "workingHours": "Preferred Working Hours",
+      "selectWorkingHours": "Select Working Hours",
+      "dayShift": "Day Shift",
+      "nightShift": "Night Shift",
+      "rotatingShift": "Rotating Shift",
+      "flexible": "Flexible",
+      "weekendOnly": "Weekend Only",
+      "transportMode": "Transport Mode",
+      "selectTransport": "Select Transport Mode",
+      "ownVehicle": "Own Vehicle",
+      "publicTransport": "Public Transport",
+      "companyTransport": "Company Transport",
+      "motorcycle": "Motorcycle",
+      "bicycle": "Bicycle",
+      "walking": "Walking",
+      "maxTravelDistance": "Max Travel Distance (km)",
+      "maxTravelPlaceholder": "20",
+      "experienceYears": "Years of Experience",
+      "experiencePlaceholder": "5",
+      "validation": {
+        "requiredFields": "Required Fields",
+        "cityStateRequired": "Please fill in your city and state.",
+        "saveProfileError": "Failed to save profile. Please try again.",
+        "saveIndustriesError": "Failed to save industry preferences. Please try again.",
+        "saveResumeError": "Failed to save resume answers. Please try again.",
+        "generateResumeError": "Failed to generate resume. Please try again."
+      }
+    },
+    "stepSelector": {
+      "title": "Go to Step",
+      "close": "Close"
+    }
+  },
+  "home": {
+    "appTitle": "Blukers Job Platform",
+    "authRequired": "Authentication Required",
+    "yourJobPreferences": "Your Job Preferences",
+    "signInToContinue": "Please sign in to continue",
+    "loadError": "Failed to load data. Please try again.",
+    "jobsLoadError": "Failed to load jobs. Please try again.",
+    "loadingJobs": "Loading jobs...",
+    "searchPlaceholder": "Search jobs, companies...",
+    "industry": "Industry",
+    "locationPlaceholder": "Location",
+    "clearFilters": "Clear Filters",
+    "oneJobFound": "Job Found",
+    "manyJobsFound": "Jobs Found",
+    "noJobs": "No jobs found",
+    "adjustFilters": "Try adjusting your filters",
+    "selectIndustry": "Select Industry",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago",
+    "allIndustries": "All Industries"
+  }
+}

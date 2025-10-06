@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,13 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import Constants from 'expo-constants';
-
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
-// API Configuration
-// Replace with your current ngrok https URL
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 interface SignUpFormData {
@@ -29,44 +27,7 @@ interface SignUpFormData {
   confirmPassword: string;
 }
 
-interface ApiError {
-  success: boolean;
-  message: string;
-  errors?: Array<{
-    field: string;
-    message: string;
-  }>;
-}
-
-interface SignUpResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: {
-      id: number;
-      email: string;
-      fullName: string;
-      phoneNumber: string;
-      isEmailVerified: boolean;
-      createdAt: string;
-      profile: {
-        profileCompleted: boolean;
-      };
-    };
-    token: string;
-    isNewUser: boolean;
-  };
-}
-
-interface SignUpScreenProps {
-  onSignUpSuccess?: (userData: SignUpResponse['data']) => void;
-  onSignIn?: () => void;
-}
-
-const SignUpScreen: React.FC<SignUpScreenProps> = ({
-  onSignUpSuccess,
-  onSignIn,
-}) => {
+const SignUpScreen: React.FC = () => {
   const [formData, setFormData] = useState<SignUpFormData>({
     fullName: '',
     email: '',
@@ -79,9 +40,9 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
-  const [jwtToken, setJwtToken] = useState<string>('');
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   const handleInputChange = (field: keyof SignUpFormData, value: string) => {
     setFormData((prev) => ({
@@ -91,53 +52,49 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
   };
 
   const validateForm = (): boolean => {
-    // Check required fields
     if (!formData.fullName.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
+      Alert.alert(t('common.error'), t('signUp.errors.fullNameRequired'));
       return false;
     }
 
     if (!formData.email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      Alert.alert(t('common.error'), t('signUp.errors.emailRequired'));
       return false;
     }
 
     if (!formData.phoneNumber.trim()) {
-      Alert.alert('Error', 'Please enter your phone number');
+      Alert.alert(t('common.error'), t('signUp.errors.phoneRequired'));
       return false;
     }
 
     if (!formData.password.trim()) {
-      Alert.alert('Error', 'Please enter a password');
+      Alert.alert(t('common.error'), t('signUp.errors.passwordRequired'));
       return false;
     }
 
     if (!formData.confirmPassword.trim()) {
-      Alert.alert('Error', 'Please confirm your password');
-      return false;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return false;
-    }
-
-    // Validate phone number (Malaysian format)
-    const phoneRegex = /^(\+?6?01)[0-9]{8,9}$/;
-    const cleanPhone = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
-    if (!phoneRegex.test(cleanPhone)) {
       Alert.alert(
-        'Error',
-        'Please enter a valid Malaysian phone number (e.g., 0123456789)'
+        t('common.error'),
+        t('signUp.errors.confirmPasswordRequired')
       );
       return false;
     }
 
-    // Validate password
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Alert.alert(t('common.error'), t('signUp.errors.invalidEmail'));
+      return false;
+    }
+
+    const phoneRegex = /^(\+?6?01)[0-9]{8,9}$/;
+    const cleanPhone = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+      Alert.alert(t('common.error'), t('signUp.errors.invalidPhone'));
+      return false;
+    }
+
     if (formData.password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+      Alert.alert(t('common.error'), t('signUp.errors.passwordTooShort'));
       return false;
     }
 
@@ -146,59 +103,21 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
     const hasNumbers = /\d/.test(formData.password);
 
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      Alert.alert(
-        'Password Too Weak',
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-      );
+      Alert.alert(t('common.passwordTooWeak'), t('signUp.errors.passwordWeak'));
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('signUp.errors.passwordMismatch'));
       return false;
     }
 
     if (!agreeToTerms) {
-      Alert.alert(
-        'Terms Required',
-        'Please agree to the Terms of Service and Privacy Policy'
-      );
+      Alert.alert(t('common.termsRequired'), t('signUp.errors.termsRequired'));
       return false;
     }
 
     return true;
-  };
-
-  const callSignUpAPI = async (): Promise<SignUpResponse> => {
-    const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
-
-    const response = await fetch(`${URL}/api/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fullName: formData.fullName.trim(),
-
-        email: formData.email.toLowerCase().trim(),
-        phoneNumber: cleanPhoneNumber,
-        password: formData.password,
-      }),
-    });
-
-    const data = await response.json();
-    // Get the JWT from response
-    const token = data.data.token;
-    console.log('JWT Token:', token);
-
-    // Save in state or AsyncStorage
-    setJwtToken(token);
-    await AsyncStorage.setItem('jwtToken', token);
-
-    console.log('Sign Up API response:', data);
-    if (!response.ok) {
-      throw data;
-    }
-
-    return data;
   };
 
   const handleSignUp = async () => {
@@ -206,55 +125,83 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
     setIsLoading(true);
     try {
-      const result = await callSignUpAPI();
+      const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
 
-      // Store authentication token
-      await AsyncStorage.setItem('userToken', result.data.token);
-      await AsyncStorage.setItem('userData', JSON.stringify(result.data.user));
+      const response = await fetch(`${URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName.trim(),
+          email: formData.email.toLowerCase().trim(),
+          phoneNumber: cleanPhoneNumber,
+          password: formData.password,
+        }),
+      });
 
-      // Show success message, only navigate after clicking "Continue"
-      Alert.alert(
-        'Success!',
-        'Account created successfully. Welcome to Blue-Collar Jobs!',
-        [
-          {
-            text: 'Continue',
-            onPress: () => {
-              router.replace('/OnboardingFlow');
-            },
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw data;
+      }
+
+      await AsyncStorage.setItem('jwtToken', data.data.token);
+      await AsyncStorage.setItem('userToken', data.data.token);
+      await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+      const preferredLanguage = await AsyncStorage.getItem('preferredLanguage');
+
+      if (preferredLanguage) {
+        const languageMap: Record<string, string> = {
+          en: 'ENGLISH',
+          zh: 'CHINESE',
+          ms: 'MALAY',
+          ta: 'TAMIL',
+        };
+
+        const backendLanguage = languageMap[preferredLanguage] || 'ENGLISH';
+
+        await fetch(`${URL}/api/language/updateLanguage`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${data.data.token}`,
           },
-        ]
-      );
+          body: JSON.stringify({
+            preferredLanguage: backendLanguage,
+          }),
+        });
+      }
+
+      Alert.alert(t('signUp.success.title'), t('signUp.success.message'), [
+        {
+          text: t('signUp.success.continue'),
+          onPress: () => {
+            router.replace('/OnboardingFlow');
+          },
+        },
+      ]);
     } catch (error: any) {
       console.error('Sign up error:', error);
 
-      let errorMessage = 'Sign up failed. Please try again.';
+      let errorMessage = t('signUp.errors.signUpFailed');
 
-      if (error.message) {
+      if (error.message?.includes('already exists')) {
+        errorMessage = t('signUp.errors.accountExists');
+      } else if (error.message) {
         errorMessage = error.message;
       } else if (error.errors && error.errors.length > 0) {
         errorMessage = error.errors[0].message;
       }
 
-      // Handle specific error cases
-      if (error.message?.includes('already exists')) {
-        errorMessage =
-          'An account with this email already exists. Please try signing in instead.';
-      }
-
-      Alert.alert('Sign Up Failed', errorMessage);
+      Alert.alert(t('common.signUpFailed'), errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const formatPhoneNumber = (text: string) => {
-    // Remove all non-numeric characters
     const cleaned = text.replace(/\D/g, '');
 
-    // Malaysian phone number formatting
     if (cleaned.startsWith('6')) {
-      // Handle +6 format
       if (cleaned.length >= 3) {
         return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)}-${cleaned.slice(
           4,
@@ -262,7 +209,6 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
         )}-${cleaned.slice(8, 12)}`;
       }
     } else if (cleaned.startsWith('01')) {
-      // Handle local format (01X-XXXX-XXXX)
       if (cleaned.length >= 7) {
         return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(
           7,
@@ -297,23 +243,21 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>BC</Text>
             </View>
-            <Text style={styles.appTitle}>Blue-Collar Job Portal</Text>
-            <Text style={styles.appSubtitle}>Start your career journey</Text>
+            <Text style={styles.appTitle}>{t('signUp.appTitle')}</Text>
+            <Text style={styles.appSubtitle}>{t('signUp.appSubtitle')}</Text>
           </View>
 
           {/* Sign Up Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>Create Account</Text>
-            <Text style={styles.subtitleText}>
-              Join thousands of job seekers
-            </Text>
+            <Text style={styles.welcomeText}>{t('signUp.createAccount')}</Text>
+            <Text style={styles.subtitleText}>{t('signUp.joinThousands')}</Text>
 
             {/* Full Name Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Full Name</Text>
+              <Text style={styles.inputLabel}>{t('signUp.fullName')}</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter your full name"
+                placeholder={t('signUp.fullNamePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={formData.fullName}
                 onChangeText={(value) => handleInputChange('fullName', value)}
@@ -325,10 +269,10 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email Address</Text>
+              <Text style={styles.inputLabel}>{t('signUp.email')}</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter your email"
+                placeholder={t('signUp.emailPlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={formData.email}
                 onChangeText={(value) => handleInputChange('email', value)}
@@ -342,10 +286,10 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
 
             {/* Phone Number Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
+              <Text style={styles.inputLabel}>{t('signUp.phoneNumber')}</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="012-3456-7890"
+                placeholder={t('signUp.phonePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={formData.phoneNumber}
                 onChangeText={handlePhoneChange}
@@ -353,16 +297,16 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
                 maxLength={16}
                 editable={!isLoading}
               />
-              <Text style={styles.phoneHint}>Malaysian phone number</Text>
+              <Text style={styles.phoneHint}>{t('signUp.phoneHint')}</Text>
             </View>
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Password</Text>
+              <Text style={styles.inputLabel}>{t('signUp.password')}</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Create a password"
+                  placeholder={t('signUp.passwordPlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={formData.password}
                   onChangeText={(value) => handleInputChange('password', value)}
@@ -383,17 +327,19 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
                 </TouchableOpacity>
               </View>
               <Text style={styles.passwordHint}>
-                At least 8 characters with uppercase, lowercase, and number
+                {t('signUp.passwordHint')}
               </Text>
             </View>
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
+              <Text style={styles.inputLabel}>
+                {t('signUp.confirmPassword')}
+              </Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Confirm your password"
+                  placeholder={t('signUp.confirmPasswordPlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={formData.confirmPassword}
                   onChangeText={(value) =>
@@ -433,9 +379,14 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
                   {agreeToTerms && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text style={styles.termsText}>
-                  I agree to the{' '}
-                  <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-                  <Text style={styles.termsLink}>Privacy Policy</Text>
+                  {t('signUp.agreeToTerms')}{' '}
+                  <Text style={styles.termsLink}>
+                    {t('signUp.termsOfService')}
+                  </Text>{' '}
+                  {t('signUp.and')}{' '}
+                  <Text style={styles.termsLink}>
+                    {t('signUp.privacyPolicy')}
+                  </Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -450,26 +401,39 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({
               disabled={isLoading}
             >
               <Text style={styles.signUpButtonText}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+                {isLoading
+                  ? t('signUp.creatingAccount')
+                  : t('signUp.createAccountButton')}
               </Text>
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t('signUp.or')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
             {/* Sign In Button */}
             <TouchableOpacity
               style={styles.signInButton}
-              onPress={() => router.replace('/')}
+              onPress={() => router.replace('/LoginScreen')}
               disabled={isLoading}
             >
               <Text style={styles.signInButtonText}>
-                Already have an account?{' '}
-                <Text style={styles.signInLinkText}>Sign In</Text>
+                {t('signUp.alreadyHaveAccount')}{' '}
+                <Text style={styles.signInLinkText}>{t('signUp.signIn')}</Text>
+              </Text>
+            </TouchableOpacity>
+
+            {/* Change Language Button */}
+            <TouchableOpacity
+              style={styles.changeLanguageButton}
+              onPress={() => router.replace('/')} // navigate back to index.tsx
+              disabled={isLoading}
+            >
+              <Text style={styles.changeLanguageText}>
+                🌐 {t('common.changeLanguage') || 'Change Language'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -492,6 +456,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 40,
+  },
+  languageSelector: {
+    marginBottom: 20,
   },
   logoSection: {
     alignItems: 'center',
@@ -556,14 +523,6 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginBottom: 32,
     textAlign: 'center',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  nameInput: {
-    flex: 1,
-    marginRight: 8,
   },
   inputContainer: {
     marginBottom: 20,
@@ -706,6 +665,17 @@ const styles = StyleSheet.create({
   signInLinkText: {
     color: '#1E3A8A',
     fontWeight: 'bold',
+  },
+  changeLanguageButton: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+
+  changeLanguageText: {
+    fontSize: 16,
+    color: '#1E3A8A',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
 
