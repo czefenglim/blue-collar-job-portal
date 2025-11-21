@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -57,6 +59,12 @@ const SavedJobsScreen: React.FC = () => {
     loadSavedJobs();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedJobs();
+    }, [])
+  );
+
   const loadSavedJobs = async () => {
     try {
       setIsLoading(true);
@@ -83,7 +91,10 @@ const SavedJobsScreen: React.FC = () => {
 
   const fetchSavedJobs = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/jobs/saved/list`, {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      const response = await fetch(`${URL}/api/jobs/saved/list?lang=${lang}`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -123,7 +134,6 @@ const SavedJobsScreen: React.FC = () => {
       });
 
       if (response.ok) {
-        // Remove job from list
         setSavedJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
       } else {
         Alert.alert(t('common.error'), t('savedJobs.errors.unsaveFailed'));
@@ -152,6 +162,39 @@ const SavedJobsScreen: React.FC = () => {
     );
   };
 
+  const handleReport = (jobId: number, jobTitle: string) => {
+    router.push({
+      pathname: '/(user-hidden)/report-job',
+      params: { jobId: jobId.toString(), jobTitle },
+    });
+  };
+
+  const showOptionsMenu = (item: Job) => {
+    Alert.alert(t('savedJobs.options'), t('savedJobs.selectAction'), [
+      {
+        text: t('savedJobs.viewDetails'),
+        onPress: () =>
+          router.push({
+            pathname: '/JobDetailsScreen/[slug]',
+            params: { slug: item.slug },
+          }),
+      },
+      {
+        text: t('savedJobs.unsave'),
+        onPress: () => confirmUnsave(item.id, item.title),
+      },
+      {
+        text: t('savedJobs.reportJob'),
+        onPress: () => handleReport(item.id, item.title),
+        style: 'destructive',
+      },
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+    ]);
+  };
+
   const getTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -174,7 +217,6 @@ const SavedJobsScreen: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Map to translations if available
     const translationMap: { [key: string]: string } = {
       'Full Time': t('jobTypes.fullTime'),
       'Part Time': t('jobTypes.partTime'),
@@ -194,7 +236,6 @@ const SavedJobsScreen: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Map to translations if available
     const translationMap: { [key: string]: string } = {
       'Day Shift': t('workingHours.dayShift'),
       'Night Shift': t('workingHours.nightShift'),
@@ -224,71 +265,78 @@ const SavedJobsScreen: React.FC = () => {
   };
 
   const renderJobCard = ({ item }: { item: Job }) => (
-    <TouchableOpacity
-      style={styles.jobCard}
-      onPress={() =>
-        router.push({
-          pathname: '/JobDetailsScreen/[slug]',
-          params: { slug: item.slug },
-        })
-      }
-      activeOpacity={0.7}
-    >
-      <View style={styles.jobCardHeader}>
-        <View style={styles.companyLogoContainer}>
-          <Text style={styles.companyLogoText}>
-            {item.company.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.jobHeaderInfo}>
-          <Text style={styles.savedAtText}>{formatSavedAt(item.savedAt)}</Text>
-          <TouchableOpacity
-            onPress={() => confirmUnsave(item.id, item.title)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.removeIcon}>🔖</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Text style={styles.jobTitle} numberOfLines={2}>
-        {item.title}
-      </Text>
-
-      <View style={styles.jobMetaContainer}>
-        <View style={styles.jobMetaRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.industry.name}</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{formatJobType(item.jobType)}</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {formatWorkingHours(item.workingHours)}
+    <View style={styles.jobCard}>
+      <TouchableOpacity
+        style={styles.cardTouchable}
+        onPress={() =>
+          router.push({
+            pathname: '/JobDetailsScreen/[slug]',
+            params: { slug: item.slug },
+          })
+        }
+        activeOpacity={0.7}
+      >
+        <View style={styles.jobCardHeader}>
+          <View style={styles.companyLogoContainer}>
+            <Text style={styles.companyLogoText}>
+              {item.company.name.charAt(0).toUpperCase()}
             </Text>
           </View>
+          <View style={styles.jobHeaderInfo}>
+            <Text style={styles.savedAtText}>
+              {formatSavedAt(item.savedAt)}
+            </Text>
+            <TouchableOpacity
+              onPress={() => showOptionsMenu(item)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.moreButton}
+            >
+              <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <Text style={styles.companyName} numberOfLines={1}>
-        {item.company.name}
-      </Text>
-      <Text style={styles.location} numberOfLines={1}>
-        {item.city}, {item.state}
-      </Text>
-
-      <View style={styles.jobFooter}>
-        <Text style={styles.postedText}>
-          {t('savedJobs.posted')} {getTimeAgo(item.createdAt)}
+        <Text style={styles.jobTitle} numberOfLines={2}>
+          {item.title}
         </Text>
-      </View>
-    </TouchableOpacity>
+
+        <View style={styles.jobMetaContainer}>
+          <View style={styles.jobMetaRow}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{item.industry.name}</Text>
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {formatJobType(item.jobType)}
+              </Text>
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {formatWorkingHours(item.workingHours)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.companyName} numberOfLines={1}>
+          {item.company.name}
+        </Text>
+        <Text style={styles.location} numberOfLines={1}>
+          {item.city}, {item.state}
+        </Text>
+
+        <View style={styles.jobFooter}>
+          <Text style={styles.postedText}>
+            {t('savedJobs.posted')} {getTimeAgo(item.createdAt)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📑</Text>
+      <Ionicons name="bookmark-outline" size={80} color="#CBD5E1" />
       <Text style={styles.emptyTitle}>{t('savedJobs.emptyState.title')}</Text>
       <Text style={styles.emptyText}>
         {t('savedJobs.emptyState.description')}
@@ -312,7 +360,7 @@ const SavedJobsScreen: React.FC = () => {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('savedJobs.title')}</Text>
           <View style={styles.headerPlaceholder} />
@@ -332,7 +380,7 @@ const SavedJobsScreen: React.FC = () => {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('savedJobs.title')}</Text>
         <View style={styles.headerPlaceholder} />
@@ -402,11 +450,6 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#1E3A8A',
-    fontWeight: 'bold',
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -438,13 +481,15 @@ const styles = StyleSheet.create({
   jobCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  cardTouchable: {
+    padding: 16,
   },
   jobCardHeader: {
     flexDirection: 'row',
@@ -474,8 +519,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#64748B',
   },
-  removeIcon: {
-    fontSize: 20,
+  moreButton: {
+    padding: 4,
   },
   jobTitle: {
     fontSize: 18,
@@ -529,14 +574,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1E293B',
+    marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {

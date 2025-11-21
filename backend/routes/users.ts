@@ -10,6 +10,7 @@ import {
   getLanguages,
   getSkills,
   getIndustries,
+  getUserLocation,
 } from '../controllers/userController';
 import authMiddleware from '../middleware/authMiddleware';
 
@@ -25,5 +26,6 @@ router.put('/updateProfile', authMiddleware, updateUserProfile);
 router.get('/getIndustries', authMiddleware, getIndustries);
 router.get('/getSkills', authMiddleware, getSkills);
 router.get('/getLanguages', authMiddleware, getLanguages);
+router.get('/location', authMiddleware, getUserLocation);
 
 export default router;

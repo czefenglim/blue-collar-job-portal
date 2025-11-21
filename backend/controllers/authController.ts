@@ -1,17 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
+
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
+import { SignupRequest } from '../types/signUpRequest';
 
 const prisma = new PrismaClient();
-
-interface SignupRequest {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  password: string;
-}
 
 interface LoginRequest {
   email: string;
@@ -31,10 +26,16 @@ export class AuthController {
         });
       }
 
-      const { fullName, email, phoneNumber, password }: SignupRequest =
+      const { fullName, email, phoneNumber, password, role }: SignupRequest =
         req.body;
 
-      // Check if user already exists
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing user role (e.g., EMPLOYER or USER)',
+        });
+      }
+
       const existingUser = await prisma.user.findUnique({
         where: { email: email.toLowerCase() },
       });
@@ -46,17 +47,15 @@ export class AuthController {
         });
       }
 
-      // Hash password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const hashedPassword = await bcrypt.hash(password, 12);
 
-      // Create user with profile
       const user = await prisma.user.create({
         data: {
           email: email.toLowerCase(),
           password: hashedPassword,
           fullName,
           phoneNumber,
+          role,
           profile: {
             create: {
               profileCompleted: false,
@@ -68,6 +67,7 @@ export class AuthController {
           email: true,
           fullName: true,
           phoneNumber: true,
+          role: true,
           isEmailVerified: true,
           createdAt: true,
           profile: {
@@ -78,9 +78,8 @@ export class AuthController {
         },
       });
 
-      // Generate JWT token
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET as string,
         { expiresIn: '30d' }
       );

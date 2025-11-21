@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE `jobs` ADD COLUMN `approvalStatus` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    ADD COLUMN `approvedAt` DATETIME(3) NULL,
+    ADD COLUMN `approvedBy` INTEGER NULL,
+    ADD COLUMN `rejectedAt` DATETIME(3) NULL,
+    ADD COLUMN `rejectedBy` INTEGER NULL,
+    ADD COLUMN `rejectionReason` TEXT NULL;
+
+-- AlterTable
+ALTER TABLE `users` ADD COLUMN `status` ENUM('ACTIVE', 'SUSPENDED', 'DELETED') NOT NULL DEFAULT 'ACTIVE',
+    ADD COLUMN `suspendedAt` DATETIME(3) NULL,
+    ADD COLUMN `suspendedBy` INTEGER NULL,
+    ADD COLUMN `suspensionReason` TEXT NULL;

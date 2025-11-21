@@ -89,7 +89,9 @@ const ApplyConfirmationScreen: React.FC = () => {
 
   const fetchJobDetails = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/jobs/${slug}`, {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+      const response = await fetch(`${URL}/api/jobs/${slug}?lang=${lang}`, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
 

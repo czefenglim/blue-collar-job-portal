@@ -75,7 +75,10 @@ const PreferencesScreen: React.FC = () => {
 
   const fetchIndustries = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/industries`, {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+
+      const response = await fetch(`${URL}/api/industries?lang=${lang}`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -92,11 +95,17 @@ const PreferencesScreen: React.FC = () => {
 
   const fetchUserPreferences = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/users/getPreferences`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+
+      const response = await fetch(
+        `${URL}/api/users/getPreferences?lang=${lang}`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();

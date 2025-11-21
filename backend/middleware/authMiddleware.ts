@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
   // 1. Extract token from the Authorization header (format: "Bearer <token>")
@@ -12,9 +15,12 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
       return res.status(500).json({ error: 'JWT secret not configured' });
     }
 
+    console.log('JWT_SECRET used:', process.env.JWT_SECRET);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
       userId: number;
       email: string;
+      role?: string; // Made role optional for backward compatibility
     };
 
     // 3. Attach decoded user info to the request object

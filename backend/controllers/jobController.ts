@@ -1,5 +1,18 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateJobs } from '../workers/translationWorker';
+import slugify from 'slugify';
+import {
+  sendJobApprovedNotification,
+  sendJobRejectedNotification,
+  sendJobMatchNotification,
+  sendApplicationStatusNotification,
+  sendNewApplicationNotification,
+} from '../utils/notificationHelper';
+import { geocodeAddress, calculateDistance } from '../utils/geocoding';
+import { AIJobVerificationService } from '../services/aiJobVerification';
+import { AdminAuthRequest } from '../types/admin';
+import { RecruitmentPredictionService } from '../services/recruitmentPrediction';
 
 const prisma = new PrismaClient();
 
@@ -10,7 +23,6 @@ interface AuthRequest extends Request {
   };
 }
 
-// Get all jobs with optional filters
 export const getAllJobs = async (
   req: AuthRequest,
   res: Response
@@ -26,16 +38,19 @@ export const getAllJobs = async (
       salaryMax,
       page = '1',
       limit = '20',
+      lang = 'en',
+      distance, // ADD THIS
+      userLat, // ADD THIS
+      userLon, // ADD THIS
     } = req.query;
 
     const userId = req.user!.userId;
 
-    // Build where clause
     const where: any = {
       isActive: true,
+      approvalStatus: 'APPROVED', // Only show approved jobs
     };
 
-    // Keyword search (title or company name)
     if (keyword && typeof keyword === 'string') {
       where.OR = [
         { title: { contains: keyword, mode: 'insensitive' } },
@@ -43,14 +58,10 @@ export const getAllJobs = async (
       ];
     }
 
-    // Industry filter
     if (industry && typeof industry === 'string') {
-      where.industry = {
-        slug: industry,
-      };
+      where.industry = { slug: industry };
     }
 
-    // Location filter
     if (location && typeof location === 'string') {
       where.OR = [
         { city: { contains: location, mode: 'insensitive' } },
@@ -58,17 +69,10 @@ export const getAllJobs = async (
       ];
     }
 
-    // Job type filter
-    if (jobType && typeof jobType === 'string') {
-      where.jobType = jobType;
-    }
-
-    // Experience level filter
-    if (experienceLevel && typeof experienceLevel === 'string') {
+    if (jobType && typeof jobType === 'string') where.jobType = jobType;
+    if (experienceLevel && typeof experienceLevel === 'string')
       where.experienceLevel = experienceLevel;
-    }
 
-    // Salary filter
     if (salaryMin || salaryMax) {
       where.AND = where.AND || [];
       if (salaryMin && typeof salaryMin === 'string') {
@@ -79,55 +83,82 @@ export const getAllJobs = async (
       }
     }
 
-    // Pagination
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
 
-    // Fetch jobs with saved status for current user
-    const jobs = await prisma.job.findMany({
+    let jobs = await prisma.job.findMany({
       where,
       include: {
         company: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-            city: true,
-            state: true,
-          },
+          select: { id: true, name: true, logo: true, city: true, state: true },
         },
         industry: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+          select: { id: true, name: true, slug: true },
         },
         savedJobs: {
           where: { userId },
           select: { id: true },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
       skip,
-      take,
+      take: distance ? undefined : take, // Don't limit if filtering by distance
     });
 
-    // Transform data to include isSaved flag
-    const jobsWithSavedStatus = jobs.map((job) => ({
-      ...job,
-      isSaved: job.savedJobs.length > 0,
-      savedJobs: undefined,
-    }));
+    // FILTER BY DISTANCE IF PROVIDED
+    if (distance && userLat && userLon) {
+      const maxDistance = parseFloat(distance as string);
+      const userLatitude = parseFloat(userLat as string);
+      const userLongitude = parseFloat(userLon as string);
 
-    // Get total count for pagination
-    const total = await prisma.job.count({ where });
+      console.log(
+        `Filtering jobs within ${maxDistance}km of (${userLatitude}, ${userLongitude})`
+      );
+
+      jobs = jobs.filter((job) => {
+        if (!job.latitude || !job.longitude) {
+          return false; // Exclude jobs without coordinates
+        }
+
+        const dist = calculateDistance(
+          userLatitude,
+          userLongitude,
+          job.latitude,
+          job.longitude
+        );
+
+        return dist <= maxDistance;
+      });
+
+      // Apply pagination after filtering
+      jobs = jobs.slice(skip, skip + take);
+    }
+
+    // Map data to translated version
+    const jobsWithTranslatedFields = jobs.map((job) => {
+      const title = (job as any)[`title_${lang}`] || job.title;
+      const description =
+        (job as any)[`description_${lang}`] || job.description;
+      const requirements =
+        (job as any)[`requirements_${lang}`] || job.requirements;
+      const benefits = (job as any)[`benefits_${lang}`] || job.benefits;
+
+      return {
+        ...job,
+        title,
+        description,
+        requirements,
+        benefits,
+        isSaved: job.savedJobs.length > 0,
+        savedJobs: undefined,
+      };
+    });
+
+    const total = distance ? jobs.length : await prisma.job.count({ where });
 
     res.json({
       success: true,
-      data: jobsWithSavedStatus,
+      data: jobsWithTranslatedFields,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
@@ -144,14 +175,15 @@ export const getAllJobs = async (
     });
   }
 };
-
 // Get single job by slug
+
 export const getJobBySlug = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
     const { slug } = req.params;
+    const { lang = 'en' } = req.query;
     const userId = req.user!.userId;
 
     const job = await prisma.job.findUnique({
@@ -170,44 +202,33 @@ export const getJobBySlug = async (
           },
         },
         industry: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+          select: { id: true, name: true, slug: true },
         },
-        savedJobs: {
-          where: { userId },
-          select: { id: true },
-        },
+        savedJobs: { where: { userId }, select: { id: true } },
         applications: {
           where: { userId },
-          select: {
-            id: true,
-            status: true,
-            appliedAt: true,
-          },
+          select: { id: true, status: true, appliedAt: true },
         },
       },
     });
 
     if (!job) {
-      res.status(404).json({
-        success: false,
-        message: 'Job not found',
-      });
+      res.status(404).json({ success: false, message: 'Job not found' });
       return;
     }
 
-    // Increment view count
     await prisma.job.update({
       where: { id: job.id },
       data: { viewCount: { increment: 1 } },
     });
 
-    // Transform response
-    const jobWithStatus = {
+    // 🈶 Replace with translated fields
+    const jobWithTranslated = {
       ...job,
+      title: (job as any)[`title_${lang}`] || job.title,
+      description: (job as any)[`description_${lang}`] || job.description,
+      requirements: (job as any)[`requirements_${lang}`] || job.requirements,
+      benefits: (job as any)[`benefits_${lang}`] || job.benefits,
       isSaved: job.savedJobs.length > 0,
       hasApplied: job.applications.length > 0,
       applicationStatus: job.applications[0]?.status || null,
@@ -215,10 +236,7 @@ export const getJobBySlug = async (
       applications: undefined,
     };
 
-    res.json({
-      success: true,
-      data: jobWithStatus,
-    });
+    res.json({ success: true, data: jobWithTranslated });
   } catch (error: any) {
     console.error('Error fetching job:', error);
     res.status(500).json({
@@ -302,7 +320,7 @@ export const getSavedJobs = async (
 ): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { page = '1', limit = '20' } = req.query;
+    const { page = '1', limit = '20', lang = 'en' } = req.query;
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
@@ -313,34 +331,37 @@ export const getSavedJobs = async (
         job: {
           include: {
             company: {
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
+              select: { id: true, name: true, logo: true },
             },
             industry: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
+              select: { id: true, name: true, slug: true },
             },
           },
         },
       },
-      orderBy: {
-        savedAt: 'desc',
-      },
+      orderBy: { savedAt: 'desc' },
       skip,
       take,
     });
 
-    const jobs = savedJobs.map((saved) => ({
-      ...saved.job,
-      isSaved: true,
-      savedAt: saved.savedAt,
-    }));
+    // 🈶 Add translation support
+    const jobs = savedJobs.map((saved) => {
+      const job = saved.job as any;
+
+      const translatedJob = {
+        ...job,
+        title: job[`title_${lang}`] || job.title,
+        description: job[`description_${lang}`] || job.description,
+        requirements: job[`requirements_${lang}`] || job.requirements,
+        benefits: job[`benefits_${lang}`] || job.benefits,
+      };
+
+      return {
+        ...translatedJob,
+        isSaved: true,
+        savedAt: saved.savedAt,
+      };
+    });
 
     const total = await prisma.savedJob.count({ where: { userId } });
 
@@ -365,6 +386,88 @@ export const getSavedJobs = async (
 };
 
 // Apply to a job
+// export const applyToJob = async (
+//   req: AuthRequest,
+//   res: Response
+// ): Promise<void> => {
+//   try {
+//     const jobId = parseInt(req.params.id);
+//     const userId = req.user!.userId;
+//     const { coverLetter, resumeUrl } = req.body;
+
+//     // Check if job exists and is active
+//     const job = await prisma.job.findUnique({
+//       where: { id: jobId },
+//     });
+
+//     if (!job || !job.isActive) {
+//       res.status(404).json({
+//         success: false,
+//         message: 'Job not found or no longer active',
+//       });
+//       return;
+//     }
+
+//     // Check if already applied
+//     const existingApplication = await prisma.jobApplication.findUnique({
+//       where: {
+//         userId_jobId: {
+//           userId,
+//           jobId,
+//         },
+//       },
+//     });
+
+//     if (existingApplication) {
+//       res.status(400).json({
+//         success: false,
+//         message: 'You have already applied to this job',
+//       });
+//       return;
+//     }
+
+//     // Create application
+//     const application = await prisma.jobApplication.create({
+//       data: {
+//         userId,
+//         jobId,
+//         coverLetter,
+//         resumeUrl,
+//         status: 'PENDING',
+//       },
+//     });
+
+//     // Increment application count
+//     await prisma.job.update({
+//       where: { id: jobId },
+//       data: { applicationCount: { increment: 1 } },
+//     });
+
+//     // Create notification for user
+//     await prisma.notification.create({
+//       data: {
+//         userId,
+//         title: 'Application Submitted',
+//         message: `Your application for ${job.title} has been submitted successfully.`,
+//         type: 'APPLICATION_UPDATE',
+//       },
+//     });
+
+//     res.json({
+//       success: true,
+//       message: 'Application submitted successfully',
+//       data: application,
+//     });
+//   } catch (error: any) {
+//     console.error('Error applying to job:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to submit application',
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const applyToJob = async (
   req: AuthRequest,
   res: Response
@@ -377,12 +480,26 @@ export const applyToJob = async (
     // Check if job exists and is active
     const job = await prisma.job.findUnique({
       where: { id: jobId },
+      include: {
+        company: {
+          include: { user: true },
+        },
+      },
     });
 
     if (!job || !job.isActive) {
       res.status(404).json({
         success: false,
         message: 'Job not found or no longer active',
+      });
+      return;
+    }
+
+    // Check if application deadline has passed
+    if (job.applicationDeadline && new Date() > job.applicationDeadline) {
+      res.status(400).json({
+        success: false,
+        message: 'Application deadline has passed',
       });
       return;
     }
@@ -422,15 +539,29 @@ export const applyToJob = async (
       data: { applicationCount: { increment: 1 } },
     });
 
-    // Create notification for user
-    await prisma.notification.create({
-      data: {
-        userId,
-        title: 'Application Submitted',
-        message: `Your application for ${job.title} has been submitted successfully.`,
-        type: 'APPLICATION_UPDATE',
-      },
+    // Get applicant details
+    const applicant = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { fullName: true },
     });
+
+    // Send notification to employer
+    if (job.company?.user) {
+      await sendNewApplicationNotification(
+        job.company.user.id,
+        applicant?.fullName || 'A candidate',
+        job.title,
+        application.id
+      );
+    }
+
+    // Send notification to applicant (confirmation)
+    await sendApplicationStatusNotification(
+      userId,
+      job.title,
+      'PENDING',
+      application.id
+    );
 
     res.json({
       success: true,
@@ -448,13 +579,88 @@ export const applyToJob = async (
 };
 
 // Get user's applications
+// export const getUserApplications = async (
+//   req: AuthRequest,
+//   res: Response
+// ): Promise<void> => {
+//   try {
+//     const userId = req.user!.userId;
+//     const { status, page = '1', limit = '20', lang = 'en' } = req.query;
+
+//     const where: any = { userId };
+//     if (status && typeof status === 'string') {
+//       where.status = status;
+//     }
+
+//     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+//     const take = parseInt(limit as string);
+
+//     const applications = await prisma.jobApplication.findMany({
+//       where,
+//       include: {
+//         job: {
+//           include: {
+//             company: {
+//               select: { id: true, name: true, logo: true },
+//             },
+//             industry: {
+//               select: { id: true, name: true, slug: true },
+//             },
+//           },
+//         },
+//       },
+//       orderBy: { appliedAt: 'desc' },
+//       skip,
+//       take,
+//     });
+
+//     // 🈶 Add translation support
+//     const applicationsWithTranslatedJobs = applications.map((app) => {
+//       const job = app.job as any;
+
+//       const translatedJob = {
+//         ...job,
+//         title: job[`title_${lang}`] || job.title,
+//         description: job[`description_${lang}`] || job.description,
+//         requirements: job[`requirements_${lang}`] || job.requirements,
+//         benefits: job[`benefits_${lang}`] || job.benefits,
+//       };
+
+//       return {
+//         ...app,
+//         job: translatedJob,
+//       };
+//     });
+
+//     const total = await prisma.jobApplication.count({ where });
+
+//     res.json({
+//       success: true,
+//       data: applicationsWithTranslatedJobs,
+//       pagination: {
+//         page: parseInt(page as string),
+//         limit: parseInt(limit as string),
+//         total,
+//         pages: Math.ceil(total / parseInt(limit as string)),
+//       },
+//     });
+//   } catch (error: any) {
+//     console.error('Error fetching applications:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch applications',
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const getUserApplications = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { status, page = '1', limit = '20' } = req.query;
+    const { status, page = '1', limit = '20', lang = 'en' } = req.query;
 
     const where: any = { userId };
     if (status && typeof status === 'string') {
@@ -470,34 +676,42 @@ export const getUserApplications = async (
         job: {
           include: {
             company: {
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
+              select: { id: true, name: true, logo: true },
             },
             industry: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
+              select: { id: true, name: true, slug: true },
             },
           },
         },
       },
-      orderBy: {
-        appliedAt: 'desc',
-      },
+      orderBy: { appliedAt: 'desc' },
       skip,
       take,
+    });
+
+    // 🈶 Add translation support
+    const applicationsWithTranslatedJobs = applications.map((app) => {
+      const job = app.job as any;
+
+      const translatedJob = {
+        ...job,
+        title: job[`title_${lang}`] || job.title,
+        description: job[`description_${lang}`] || job.description,
+        requirements: job[`requirements_${lang}`] || job.requirements,
+        benefits: job[`benefits_${lang}`] || job.benefits,
+      };
+
+      return {
+        ...app,
+        job: translatedJob,
+      };
     });
 
     const total = await prisma.jobApplication.count({ where });
 
     res.json({
       success: true,
-      data: applications,
+      data: applicationsWithTranslatedJobs,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
@@ -513,4 +727,1058 @@ export const getUserApplications = async (
       error: error.message,
     });
   }
+};
+
+export const createJob = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    const {
+      title,
+      description,
+      requirements,
+      benefits,
+      industryId,
+      jobType,
+      workingHours,
+      experienceLevel,
+      skills,
+      city,
+      state,
+      postcode,
+      address,
+      isRemote,
+      salaryMin,
+      salaryMax,
+      salaryType,
+      applicationDeadline,
+      startDate,
+    } = req.body;
+
+    // VALIDATE REQUIRED FIELDS
+    if (!title || !description || !industryId || !city || !state) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+      });
+    }
+
+    // GET USER'S COMPANY
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { company: true },
+    });
+
+    if (!user || !user.company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found. Please complete company profile first.',
+      });
+    }
+
+    const company = user.company;
+
+    // ✅ CHECK COMPANY VERIFICATION STATUS
+    if (!company.isVerified || company.verificationStatus !== 'APPROVED') {
+      return res.status(403).json({
+        success: false,
+        message:
+          'Your company must be verified before posting jobs. Please wait for admin approval.',
+      });
+    }
+
+    // VERIFY INDUSTRY
+    const industry = await prisma.industry.findUnique({
+      where: { id: industryId },
+    });
+
+    if (!industry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Industry not found',
+      });
+    }
+
+    // ✅ RUN AI VERIFICATION WITH COHERE
+    console.log('🤖 Starting AI verification for job post...');
+
+    const verificationResult = await AIJobVerificationService.verifyJob({
+      title,
+      description,
+      requirements,
+      benefits,
+      salaryMin,
+      salaryMax,
+      salaryType,
+      city,
+      state,
+      industryId,
+      companyId: company.id,
+    });
+
+    console.log('🤖 AI Verification Complete:', {
+      riskScore: verificationResult.riskScore,
+      autoApprove: verificationResult.autoApprove,
+      flags: verificationResult.flags,
+    });
+
+    // ✅ DETERMINE APPROVAL STATUS BASED ON AI RESULT
+    let approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED_AI' = 'PENDING';
+    let rejectionReason: string | null = null;
+
+    if (verificationResult.autoApprove) {
+      approvalStatus = 'APPROVED';
+      console.log('✅ Job auto-approved by AI');
+    } else if (verificationResult.riskScore > 70) {
+      // ✅ Auto-reject high-risk jobs with REJECTED_AI status
+      approvalStatus = 'REJECTED_AI';
+      rejectionReason = `Auto-rejected by AI verification (Risk Score: ${verificationResult.riskScore}/100):\n\n${verificationResult.flagReason}`;
+      console.log('❌ Job auto-rejected by AI (high risk)');
+    } else {
+      // Flag for human review
+      approvalStatus = 'PENDING';
+      console.log('⚠️ Job flagged for human review');
+    }
+
+    // GENERATE UNIQUE SLUG
+    let slug = slugify(title, { lower: true, strict: true });
+    const existingJob = await prisma.job.findUnique({
+      where: { slug },
+    });
+
+    if (existingJob) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
+    // GEOCODE JOB LOCATION
+    let coordinates: { latitude: number; longitude: number } | null = null;
+
+    if (address || city || state || postcode) {
+      console.log(`📍 Geocoding job location: ${city}, ${state}`);
+
+      const geocodingResult = await geocodeAddress(
+        address,
+        city,
+        state,
+        postcode
+      );
+
+      if (geocodingResult) {
+        coordinates = {
+          latitude: geocodingResult.latitude,
+          longitude: geocodingResult.longitude,
+        };
+        console.log(
+          `✅ Job geocoding successful: ${JSON.stringify(coordinates)}`
+        );
+      } else {
+        console.warn(`⚠️ Job geocoding failed, continuing without coordinates`);
+      }
+    }
+
+    // ✅ CREATE JOB WITH AI VERIFICATION DATA
+    const job = await prisma.job.create({
+      data: {
+        companyId: company.id,
+        title: title.trim(),
+        slug,
+        description: description.trim(),
+        requirements: requirements?.trim(),
+        benefits: benefits?.trim(),
+        industryId,
+        jobType,
+        workingHours,
+        experienceLevel,
+        skills: skills,
+        city: city.trim(),
+        state,
+        postcode: postcode?.trim(),
+        address: address?.trim(),
+        latitude: coordinates?.latitude,
+        longitude: coordinates?.longitude,
+        isRemote: isRemote || false,
+        salaryMin,
+        salaryMax,
+        salaryType,
+        applicationDeadline: applicationDeadline
+          ? new Date(applicationDeadline)
+          : null,
+        startDate: startDate ? new Date(startDate) : null,
+
+        // ✅ SET APPROVAL STATUS FROM AI (using REJECTED_AI instead of REJECTED)
+        approvalStatus,
+        isActive: approvalStatus === 'APPROVED', // Only active if auto-approved
+        approvedAt: approvalStatus === 'APPROVED' ? new Date() : null,
+        rejectedAt: approvalStatus === 'REJECTED_AI' ? new Date() : null,
+        rejectionReason,
+
+        isFeatured: false,
+        createdBy: userId,
+        updatedBy: userId,
+      },
+      include: {
+        industry: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            city: true,
+            state: true,
+          },
+        },
+      },
+    });
+
+    // ✅ SEND NOTIFICATIONS BASED ON APPROVAL STATUS
+    if (approvalStatus === 'APPROVED') {
+      // Notify employer
+      await sendJobApprovedNotification(userId, job.title, job.id);
+
+      // Find matching job seekers and notify them
+      const matchingUsers = await findMatchingJobSeekers(job);
+      for (const matchUser of matchingUsers) {
+        await sendJobMatchNotification(
+          matchUser.id,
+          job.title,
+          job.company.name,
+          job.slug
+        );
+      }
+
+      console.log(
+        `✅ Job approved and notifications sent to ${matchingUsers.length} matching users`
+      );
+    } else if (approvalStatus === 'REJECTED_AI') {
+      // ✅ Notify employer with appeal option
+      await prisma.notification.create({
+        data: {
+          userId,
+          title: 'Job Post Rejected by AI',
+          message: `Your job post "${job.title}" was rejected by our automated review. You can appeal this decision if you believe this is a legitimate job posting.`,
+          type: 'SYSTEM_UPDATE',
+          actionUrl: `/employer/jobs/${job.id}`,
+        },
+      });
+      console.log(
+        '❌ Job rejected by AI, employer notified with appeal option'
+      );
+    } else {
+      // Pending - notify that it's under review
+      await prisma.notification.create({
+        data: {
+          userId,
+          title: 'Job Post Under Review',
+          message: `Your job post "${job.title}" is being reviewed by our team. You'll be notified once it's approved.`,
+          type: 'SYSTEM_UPDATE',
+          actionUrl: `/employer/jobs/${job.id}`,
+        },
+      });
+      console.log('⚠️ Job pending review, employer notified');
+    }
+
+    // TRIGGER BACKGROUND TRANSLATION (Optional)
+    if (translateJobs && approvalStatus === 'APPROVED') {
+      translateJobs().catch((err) =>
+        console.error('Translation error for job:', err)
+      );
+    }
+
+    // ✅ RETURN SUCCESS WITH AI VERIFICATION INFO
+    return res.status(201).json({
+      success: true,
+      message:
+        approvalStatus === 'APPROVED'
+          ? 'Job post created and approved automatically by AI!'
+          : approvalStatus === 'REJECTED_AI'
+          ? 'Job post rejected by AI verification. You can appeal this decision from your job posts page.'
+          : 'Job post created and is pending human review.',
+      data: {
+        id: job.id,
+        title: job.title,
+        slug: job.slug,
+        jobType: job.jobType,
+        workingHours: job.workingHours,
+        experienceLevel: job.experienceLevel,
+        city: job.city,
+        state: job.state,
+        isRemote: job.isRemote,
+        salaryMin: job.salaryMin,
+        salaryMax: job.salaryMax,
+        salaryType: job.salaryType,
+        isActive: job.isActive,
+        approvalStatus: job.approvalStatus,
+        latitude: job.latitude,
+        longitude: job.longitude,
+        geocoded: coordinates !== null,
+        industry: job.industry,
+        company: job.company,
+        createdAt: job.createdAt,
+
+        // ✅ AI VERIFICATION INFO
+        aiVerification: {
+          riskScore: verificationResult.riskScore,
+          flags: verificationResult.flags,
+          autoApproved: verificationResult.autoApprove,
+          summary:
+            AIJobVerificationService.generateVerificationSummary(
+              verificationResult
+            ),
+          canAppeal: approvalStatus === 'REJECTED_AI', // ✅ NEW: Indicate if employer can appeal
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Error creating job:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+// ===================================================================
+// PATCH: Update Job Post
+// ===================================================================
+export const updateJob = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { jobId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user's company
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { company: true },
+    });
+
+    if (!user || !user.company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    // Check if job exists and belongs to company
+    const existingJob = await prisma.job.findUnique({
+      where: { id: parseInt(jobId) },
+    });
+
+    if (!existingJob) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    if (existingJob.companyId !== user.company.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this job',
+      });
+    }
+
+    // ✅ CHECK: Cannot edit REJECTED_FINAL jobs
+    if (existingJob.approvalStatus === 'REJECTED_FINAL') {
+      return res.status(403).json({
+        success: false,
+        message: 'This job has been permanently rejected and cannot be edited.',
+      });
+    }
+
+    const {
+      title,
+      description,
+      requirements,
+      benefits,
+      industryId,
+      jobType,
+      workingHours,
+      experienceLevel,
+      skills,
+      city,
+      state,
+      postcode,
+      address,
+      isRemote,
+      salaryMin,
+      salaryMax,
+      salaryType,
+      applicationDeadline,
+      startDate,
+    } = req.body;
+
+    // Validate salary range if provided
+    if (salaryMin && salaryMax && salaryMin > salaryMax) {
+      return res.status(400).json({
+        success: false,
+        message: 'Minimum salary cannot exceed maximum salary',
+      });
+    }
+
+    // ✅ DETERMINE IF AI VERIFICATION IS NEEDED
+    // Run AI verification if job was previously rejected by AI
+    const needsAIVerification = existingJob.approvalStatus === 'REJECTED_AI';
+
+    let approvalStatus = existingJob.approvalStatus;
+    let rejectionReason = existingJob.rejectionReason;
+    let isActive = existingJob.isActive;
+    let approvedAt = existingJob.approvedAt;
+    let rejectedAt = existingJob.rejectedAt;
+    let verificationResult: any = null;
+
+    if (needsAIVerification) {
+      console.log('🤖 Running AI verification for edited job...');
+
+      verificationResult = await AIJobVerificationService.verifyJob({
+        title: title || existingJob.title,
+        description: description || existingJob.description,
+        requirements: requirements || existingJob.requirements || undefined,
+        benefits: benefits || existingJob.benefits || undefined,
+        salaryMin: salaryMin ?? existingJob.salaryMin,
+        salaryMax: salaryMax ?? existingJob.salaryMax,
+        salaryType: salaryType || existingJob.salaryType || undefined,
+        city: city || existingJob.city,
+        state: state || existingJob.state,
+        industryId: industryId || existingJob.industryId,
+        companyId: user.company.id,
+      });
+
+      console.log('🤖 AI Verification Complete:', {
+        riskScore: verificationResult.riskScore,
+        autoApprove: verificationResult.autoApprove,
+        flags: verificationResult.flags,
+      });
+
+      // Determine new approval status based on AI result
+      if (verificationResult.autoApprove) {
+        approvalStatus = 'APPROVED';
+        rejectionReason = null;
+        isActive = true;
+        approvedAt = new Date();
+        rejectedAt = null;
+        console.log('✅ Edited job auto-approved by AI');
+      } else if (verificationResult.riskScore > 70) {
+        // Still high risk - keep as REJECTED_AI
+        approvalStatus = 'REJECTED_AI';
+        rejectionReason = `Auto-rejected by AI verification (Risk Score: ${verificationResult.riskScore}/100):\n\n${verificationResult.flagReason}`;
+        isActive = false;
+        approvedAt = null;
+        rejectedAt = new Date();
+        console.log('❌ Edited job still rejected by AI (high risk)');
+      } else {
+        // Flag for human review
+        approvalStatus = 'PENDING';
+        rejectionReason = null;
+        isActive = false;
+        approvedAt = null;
+        rejectedAt = null;
+        console.log('⚠️ Edited job flagged for human review');
+      }
+    }
+
+    // Update job
+    const updatedJob = await prisma.job.update({
+      where: { id: parseInt(jobId) },
+      data: {
+        title: title?.trim(),
+        description: description?.trim(),
+        requirements: requirements?.trim(),
+        benefits: benefits?.trim(),
+        industryId,
+        jobType,
+        workingHours,
+        experienceLevel,
+        skills,
+        city: city?.trim(),
+        state,
+        postcode: postcode?.trim(),
+        address: address?.trim(),
+        isRemote,
+        salaryMin,
+        salaryMax,
+        salaryType,
+        applicationDeadline: applicationDeadline
+          ? new Date(applicationDeadline)
+          : undefined,
+        startDate: startDate ? new Date(startDate) : undefined,
+        updatedBy: userId,
+        // ✅ Update approval status if AI verification was run
+        ...(needsAIVerification && {
+          approvalStatus,
+          rejectionReason,
+          isActive,
+          approvedAt,
+          rejectedAt,
+        }),
+      },
+      include: {
+        industry: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+          },
+        },
+      },
+    });
+
+    // ✅ SEND NOTIFICATIONS BASED ON NEW STATUS
+    if (needsAIVerification) {
+      if (approvalStatus === 'APPROVED') {
+        // Notify employer
+        await prisma.notification.create({
+          data: {
+            userId,
+            title: 'Job Post Approved!',
+            message: `Great news! Your edited job post "${updatedJob.title}" has been approved by our automated review and is now live.`,
+            type: 'SYSTEM_UPDATE',
+            actionUrl: `/employer/jobs/${updatedJob.id}`,
+          },
+        });
+
+        // Find matching job seekers and notify them
+        const matchingUsers = await prisma.user.findMany({
+          where: {
+            role: 'JOB_SEEKER',
+            isActive: true,
+            profile: {
+              industries: {
+                some: {
+                  industryId: updatedJob.industryId,
+                },
+              },
+            },
+          },
+          take: 50,
+        });
+
+        for (const matchUser of matchingUsers) {
+          await sendJobMatchNotification(
+            matchUser.id,
+            updatedJob.title,
+            updatedJob.company.name,
+            updatedJob.slug
+          );
+        }
+
+        console.log(
+          `✅ Job approved and notifications sent to ${matchingUsers.length} matching users`
+        );
+      } else if (approvalStatus === 'REJECTED_AI') {
+        // Notify employer - still rejected
+        await prisma.notification.create({
+          data: {
+            userId,
+            title: 'Job Post Still Needs Changes',
+            message: `Your edited job post "${updatedJob.title}" was reviewed again but still requires modifications. Please review the feedback and make further changes.`,
+            type: 'SYSTEM_UPDATE',
+            actionUrl: `/employer/jobs/${updatedJob.id}`,
+          },
+        });
+        console.log('❌ Job still rejected, employer notified');
+      } else if (approvalStatus === 'PENDING') {
+        // Notify employer - pending human review
+        await prisma.notification.create({
+          data: {
+            userId,
+            title: 'Job Post Under Review',
+            message: `Your edited job post "${updatedJob.title}" is being reviewed by our team. You'll be notified once it's approved.`,
+            type: 'SYSTEM_UPDATE',
+            actionUrl: `/employer/jobs/${updatedJob.id}`,
+          },
+        });
+        console.log('⚠️ Job pending human review, employer notified');
+      }
+    }
+
+    // Trigger translation only if approved
+    if (approvalStatus === 'APPROVED' && translateJobs) {
+      await translateJobs().catch((err) =>
+        console.error('Translation error:', err)
+      );
+    }
+
+    // ✅ BUILD RESPONSE MESSAGE
+    let message = 'Job updated successfully';
+    if (needsAIVerification) {
+      if (approvalStatus === 'APPROVED') {
+        message = 'Job updated and approved! Your job post is now live.';
+      } else if (approvalStatus === 'REJECTED_AI') {
+        message =
+          'Job updated but still rejected by AI. Please review the feedback and make further changes.';
+      } else if (approvalStatus === 'PENDING') {
+        message = 'Job updated and is now pending human review.';
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message,
+      data: {
+        ...updatedJob,
+        // ✅ Include AI verification info if it was run
+        ...(needsAIVerification &&
+          verificationResult && {
+            aiVerification: {
+              riskScore: verificationResult.riskScore,
+              flags: verificationResult.flags,
+              autoApproved: verificationResult.autoApprove,
+              summary:
+                AIJobVerificationService.generateVerificationSummary(
+                  verificationResult
+                ),
+              canAppeal: approvalStatus === 'REJECTED_AI',
+            },
+          }),
+      },
+    });
+  } catch (error: any) {
+    console.error('Error updating job:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update job',
+    });
+  }
+};
+
+// ===================================================================
+// GET: Single Job Detail (for editing)
+// ===================================================================
+export const getJobById = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { jobId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { company: true },
+    });
+
+    if (!user || !user.company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    const job = await prisma.job.findUnique({
+      where: { id: parseInt(jobId) },
+      include: {
+        industry: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            city: true,
+            state: true,
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    // Verify ownership
+    if (job.companyId !== user.company.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this job',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: job,
+    });
+  } catch (error: any) {
+    console.error('Error fetching job:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch job details',
+    });
+  }
+};
+
+// ===================================================================
+// DELETE: Delete Job Post
+// ===================================================================
+export const deleteJob = async (req: AuthRequest, res: Response) => {
+  try {
+    const { jobId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user's company
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { company: true },
+    });
+
+    if (!user || !user.company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    // Get the job and verify ownership
+    const job = await prisma.job.findUnique({
+      where: { id: parseInt(jobId) },
+    });
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    if (job.companyId !== user.company.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this job',
+      });
+    }
+
+    // Delete the job (cascade will handle related records)
+    await prisma.job.delete({
+      where: { id: parseInt(jobId) },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job deleted successfully',
+    });
+  } catch (error: any) {
+    console.error('Error fetching dashboard stats:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+export const approveJob = async (req: AdminAuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const adminEmail = req.adminEmail; // ✅ Use AdminAuthRequest field
+
+    if (!adminEmail) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized - Admin email not found',
+      });
+    }
+
+    // ✅ Verify job exists and get current status
+    const existingJob = await prisma.job.findUnique({
+      where: { id: parseInt(id) },
+      select: { approvalStatus: true },
+    });
+
+    if (!existingJob) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    // ✅ Check if job is in a valid state to be approved
+    if (existingJob.approvalStatus === 'APPROVED') {
+      return res.status(400).json({
+        success: false,
+        message: 'Job is already approved',
+      });
+    }
+
+    // ✅ Update job to approved status
+    const job = await prisma.job.update({
+      where: { id: parseInt(id) },
+      data: {
+        approvalStatus: 'APPROVED',
+        approvedAt: new Date(),
+        isActive: true,
+        rejectionReason: null, // Clear any previous rejection reason
+      },
+      include: {
+        company: {
+          include: { user: true },
+        },
+        industry: true,
+      },
+    });
+
+    // ✅ Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminEmail,
+        actionType: 'APPROVE_COMPANY', // Note: Might want to add 'APPROVE_JOB' to enum
+        targetType: 'JOB',
+        targetId: job.id,
+        notes: `Job "${job.title}" approved`,
+      },
+    });
+
+    // ✅ Send notification to employer
+    if (job.company?.user) {
+      await sendJobApprovedNotification(job.company.user.id, job.title, job.id);
+    }
+
+    // ✅ Find matching job seekers and notify them
+    const matchingUsers = await findMatchingJobSeekers(job);
+    for (const user of matchingUsers) {
+      await sendJobMatchNotification(
+        user.id,
+        job.title,
+        job.company.name,
+        job.slug
+      );
+    }
+
+    console.log(`✅ Job #${job.id} approved by admin: ${adminEmail}`);
+    console.log(`📧 Notified ${matchingUsers.length} matching job seekers`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job approved successfully',
+      data: {
+        id: job.id,
+        title: job.title,
+        approvalStatus: job.approvalStatus,
+        approvedAt: job.approvedAt,
+        isActive: job.isActive,
+        notifiedUsers: matchingUsers.length,
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Error approving job:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to approve job',
+    });
+  }
+};
+
+/**
+ * ✅ Admin rejects a job post
+ * PUT /api/admin/jobs/:id/reject
+ */
+export const rejectJob = async (req: AdminAuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { rejectionReason } = req.body;
+    const adminEmail = req.adminEmail; // ✅ Use AdminAuthRequest field
+
+    if (!adminEmail) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized - Admin email not found',
+      });
+    }
+
+    // ✅ Validate rejection reason
+    if (!rejectionReason || rejectionReason.trim().length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection reason is required (minimum 10 characters)',
+      });
+    }
+
+    // ✅ Verify job exists
+    const existingJob = await prisma.job.findUnique({
+      where: { id: parseInt(id) },
+      select: { approvalStatus: true, title: true },
+    });
+
+    if (!existingJob) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    // ✅ Check if job is already in final rejection state
+    if (existingJob.approvalStatus === 'REJECTED_FINAL') {
+      return res.status(400).json({
+        success: false,
+        message: 'Job is already in final rejection state',
+      });
+    }
+
+    // ✅ Update job to rejected status
+    const job = await prisma.job.update({
+      where: { id: parseInt(id) },
+      data: {
+        approvalStatus: 'REJECTED_FINAL',
+        rejectedAt: new Date(),
+        rejectionReason: rejectionReason.trim(),
+        isActive: false,
+      },
+      include: {
+        company: {
+          include: { user: true },
+        },
+      },
+    });
+
+    // ✅ Log admin action
+    await prisma.adminAction.create({
+      data: {
+        adminEmail,
+        actionType: 'REJECT_COMPANY', // Note: Might want to add 'REJECT_JOB' to enum
+        targetType: 'JOB',
+        targetId: job.id,
+        reason: rejectionReason.trim(),
+        notes: `Job "${job.title}" rejected`,
+      },
+    });
+
+    // ✅ Send notification to employer
+    if (job.company?.user) {
+      await sendJobRejectedNotification(
+        job.company.user.id,
+        job.title,
+        rejectionReason,
+        job.id
+      );
+    }
+
+    console.log(`❌ Job #${job.id} rejected by admin: ${adminEmail}`);
+    console.log(`📧 Employer notified of rejection`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job rejected successfully',
+      data: {
+        id: job.id,
+        title: job.title,
+        approvalStatus: job.approvalStatus,
+        rejectedAt: job.rejectedAt,
+        rejectionReason: job.rejectionReason,
+        isActive: job.isActive,
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Error rejecting job:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to reject job',
+    });
+  }
+};
+
+/**
+ * Get recruitment time prediction
+ * POST /api/jobs/predict-recruitment-time
+ */
+export const predictRecruitmentTime = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    const {
+      industryId,
+      state,
+      city,
+      jobType,
+      experienceLevel,
+      salaryMin,
+      salaryMax,
+      skills,
+    } = req.body;
+
+    // Validate required fields
+    if (!industryId || !state || !city || !jobType || !experienceLevel) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields for prediction',
+      });
+    }
+
+    const prediction =
+      await RecruitmentPredictionService.predictRecruitmentTime({
+        industryId,
+        state,
+        city,
+        jobType,
+        experienceLevel,
+        salaryMin,
+        salaryMax,
+        skills,
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: prediction,
+    });
+  } catch (error: any) {
+    console.error('Error predicting recruitment time:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to predict recruitment time',
+    });
+  }
+};
+
+// Helper function to find matching job seekers
+const findMatchingJobSeekers = async (job: any) => {
+  const users = await prisma.user.findMany({
+    where: {
+      role: 'JOB_SEEKER',
+      isActive: true,
+      profile: {
+        industries: {
+          some: {
+            industryId: job.industryId,
+          },
+        },
+      },
+    },
+    take: 50, // Limit to prevent spam
+  });
+
+  return users;
 };

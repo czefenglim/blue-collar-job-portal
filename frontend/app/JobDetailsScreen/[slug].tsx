@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -96,7 +97,9 @@ const JobDetailsScreen: React.FC = () => {
 
   const fetchJobDetails = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/jobs/${slug}`, {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+      const response = await fetch(`${URL}/api/jobs/${slug}?lang=${lang}`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -155,6 +158,15 @@ const JobDetailsScreen: React.FC = () => {
     });
   };
 
+  const handleReport = () => {
+    if (!job) return;
+
+    router.push({
+      pathname: '/(user-hidden)/report-job',
+      params: { jobId: job.id.toString(), jobTitle: job.title },
+    });
+  };
+
   const openWebsite = () => {
     if (job?.company.website) {
       Linking.openURL(job.company.website);
@@ -188,7 +200,6 @@ const JobDetailsScreen: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Map to translations if available
     const translationMap: { [key: string]: string } = {
       'Full Time': t('jobTypes.fullTime'),
       'Part Time': t('jobTypes.partTime'),
@@ -208,7 +219,6 @@ const JobDetailsScreen: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Map to translations if available
     const translationMap: { [key: string]: string } = {
       'Day Shift': t('workingHours.dayShift'),
       'Night Shift': t('workingHours.nightShift'),
@@ -244,7 +254,6 @@ const JobDetailsScreen: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Map to translations if available
     const translationMap: { [key: string]: string } = {
       Pending: t('applications.status.pending'),
       Reviewing: t('applications.status.reviewing'),
@@ -332,9 +341,14 @@ const JobDetailsScreen: React.FC = () => {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('jobDetails.title')}</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={toggleSaveJob}>
-          <Text style={styles.saveIcon}>{job.isSaved ? '🔖' : '📑'}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.saveButton} onPress={toggleSaveJob}>
+            <Text style={styles.saveIcon}>{job.isSaved ? '🔖' : '📑'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.reportButton} onPress={handleReport}>
+            <Ionicons name="flag-outline" size={24} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -572,11 +586,19 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 40,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   saveButton: {
     padding: 8,
   },
   saveIcon: {
     fontSize: 24,
+  },
+  reportButton: {
+    padding: 8,
   },
   content: {
     flex: 1,

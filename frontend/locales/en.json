@@ -1,4 +1,171 @@
 {
+  "report": {
+    "title": "Report Job",
+    "reportingJob": "Reporting Job",
+    "selectType": "Report Type",
+    "selectTypeDescription": "Choose the reason for reporting this job",
+    "description": "Description",
+    "descriptionHint": "Please provide detailed information about your concern (minimum 10 characters)",
+    "descriptionPlaceholder": "Describe the issue you found with this job posting...",
+    "characters": "characters",
+    "evidence": "Evidence (Optional)",
+    "evidenceHint": "Upload screenshots or documents to support your report (max 5 files)",
+    "uploadImage": "Upload Image",
+    "uploadDocument": "Upload Document",
+    "maxFiles": "{count} more file(s) can be added",
+    "importantNotice": "Important: False reports may result in account restrictions. Please ensure all information is accurate.",
+    "submitReport": "Submit Report",
+    "authenticationRequired": "Authentication Required",
+    "pleaseSignIn": "Please sign in to continue",
+    "maxFilesReached": "Maximum Files Reached",
+    "maxFilesReachedMessage": "You can only upload up to 5 files",
+    "types": {
+      "fakeJob": "Fake Job",
+      "misleadingInfo": "Misleading Info",
+      "inappropriateContent": "Inappropriate Content",
+      "scamSuspected": "Scam Suspected",
+      "discrimination": "Discrimination",
+      "duplicatePosting": "Duplicate Posting",
+      "others": "Others"
+    },
+    "validation": {
+      "title": "Validation Error",
+      "selectType": "Please select a report type",
+      "descriptionRequired": "Please provide a description",
+      "descriptionMinLength": "Description must be at least 10 characters long"
+    },
+    "success": {
+      "title": "Report Submitted",
+      "message": "Thank you for your report. We will review it and take appropriate action."
+    },
+    "errors": {
+      "pickImageFailed": "Failed to pick image. Please try again.",
+      "pickDocumentFailed": "Failed to pick document. Please try again.",
+      "submitFailed": "Failed to submit report. Please try again."
+    }
+  },
+  "home": {
+    "title": "Find Jobs",
+    "authRequired": "Authentication Required",
+    "signInToContinue": "Please sign in to continue",
+    "loadError": "Failed to load data",
+    "jobsLoadError": "Failed to load jobs",
+    "jobPreferences": "Your Job Preferences",
+    "industry": "Industry",
+    "searchPlaceholder": "Search jobs or companies...",
+    "locationPlaceholder": "Location...",
+    "clearFilters": "Clear All Filters",
+    "jobsFound": "{{count}} Jobs Available",
+    "noJobs": "No Jobs Found",
+    "adjustFilters": "Try adjusting your search filters",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "weeksAgo": "{{count}} weeks ago",
+    "monthsAgo": "{{count}} months ago",
+    "allJobs": "All Jobs",
+    "filtered": "Filtered",
+    "viewAllJobs": "View All Jobs",
+    "showFilteredJobs": "Show My Job Types",
+    "filterActive": "Jobs filtered by your preferences",
+    "filteredResults": "Filtered by your job preferences",
+    "options": "Job Options",
+    "selectAction": "What would you like to do?",
+    "viewDetails": "View Details",
+    "save": "Save Job",
+    "unsave": "Unsave Job",
+    "reportJob": "Report Job"
+  },
+  "selectRole": {
+    "title": "Select Your Role",
+    "subtitle": "Choose how you want to use the app",
+    "jobSeeker": "Job Seeker",
+    "jobSeekerDesc": "Find jobs that match your skills",
+    "employer": "Employer",
+    "employerDesc": "Post jobs and find qualified workers",
+    "admin": "Administrator",
+    "adminDesc": "Manage platform and users",
+    "restricted": "RESTRICTED ACCESS",
+    "footerNote": "By continuing, you agree to our Terms of Service and Privacy Policy."
+  },
+  "employerLogin": {
+    "title": "Employer Login",
+    "subtitle": "Access your employer account",
+    "email": "Email",
+    "password": "Password",
+    "phoneNumber": "Phone Number",
+    "login": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "registerTitle": "Create Employer Account",
+    "registerSubtitle": "Start hiring qualified candidates",
+    "fullName": "Full Name",
+    "confirmPassword": "Confirm Password",
+    "createAccount": "Create Account",
+    "haveAccount": "Already have an account?",
+    "forgotPassword": "Forgot Password?"
+  },
+  "validation": {
+    "error": "Error",
+    "allFieldsRequired": "All fields are required.",
+    "invalidPhone": "Please enter a valid phone number.",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidWebsite": "Please enter a valid website URL."
+  },
+  "employerOnboarding": {
+    "title": "Employer Onboarding",
+    "companyInfo": "Company",
+    "profileInfo": "Profile",
+    "complete": "Complete",
+    "congratulations": "Congratulations! 🎉",
+    "onboardingComplete": "Your employer account is ready",
+    "readyToStart": "You can now start posting jobs and finding the perfect candidates for your company.",
+    "getStarted": "Get Started"
+  },
+  "employerCompanyForm": {
+    "title": "Company Information",
+    "subtitle": "Tell us about your company",
+    "companyName": "Company Name",
+    "industry": "Industry",
+    "selectIndustry": "Select Industry",
+    "companySize": "Company Size",
+    "startup": "Startup (1-10 employees)",
+    "small": "Small (11-50 employees)",
+    "medium": "Medium (51-200 employees)",
+    "large": "Large (201-1000 employees)",
+    "enterprise": "Enterprise (1000+ employees)",
+    "logo": "Company Logo",
+    "uploadLogo": "Tap to upload logo",
+    "contactInformation": "Contact Information",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "website": "Website",
+    "addressInformation": "Address Information",
+    "address": "Street Address",
+    "addressPlaceholder": "Enter street address",
+    "city": "City",
+    "cityPlaceholder": "Enter city",
+    "state": "State",
+    "statePlaceholder": "Enter state",
+    "postcode": "Postcode",
+    "postcodePlaceholder": "Enter postcode",
+    "description": "Company Description",
+    "descriptionPlaceholder": "Tell us about your company, culture, and values...",
+    "error": "Error",
+    "companyCreationFailed": "Failed to create company. Please try again."
+  },
+  "employerProfileForm": {
+    "profileDetails": "Your Profile Details",
+    "profileDetailsSubtitle": "Tell us about yourself as the company representative",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "position": "Position",
+    "positionPlaceholder": "e.g., HR Manager, CEO, Recruiter",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "+60 12-345 6789",
+    "error": "Error",
+    "profileUpdateFailed": "Failed to update profile. Please try again."
+  },
   "common": {
     "success": "Success",
     "error": "Error",
@@ -240,6 +407,9 @@
     "noIndustries": "No industries selected",
     "noSkills": "No skills added",
     "noLanguages": "No languages added",
+    "selectLanguage": "Select your preferred language",
+    "languageChanged": "Language Changed",
+    "languageChangedMessage": "Language has been updated successfully",
     "gender": {
       "title": "Gender",
       "male": "Male",
@@ -264,12 +434,14 @@
       "address": "Address",
       "jobPreferences": "Job Preferences",
       "skillsExperience": "Skills & Experience",
-      "quickActions": "Quick Actions"
+      "quickActions": "Quick Actions",
+      "language": "Language"
     },
     "actions": {
       "savedJobs": "Saved Jobs",
       "myApplications": "My Applications",
-      "preferences": "Preferences"
+      "preferences": "Preferences",
+      "myReports": "My Reports"
     },
     "logout": {
       "title": "Logout",
@@ -277,7 +449,8 @@
       "button": "Logout"
     },
     "errors": {
-      "loadFailed": "Failed to load profile. Please try again."
+      "loadFailed": "Failed to load profile. Please try again.",
+      "languageChangeFailed": "Failed to change language. Please try again."
     }
   },
   "applications": {
@@ -560,7 +733,10 @@
         "saveProfileError": "Failed to save profile. Please try again.",
         "saveIndustriesError": "Failed to save industry preferences. Please try again.",
         "saveResumeError": "Failed to save resume answers. Please try again.",
-        "generateResumeError": "Failed to generate resume. Please try again."
+        "generateResumeError": "Failed to generate resume. Please try again.",
+        "invalidPhone": "Please enter a valid phone number.",
+        "error": "Error",
+        "allFieldsRequired": "Please fill in all required fields."
       }
     },
     "stepSelector": {
@@ -568,28 +744,39 @@
       "close": "Close"
     }
   },
-  "home": {
-    "appTitle": "Blukers Job Platform",
-    "authRequired": "Authentication Required",
-    "yourJobPreferences": "Your Job Preferences",
-    "signInToContinue": "Please sign in to continue",
-    "loadError": "Failed to load data. Please try again.",
-    "jobsLoadError": "Failed to load jobs. Please try again.",
-    "loadingJobs": "Loading jobs...",
-    "searchPlaceholder": "Search jobs, companies...",
-    "industry": "Industry",
-    "locationPlaceholder": "Location",
-    "clearFilters": "Clear Filters",
-    "oneJobFound": "Job Found",
-    "manyJobsFound": "Jobs Found",
-    "noJobs": "No jobs found",
-    "adjustFilters": "Try adjusting your filters",
-    "selectIndustry": "Select Industry",
-    "today": "Today",
+  "chat": {
+    "noConversations": "No conversations yet",
+    "startChatWithApplicants": "Start chatting with applicants to see conversations here",
+    "waitForEmployerMessage": "Conversations will appear when employers contact you",
+    "noMessages": "No messages yet",
     "yesterday": "Yesterday",
-    "daysAgo": "{{count}} days ago",
-    "weeksAgo": "{{count}} weeks ago",
-    "monthsAgo": "{{count}} months ago",
-    "allIndustries": "All Industries"
+    "you": "You",
+    "image": "Image",
+    "file": "File",
+    "connecting": "Connecting to chat...",
+
+    "typeMessage": "Type a message...",
+    "messageDeleted": "This message was deleted",
+    "edited": "edited",
+    "edit": "Edit",
+    "delete": "Delete",
+    "messageOptions": "Message Options",
+    "editingMessage": "Editing message",
+    "deleteMessage": "Delete Message",
+    "deleteConfirm": "Are you sure you want to delete this message?",
+    "attachment": "Attachment",
+    "chooseAttachmentType": "Choose attachment type",
+    "takePhoto": "Take Photo",
+    "choosePhoto": "Choose from Gallery",
+    "chooseFile": "Choose File",
+    "cameraPermission": "Camera permission is required to take photos",
+    "galleryPermission": "Gallery permission is required to select photos",
+    "sendError": "Failed to send message",
+    "editError": "Failed to edit message",
+    "deleteError": "Failed to delete message",
+    "uploadError": "Failed to upload file",
+    "startChat": "Start Chat",
+    "messageApplicant": "Message Applicant",
+    "continueChat": "Continue Chat"
   }
 }

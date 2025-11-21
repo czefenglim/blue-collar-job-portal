@@ -4,12 +4,12 @@ import {
   Alert,
   FlatList,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,9 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync } from '@/utils/pushNotifications';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -55,21 +58,105 @@ interface UserPreferences {
 const HomeScreen: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [industries, setIndustries] = useState<Industry[]>([]);
   const [userPreferences, setUserPreferences] =
     useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState<string>('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [showIndustryModal, setShowIndustryModal] = useState(false);
-  const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [token, setToken] = useState<string>('');
+  const [hasLoadedLocation, setHasLoadedLocation] = useState(false);
+  const [showAllJobs, setShowAllJobs] = useState(false);
   const isFocused = useIsFocused();
 
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notificationListener = React.useRef<any>(null);
+  const responseListener = React.useRef<any>(null);
+
+  const [distanceFilter, setDistanceFilter] = useState<number | null>(null);
+  const [userCoordinates, setUserCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    fetchUserCoordinates();
+  }, [token]);
+
+  useEffect(() => {
+    if (isFocused && token) {
+      console.log('🌐 Language changed, refetching data...');
+      fetchUserPreferences(token);
+      fetchJobs(token);
+    }
+  }, [currentLanguage, isFocused, token]);
+
+  useEffect(() => {
+    // Register for push notifications
+    registerForPushNotificationsAsync();
+
+    // Load unread count
+    loadUnreadCount();
+
+    // Listen for notifications
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log('Notification received:', notification);
+        loadUnreadCount();
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log('Notification response:', response);
+        const data = response.notification.request.content.data;
+
+        // Navigate based on notification data
+        if (data.actionUrl) {
+          router.push(data.actionUrl as any);
+        }
+      });
+
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, []);
+
+  // Add this useEffect after line 130 (after the other useEffects)
+  useEffect(() => {
+    if (token && distanceFilter !== undefined) {
+      console.log(
+        '🔄 Distance filter changed, refetching jobs with:',
+        distanceFilter
+      );
+      fetchJobs(token);
+    }
+  }, [distanceFilter, token]); // Watch for distanceFilter changes
+
+  const loadUnreadCount = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('jwtToken');
+      if (!userToken) return;
+
+      const response = await fetch(`${URL}/api/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.data.count);
+      }
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+    }
+  };
 
   useEffect(() => {
     loadInitialData();
@@ -83,7 +170,7 @@ const HomeScreen: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [searchKeyword, selectedIndustry, locationFilter, jobs]);
+  }, [searchKeyword, locationFilter, jobs, userPreferences, showAllJobs]);
 
   const loadInitialData = async () => {
     try {
@@ -99,9 +186,16 @@ const HomeScreen: React.FC = () => {
 
       setToken(userToken);
 
+      const sessionLocation = await AsyncStorage.getItem(
+        'sessionLocationFilter'
+      );
+      if (sessionLocation) {
+        setLocationFilter(sessionLocation);
+        setHasLoadedLocation(true);
+      }
+
       await Promise.all([
         fetchUserPreferences(userToken),
-        fetchIndustries(userToken),
         fetchJobs(userToken),
       ]);
     } catch (error) {
@@ -114,15 +208,26 @@ const HomeScreen: React.FC = () => {
 
   const fetchUserPreferences = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/users/getPreferences`, {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      const response = await fetch(
+        `${URL}/api/users/getPreferences?lang=${lang}`,
+        {
+          headers: { Authorization: `Bearer ${userToken}` },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         setUserPreferences(data.data);
-        if (data.data.preferredLocation) {
+
+        if (!hasLoadedLocation && data.data.preferredLocation) {
           setLocationFilter(data.data.preferredLocation);
+          await AsyncStorage.setItem(
+            'sessionLocationFilter',
+            data.data.preferredLocation
+          );
         }
       }
     } catch (error) {
@@ -130,25 +235,73 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  const fetchIndustries = async (userToken: string) => {
+  // const fetchJobs = async (userToken: string) => {
+  //   try {
+  //     const storedLang = await AsyncStorage.getItem('preferredLanguage');
+  //     const lang = storedLang || 'en';
+
+  //     const response = await fetch(`${URL}/api/jobs?lang=${lang}`, {
+  //       headers: { Authorization: `Bearer ${userToken}` },
+  //     });
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setJobs(data.data);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching jobs:', error);
+  //     Alert.alert(t('common.error'), t('home.jobsLoadError'));
+  //   }
+  // };
+
+  const fetchUserCoordinates = async () => {
     try {
-      const response = await fetch(`${URL}/api/industries`, {
-        headers: { Authorization: `Bearer ${userToken}` },
+      if (!token) return;
+
+      const response = await fetch(`${URL}/api/users/location`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
       if (response.ok) {
         const data = await response.json();
-        setIndustries(data.data);
+        if (data.data.latitude && data.data.longitude) {
+          setUserCoordinates({
+            latitude: data.data.latitude,
+            longitude: data.data.longitude,
+          });
+          console.log(
+            'User coordinates are:',
+            data.data.latitude,
+            data.data.longitude
+          );
+        }
       }
     } catch (error) {
-      console.error('Error fetching industries:', error);
+      console.error('Error fetching user coordinates:', error);
     }
   };
 
+  // Update fetchJobs function
   const fetchJobs = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/jobs`, {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      let url = `${URL}/api/jobs?lang=${lang}`;
+
+      // Add distance filter if available
+      if (distanceFilter && userCoordinates) {
+        url += `&distance=${distanceFilter}&userLat=${userCoordinates.latitude}&userLon=${userCoordinates.longitude}`;
+      }
+
+      console.log('Distance filter:', distanceFilter);
+      console.log('User coordinates:', userCoordinates);
+
+      console.log('Fetching jobs with URL:', url);
+
+      const response = await fetch(url, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
+
       if (response.ok) {
         const data = await response.json();
         setJobs(data.data);
@@ -159,6 +312,23 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  // Update the clearFilters function
+  const clearFilters = () => {
+    setSearchKeyword('');
+    const preferredLoc = userPreferences?.preferredLocation || '';
+    setLocationFilter(preferredLoc);
+    setShowAllJobs(false);
+    setDistanceFilter(null); // ADD THIS
+    AsyncStorage.setItem('sessionLocationFilter', preferredLoc);
+  };
+
+  // const clearFilters = () => {
+  //     setSearchKeyword('');
+  //     const preferredLoc = userPreferences?.preferredLocation || '';
+  //     setLocationFilter(preferredLoc);
+  //     setShowAllJobs(false);
+  //     AsyncStorage.setItem('sessionLocationFilter', preferredLoc);
+  //   };
   const applyFilters = () => {
     let filtered = [...jobs];
 
@@ -170,17 +340,16 @@ const HomeScreen: React.FC = () => {
       );
     }
 
-    if (selectedIndustry) {
-      filtered = filtered.filter(
-        (job) => job.industry?.slug === selectedIndustry
+    if (
+      !showAllJobs &&
+      userPreferences?.industries &&
+      userPreferences.industries.length > 0
+    ) {
+      const preferredIndustryIds = userPreferences.industries.map(
+        (ind) => ind.id
       );
-    }
-
-    if (locationFilter.trim()) {
-      filtered = filtered.filter(
-        (job) =>
-          job.city.toLowerCase().includes(locationFilter.toLowerCase()) ||
-          job.state.toLowerCase().includes(locationFilter.toLowerCase())
+      filtered = filtered.filter((job) =>
+        preferredIndustryIds.includes(job.industry?.id)
       );
     }
 
@@ -193,10 +362,9 @@ const HomeScreen: React.FC = () => {
     setIsRefreshing(false);
   }, [token]);
 
-  const clearFilters = () => {
-    setSearchKeyword('');
-    setSelectedIndustry('');
-    setLocationFilter(userPreferences?.preferredLocation || '');
+  const handleLocationChange = (text: string) => {
+    setLocationFilter(text);
+    AsyncStorage.setItem('sessionLocationFilter', text);
   };
 
   const toggleSaveJob = async (jobId: number) => {
@@ -221,6 +389,39 @@ const HomeScreen: React.FC = () => {
       console.error('Error toggling save job:', error);
       Alert.alert('Error', 'Failed to save job. Please try again.');
     }
+  };
+
+  const handleReport = (jobId: number, jobTitle: string) => {
+    router.push({
+      pathname: '/(user-hidden)/report-job',
+      params: { jobId: jobId.toString(), jobTitle },
+    });
+  };
+
+  const showJobOptions = (item: Job) => {
+    Alert.alert(t('home.options'), t('home.selectAction'), [
+      {
+        text: t('home.viewDetails'),
+        onPress: () =>
+          router.push({
+            pathname: '/JobDetailsScreen/[slug]',
+            params: { slug: item.slug },
+          }),
+      },
+      {
+        text: item.isSaved ? t('home.unsave') : t('home.save'),
+        onPress: () => toggleSaveJob(item.id),
+      },
+      {
+        text: t('home.reportJob'),
+        onPress: () => handleReport(item.id, item.title),
+        style: 'destructive',
+      },
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+    ]);
   };
 
   const formatSalary = (min?: number, max?: number, type?: string) => {
@@ -272,119 +473,85 @@ const HomeScreen: React.FC = () => {
   };
 
   const renderJobCard = ({ item }: { item: Job }) => (
-    <TouchableOpacity
-      style={styles.jobCard}
-      onPress={() =>
-        router.push({
-          pathname: '/JobDetailsScreen/[slug]',
-          params: { slug: item.slug },
-        })
-      }
-      activeOpacity={0.7}
-    >
-      <View style={styles.jobCardHeader}>
-        <View style={styles.companyLogoContainer}>
-          <Text style={styles.companyLogoText}>
-            {item.company.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.jobHeaderInfo}>
-          <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
-          <TouchableOpacity
-            onPress={() => toggleSaveJob(item.id)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.saveIcon}>{item.isSaved ? '🔖' : '📑'}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Text style={styles.jobTitle} numberOfLines={2}>
-        {item.title}
-      </Text>
-
-      <View style={styles.jobMetaContainer}>
-        <View style={styles.jobMetaRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.experienceLevel}</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{formatJobType(item.jobType)}</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {formatWorkingHours(item.workingHours)}
+    <View style={styles.jobCard}>
+      <TouchableOpacity
+        style={styles.cardTouchable}
+        onPress={() =>
+          router.push({
+            pathname: '/JobDetailsScreen/[slug]',
+            params: { slug: item.slug },
+          })
+        }
+        activeOpacity={0.7}
+      >
+        <View style={styles.jobCardHeader}>
+          <View style={styles.companyLogoContainer}>
+            <Text style={styles.companyLogoText}>
+              {item.company.name.charAt(0).toUpperCase()}
             </Text>
           </View>
-        </View>
-      </View>
-
-      <Text style={styles.companyName} numberOfLines={1}>
-        {item.company.name}
-      </Text>
-      <Text style={styles.location} numberOfLines={1}>
-        {item.city}, {item.state}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderIndustryModal = () => (
-    <Modal
-      visible={showIndustryModal}
-      transparent
-      animationType="slide"
-      onRequestClose={() => setShowIndustryModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('home.selectIndustry')}</Text>
-            <TouchableOpacity onPress={() => setShowIndustryModal(false)}>
-              <Text style={styles.modalClose}>✕</Text>
+          <View style={styles.jobHeaderInfo}>
+            <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                toggleSaveJob(item.id);
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.saveButton}
+            >
+              <Ionicons
+                name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={24}
+                color="#1E3A8A"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                showJobOptions(item);
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.moreButton}
+            >
+              <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={[
-              styles.industryOption,
-              !selectedIndustry && styles.industryOptionSelected,
-            ]}
-            onPress={() => {
-              setSelectedIndustry('');
-              setShowIndustryModal(false);
-            }}
-          >
-            <Text style={styles.industryOptionText}>
-              {t('home.allIndustries')}
-            </Text>
-            {!selectedIndustry && <Text style={styles.checkmark}>✓</Text>}
-          </TouchableOpacity>
-
-          <FlatList
-            data={industries}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.industryOption,
-                  selectedIndustry === item.slug &&
-                    styles.industryOptionSelected,
-                ]}
-                onPress={() => {
-                  setSelectedIndustry(item.slug);
-                  setShowIndustryModal(false);
-                }}
-              >
-                <Text style={styles.industryOptionText}>{item.name}</Text>
-                {selectedIndustry === item.slug && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
-              </TouchableOpacity>
-            )}
-          />
         </View>
-      </View>
-    </Modal>
+
+        <Text style={styles.jobTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+
+        <View style={styles.jobMetaContainer}>
+          <View style={styles.jobMetaRow}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {formatJobType(item.jobType)}
+              </Text>
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {formatWorkingHours(item.workingHours)}
+              </Text>
+            </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {item.experienceLevel.replace('_', ' ')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.companyName}>{item.company.name}</Text>
+        <Text style={styles.location}>
+          📍 {item.city}, {item.state}
+        </Text>
+        <Text style={styles.salary}>
+          💰 {formatSalary(item.salaryMin, item.salaryMax, item.salaryType)}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 
   if (isLoading) {
@@ -392,7 +559,7 @@ const HomeScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>{t('home.loadingJobs')}</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -401,132 +568,306 @@ const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.logoRow}>
-          <View style={styles.logoSmall}>
-            <Text style={styles.logoSmallText}>BC</Text>
-          </View>
-          <View>
-            <Text style={styles.appTitleSmall}>{t('home.appTitle')}</Text>
-          </View>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>{t('home.title')}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/ProfileScreen')}
-        >
-          <Text style={styles.menuIcon}>☰</Text>
-        </TouchableOpacity>
-      </View>
-
-      {userPreferences && userPreferences.industries.length > 0 && (
-        <View style={styles.preferencesSection}>
-          <View style={styles.preferenceHeader}>
-            <Text style={styles.preferenceTitle}>
-              {t('home.yourJobPreferences')}
-            </Text>
-            <TouchableOpacity onPress={() => router.push('/PreferencesScreen')}>
-              <Text style={styles.editIcon}>✎</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.preferenceTags}>
-            <Text style={styles.preferenceLabel}>Industry:</Text>
-            {userPreferences.industries.slice(0, 3).map((industry) => (
-              <View key={industry.id} style={styles.preferenceTag}>
-                <Text style={styles.preferenceTagText}>{industry.name}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => {
+              router.push('/(user-hidden)/notifications');
+              setUnreadCount(0);
+            }}
+          >
+            <Ionicons name="notifications-outline" size={28} color="#1E3A8A" />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
               </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      <View style={styles.filterSection}>
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('home.searchPlaceholder')}
-            placeholderTextColor="#94A3B8"
-            value={searchKeyword}
-            onChangeText={setSearchKeyword}
-          />
-          {searchKeyword.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchKeyword('')}>
-              <Text style={styles.clearIcon}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setShowIndustryModal(true)}
-          >
-            <Text style={styles.filterButtonText}>
-              {selectedIndustry
-                ? industries.find((i) => i.slug === selectedIndustry)?.name ||
-                  t('home.industry')
-                : t('home.industry')}
-            </Text>
-            <Text style={styles.filterArrow}>▼</Text>
+            )}
           </TouchableOpacity>
-
-          <View style={styles.locationInputContainer}>
-            <Text style={styles.locationIcon}>📍</Text>
-            <TextInput
-              style={styles.locationInput}
-              placeholder={t('home.locationPlaceholder')}
-              placeholderTextColor="#94A3B8"
-              value={locationFilter}
-              onChangeText={setLocationFilter}
-            />
-          </View>
-        </View>
-
-        {(searchKeyword ||
-          selectedIndustry ||
-          locationFilter !== userPreferences?.preferredLocation) && (
           <TouchableOpacity
-            style={styles.clearFiltersButton}
-            onPress={clearFilters}
+            style={styles.menuButton}
+            onPress={() => router.push('/ProfileScreen')}
           >
-            <Text style={styles.clearFiltersText}>
-              {t('home.clearFilters')}
-            </Text>
+            <Ionicons name="menu" size={28} color="#1E3A8A" />
           </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
-          {filteredJobs.length}{' '}
-          {filteredJobs.length === 1
-            ? t('home.oneJobFound')
-            : t('home.manyJobsFound')}
-        </Text>
+        </View>
       </View>
 
       <FlatList
+        ListHeaderComponent={
+          <>
+            {userPreferences &&
+              userPreferences.industries &&
+              userPreferences.industries.length > 0 && (
+                <View style={styles.preferencesSection}>
+                  {/* Filter Status Badge */}
+                  <View style={styles.filterStatusBadge}>
+                    <Ionicons
+                      name={showAllJobs ? 'globe-outline' : 'funnel'}
+                      size={16}
+                      color="#1E3A8A"
+                    />
+                    <Text style={styles.filterStatusText}>
+                      {showAllJobs ? t('home.allJobs') : t('home.filtered')}
+                    </Text>
+                  </View>
+
+                  <View style={styles.preferenceHeader}>
+                    <View style={styles.preferenceTitleRow}>
+                      <Ionicons
+                        name="briefcase-outline"
+                        size={18}
+                        color="#F97316"
+                      />
+                      <Text style={styles.preferenceTitle}>
+                        {t('home.jobPreferences')}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => router.push('/PreferencesScreen')}
+                    >
+                      <Ionicons
+                        name="create-outline"
+                        size={20}
+                        color="#1E3A8A"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.preferenceTags}>
+                    <Text style={styles.preferenceLabel}>
+                      {t('home.industry')}:
+                    </Text>
+                    {userPreferences.industries.slice(0, 3).map((industry) => (
+                      <View
+                        key={industry.id}
+                        style={[
+                          styles.preferenceTag,
+                          showAllJobs && styles.preferenceTagInactive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.preferenceTagText,
+                            showAllJobs && styles.preferenceTagTextInactive,
+                          ]}
+                        >
+                          {industry.name}
+                        </Text>
+                      </View>
+                    ))}
+                    {userPreferences.industries.length > 3 && (
+                      <View
+                        style={[
+                          styles.preferenceTag,
+                          showAllJobs && styles.preferenceTagInactive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.preferenceTagText,
+                            showAllJobs && styles.preferenceTagTextInactive,
+                          ]}
+                        >
+                          +{userPreferences.industries.length - 3}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* View All Jobs Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.viewAllJobsButton,
+                      showAllJobs && styles.viewAllJobsButtonActive,
+                    ]}
+                    onPress={() => setShowAllJobs(!showAllJobs)}
+                  >
+                    <Ionicons
+                      name={showAllJobs ? 'funnel' : 'globe-outline'}
+                      size={20}
+                      color={showAllJobs ? '#1E3A8A' : '#FFFFFF'}
+                    />
+                    <Text
+                      style={[
+                        styles.viewAllJobsButtonText,
+                        showAllJobs && styles.viewAllJobsButtonTextActive,
+                      ]}
+                    >
+                      {showAllJobs
+                        ? t('home.showFilteredJobs')
+                        : t('home.viewAllJobs')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Info Text */}
+                  {!showAllJobs && (
+                    <View style={styles.infoTextContainer}>
+                      <Ionicons
+                        name="information-circle"
+                        size={16}
+                        color="#64748B"
+                      />
+                      <Text style={styles.infoText}>
+                        {t('home.filterActive')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+            <View style={styles.filterSection}>
+              <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="#64748B" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={t('home.searchPlaceholder')}
+                  placeholderTextColor="#94A3B8"
+                  value={searchKeyword}
+                  onChangeText={setSearchKeyword}
+                />
+                {searchKeyword.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchKeyword('')}>
+                    <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.filterRow}>
+                {userCoordinates && (
+                  <View style={styles.distanceFilterContainer}>
+                    <Text style={styles.filterLabel}>Distance:</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.distanceChipsScroll}
+                    >
+                      <TouchableOpacity
+                        style={[
+                          styles.distanceChip,
+                          distanceFilter === null && styles.distanceChipActive,
+                        ]}
+                        onPress={() => {
+                          setDistanceFilter(null);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.distanceChipText,
+                            distanceFilter === null &&
+                              styles.distanceChipTextActive,
+                          ]}
+                        >
+                          All
+                        </Text>
+                      </TouchableOpacity>
+                      {[5, 10, 20, 50].map((distance) => (
+                        <TouchableOpacity
+                          key={distance}
+                          style={[
+                            styles.distanceChip,
+                            distanceFilter === distance &&
+                              styles.distanceChipActive,
+                          ]}
+                          onPress={() => {
+                            setDistanceFilter(distance);
+                            console.log('Distance filter set to:', distance);
+                          }}
+                        >
+                          <Ionicons
+                            name="location"
+                            size={14}
+                            color={
+                              distanceFilter === distance
+                                ? '#FFFFFF'
+                                : '#1E3A8A'
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.distanceChipText,
+                              distanceFilter === distance &&
+                                styles.distanceChipTextActive,
+                            ]}
+                          >
+                            {distance}km
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Change Location Button */}
+                <TouchableOpacity
+                  style={styles.changeLocationButton}
+                  onPress={() => router.push('/(user-hidden)/update-location')}
+                >
+                  <Ionicons name="location-outline" size={18} color="#1E3A8A" />
+                  <Text style={styles.changeLocationText}>Change Location</Text>
+                </TouchableOpacity>
+              </View>
+
+              {(searchKeyword || locationFilter || showAllJobs) && (
+                <TouchableOpacity
+                  style={styles.clearFiltersButton}
+                  onPress={clearFilters}
+                >
+                  <Ionicons name="refresh" size={16} color="#1E3A8A" />
+                  <Text style={styles.clearFiltersText}>
+                    {t('home.clearFilters')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.resultsHeader}>
+              <Text style={styles.resultsCount}>
+                {t('home.jobsFound', { count: filteredJobs.length })}
+              </Text>
+              {!showAllJobs &&
+                userPreferences?.industries &&
+                userPreferences.industries.length > 0 && (
+                  <Text style={styles.resultsSubtext}>
+                    {t('home.filteredResults')}
+                  </Text>
+                )}
+            </View>
+          </>
+        }
         data={filteredJobs}
-        keyExtractor={(item) => item.id.toString()}
         renderItem={renderJobCard}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.jobList}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={['#1E3A8A']}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🔍</Text>
+            <Ionicons name="briefcase-outline" size={64} color="#CBD5E1" />
             <Text style={styles.emptyText}>{t('home.noJobs')}</Text>
             <Text style={styles.emptySubtext}>{t('home.adjustFilters')}</Text>
+            {!showAllJobs &&
+              userPreferences?.industries &&
+              userPreferences.industries.length > 0 && (
+                <TouchableOpacity
+                  style={styles.emptyActionButton}
+                  onPress={() => setShowAllJobs(true)}
+                >
+                  <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.emptyActionButtonText}>
+                    {t('home.viewAllJobs')}
+                  </Text>
+                </TouchableOpacity>
+              )}
           </View>
         }
       />
-
-      {renderIndustryModal()}
     </SafeAreaView>
   );
 };
@@ -556,35 +897,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerContent: {
+    flex: 1,
   },
-  logoSmall: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#1E3A8A',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  logoSmallText: {
-    fontSize: 16,
+  headerTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  appTitleSmall: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E3A8A',
+    color: '#1E293B',
   },
   menuButton: {
     padding: 8,
-  },
-  menuIcon: {
-    fontSize: 24,
-    color: '#1E3A8A',
   },
   preferencesSection: {
     backgroundColor: '#FFFFFF',
@@ -592,11 +914,33 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  filterStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  filterStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E3A8A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   preferenceHeader: {
     flexDirection: 'row',
@@ -604,37 +948,79 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  preferenceTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#F97316',
+  preferenceTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  editIcon: {
-    fontSize: 18,
-    color: '#1E3A8A',
+  preferenceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
   },
   preferenceTags: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
+    marginBottom: 12,
   },
   preferenceLabel: {
     fontSize: 13,
     color: '#64748B',
     marginRight: 8,
+    fontWeight: '500',
   },
   preferenceTag: {
-    backgroundColor: '#CBD5E1',
+    backgroundColor: '#1E3A8A',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
     marginBottom: 4,
   },
+  preferenceTagInactive: {
+    backgroundColor: '#E2E8F0',
+  },
   preferenceTagText: {
     fontSize: 12,
-    color: '#1E293B',
+    color: '#FFFFFF',
     fontWeight: '500',
+  },
+  preferenceTagTextInactive: {
+    color: '#64748B',
+  },
+  viewAllJobsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E3A8A',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  viewAllJobsButtonActive: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#1E3A8A',
+  },
+  viewAllJobsButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  viewAllJobsButtonTextActive: {
+    color: '#1E3A8A',
+  },
+  infoTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontStyle: 'italic',
   },
   filterSection: {
     backgroundColor: '#FFFFFF',
@@ -658,10 +1044,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 12,
     minHeight: 48,
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
@@ -669,36 +1052,9 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     paddingVertical: 12,
   },
-  clearIcon: {
-    fontSize: 18,
-    color: '#94A3B8',
-    paddingLeft: 8,
-  },
   filterRow: {
     flexDirection: 'row',
     gap: 12,
-  },
-  filterButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    minHeight: 48,
-  },
-  filterButtonText: {
-    fontSize: 14,
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  filterArrow: {
-    fontSize: 10,
-    color: '#64748B',
   },
   locationInputContainer: {
     flex: 1,
@@ -710,10 +1066,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     minHeight: 48,
-  },
-  locationIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    gap: 8,
   },
   locationInput: {
     flex: 1,
@@ -721,9 +1074,12 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   clearFiltersButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 12,
     paddingVertical: 8,
+    gap: 6,
   },
   clearFiltersText: {
     fontSize: 14,
@@ -739,6 +1095,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E293B',
   },
+  resultsSubtext: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
   jobList: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -746,13 +1107,15 @@ const styles = StyleSheet.create({
   jobCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  cardTouchable: {
+    padding: 16,
   },
   jobCardHeader: {
     flexDirection: 'row',
@@ -782,8 +1145,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
   },
-  saveIcon: {
-    fontSize: 20,
+  saveButton: {
+    padding: 4,
+  },
+  moreButton: {
+    padding: 4,
+    marginLeft: 4,
   },
   jobTitle: {
     fontSize: 18,
@@ -820,76 +1187,125 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 13,
     color: '#64748B',
+    marginBottom: 4,
+  },
+  salary: {
+    fontSize: 13,
+    color: '#64748B',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1E293B',
+    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
     color: '#64748B',
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-    maxHeight: '70%',
-  },
-  modalHeader: {
+  emptyActionButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#1E3A8A',
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 8,
   },
-  modalTitle: {
-    fontSize: 18,
+  emptyActionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  notificationBadgeText: {
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#1E293B',
+    color: '#FFFFFF',
   },
-  modalClose: {
-    fontSize: 24,
-    color: '#64748B',
+  distanceFilterContainer: {
+    marginBottom: 12,
   },
-  industryOption: {
+  filterLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 8,
+  },
+  distanceChipsScroll: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+  },
+  distanceChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 4,
   },
-  industryOptionSelected: {
-    backgroundColor: '#EFF6FF',
+  distanceChipActive: {
+    backgroundColor: '#1E3A8A',
+    borderColor: '#1E3A8A',
   },
-  industryOptionText: {
-    fontSize: 16,
-    color: '#1E293B',
-  },
-  checkmark: {
-    fontSize: 18,
+  distanceChipText: {
+    fontSize: 13,
+    fontWeight: '600',
     color: '#1E3A8A',
-    fontWeight: 'bold',
+  },
+  distanceChipTextActive: {
+    color: '#FFFFFF',
+  },
+  changeLocationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 8,
+  },
+  changeLocationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E3A8A',
   },
 });
 

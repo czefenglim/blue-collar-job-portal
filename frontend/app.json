@@ -9,11 +9,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.bluecollarjobportal",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "extra": {
       "API_BASE_URL": "https://joyful-tera-cany.ngrok-free.dev",
-      "JWT_SECRET": "a2579ab20d8b7fece531824ecaf62b060ff13dc49b5530c99fca0395471264b9b1e2ec000681baa7d3acc462a985d287570a92c7dd2b107e2a12c9ed70451953"
+      "JWT_SECRET": "a2579ab20d8b7fece531824ecaf62b060ff13dc49b5530c99fca0395471264b9b1e2ec000681baa7d3acc462a985d287570a92c7dd2b107e2a12c9ed70451953",
+      "eas": {
+        "projectId": "292031b1-4b6a-4796-b8d0-e687c950b8b4"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,10 +32,13 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.bluecollarjobportal"
+      "googleServicesFile": "./android/app/google-services.json",
+      "useNextNotificationsApi": true,
+      "package": "com.anonymous.bluecollarjobportal",
+      "permissions": ["NOTIFICATIONS"]
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -42,7 +53,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

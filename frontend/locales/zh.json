@@ -1,4 +1,171 @@
 {
+  "report": {
+    "title": "举报工作",
+    "reportingJob": "举报工作",
+    "selectType": "举报类型",
+    "selectTypeDescription": "选择举报此工作的原因",
+    "description": "描述",
+    "descriptionHint": "请提供有关您担忧的详细信息（至少10个字符）",
+    "descriptionPlaceholder": "描述您在此职位发布中发现的问题...",
+    "characters": "字符",
+    "evidence": "证据（可选）",
+    "evidenceHint": "上传截图或文件以支持您的举报（最多5个文件）",
+    "uploadImage": "上传图片",
+    "uploadDocument": "上传文件",
+    "maxFiles": "还可以添加{count}个文件",
+    "importantNotice": "重要提示：虚假举报可能导致账户受限。请确保所有信息准确无误。",
+    "submitReport": "提交举报",
+    "authenticationRequired": "需要认证",
+    "pleaseSignIn": "请登录以继续",
+    "maxFilesReached": "已达最大文件数",
+    "maxFilesReachedMessage": "您最多只能上传5个文件",
+    "types": {
+      "fakeJob": "虚假工作",
+      "misleadingInfo": "误导信息",
+      "inappropriateContent": "不当内容",
+      "scamSuspected": "疑似诈骗",
+      "discrimination": "歧视",
+      "duplicatePosting": "重复发布",
+      "others": "其他"
+    },
+    "validation": {
+      "title": "验证错误",
+      "selectType": "请选择举报类型",
+      "descriptionRequired": "请提供描述",
+      "descriptionMinLength": "描述必须至少10个字符长"
+    },
+    "success": {
+      "title": "举报已提交",
+      "message": "感谢您的举报。我们将审核并采取适当行动。"
+    },
+    "errors": {
+      "pickImageFailed": "选择图片失败。请重试。",
+      "pickDocumentFailed": "选择文件失败。请重试。",
+      "submitFailed": "提交举报失败。请重试。"
+    }
+  },
+  "home": {
+    "title": "寻找工作",
+    "authRequired": "需要认证",
+    "signInToContinue": "请登录以继续",
+    "loadError": "加载数据失败",
+    "jobsLoadError": "加载工作失败",
+    "jobPreferences": "您的工作偏好",
+    "industry": "行业",
+    "searchPlaceholder": "搜索工作或公司...",
+    "locationPlaceholder": "地点...",
+    "clearFilters": "清除所有筛选器",
+    "jobsFound": "{{count}} 个工作可用",
+    "noJobs": "未找到工作",
+    "adjustFilters": "尝试调整您的搜索筛选器",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{{count}} 天前",
+    "weeksAgo": "{{count}} 周前",
+    "monthsAgo": "{{count}} 月前",
+    "allJobs": "所有工作",
+    "filtered": "已筛选",
+    "viewAllJobs": "查看所有工作",
+    "showFilteredJobs": "显示我的工作类型",
+    "filterActive": "根据您的偏好筛选的工作",
+    "filteredResults": "根据您的工作偏好筛选",
+    "options": "工作选项",
+    "selectAction": "您想要做什么？",
+    "viewDetails": "查看详情",
+    "save": "保存工作",
+    "unsave": "取消保存工作",
+    "reportJob": "举报工作"
+  },
+  "selectRole": {
+    "title": "选择您的角色",
+    "subtitle": "选择您想要使用应用的方式",
+    "jobSeeker": "求职者",
+    "jobSeekerDesc": "寻找与您技能匹配的工作",
+    "employer": "雇主",
+    "employerDesc": "发布工作并寻找合格员工",
+    "admin": "管理员",
+    "adminDesc": "管理平台和用户",
+    "restricted": "受限访问",
+    "footerNote": "继续即表示您同意我们的服务条款和隐私政策。"
+  },
+  "employerLogin": {
+    "title": "雇主登录",
+    "subtitle": "访问您的雇主账户",
+    "email": "电子邮件",
+    "password": "密码",
+    "phoneNumber": "电话号码",
+    "login": "登录",
+    "noAccount": "没有账户？",
+    "register": "注册",
+    "registerTitle": "创建雇主账户",
+    "registerSubtitle": "开始招聘合格候选人",
+    "fullName": "全名",
+    "confirmPassword": "确认密码",
+    "createAccount": "创建账户",
+    "haveAccount": "已有账户？",
+    "forgotPassword": "忘记密码？"
+  },
+  "validation": {
+    "error": "错误",
+    "allFieldsRequired": "所有字段均为必填项。",
+    "invalidPhone": "请输入有效的电话号码。",
+    "invalidEmail": "请输入有效的电子邮件地址。",
+    "invalidWebsite": "请输入有效的网站URL。"
+  },
+  "employerOnboarding": {
+    "title": "雇主入职",
+    "companyInfo": "公司",
+    "profileInfo": "个人资料",
+    "complete": "完成",
+    "congratulations": "恭喜！🎉",
+    "onboardingComplete": "您的雇主账户已准备就绪",
+    "readyToStart": "您现在可以开始发布工作并为您的公司寻找完美候选人。",
+    "getStarted": "开始"
+  },
+  "employerCompanyForm": {
+    "title": "公司信息",
+    "subtitle": "告诉我们关于您的公司",
+    "companyName": "公司名称",
+    "industry": "行业",
+    "selectIndustry": "选择行业",
+    "companySize": "公司规模",
+    "startup": "初创公司（1-10名员工）",
+    "small": "小型公司（11-50名员工）",
+    "medium": "中型公司（51-200名员工）",
+    "large": "大型公司（201-1000名员工）",
+    "enterprise": "企业公司（1000名以上员工）",
+    "logo": "公司标志",
+    "uploadLogo": "点击上传标志",
+    "contactInformation": "联系信息",
+    "email": "电子邮件地址",
+    "phone": "电话号码",
+    "website": "网站",
+    "addressInformation": "地址信息",
+    "address": "街道地址",
+    "addressPlaceholder": "输入街道地址",
+    "city": "城市",
+    "cityPlaceholder": "输入城市",
+    "state": "州属",
+    "statePlaceholder": "输入州属",
+    "postcode": "邮政编码",
+    "postcodePlaceholder": "输入邮政编码",
+    "description": "公司描述",
+    "descriptionPlaceholder": "告诉我们关于您的公司、文化和价值观...",
+    "error": "错误",
+    "companyCreationFailed": "创建公司失败。请重试。"
+  },
+  "employerProfileForm": {
+    "profileDetails": "您的个人资料详情",
+    "profileDetailsSubtitle": "告诉我们关于您作为公司代表的信息",
+    "fullName": "全名",
+    "fullNamePlaceholder": "输入您的全名",
+    "position": "职位",
+    "positionPlaceholder": "例如：人力资源经理、首席执行官、招聘人员",
+    "phoneNumber": "电话号码",
+    "phoneNumberPlaceholder": "+60 12-345 6789",
+    "error": "错误",
+    "profileUpdateFailed": "更新个人资料失败。请重试。"
+  },
   "common": {
     "success": "成功",
     "error": "错误",
@@ -21,9 +188,9 @@
     "done": "完成"
   },
   "jobDetails": {
-    "title": "职位详情",
-    "loading": "正在加载职位详情...",
-    "authenticationRequired": "需要验证",
+    "title": "工作详情",
+    "loading": "加载工作详情中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
     "applyButton": "立即申请",
     "remote": "远程",
@@ -32,35 +199,35 @@
       "message": "您已申请此职位。状态：{status}"
     },
     "quickInfo": {
-      "jobType": "职位类型",
+      "jobType": "工作类型",
       "experience": "经验",
       "workingHours": "工作时间",
       "industry": "行业"
     },
     "salary": {
-      "title": "薪资",
-      "notSpecified": "未指定薪资",
+      "title": "薪水",
+      "notSpecified": "未指定薪水",
       "per": "每"
     },
     "description": {
-      "title": "职位描述"
+      "title": "工作描述"
     },
     "requirements": {
-      "title": "职位要求"
+      "title": "要求"
     },
     "benefits": {
       "title": "福利"
     },
     "company": {
-      "about": "关于 {companyName}",
+      "about": "关于{companyName}",
       "size": "公司规模：",
       "location": "地点：",
       "visitWebsite": "访问网站",
       "notSpecified": "未指定"
     },
     "stats": {
-      "views": "浏览量",
-      "applicants": "申请人数"
+      "views": "查看次数",
+      "applicants": "申请者"
     },
     "applied": {
       "submitted": "申请已提交",
@@ -71,32 +238,31 @@
       "yesterday": "昨天发布",
       "daysAgo": "{days} 天前发布",
       "weeksAgo": "{weeks} 周前发布",
-      "monthsAgo": "{months} 个月前发布"
+      "monthsAgo": "{months} 月前发布"
     },
     "applicationStatus": {
       "unknown": "未知"
     },
     "errors": {
-      "loadFailed": "加载职位详情失败，请重试。",
-      "saveFailed": "保存职位失败，请重试。",
-      "notFound": "未找到职位"
+      "loadFailed": "加载工作详情失败。请重试。",
+      "saveFailed": "保存工作失败。请重试。",
+      "notFound": "未找到工作"
     }
   },
-
   "applyConfirmation": {
-    "title": "申请职位",
-    "loading": "正在加载申请...",
-    "authenticationRequired": "需要验证",
+    "title": "申请工作",
+    "loading": "加载申请中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
-    "applyingFor": "申请职位",
+    "applyingFor": "申请",
     "submitting": "提交中...",
-    "confirmApplication": "确认并提交申请",
+    "confirmApplication": "确认并发送申请",
     "progress": {
       "reviewInfo": "审核信息",
       "submit": "提交"
     },
     "incompleteProfile": {
-      "alert": "请完成以下必填信息以提交申请",
+      "alert": "完成这些必填详情以提交您的申请",
       "title": "必填信息",
       "phoneNumber": "电话号码 *",
       "phonePlaceholder": "例如：012-3456-7890",
@@ -105,46 +271,46 @@
       "experiencePlaceholder": "例如：3"
     },
     "completeProfile": {
-      "title": "您的申请信息",
-      "badge": "✓ 已完成",
+      "title": "您的申请详情",
+      "badge": "✓ 完成",
       "more": "更多",
-      "resumeAttached": "已附上",
-      "editProfile": "编辑资料"
+      "resumeAttached": "已附加",
+      "editProfile": "编辑个人资料详情"
     },
     "success": {
       "title": "申请已提交！",
-      "message": "您申请的职位 {jobTitle} 已成功提交。",
+      "message": "您对{jobTitle}的申请已成功提交。",
       "viewApplications": "查看申请",
-      "backToJobs": "返回职位列表"
+      "backToJobs": "返回工作"
     },
     "errors": {
-      "loadFailed": "加载申请信息失败。",
-      "updateFailed": "更新资料失败，请重试。",
-      "submitFailed": "提交申请失败，请重试。"
+      "loadFailed": "加载申请详情失败。",
+      "updateFailed": "更新个人资料失败。请重试。",
+      "submitFailed": "提交申请失败。请重试。"
     },
     "validation": {
       "phoneRequired": "请输入您的电话号码",
       "cityRequired": "请输入您的城市",
-      "stateRequired": "请输入您的州/省",
+      "stateRequired": "请输入您的州属",
       "experienceRequired": "请输入您的工作经验年数"
     }
   },
   "preferences": {
-    "title": "职位偏好",
-    "loading": "正在加载偏好...",
-    "authenticationRequired": "需要验证",
+    "title": "工作偏好",
+    "loading": "加载偏好中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
-    "preferredIndustries": "偏好行业",
+    "preferredIndustries": "首选行业",
     "industriesSubtitle": "选择您感兴趣的行业",
-    "noIndustriesSelected": "未选择任何行业",
-    "industriesSelected": "已选择 {count} 个 {industry}",
+    "noIndustriesSelected": "未选择行业",
+    "industriesSelected": "已选择{count}个{industry}",
     "industry": "行业",
     "industries": "行业",
     "saveChanges": "保存更改",
     "saving": "保存中...",
-    "infoText": "您的偏好帮助我们向您展示最相关的职位",
+    "infoText": "您的偏好帮助我们向您展示最相关的工作机会",
     "limitReached": {
-      "title": "已达到限制",
+      "title": "已达限制",
       "message": "您最多只能选择3个行业。"
     },
     "noSelection": {
@@ -155,39 +321,39 @@
       "message": "您的偏好已更新！"
     },
     "errors": {
-      "loadFailed": "加载偏好失败，请重试。",
-      "updateFailed": "保存偏好失败，请重试。"
+      "loadFailed": "加载偏好失败。请重试。",
+      "updateFailed": "保存偏好失败。请重试。"
     }
   },
   "editProfile": {
-    "title": "编辑资料",
+    "title": "编辑个人资料",
     "subtitle": "更新您的信息",
-    "loading": "正在加载您的资料...",
-    "authenticationRequired": "需要验证",
+    "loading": "加载您的个人资料中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
     "fullName": "全名",
     "selectDate": "选择日期",
     "to": "至",
-    "industriesSelected": "已选择 {count} 个行业",
-    "skillsSelected": "已选择 {count} 项技能",
-    "languagesSelected": "已选择 {count} 种语言",
-    "selectIndustries": "选择偏好行业",
+    "industriesSelected": "已选择{count}个行业",
+    "skillsSelected": "已选择{count}个技能",
+    "languagesSelected": "已选择{count}种语言",
+    "selectIndustries": "选择首选行业",
     "selectSkills": "选择您的技能",
-    "selectLanguages": "选择您会的语言",
+    "selectLanguages": "选择您说的语言",
     "sections": {
       "personalInfo": "个人信息",
-      "personalInfoSubtitle": "您的基本信息",
+      "personalInfoSubtitle": "您的基本详情",
       "addressSubtitle": "您当前的位置",
       "jobPreferencesSubtitle": "您的职业要求",
-      "skillsExperienceSubtitle": "您的资历"
+      "skillsExperienceSubtitle": "您的资格"
     },
     "placeholders": {
-      "fullName": "请输入您的全名",
-      "phoneNumber": "请输入您的电话号码",
-      "nationality": "请输入您的国籍",
-      "address": "请输入完整地址",
+      "fullName": "输入您的全名",
+      "phoneNumber": "输入您的电话号码",
+      "nationality": "输入您的国籍",
+      "address": "输入您的完整地址",
       "city": "城市",
-      "state": "州/省",
+      "state": "州属",
       "postcode": "邮政编码",
       "minSalary": "最低",
       "maxSalary": "最高",
@@ -199,57 +365,60 @@
       "languages": "选择语言"
     },
     "success": {
-      "message": "资料更新成功"
+      "message": "个人资料更新成功"
     },
     "errors": {
-      "loadFailed": "加载数据失败，请重试。",
-      "updateFailed": "更新资料失败，请重试。",
+      "loadFailed": "加载数据失败。请重试。",
+      "updateFailed": "更新个人资料失败。请重试。",
       "fullNameRequired": "请输入您的全名"
     }
   },
   "profile": {
-    "title": "我的资料",
-    "loading": "正在加载资料...",
-    "authenticationRequired": "需要验证",
+    "title": "我的个人资料",
+    "loading": "加载个人资料中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
     "tryAgain": "重试",
     "notSpecified": "未指定",
     "notProvided": "未提供",
     "email": "电子邮件",
     "phone": "电话",
-    "address": "输入您的完整地址",
     "city": "城市",
-    "state": "州/省",
+    "state": "州属",
     "postcode": "邮政编码",
+    "address": "地址",
     "verified": "已验证",
     "unverified": "未验证",
     "memberSince": "会员自",
     "phoneNumber": "电话号码",
     "dateOfBirth": "出生日期",
     "nationality": "国籍",
-    "expectedSalary": "期望薪资",
+    "expectedSalary": "期望薪水",
     "workingHours": "工作时间",
     "transportMode": "交通方式",
-    "maxTravelDistance": "最大通勤距离",
-    "availableFrom": "可从",
-    "yearsOfExperience": "经验年数",
+    "maxTravelDistance": "最大旅行距离",
+    "availableFrom": "可从...开始",
+    "yearsOfExperience": "工作经验年数",
     "years": "年",
-    "preferredIndustries": "偏好行业",
+    "preferredIndustries": "首选行业",
     "skills": "技能",
     "languages": "语言",
     "viewResume": "查看简历",
     "noIndustries": "未选择行业",
     "noSkills": "未添加技能",
     "noLanguages": "未添加语言",
+    "selectLanguage": "选择您的首选语言",
+    "languageChanged": "语言已更改",
+    "languageChangedMessage": "语言已成功更新",
     "gender": {
       "title": "性别",
-      "male": "男",
-      "female": "女",
+      "male": "男性",
+      "female": "女性",
       "other": "其他",
       "preferNotToSay": "不愿透露"
     },
     "transport": {
-      "ownVehicle": "自备车辆",
+      "ownVehicle": "自有车辆",
       "publicTransport": "公共交通",
       "companyTransport": "公司交通",
       "motorcycle": "摩托车",
@@ -257,40 +426,43 @@
       "walking": "步行"
     },
     "completion": {
-      "title": "资料完整度",
-      "hint": "完善资料提高雇主可见性"
+      "title": "个人资料完成度",
+      "hint": "完成您的个人资料以提高对雇主的可见度"
     },
     "sections": {
       "personalInfo": "个人信息",
       "address": "地址",
       "jobPreferences": "工作偏好",
       "skillsExperience": "技能与经验",
-      "quickActions": "快捷操作"
+      "quickActions": "快速操作",
+      "language": "语言"
     },
     "actions": {
-      "savedJobs": "已保存的工作",
+      "savedJobs": "已保存工作",
       "myApplications": "我的申请",
-      "preferences": "偏好设置"
+      "preferences": "偏好设置",
+      "myReports": "我的举报"
     },
     "logout": {
-      "title": "登出",
-      "confirmation": "确定要登出吗？",
-      "button": "登出"
+      "title": "注销",
+      "confirmation": "您确定要注销吗？",
+      "button": "注销"
     },
     "errors": {
-      "loadFailed": "加载资料失败，请重试。"
+      "loadFailed": "加载个人资料失败。请重试。",
+      "languageChangeFailed": "更改语言失败"
     }
   },
   "applications": {
     "title": "我的申请",
-    "loading": "正在加载申请...",
-    "authenticationRequired": "需要验证",
+    "loading": "加载申请中...",
+    "authenticationRequired": "需要认证",
     "pleaseSignIn": "请登录以继续",
     "applied": "已申请",
     "updated": "已更新",
     "application": "申请",
     "applications": "申请",
-    "stats": "{filtered} / {total} 个{application}",
+    "stats": "{filtered} / {total} {application}",
     "filters": {
       "all": "全部",
       "pending": "待处理",
@@ -303,49 +475,49 @@
       "pending": "待处理",
       "reviewing": "审核中",
       "shortlisted": "入围",
-      "interviewScheduled": "面试已安排",
+      "interviewScheduled": "已安排面试",
       "interviewed": "已面试",
       "rejected": "已拒绝",
       "hired": "已录用",
       "withdrawn": "已撤回"
     },
     "emptyState": {
-      "noApplications": "暂无申请",
-      "noFilteredApplications": "没有 {status} 的申请",
-      "description": "开始申请职位并在这里跟踪您的申请进度",
-      "filteredDescription": "您在此状态下没有申请",
-      "browseButton": "浏览职位"
-    },
-    "errors": {
-      "loadFailed": "加载申请失败，请重试。",
-      "refreshFailed": "刷新申请失败，请重试。"
-    }
-  },
-  "savedJobs": {
-    "title": "已保存的工作",
-    "loading": "正在加载已保存的工作...",
-    "authenticationRequired": "需要验证",
-    "pleaseSignIn": "请登录以继续",
-    "removeJob": "移除已保存的工作",
-    "removeConfirmation": "是否要从已保存的工作中移除“{jobTitle}”？",
-    "remove": "移除",
-    "savedToday": "今天已保存",
-    "savedYesterday": "昨天已保存",
-    "savedDaysAgo": "{days} 天前保存",
-    "savedOnDate": "保存于 {date}",
-    "posted": "发布于",
-    "jobCount": "已保存 {count} 个{jobs}",
-    "job": "工作",
-    "jobs": "工作",
-    "emptyState": {
-      "title": "暂无已保存的工作",
-      "description": "开始浏览工作并保存您感兴趣的职位",
+      "noApplications": "尚无申请",
+      "noFilteredApplications": "无{status}申请",
+      "description": "开始申请工作并在此跟踪您的申请",
+      "filteredDescription": "您没有此状态的申请",
       "browseButton": "浏览工作"
     },
     "errors": {
-      "loadFailed": "加载已保存的工作失败，请重试。",
-      "refreshFailed": "刷新已保存的工作失败。",
-      "unsaveFailed": "移除工作失败，请重试。"
+      "loadFailed": "加载申请失败。请重试。",
+      "refreshFailed": "刷新申请失败。"
+    }
+  },
+  "savedJobs": {
+    "title": "已保存工作",
+    "loading": "加载已保存工作中...",
+    "authenticationRequired": "需要认证",
+    "pleaseSignIn": "请登录以继续",
+    "removeJob": "移除已保存工作",
+    "removeConfirmation": "从您的已保存工作中移除\"{jobTitle}\"？",
+    "remove": "移除",
+    "savedToday": "今天保存",
+    "savedYesterday": "昨天保存",
+    "savedDaysAgo": "{days} 天前保存",
+    "savedOnDate": "保存于 {date}",
+    "posted": "发布于",
+    "jobCount": "已保存{count}个{jobs}",
+    "job": "工作",
+    "jobs": "工作",
+    "emptyState": {
+      "title": "尚无已保存工作",
+      "description": "开始浏览工作并保存您感兴趣的工作",
+      "browseButton": "浏览工作"
+    },
+    "errors": {
+      "loadFailed": "加载已保存工作失败。请重试。",
+      "refreshFailed": "刷新已保存工作失败。",
+      "unsaveFailed": "移除工作失败。请重试。"
     }
   },
   "time": {
@@ -358,8 +530,8 @@
   "jobTypes": {
     "fullTime": "全职",
     "partTime": "兼职",
-    "contract": "合约",
-    "temporary": "临时",
+    "contract": "合同工",
+    "temporary": "临时工",
     "internship": "实习"
   },
   "workingHours": {
@@ -371,13 +543,13 @@
   },
   "signUp": {
     "appTitle": "蓝领工作门户",
-    "appSubtitle": "开启你的职业旅程",
+    "appSubtitle": "开始您的职业旅程",
     "createAccount": "创建账户",
     "joinThousands": "加入数千名求职者",
     "fullName": "全名",
-    "fullNamePlaceholder": "输入你的全名",
-    "email": "电子邮箱",
-    "emailPlaceholder": "输入你的邮箱",
+    "fullNamePlaceholder": "输入您的全名",
+    "email": "电子邮件地址",
+    "emailPlaceholder": "输入您的电子邮件",
     "phoneNumber": "电话号码",
     "phonePlaceholder": "012-3456-7890",
     "phoneHint": "马来西亚电话号码",
@@ -385,138 +557,138 @@
     "passwordPlaceholder": "创建密码",
     "passwordHint": "至少8个字符，包含大写字母、小写字母和数字",
     "confirmPassword": "确认密码",
-    "confirmPasswordPlaceholder": "再次输入密码",
+    "confirmPasswordPlaceholder": "确认您的密码",
     "agreeToTerms": "我同意",
     "termsOfService": "服务条款",
-    "and": "以及",
+    "and": "和",
     "privacyPolicy": "隐私政策",
     "createAccountButton": "创建账户",
-    "creatingAccount": "正在创建账户...",
+    "creatingAccount": "创建账户中...",
     "or": "或",
     "alreadyHaveAccount": "已有账户？",
     "signIn": "登录",
     "errors": {
-      "fullNameRequired": "请输入你的全名",
-      "emailRequired": "请输入你的电子邮箱",
-      "phoneRequired": "请输入你的电话号码",
+      "fullNameRequired": "请输入您的全名",
+      "emailRequired": "请输入您的电子邮件地址",
+      "phoneRequired": "请输入您的电话号码",
       "passwordRequired": "请输入密码",
       "confirmPasswordRequired": "请确认密码",
-      "invalidEmail": "请输入有效的邮箱地址",
-      "invalidPhone": "请输入有效的马来西亚电话号码（例如 0123456789）",
-      "passwordTooShort": "密码长度至少为8个字符",
-      "passwordWeak": "密码必须包含大写字母、小写字母和数字",
-      "passwordMismatch": "两次输入的密码不一致",
+      "invalidEmail": "请输入有效的电子邮件地址",
+      "invalidPhone": "请输入有效的马来西亚电话号码（例如：0123456789）",
+      "passwordTooShort": "密码必须至少8个字符长",
+      "passwordWeak": "密码必须包含至少一个大写字母、一个小写字母和一个数字",
+      "passwordMismatch": "密码不匹配",
       "termsRequired": "请同意服务条款和隐私政策",
-      "signUpFailed": "注册失败，请重试。",
-      "accountExists": "该邮箱已注册，请登录。"
+      "signUpFailed": "注册失败。请重试。",
+      "accountExists": "此电子邮件已存在账户。请尝试登录。"
     },
     "success": {
       "title": "成功！",
-      "message": "账户创建成功，欢迎使用蓝领工作！",
+      "message": "账户创建成功。欢迎来到蓝领工作！",
       "continue": "继续"
     }
   },
   "login": {
-    "appTitle": "蓝领工作门户",
-    "appSubtitle": "开启你的职业旅程",
+    "appTitle": "预算控制",
+    "appSubtitle": "掌控您的财务",
     "welcomeBack": "欢迎回来！",
     "signInToContinue": "登录以继续",
-    "email": "邮箱",
-    "emailPlaceholder": "输入你的邮箱",
+    "email": "电子邮件",
+    "emailPlaceholder": "输入您的电子邮件",
     "password": "密码",
-    "passwordPlaceholder": "输入密码",
+    "passwordPlaceholder": "输入您的密码",
     "forgotPassword": "忘记密码？",
     "signIn": "登录",
     "signingIn": "登录中...",
     "or": "或",
-    "noAccount": "还没有账户？",
+    "noAccount": "没有账户？",
     "signUp": "注册",
     "success": {
-      "loggedIn": "登录成功！"
+      "loggedIn": "成功登录！"
     },
     "errors": {
-      "emailRequired": "请输入邮箱",
-      "passwordRequired": "请输入密码",
-      "invalidEmail": "请输入有效的邮箱地址",
-      "loginFailed": "登录失败，请检查你的凭证。",
-      "unexpected": "发生未知错误，请重试。"
+      "emailRequired": "请输入您的电子邮件",
+      "passwordRequired": "请输入您的密码",
+      "invalidEmail": "请输入有效的电子邮件地址",
+      "loginFailed": "登录失败。请检查您的凭据。",
+      "unexpected": "发生意外错误。请重试。"
     }
   },
   "onboarding": {
     "welcome": {
-      "title": "欢迎使用蓝领工作！",
-      "subtitle": "寻找你的下一份工作机会",
-      "description": "我们帮助像你这样的技能工人与马来西亚各地的优秀雇主建立联系。",
+      "title": "欢迎来到蓝领工作！",
+      "subtitle": "寻找您的下一个工作机会",
+      "description": "我们帮助像您这样的熟练工人与马来西亚各地的优秀雇主建立联系。",
       "buttonText": "开始"
     },
     "howItWorks": {
       "title": "工作原理",
-      "subtitle": "简单的求职流程",
-      "description": "1. 完善你的个人资料\n2. 选择你的行业\n3. 回答几个问题\n4. 开始申请工作",
+      "subtitle": "简单的工作搜索",
+      "description": "1. 完成您的个人资料\n2. 选择您的行业\n3. 回答几个问题\n4. 开始申请工作",
       "buttonText": "继续"
     },
     "completeProfile": {
-      "title": "完善你的个人资料",
-      "subtitle": "帮助雇主更了解你",
-      "description": "填写你的基本信息和工作偏好。",
+      "title": "完成您的个人资料",
+      "subtitle": "帮助雇主更多地了解您",
+      "description": "填写您的基本信息和工作偏好。",
       "buttonText": "继续"
     },
     "chooseIndustries": {
-      "title": "选择你的行业",
-      "subtitle": "你想找哪种类型的工作？",
-      "description": "选择最多3个符合你技能和兴趣的行业。",
+      "title": "选择您的行业",
+      "subtitle": "您正在寻找什么类型的工作？",
+      "description": "选择最多3个与您的技能和兴趣匹配的行业。",
       "buttonText": "继续",
       "selectionCounter": "已选择：{count}/3",
-      "limitReached": "已达上限",
-      "limitMessage": "最多只能选择3个行业。",
-      "selectionRequired": "请选择行业",
+      "limitReached": "已达限制",
+      "limitMessage": "您最多只能选择3个行业。",
+      "selectionRequired": "需要选择",
       "selectionMessage": "请至少选择一个行业。"
     },
     "buildResume": {
-      "title": "帮助我们创建你的简历",
+      "title": "帮助我们建立您的简历",
       "subtitle": "回答几个问题",
-      "description": "我们将根据你的回答为你生成一份专业简历。",
+      "description": "我们将使用您的答案为您创建专业简历。",
       "buttonText": "生成简历",
-      "requiredQuestion": "必答问题",
+      "requiredQuestion": "必填问题",
       "requiredMessage": "请回答：{question}"
     },
     "previewResume": {
-      "title": "预览你的简历",
-      "subtitle": "检查生成的简历",
-      "description": "你可以重新生成，或继续下一步。",
+      "title": "预览您的简历",
+      "subtitle": "检查您生成的简历",
+      "description": "如果需要，您可以重新生成，或继续前进。",
       "primaryButtonText": "继续",
       "secondaryButtonText": "重新生成",
-      "resumeReady": "你的简历已准备好！",
-      "resumeDescription": "点击下方按钮在浏览器中查看你的生成简历。",
+      "resumeReady": "您的简历已准备就绪！",
+      "resumeDescription": "点击下方按钮在浏览器中查看您生成的简历。",
       "viewResume": "📱 在浏览器中查看简历",
-      "generating": "正在生成简历...",
-      "noResume": "暂无简历，请先生成。",
-      "regenerateError": "重新生成失败，请重试。"
+      "generating": "生成简历中...",
+      "noResume": "无可用简历。请先生成。",
+      "regenerateError": "重新生成简历失败。请重试。"
     },
     "completion": {
-      "title": "一切准备就绪！",
-      "subtitle": "立即开始找工作",
-      "description": "你的资料已准备好，我们将根据你选择的行业推送工作通知。",
-      "buttonText": "开始找工作"
+      "title": "您已准备就绪！",
+      "subtitle": "立即开始寻找工作",
+      "description": "您的个人资料已准备就绪。您将根据您选择的行业接收工作通知。",
+      "buttonText": "开始工作搜索"
     },
     "profileForm": {
-      "profilePicture": "个人照片",
+      "profilePicture": "个人资料图片",
       "addPhoto": "添加照片",
       "skills": "技能",
-      "selectSkills": "选择你的技能",
+      "selectSkills": "选择您的技能",
       "languages": "语言",
-      "selectLanguages": "选择你会说的语言",
-      "certifications": "证书",
-      "addCertifications": "添加你的证书",
-      "certificationsPlaceholder": "输入你的证书（例如：叉车执照、安全培训等）",
-      "certificationsHelper": "多个证书请用逗号分隔",
+      "selectLanguages": "选择您说的语言",
+      "certifications": "认证",
+      "addCertifications": "添加您的认证",
+      "certificationsPlaceholder": "输入您的认证（例如：叉车执照、安全培训等）",
+      "certificationsHelper": "用逗号分隔多个认证",
       "personalInfo": "个人信息",
       "dateOfBirth": "出生日期",
       "selectDate": "选择日期",
       "gender": "性别",
       "selectGender": "选择性别",
-      "male": "男",
-      "female": "女",
+      "male": "男性",
+      "female": "女性",
       "other": "其他",
       "preferNotToSay": "不愿透露",
       "nationality": "国籍",
@@ -531,66 +703,45 @@
       "postcode": "邮政编码",
       "postcodePlaceholder": "邮政编码",
       "jobPreferences": "工作偏好",
-      "minSalary": "最低薪资 (RM)",
+      "minSalary": "最低薪水（令吉）",
       "minSalaryPlaceholder": "2000",
-      "maxSalary": "最高薪资 (RM)",
+      "maxSalary": "最高薪水（令吉）",
       "maxSalaryPlaceholder": "5000",
-      "availableFrom": "可开始工作日期",
-      "workingHours": "偏好工作时间",
+      "availableFrom": "可从...开始",
+      "workingHours": "首选工作时间",
       "selectWorkingHours": "选择工作时间",
       "dayShift": "日班",
       "nightShift": "夜班",
-      "rotatingShift": "轮班制",
-      "flexible": "弹性时间",
+      "rotatingShift": "轮班",
+      "flexible": "灵活",
       "weekendOnly": "仅周末",
       "transportMode": "交通方式",
       "selectTransport": "选择交通方式",
-      "ownVehicle": "自备交通工具",
+      "ownVehicle": "自有车辆",
       "publicTransport": "公共交通",
       "companyTransport": "公司交通",
       "motorcycle": "摩托车",
       "bicycle": "自行车",
       "walking": "步行",
-      "maxTravelDistance": "最远通勤距离 (公里)",
+      "maxTravelDistance": "最大旅行距离（公里）",
       "maxTravelPlaceholder": "20",
-      "experienceYears": "工作经验（年）",
+      "experienceYears": "工作经验年数",
       "experiencePlaceholder": "5",
       "validation": {
         "requiredFields": "必填字段",
-        "cityStateRequired": "请填写城市和州属。",
-        "saveProfileError": "保存个人资料失败，请重试。",
-        "saveIndustriesError": "保存行业偏好失败，请重试。",
-        "saveResumeError": "保存简历答案失败，请重试。",
-        "generateResumeError": "生成简历失败，请重试。"
+        "cityStateRequired": "请填写您的城市和州属。",
+        "saveProfileError": "保存个人资料失败。请重试。",
+        "saveIndustriesError": "保存行业偏好失败。请重试。",
+        "saveResumeError": "保存简历答案失败。请重试。",
+        "generateResumeError": "生成简历失败。请重试。",
+        "invalidPhone": "请输入有效的电话号码。",
+        "error": "错误",
+        "allFieldsRequired": "请填写所有必填字段。"
       }
     },
     "stepSelector": {
-      "title": "跳转到步骤",
+      "title": "转到步骤",
       "close": "关闭"
     }
-  },
-  "home": {
-    "appTitle": "Blukers 职位平台",
-    "authRequired": "需要登录验证",
-    "yourJobPreferences": "您的职位偏好",
-    "signInToContinue": "请先登录以继续",
-    "loadError": "数据加载失败，请重试。",
-    "jobsLoadError": "职位加载失败，请重试。",
-    "loadingJobs": "正在加载职位...",
-    "searchPlaceholder": "搜索职位、公司...",
-    "industry": "行业",
-    "locationPlaceholder": "地点",
-    "clearFilters": "清除筛选条件",
-    "oneJobFound": "找到 1 个职位",
-    "manyJobsFound": "找到多个职位",
-    "noJobs": "未找到职位",
-    "adjustFilters": "请尝试调整筛选条件",
-    "selectIndustry": "选择行业",
-    "today": "今天",
-    "yesterday": "昨天",
-    "daysAgo": "{{count}} 天前",
-    "weeksAgo": "{{count}} 周前",
-    "monthsAgo": "{{count}} 月前",
-    "allIndustries": "所有行业"
   }
 }

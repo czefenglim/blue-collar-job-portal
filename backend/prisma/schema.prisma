@@ -7,39 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Management
 model User {
-  id               Int      @id @default(autoincrement())
-  email            String   @unique
-  password         String
-  fullName         String
-  phoneNumber      String?
-  preferredLanguage LanguageType @default(ENGLISH)  // NEW FIELD
-  isEmailVerified  Boolean  @default(false)
-  isPhoneVerified  Boolean  @default(false)
-  isActive         Boolean  @default(true)
-  lastLoginAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  // Relations
-  profile          UserProfile?
-  applications     JobApplication[]
-  notifications    Notification[]
-  reviews          Review[]
-  resumeAnswers    ResumeAnswer[] 
-  savedJobs        SavedJob[]
+  id                Int              @id @default(autoincrement())
+  email             String           @unique
+  password          String
+  phoneNumber       String?
+  isEmailVerified   Boolean          @default(false)
+  isPhoneVerified   Boolean          @default(false)
+  isActive          Boolean          @default(true)
+  lastLoginAt       DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  fullName          String
+  preferredLanguage LanguageType     @default(ENGLISH)
+  role              UserRole         @default(JOB_SEEKER)
+  status            AccountStatus    @default(ACTIVE)
+  suspendedAt       DateTime?
+  suspendedBy       String?
+  suspensionReason  String?          @db.Text
+  employerAppeals   Appeal[]         @relation("EmployerAppeals")
+  reviewedAppeals   Appeal[]         @relation("AppealReviewer")
+  company           Company?
+  applications      JobApplication[]
+  createdJobs       Job[]            @relation("JobCreator")
+  updatedJobs       Job[]            @relation("JobUpdater")
+  receivedMessages  Message[]        @relation("MessageReceiver")
+  sentMessages      Message[]        @relation("MessageSender")
+  notifications     Notification[]
+  pushToken String? @db.Text
+  reviewedReports   Report[]         @relation("ReportReviewer")
+  reports           Report[]
+  resumeAnswers     ResumeAnswer[]
+  reviews           Review[]
+  savedJobs         SavedJob[]
+  profile           UserProfile?
+  employerJobAppeals JobAppeal[] @relation("EmployerJobAppeals")
+  reviewedJobAppeals JobAppeal[] @relation("AppealReviewer")
+  sentChatMessages       ChatMessage[]  @relation("SentChatMessages")
+  employerConversations  Conversation[] @relation("EmployerConversations")
+  jobSeekerConversations Conversation[] @relation("JobSeekerConversations")
 
   @@map("users")
 }
 
-
-// In your schema.prisma file, update the UserProfile model:
 model UserProfile {
-  id                 Int      @id @default(autoincrement())
-  userId             Int      @unique
-  
-  // Personal Information
+  id                 Int            @id @default(autoincrement())
+  userId             Int            @unique
   dateOfBirth        DateTime?
   gender             Gender?
   nationality        String?
@@ -47,224 +60,263 @@ model UserProfile {
   city               String?
   state              String?
   postcode           String?
-  profilePicture     String?   @db.Text  // Change to TEXT to store longer strings
-  
-  // Job Preferences
   preferredSalaryMin Int?
   preferredSalaryMax Int?
   availableFrom      DateTime?
   workingHours       WorkingHours?
   transportMode      TransportMode?
-  maxTravelDistance  Int?      // in kilometers
-  
-  // Skills and Experience
-  experienceYears    Int       @default(0)
-  certifications     String?   // JSON array of certifications
-  
-  // Resume
+  maxTravelDistance  Int?
+  experienceYears    Int            @default(0)
+  certifications     String?
+  profileCompleted   Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  profilePicture     String?        @db.Text
   resumeUrl          String?
-  
-  // Profile completion
-  profileCompleted   Boolean   @default(false)
-  
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-
-  // Relations
-  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latitude           Float?
+  longitude          Float?
   industries         UserIndustry[]
-  skills             UserSkill[]
   languages          UserLanguage[]
-
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills             UserSkill[]
 
   @@map("user_profiles")
 }
 
-
-// ========================
-// Skills & Languages
-// ========================
-model Skill {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  users     UserSkill[]
-}
-
 model UserSkill {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  skillId   Int
-
-  // Relations
-  user      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  skill     Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  id      Int         @id @default(autoincrement())
+  userId  Int
+  skillId Int
+  skill   skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user    UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([userId, skillId])
+  @@index([skillId], map: "user_skills_skillId_fkey")
   @@map("user_skills")
 }
 
-model Language {
-  id        Int           @id @default(autoincrement())
-  name      String        @unique
-  isActive  Boolean       @default(true)
-  createdAt DateTime      @default(now())
-  users     UserLanguage[]
-}
-
 model UserLanguage {
-  id         Int        @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   userId     Int
   languageId Int
-
-  // Relations
+  language   language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
   user       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  language   Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, languageId])
+  @@index([languageId], map: "user_languages_languageId_fkey")
   @@map("user_languages")
 }
 
-// Industries that users are interested in (from onboarding)
 model Industry {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
-  icon        String?
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  // Relations
-  users       UserIndustry[]
-  jobs        Job[]
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  slug           String         @unique
+  icon           String?
+  description    String?
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  description_ms String?
+  description_ta String?
+  description_zh String?
+  name_ms        String?
+  name_ta        String?
+  name_zh        String?
+  companies      Company[]
+  jobs           Job[]
+  users          UserIndustry[]
 
   @@map("industries")
 }
 
-// Many-to-many relationship between users and industries
+model Report {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  jobId       Int
+  reportType  ReportType
+  description String       @db.Text
+  evidence    String?      @db.Text
+  status      ReportStatus @default(PENDING)
+  reviewedBy  Int?
+  reviewedAt  DateTime?
+  reviewNotes String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  appeals     Appeal[]
+  job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  reviewer    User?        @relation("ReportReviewer", fields: [reviewedBy], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([jobId], map: "reports_jobId_fkey")
+  @@index([reviewedBy], map: "reports_reviewedBy_fkey")
+  @@index([userId], map: "reports_userId_fkey")
+  @@map("reports")
+}
+
 model UserIndustry {
-  id         Int @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   userId     Int
   industryId Int
-
-  // Relations
-  user       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
   industry   Industry    @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  user       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([userId, industryId])
+  @@index([industryId], map: "user_industries_industryId_fkey")
   @@map("user_industries")
 }
 
-model ResumeQuestion {
-  id              Int      @id @default(autoincrement())
-  questionId      String   @unique   // e.g., "hasWorkExperience"
-  question        String
-  type            String   // "select", "multiline", "multiselect", "file"
-  options         Json?    // store select/multiselect options
-  required        Boolean  @default(false)
-  conditionalOn   String?  // if it depends on another answer
-  conditionalValue String? // value that triggers this question
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  answers ResumeAnswer[]
-}
-
 model ResumeAnswer {
-  id         Int      @id @default(autoincrement())
+  id         Int            @id @default(autoincrement())
   userId     Int
-  questionId String   // FK to ResumeQuestion.questionId
+  questionId String
   answer     Json
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question ResumeQuestion? @relation(fields: [questionId], references: [questionId])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  question   resumequestion @relation(fields: [questionId], references: [questionId])
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId])
+  @@index([questionId], map: "resume_answers_questionId_fkey")
   @@map("resume_answers")
 }
 
-// Employers/Companies
 model Company {
-  id              Int      @id @default(autoincrement())
-  name            String
-  slug            String   @unique
-  description     String?
-  logo            String?
-  website         String?
-  email           String?
-  phone           String?
-  address         String?
-  city            String?
-  state           String?
-  postcode        String?
-  companySize     CompanySize?
-  isVerified      Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                   Int                  @id @default(autoincrement())
+  name                 String
+  slug                 String               @unique
+  description          String?              @db.Text
+  logo                 String?              @db.Text
+  website              String?
+  email                String?
+  phone                String?
+  address              String?
+  city                 String?
+  state                String?
+  postcode             String?
+  companySize          CompanySize?
+  isVerified           Boolean              @default(false)
+  isActive             Boolean              @default(true)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  description_ms       String?              @db.Text
+  description_ta       String?              @db.Text
+  description_zh       String?              @db.Text
+  name_ms              String?
+  name_ta              String?
+  name_zh              String?
+  userId               Int?                 @unique
+  industryId           Int?
+  onboardingCompleted  Boolean              @default(false)
+  onboardingStep       Int                  @default(1)
+  verificationDocument String?              @db.Text
+  verificationStatus   String               @default("PENDING")
+  verifiedAt           DateTime?
+  verificationRemark   String?              @db.Text
+  verifiedDate         DateTime?
+  industry             Industry?            @relation(fields: [industryId], references: [id])
+  user                 User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verification         CompanyVerification?
+  jobs                 Job[]
+  reviews              Review[]
 
-  // Relations
-  jobs            Job[]
-
+  @@index([industryId], map: "companies_industryId_fkey")
   @@map("companies")
 }
 
-// Job Postings
+model CompanyVerification {
+  id               Int       @id @default(autoincrement())
+  companyId        Int       @unique
+  businessDocument String?   @db.Text
+  documentType     String?
+  documentName     String?
+  phoneVerified    Boolean   @default(false)
+  emailVerified    Boolean   @default(false)
+  status           String?   @default("PENDING")
+  reviewNotes      String?   @db.Text
+  reviewedBy       Int?
+  reviewedAt       DateTime?
+  submittedAt      DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_verifications")
+}
+
 model Job {
-  id                Int         @id @default(autoincrement())
-  title             String
-  slug              String      @unique
-  description       String      @db.Text
-  requirements      String?     @db.Text
-  benefits          String?     @db.Text
-  
-  // Job Details
-  industryId        Int
-  companyId         Int
-  jobType           JobType
-  workingHours      WorkingHours
-  experienceLevel   ExperienceLevel
-  
-  // Location
-  address           String?
-  city              String
-  state             String
-  postcode          String?
-  isRemote          Boolean     @default(false)
-  
-  // Salary
-  salaryMin         Int?
-  salaryMax         Int?
-  salaryType        SalaryType?
-  
-  // Job Status
-  isActive          Boolean     @default(true)
-  isFeatured        Boolean     @default(false)
+  id                  Int                 @id @default(autoincrement())
+  title               String
+  slug                String              @unique
+  description         String              @db.Text
+  requirements        String?             @db.Text
+  benefits            String?             @db.Text
+  industryId          Int
+  companyId           Int
+  jobType             JobType
+  workingHours        WorkingHours
+  experienceLevel     ExperienceLevel
+  address             String?
+  city                String
+  state               String
+  postcode            String?
+  isRemote            Boolean             @default(false)
+  salaryMin           Int?
+  salaryMax           Int?
+  salaryType          SalaryType?
+  isActive            Boolean             @default(true)
+  isFeatured          Boolean             @default(false)
   applicationDeadline DateTime?
-  startDate         DateTime?
-  
-  // SEO and Tracking
-  viewCount         Int         @default(0)
-  applicationCount  Int         @default(0)
-  
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  startDate           DateTime?
+  viewCount           Int                 @default(0)
+  applicationCount    Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  benefits_ms         String?             @db.Text
+  benefits_ta         String?             @db.Text
+  benefits_zh         String?             @db.Text
+  description_ms      String?             @db.Text
+  description_ta      String?             @db.Text
+  description_zh      String?             @db.Text
+  requirements_ms     String?             @db.Text
+  requirements_ta     String?             @db.Text
+  requirements_zh     String?             @db.Text
+  title_ms            String?
+  title_ta            String?
+  title_zh            String?
+  estimatedHireDaysMin Int?
+  estimatedHireDaysMax Int?
+  createdBy           Int?
+  updatedBy           Int?
+  skills              String?             @db.Text
+  approvalStatus      ApprovalStatus @default(PENDING)
+  approvedAt          DateTime?
+  approvedBy          Int?
+  rejectedAt          DateTime?
+  rejectedBy          Int?
+  rejectionReason     String?             @db.Text
+  isSuspended         Boolean             @default(false)
+  suspendedAt         DateTime?
+  suspendedBy         String?
+  suspensionReason    String?             @db.Text
+  latitude            Float?
+  longitude           Float?
+  jobAnalytics        JobAnalytics?
+  applications        JobApplication[]
+  company             Company             @relation(fields: [companyId], references: [id])
+  creator             User?               @relation("JobCreator", fields: [createdBy], references: [id])
+  industry            Industry            @relation(fields: [industryId], references: [id])
+  updater             User?               @relation("JobUpdater", fields: [updatedBy], references: [id])
+  reports             Report[]
+  savedJobs           SavedJob[]
+  appeals             JobAppeal[]
+  conversations Conversation[]
 
-  // Relations
-  industry          Industry    @relation(fields: [industryId], references: [id])
-  company           Company     @relation(fields: [companyId], references: [id])
-  applications      JobApplication[]
-  savedJobs         SavedJob[]
-
+  @@index([companyId], map: "jobs_companyId_fkey")
+  @@index([createdBy], map: "jobs_createdBy_fkey")
+  @@index([industryId], map: "jobs_industryId_fkey")
+  @@index([updatedBy], map: "jobs_updatedBy_fkey")
   @@map("jobs")
 }
 
-// Job Applications
 model JobApplication {
   id            Int               @id @default(autoincrement())
   userId        Int
@@ -274,67 +326,264 @@ model JobApplication {
   resumeUrl     String?
   appliedAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-
-  // Relations
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employerNote  String?
+  interviewDate DateTime?
   job           Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation?
+
 
   @@unique([userId, jobId])
+  @@index([jobId], map: "job_applications_jobId_fkey")
   @@map("job_applications")
 }
 
-// Saved Jobs
 model SavedJob {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  jobId     Int
-  savedAt   DateTime @default(now())
-
-  // Relations
- user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  jobId   Int
+  savedAt DateTime @default(now())
+  job     Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, jobId])
+  @@index([jobId], map: "saved_jobs_jobId_fkey")
   @@map("saved_jobs")
 }
 
-// Notifications
 model Notification {
-  id          Int              @id @default(autoincrement())
-  userId      Int
-  title       String
-  message     String           @db.Text
-  type        NotificationType
-  isRead      Boolean          @default(false)
-  actionUrl   String?
-  createdAt   DateTime         @default(now())
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String           @db.Text
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+  metadata  String?          @db.Text
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId], map: "notifications_userId_fkey")
   @@map("notifications")
 }
 
-// Company/Job Reviews
+model JobAnalytics {
+  id           Int      @id @default(autoincrement())
+  jobId        Int      @unique
+  views        Int      @default(0)
+  applications Int      @default(0)
+  lastUpdated  DateTime @updatedAt
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("job_analytics")
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  sentAt     DateTime @default(now())
+  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([receiverId], map: "messages_receiverId_fkey")
+  @@index([senderId], map: "messages_senderId_fkey")
+  @@map("messages")
+}
+
 model Review {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  companyId   Int?
-  rating      Int      // 1-5 stars
-  title       String?
-  comment     String?  @db.Text
-  isAnonymous Boolean  @default(false)
-  isApproved  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  companyId     Int
+  rating        Int
+  title         String?   @db.VarChar(200)
+  comment       String?   @db.Text
+  isAnonymous   Boolean   @default(false)
+  isApproved    Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isVisible     Boolean   @default(true)
+  employerReply String?   @db.Text
+  flagReason    String?   @db.Text
+  flaggedAt     DateTime?
+  isFlagged     Boolean   @default(false)
+  repliedAt     DateTime?
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([isVisible])
+  @@index([isFlagged])
   @@map("reviews")
 }
 
-// Enums
+model AdminAction {
+  id         Int             @id @default(autoincrement())
+  adminEmail String
+  actionType AdminActionType
+  targetType String
+  targetId   Int
+  reason     String?         @db.Text
+  notes      String?         @db.Text
+  createdAt  DateTime        @default(now())
+
+  @@map("admin_actions")
+}
+
+model Appeal {
+  id          Int          @id @default(autoincrement())
+  reportId    Int
+  employerId  Int
+  explanation String       @db.Text
+  evidence    String?      @db.Text
+  status      AppealStatus @default(PENDING)
+  reviewedBy  Int?
+  reviewedAt  DateTime?
+  reviewNotes String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  employer    User         @relation("EmployerAppeals", fields: [employerId], references: [id], onDelete: Cascade)
+  report      Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reviewer    User?        @relation("AppealReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([employerId], map: "appeals_employerId_fkey")
+  @@index([reportId], map: "appeals_reportId_fkey")
+  @@index([reviewedBy], map: "appeals_reviewedBy_fkey")
+  @@map("appeals")
+}
+
+
+
+model language {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique(map: "Language_name_key")
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  name_ms   String?
+  name_ta   String?
+  name_zh   String?
+  users     UserLanguage[]
+}
+
+model resumequestion {
+  id               Int            @id @default(autoincrement())
+  questionId       String         @unique(map: "ResumeQuestion_questionId_key")
+  question         String
+  type             String
+  options          Json?
+  required         Boolean        @default(false)
+  conditionalOn    String?
+  conditionalValue String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime
+  question_ms      String?
+  question_ta      String?
+  question_zh      String?
+  answers          ResumeAnswer[]
+}
+
+model skill {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique(map: "Skill_name_key")
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  name_ms   String?
+  name_ta   String?
+  name_zh   String?
+  users     UserSkill[]
+}
+
+model JobAppeal {
+  id          Int      @id @default(autoincrement())
+  jobId       Int
+  employerId  Int      // User ID of the employer
+  
+  // Appeal details
+  explanation String   @db.Text
+  evidence    String?  @db.Text // JSON array of file URLs (company docs, licenses, etc.)
+  updatedJobData Json? // Optional: if employer wants to update job details
+  
+  // Status tracking
+  status      AppealStatus @default(PENDING)
+  
+  // Admin review
+  reviewedBy  Int?
+  reviewedAt  DateTime?
+  reviewNotes String?  @db.Text
+  adminDecision String? // "APPROVED" or "REJECTED"
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employer    User     @relation("EmployerJobAppeals", fields: [employerId], references: [id], onDelete: Cascade)
+  reviewer    User?    @relation("AppealReviewer", fields: [reviewedBy], references: [id])
+  
+  @@index([jobId])
+  @@index([employerId])
+  @@index([status])
+  @@map("job_appeals")
+}
+
+// Conversation model
+model Conversation {
+  id            Int           @id @default(autoincrement())
+  applicationId Int           @unique
+  employerId    Int
+  jobSeekerId   Int
+  jobId         Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  lastMessageAt DateTime?
+  isActive      Boolean       @default(true)
+
+  // Relations
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employer    User           @relation("EmployerConversations", fields: [employerId], references: [id], onDelete: Cascade)
+  jobSeeker   User           @relation("JobSeekerConversations", fields: [jobSeekerId], references: [id], onDelete: Cascade)
+  job         Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  messages    ChatMessage[]
+
+  @@index([employerId])
+  @@index([jobSeekerId])
+  @@index([jobId])
+  @@map("conversations")
+}
+
+// ChatMessage model
+model ChatMessage {
+  id             Int         @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  content        String?     @db.Text
+  messageType    MessageType @default(TEXT)
+  attachmentUrl  String?     @db.Text
+  attachmentName String?
+  attachmentSize Int?
+  attachmentType String?
+  isRead         Boolean     @default(false)
+  readAt         DateTime?
+  isEdited       Boolean     @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean     @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -404,11 +653,11 @@ enum TransportMode {
 }
 
 enum CompanySize {
-  STARTUP         // 1-10 employees
-  SMALL           // 11-50 employees
-  MEDIUM          // 51-200 employees
-  LARGE           // 201-1000 employees
-  ENTERPRISE      // 1000+ employees
+  STARTUP
+  SMALL
+  MEDIUM
+  LARGE
+  ENTERPRISE
 }
 
 enum LanguageType {
@@ -417,3 +666,69 @@ enum LanguageType {
   MALAY
   TAMIL
 }
+
+enum UserRole {
+  JOB_SEEKER
+  EMPLOYER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum ReportType {
+  FAKE_JOB
+  MISLEADING_INFO
+  INAPPROPRIATE_CONTENT
+  SCAM_SUSPECTED
+  DISCRIMINATION
+  DUPLICATE_POSTING
+  OTHERS
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+  PENDING_EMPLOYER_RESPONSE
+}
+
+enum AdminActionType {
+  SUSPEND_JOB
+  DELETE_JOB
+  UNSUSPEND_JOB
+  SUSPEND_EMPLOYER
+  WARN_EMPLOYER
+  DELETE_EMPLOYER
+  RESOLVE_REPORT
+  DISMISS_REPORT
+  APPROVE_COMPANY
+  REJECT_COMPANY
+}
+
+enum AppealStatus {
+  PENDING
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED_AI
+  APPEALED
+  REJECTED_FINAL
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { geocodeAddress } from '../utils/geocoding';
 
 const prisma = new PrismaClient();
 
@@ -48,6 +49,7 @@ interface UpdateProfileBody {
 export const getUserPreferences = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.userId;
+    const { lang = 'en' } = req.query; // Get language from query string
 
     const userPreferences = await prisma.userProfile.findUnique({
       where: { userId },
@@ -67,11 +69,23 @@ export const getUserPreferences = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Map translated industry names
+    const translatedIndustries = userPreferences.industries.map((ui) => {
+      const ind = ui.industry;
+      let translatedName = ind.name;
+
+      if (lang === 'ms' && ind.name_ms) translatedName = ind.name_ms;
+      else if (lang === 'zh' && ind.name_zh) translatedName = ind.name_zh;
+      else if (lang === 'ta' && ind.name_ta) translatedName = ind.name_ta;
+
+      return {
+        id: ind.id,
+        name: translatedName,
+      };
+    });
+
     const response: UserPreferences = {
-      industries: userPreferences.industries.map((ui) => ({
-        id: ui.industry.id,
-        name: ui.industry.name,
-      })),
+      industries: translatedIndustries,
       preferredLocation: userPreferences.city || '',
     };
 
@@ -244,6 +258,8 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
             city: true,
             state: true,
             postcode: true,
+            latitude: true, // ADD THIS
+            longitude: true, // ADD THIS
             profilePicture: true,
             preferredSalaryMin: true,
             preferredSalaryMax: true,
@@ -316,6 +332,59 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const updateData: UpdateProfileBody = req.body;
 
+    // Get existing profile to check if address changed
+    const existingProfile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: {
+        address: true,
+        city: true,
+        state: true,
+        postcode: true,
+        latitude: true,
+        longitude: true,
+      },
+    });
+
+    // Check if address-related fields have changed
+    const addressChanged =
+      existingProfile &&
+      (existingProfile.address !== updateData.address ||
+        existingProfile.city !== updateData.city ||
+        existingProfile.state !== updateData.state ||
+        existingProfile.postcode !== updateData.postcode);
+
+    let coordinates: { latitude: number; longitude: number } | null = null;
+
+    // Geocode if address changed and new address is provided
+    if (
+      (addressChanged || !existingProfile?.latitude) &&
+      (updateData.address ||
+        updateData.city ||
+        updateData.state ||
+        updateData.postcode)
+    ) {
+      console.log(`Address changed for user ${userId}, geocoding...`);
+
+      const geocodingResult = await geocodeAddress(
+        updateData.address || '',
+        updateData.city,
+        updateData.state,
+        updateData.postcode
+      );
+
+      if (geocodingResult) {
+        coordinates = {
+          latitude: geocodingResult.latitude,
+          longitude: geocodingResult.longitude,
+        };
+        console.log(`Geocoding successful: ${JSON.stringify(coordinates)}`);
+      } else {
+        console.warn(
+          `Geocoding failed for user ${userId}, continuing without coordinates`
+        );
+      }
+    }
+
     // Start a transaction to update multiple tables
     const result = await prisma.$transaction(async (tx) => {
       // Update User table
@@ -346,6 +415,12 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
       if (updateData.postcode) profileData.postcode = updateData.postcode;
       if (updateData.profilePicture)
         profileData.profilePicture = updateData.profilePicture;
+
+      // ADD COORDINATES IF GEOCODING WAS SUCCESSFUL
+      if (coordinates) {
+        profileData.latitude = coordinates.latitude;
+        profileData.longitude = coordinates.longitude;
+      }
 
       // Job Preferences
       if (updateData.preferredSalaryMin !== undefined)
@@ -428,7 +503,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
 
       // Check profile completion
       const completedFields = await checkProfileCompletion(userId, tx);
-      const profileCompleted = completedFields >= 8; // Require at least 8 fields to be complete
+      const profileCompleted = completedFields >= 8;
 
       // Update profile completion status
       await tx.userProfile.update({
@@ -436,7 +511,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
         data: { profileCompleted },
       });
 
-      return { userProfile, profileCompleted };
+      return { userProfile, profileCompleted, geocoded: coordinates !== null };
     });
 
     res.json({
@@ -551,3 +626,42 @@ export async function getLanguages(req: Request, res: Response) {
     });
   }
 }
+
+/**
+ * Get user's location information
+ */
+export const getUserLocation = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: {
+        address: true,
+        city: true,
+        state: true,
+        postcode: true,
+        latitude: true,
+        longitude: true,
+      },
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Profile not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: profile,
+    });
+  } catch (error: any) {
+    console.error('Error fetching user location:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch location',
+    });
+  }
+};

@@ -2,12 +2,9 @@ import { body } from 'express-validator';
 
 export const validateSignup = [
   body('fullName')
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Full name must be between 2 and 100 characters')
-    .matches(/^[a-zA-Z\s'.-]+$/)
+    .matches(/^[\p{L}\p{M}\s'.-]+$/u)
     .withMessage(
-      'Full name should only contain letters, spaces, apostrophes, dots, or hyphens'
+      'Full name should only contain letters (any language), spaces, apostrophes, dots, or hyphens'
     ),
 
   body('email')

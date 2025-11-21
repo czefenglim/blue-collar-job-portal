@@ -11,6 +11,10 @@ import {
   Modal,
   Image,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +26,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { WebView } from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width } = Dimensions.get('window');
 
@@ -129,6 +134,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const router = useRouter();
   const { t } = useLanguage();
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const onboardingSteps = [
     {
       title: t('onboarding.welcome.title'),
@@ -227,8 +236,18 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        const storedLang = await AsyncStorage.getItem('preferredLanguage');
+        const lang = storedLang || 'en'; // default to English if not set
+
+        console.log(
+          'Genders: ',
+          t('onboarding.profileForm.gender'),
+          t('onboarding.profileForm.male'),
+          t('onboarding.profileForm.female')
+        );
+
         const response = await fetch(
-          `${URL}/api/onboarding/getResumeQuestions`
+          `${URL}/api/onboarding/getResumeQuestions?lang=${lang}`
         ); // adjust for your backend URL
         const data = await response.json();
         setQuestions(data);
@@ -242,12 +261,19 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const fetchIndustries = useCallback(async () => {
     try {
-      const response = await fetch(`${URL}/api/onboarding/industries`);
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+
+      const response = await fetch(
+        `${URL}/api/onboarding/industries?lang=${lang}`
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      setIndustries(data);
+      console.log('Fetched industries:', data); // Log the fetched data, not state
+      setIndustries(data.data);
     } catch (error) {
       console.error('Error fetching industries:', error);
+      Alert.alert('Error', 'Failed to load industries. Please try again.');
     }
   }, []);
 
@@ -373,7 +399,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   // Add these functions to fetch skills and languages
   const fetchSkills = useCallback(async () => {
     try {
-      const response = await fetch(`${URL}/api/onboarding/getSkills`);
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+
+      const response = await fetch(
+        `${URL}/api/onboarding/getSkills?lang=${lang}`
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       setSkills(data);
@@ -384,7 +415,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const fetchLanguages = useCallback(async () => {
     try {
-      const response = await fetch(`${URL}/api/onboarding/getLanguages`);
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en'; // default to English if not set
+
+      const response = await fetch(
+        `${URL}/api/onboarding/getLanguages?lang=${lang}`
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       setLanguages(data);
@@ -520,8 +556,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   };
 
   useEffect(() => {
-    if (currentStep === 3) fetchIndustries();
+    console.log('currentStep:', currentStep);
+    if (currentStep === 3) {
+      fetchIndustries();
+    }
   }, [currentStep, fetchIndustries]);
+
+  useEffect(() => {
+    if (currentStep === 5) {
+      console.log('Resume Url:', resumeUrl);
+    }
+  });
 
   const handleProfileInputChange = (field: keyof UserProfile, value: any) => {
     setUserProfile((prev) => ({ ...prev, [field]: value }));
@@ -800,12 +845,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   );
 
   const renderProfileForm = () => (
-    <ScrollView
-      style={styles.formContainer}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      nestedScrollEnabled={true}
-    >
+    <View>
       {/* Profile Picture Section */}
       <View style={styles.formSection}>
         <Text style={styles.sectionTitle}>
@@ -923,6 +963,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             placeholder={t('onboarding.profileForm.certificationsPlaceholder')}
             multiline
             numberOfLines={3}
+            returnKeyType="done"
+            blurOnSubmit={true}
           />
           <Text style={styles.helperText}>
             {t('onboarding.profileForm.certificationsHelper')}
@@ -963,6 +1005,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('gender', value)
               }
               style={styles.picker}
+              itemStyle={styles.pickerItem}
             >
               <Picker.Item
                 label={t('onboarding.profileForm.selectGender')}
@@ -999,6 +1042,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               handleProfileInputChange('nationality', text)
             }
             placeholder={t('onboarding.profileForm.nationalityPlaceholder')}
+            returnKeyType="next"
           />
         </View>
       </View>
@@ -1014,11 +1058,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             {t('onboarding.profileForm.address')}
           </Text>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, styles.multilineInput]}
             value={userProfile.address || ''}
             onChangeText={(text) => handleProfileInputChange('address', text)}
             placeholder={t('onboarding.profileForm.streetAddress')}
             multiline
+            numberOfLines={3}
+            returnKeyType="done"
+            blurOnSubmit={true}
           />
         </View>
 
@@ -1032,6 +1079,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               value={userProfile.city || ''}
               onChangeText={(text) => handleProfileInputChange('city', text)}
               placeholder={t('onboarding.profileForm.cityPlaceholder')}
+              returnKeyType="next"
             />
           </View>
           <View style={styles.halfInput}>
@@ -1043,6 +1091,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               value={userProfile.state || ''}
               onChangeText={(text) => handleProfileInputChange('state', text)}
               placeholder={t('onboarding.profileForm.statePlaceholder')}
+              returnKeyType="next"
             />
           </View>
         </View>
@@ -1057,6 +1106,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             onChangeText={(text) => handleProfileInputChange('postcode', text)}
             placeholder={t('onboarding.profileForm.postcodePlaceholder')}
             keyboardType="numeric"
+            returnKeyType="next"
           />
         </View>
       </View>
@@ -1083,6 +1133,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               }
               placeholder={t('onboarding.profileForm.minSalaryPlaceholder')}
               keyboardType="numeric"
+              returnKeyType="next"
             />
           </View>
           <View style={styles.halfInput}>
@@ -1100,6 +1151,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               }
               placeholder={t('onboarding.profileForm.maxSalaryPlaceholder')}
               keyboardType="numeric"
+              returnKeyType="next"
             />
           </View>
         </View>
@@ -1131,6 +1183,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('workingHours', value)
               }
               style={styles.picker}
+              itemStyle={styles.pickerItem}
             >
               <Picker.Item
                 label={t('onboarding.profileForm.selectWorkingHours')}
@@ -1171,6 +1224,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 handleProfileInputChange('transportMode', value)
               }
               style={styles.picker}
+              itemStyle={styles.pickerItem}
             >
               <Picker.Item
                 label={t('onboarding.profileForm.selectTransport')}
@@ -1219,6 +1273,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             }
             placeholder={t('onboarding.profileForm.maxTravelPlaceholder')}
             keyboardType="numeric"
+            returnKeyType="next"
           />
         </View>
 
@@ -1234,9 +1289,13 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             }
             placeholder={t('onboarding.profileForm.experiencePlaceholder')}
             keyboardType="numeric"
+            returnKeyType="done"
           />
         </View>
       </View>
+
+      {/* Bottom spacer for better scrolling */}
+      <View style={{ height: 100 }} />
 
       {showDatePicker && (
         <DateTimePickerModal
@@ -1257,7 +1316,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           onCancel={() => setShowDatePicker(null)}
         />
       )}
-    </ScrollView>
+    </View>
   );
 
   const renderIndustrySelection = () => (
@@ -1356,10 +1415,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   );
 
   const renderResumeQuestions = () => (
-    <ScrollView
-      style={styles.questionsContainer}
-      showsVerticalScrollIndicator={false}
-    >
+    <View>
       {questions.map((question, index) => (
         <View key={question.questionId} style={styles.questionGroup}>
           <Text style={styles.questionTitle}>
@@ -1379,6 +1435,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               placeholder="Your answer..."
               multiline
               numberOfLines={4}
+              returnKeyType="done"
+              blurOnSubmit={true}
             />
           )}
 
@@ -1401,13 +1459,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           )}
         </View>
       ))}
-    </ScrollView>
+
+      {/* Bottom spacer */}
+      <View style={{ height: 100 }} />
+    </View>
   );
 
   const currentStepData = onboardingSteps[currentStep];
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           {currentStep > 0 && (
@@ -1438,36 +1500,77 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         </View>
       )}
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
+      {/* ✅ Fixed layout for keyboard behavior */}
+      <KeyboardAwareScrollView
+        extraScrollHeight={60}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>BC</Text>
-        </View>
+        {currentStepData.isProfileForm ? (
+          // ✅ ScrollView now directly inside KeyboardAvoidingView
+          <ScrollView
+            style={styles.formContainer}
+            contentContainerStyle={styles.formContentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentInsetAdjustmentBehavior="automatic"
+          >
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>BC</Text>
+            </View>
 
-        {/* Content */}
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{currentStepData.title}</Text>
-          <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
+            {/* Content */}
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{currentStepData.title}</Text>
+              <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
+              {renderProfileForm()}
+            </View>
+          </ScrollView>
+        ) : (
+          // 🧭 Other screens that don't need scrolling
+          <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <View style={styles.content}>
+              {/* Logo */}
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>BC</Text>
+              </View>
 
-          {currentStepData.isProfileForm && renderProfileForm()}
-          {currentStepData.isIndustrySelection && renderIndustrySelection()}
-          {currentStepData.isResumeQuestions && renderResumeQuestions()}
-          {currentStepData.isResumePreview && renderResumePreview()}
+              {/* Content */}
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>{currentStepData.title}</Text>
+                <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
 
-          {!currentStepData.isProfileForm &&
-            !currentStepData.isIndustrySelection &&
-            !currentStepData.isResumeQuestions && (
-              <Text style={styles.description}>
-                {currentStepData.description}
-              </Text>
-            )}
-        </View>
-      </ScrollView>
+                {currentStepData.isIndustrySelection &&
+                  renderIndustrySelection()}
+                {currentStepData.isResumeQuestions && (
+                  <ScrollView
+                    style={styles.questionsContainer}
+                    contentContainerStyle={styles.questionsContentContainer}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentInsetAdjustmentBehavior="automatic"
+                  >
+                    {renderResumeQuestions()}
+                  </ScrollView>
+                )}
+                {currentStepData.isResumePreview && renderResumePreview()}
 
-      {/* Bottom Button */}
+                {!currentStepData.isProfileForm &&
+                  !currentStepData.isIndustrySelection &&
+                  !currentStepData.isResumeQuestions &&
+                  !currentStepData.isResumePreview && (
+                    <Text style={styles.description}>
+                      {currentStepData.description}
+                    </Text>
+                  )}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+      </KeyboardAwareScrollView>
+
+      {/* Bottom Buttons */}
       {currentStepData.isResumePreview ? (
         <View style={styles.previewButtonsContainer}>
           <TouchableOpacity
@@ -1619,7 +1722,9 @@ const styles = StyleSheet.create({
   // Form Styles
   formContainer: {
     width: '100%',
-    maxHeight: 500,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 120,
   },
   formSection: {
     marginBottom: 24,
@@ -1770,7 +1875,6 @@ const styles = StyleSheet.create({
   // Resume Questions Styles
   questionsContainer: {
     width: '100%',
-    maxHeight: 500,
   },
   questionGroup: {
     marginBottom: 24,
@@ -2087,6 +2191,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  formContentContainer: {
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  questionsContentContainer: {
+    paddingBottom: 40,
+  },
+  scrollWrapper: {
+    flex: 1,
+    width: '100%',
   },
 });
 

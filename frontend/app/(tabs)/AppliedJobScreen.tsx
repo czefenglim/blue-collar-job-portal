@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
-import i18n from '@/locales/i18n';
+import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -72,6 +73,12 @@ const AppliedJobsScreen: React.FC = () => {
     loadApplications();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadApplications();
+    }, [])
+  );
+
   const loadApplications = async () => {
     try {
       setIsLoading(true);
@@ -98,11 +105,17 @@ const AppliedJobsScreen: React.FC = () => {
 
   const fetchApplications = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/jobs/applications/list`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      const response = await fetch(
+        `${URL}/api/jobs/applications/list?lang=${lang}`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -126,6 +139,35 @@ const AppliedJobsScreen: React.FC = () => {
       setIsRefreshing(false);
     }
   }, [token]);
+
+  const handleReport = (jobId: number, jobTitle: string) => {
+    router.push({
+      pathname: '../(user-hidden)/report-job',
+      params: { jobId: jobId.toString(), jobTitle },
+    });
+  };
+
+  const showOptionsMenu = (item: Application) => {
+    Alert.alert(t('applications.options'), t('applications.selectAction'), [
+      {
+        text: t('applications.viewDetails'),
+        onPress: () =>
+          router.push({
+            pathname: '/JobDetailsScreen/[slug]',
+            params: { slug: item.job.slug },
+          }),
+      },
+      {
+        text: t('applications.reportJob'),
+        onPress: () => handleReport(item.job.id, item.job.title),
+        style: 'destructive',
+      },
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+    ]);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -247,84 +289,93 @@ const AppliedJobsScreen: React.FC = () => {
     const statusColors = getStatusColor(item.status);
 
     return (
-      <TouchableOpacity
-        style={styles.applicationCard}
-        onPress={() =>
-          router.push({
-            pathname: '/JobDetailsScreen/[slug]',
-            params: { slug: item.job.slug },
-          })
-        }
-        activeOpacity={0.7}
-      >
-        <View style={styles.cardHeader}>
-          <View style={styles.companyLogoContainer}>
-            <Text style={styles.companyLogoText}>
-              {item.job.company.name.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.headerInfo}>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor: statusColors.bg,
-                  borderColor: statusColors.border,
-                },
-              ]}
+      <View style={styles.applicationCard}>
+        <TouchableOpacity
+          style={styles.cardTouchable}
+          onPress={() =>
+            router.push({
+              pathname: '/JobDetailsScreen/[slug]',
+              params: { slug: item.job.slug },
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.companyLogoContainer}>
+              <Text style={styles.companyLogoText}>
+                {item.job.company.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.headerInfo}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: statusColors.bg,
+                    borderColor: statusColors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.statusText, { color: statusColors.text }]}>
+                  {formatStatus(item.status)}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.moreButton}
+              onPress={() => showOptionsMenu(item)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={[styles.statusText, { color: statusColors.text }]}>
-                {formatStatus(item.status)}
-              </Text>
+              <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.jobTitle} numberOfLines={2}>
+            {item.job.title}
+          </Text>
+
+          <View style={styles.jobMetaContainer}>
+            <View style={styles.jobMetaRow}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.job.industry.name}</Text>
+              </View>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {formatJobType(item.job.jobType)}
+                </Text>
+              </View>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {formatWorkingHours(item.job.workingHours)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <Text style={styles.jobTitle} numberOfLines={2}>
-          {item.job.title}
-        </Text>
+          <Text style={styles.companyName} numberOfLines={1}>
+            {item.job.company.name}
+          </Text>
+          <Text style={styles.location} numberOfLines={1}>
+            {item.job.city}, {item.job.state}
+          </Text>
 
-        <View style={styles.jobMetaContainer}>
-          <View style={styles.jobMetaRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.job.industry.name}</Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatJobType(item.job.jobType)}
+          <View style={styles.cardFooter}>
+            <View style={styles.footerLeft}>
+              <Text style={styles.appliedLabel}>
+                {t('applications.applied')}{' '}
+              </Text>
+              <Text style={styles.appliedDate}>
+                {formatAppliedDate(item.appliedAt)}
               </Text>
             </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatWorkingHours(item.job.workingHours)}
+            {item.updatedAt !== item.appliedAt && (
+              <Text style={styles.updatedText}>
+                {t('applications.updated')} {getTimeAgo(item.updatedAt)}
               </Text>
-            </View>
+            )}
           </View>
-        </View>
-
-        <Text style={styles.companyName} numberOfLines={1}>
-          {item.job.company.name}
-        </Text>
-        <Text style={styles.location} numberOfLines={1}>
-          {item.job.city}, {item.job.state}
-        </Text>
-
-        <View style={styles.cardFooter}>
-          <View style={styles.footerLeft}>
-            <Text style={styles.appliedLabel}>
-              {t('applications.applied')}{' '}
-            </Text>
-            <Text style={styles.appliedDate}>
-              {formatAppliedDate(item.appliedAt)}
-            </Text>
-          </View>
-          {item.updatedAt !== item.appliedAt && (
-            <Text style={styles.updatedText}>
-              {t('applications.updated')} {getTimeAgo(item.updatedAt)}
-            </Text>
-          )}
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -405,7 +456,6 @@ const AppliedJobsScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Filter Tabs */}
       {applications.length > 0 && (
         <View style={styles.filterContainer}>
           <FlatList
@@ -550,13 +600,15 @@ const styles = StyleSheet.create({
   applicationCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  cardTouchable: {
+    padding: 16,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -578,7 +630,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   headerInfo: {
+    flex: 1,
     alignItems: 'flex-end',
+    marginRight: 8,
+  },
+  moreButton: {
+    padding: 4,
   },
   statusBadge: {
     paddingHorizontal: 12,

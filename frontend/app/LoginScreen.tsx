@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -77,7 +78,7 @@ const LoginScreen: React.FC = () => {
       if (response.ok) {
         const token = data.data.token;
         await AsyncStorage.setItem('jwtToken', token);
-
+        console.log('user jwt token: ', token);
         const preferredLanguage = await AsyncStorage.getItem(
           'preferredLanguage'
         );
@@ -122,6 +123,17 @@ const LoginScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Back Button */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/SelectRoleScreen')}
+          disabled={isLoading}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
+        </TouchableOpacity>
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoid}
@@ -253,12 +265,30 @@ const LoginScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   keyboardAvoid: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 20,
   },
   languageSelector: { marginBottom: 20 },
   logoSection: { alignItems: 'center', marginBottom: 40 },
@@ -379,7 +409,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
-
   changeLanguageText: {
     fontSize: 16,
     color: '#1E3A8A',

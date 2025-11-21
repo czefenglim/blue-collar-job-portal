@@ -32,7 +32,25 @@ const LanguageSelectPage: React.FC = () => {
     try {
       await AsyncStorage.setItem('preferredLanguage', selectedLanguage);
       changeLanguage(selectedLanguage);
-      router.push('/LoginScreen'); // Continue to login/signup
+
+      // Check if user has already selected a role
+      const userRole = await AsyncStorage.getItem('userRole');
+      const token = await AsyncStorage.getItem('jwtToken');
+
+      if (token) {
+        // User is already logged in, go to tabs
+        router.push('/(tabs)');
+      } else if (userRole) {
+        // User has selected a role but not logged in
+        if (userRole === 'employer') {
+          router.push('/EmployerLoginScreen');
+        } else {
+          router.push('/LoginScreen');
+        }
+      } else {
+        // New user, go to role selection
+        router.push('/SelectRoleScreen');
+      }
     } catch (error) {
       console.error('Error saving preferred language:', error);
     }

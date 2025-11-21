@@ -1,0 +1,23 @@
+-- CreateTable
+CREATE TABLE `reports` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `jobId` INTEGER NOT NULL,
+    `reportType` ENUM('FAKE_JOB', 'MISLEADING_INFO', 'INAPPROPRIATE_CONTENT', 'SCAM_SUSPECTED', 'DISCRIMINATION', 'DUPLICATE_POSTING', 'OTHERS') NOT NULL,
+    `description` TEXT NOT NULL,
+    `evidence` TEXT NULL,
+    `status` ENUM('PENDING', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED') NOT NULL DEFAULT 'PENDING',
+    `reviewedBy` INTEGER NULL,
+    `reviewedAt` DATETIME(3) NULL,
+    `reviewNotes` TEXT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `reports` ADD CONSTRAINT `reports_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `reports` ADD CONSTRAINT `reports_reviewedBy_fkey` FOREIGN KEY (`reviewedBy`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   Alert,
@@ -14,8 +15,16 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
+
+const LANGUAGES = [
+  { code: 'en', label: 'EN', name: 'English' },
+  { code: 'zh', label: '中文', name: 'Chinese' },
+  { code: 'ms', label: 'BM', name: 'Bahasa Melayu' },
+  { code: 'ta', label: 'தமிழ்', name: 'Tamil' },
+];
 
 interface UserProfile {
   id: number;
@@ -72,11 +81,17 @@ const ProfileScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string>('');
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage, changeLanguage } = useLanguage();
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   const loadProfile = async () => {
     try {
@@ -135,10 +150,28 @@ const ProfileScreen: React.FC = () => {
           await AsyncStorage.removeItem('jwtToken');
           await AsyncStorage.removeItem('userToken');
           await AsyncStorage.removeItem('userData');
-          router.replace('/');
+          router.replace('/SelectRoleScreen');
         },
       },
     ]);
+  };
+
+  const handleLanguageChange = async (languageCode: string) => {
+    try {
+      await AsyncStorage.setItem('preferredLanguage', languageCode);
+      changeLanguage(languageCode);
+      Alert.alert(
+        t('profile.languageChanged') || 'Language Changed',
+        t('profile.languageChangedMessage') ||
+          'Language has been updated successfully'
+      );
+    } catch (error) {
+      console.error('Error changing language:', error);
+      Alert.alert(
+        t('common.error'),
+        t('profile.errors.languageChangeFailed') || 'Failed to change language'
+      );
+    }
   };
 
   const formatGender = (gender: string | null) => {
@@ -632,6 +665,79 @@ const ProfileScreen: React.FC = () => {
           />
         </View>
 
+        {/* Language Selection Section - ADD THIS BEFORE REPORTS SECTION */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionIcon}>🌐</Text>
+            <Text style={styles.sectionTitle}>
+              {t('profile.sections.language') || 'Language'}
+            </Text>
+          </View>
+
+          <Text style={styles.languageSectionSubtitle}>
+            {t('profile.selectLanguage') || 'Select your preferred language'}
+          </Text>
+
+          <View style={styles.languageGrid}>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageCard,
+                  currentLanguage === lang.code && styles.languageCardActive,
+                ]}
+                onPress={() => handleLanguageChange(lang.code)}
+              >
+                <View style={styles.languageCardContent}>
+                  <Text
+                    style={[
+                      styles.languageLabel,
+                      currentLanguage === lang.code &&
+                        styles.languageLabelActive,
+                    ]}
+                  >
+                    {lang.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.languageName,
+                      currentLanguage === lang.code &&
+                        styles.languageNameActive,
+                    ]}
+                  >
+                    {lang.name}
+                  </Text>
+                  {currentLanguage === lang.code && (
+                    <View style={styles.selectedBadge}>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color="#10B981"
+                      />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Reports Section - NEW */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionIcon}>🚨</Text>
+            <Text style={styles.sectionTitle}>
+              {t('profile.sections.reports') || 'Reports'}
+            </Text>
+          </View>
+
+          <ActionButton
+            icon="🚩"
+            title={t('profile.actions.myReports') || 'My Reports'}
+            onPress={() => router.push('/(user-hidden)/report-history')}
+          />
+        </View>
+
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutIcon}>🚪</Text>
@@ -1000,6 +1106,67 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 20,
+  },
+  languageSectionSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+  },
+  languageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  languageCard: {
+    width: '48%',
+    minWidth: 140,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    position: 'relative',
+  },
+  languageCardActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#1E3A8A',
+    shadowColor: '#1E3A8A',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  languageCardContent: {
+    alignItems: 'center',
+  },
+  languageLabel: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 4,
+  },
+  languageLabelActive: {
+    color: '#1E3A8A',
+  },
+  languageName: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  languageNameActive: {
+    color: '#1E3A8A',
+    fontWeight: '600',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 2,
   },
 });
 

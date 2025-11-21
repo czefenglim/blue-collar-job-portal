@@ -6,9 +6,10 @@ import {
 } from '@prisma/client';
 import { refineAnswers } from '../services/aiRefine';
 import { generateResumePDF } from '../services/generateResume';
-import { uploadResumeToS3 } from '../services/s3Uploader';
+import { uploadResumeToS3 } from '../services/s3Service';
 import { getResumeSignedUrl } from '../services/s3Service';
 import { Request, Response } from 'express';
+import { geocodeAddress } from '../utils/geocoding';
 
 const prisma = new PrismaClient();
 
@@ -49,14 +50,66 @@ interface ResumeProfile {
     id: number;
     name: string;
   }[];
+  gender?: string;
+  dateOfBirth?: string;
+  profilePicture?: string;
 }
 
 export class OnboardingController {
   // Fetch all industries
   async getIndustries(req: any, res: any) {
     try {
-      const industries = await prisma.industry.findMany();
-      res.json(industries);
+      const { lang = 'en' } = req.query; // default to English if not provided
+
+      const industries = await prisma.industry.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          name_ms: true,
+          name_zh: true,
+          name_ta: true,
+          slug: true,
+          icon: true,
+          description: true,
+          description_ms: true,
+          description_zh: true,
+          description_ta: true,
+        },
+        orderBy: { name: 'asc' },
+      });
+
+      const translatedIndustries = industries.map((industry) => {
+        let translatedName = industry.name;
+        let translatedDescription = industry.description;
+
+        if (lang === 'ms' && industry.name_ms) {
+          translatedName = industry.name_ms;
+          translatedDescription =
+            industry.description_ms ?? translatedDescription;
+        } else if (lang === 'zh' && industry.name_zh) {
+          translatedName = industry.name_zh;
+          translatedDescription =
+            industry.description_zh ?? translatedDescription;
+        } else if (lang === 'ta' && industry.name_ta) {
+          translatedName = industry.name_ta;
+          translatedDescription =
+            industry.description_ta ?? translatedDescription;
+        }
+
+        return {
+          id: industry.id,
+          name: translatedName,
+          slug: industry.slug,
+          icon: industry.icon,
+          description: translatedDescription,
+        };
+      });
+
+      res.json({
+        success: true,
+        data: translatedIndustries,
+      });
     } catch (error) {
       console.error('Error fetching industries:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -92,47 +145,89 @@ export class OnboardingController {
         return res.status(401).json({ error: 'Unauthorized: missing userId' });
       }
 
-      // Upsert profile first
+      // Get existing profile to check if address changed
+      const existingProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: {
+          address: true,
+          city: true,
+          state: true,
+          postcode: true,
+          latitude: true,
+          longitude: true,
+        },
+      });
+
+      // Check if address-related fields have changed
+      const addressChanged =
+        existingProfile &&
+        (existingProfile.address !== address ||
+          existingProfile.city !== city ||
+          existingProfile.state !== state ||
+          existingProfile.postcode !== postcode);
+
+      let coordinates: { latitude: number; longitude: number } | null = null;
+
+      // Geocode if address changed or coordinates don't exist
+      if (
+        (addressChanged || !existingProfile?.latitude) &&
+        (address || city || state || postcode)
+      ) {
+        console.log(`Address changed for user ${userId}, geocoding...`);
+
+        const geocodingResult = await geocodeAddress(
+          address,
+          city,
+          state,
+          postcode
+        );
+
+        if (geocodingResult) {
+          coordinates = {
+            latitude: geocodingResult.latitude,
+            longitude: geocodingResult.longitude,
+          };
+          console.log(`Geocoding successful: ${JSON.stringify(coordinates)}`);
+        } else {
+          console.warn(
+            `Geocoding failed for user ${userId}, continuing without coordinates`
+          );
+        }
+      }
+
+      // Prepare profile data with coordinates
+      const profileData = {
+        dateOfBirth,
+        gender,
+        nationality,
+        address,
+        city,
+        state,
+        postcode,
+        profilePicture,
+        preferredSalaryMin,
+        preferredSalaryMax,
+        availableFrom,
+        workingHours,
+        transportMode,
+        maxTravelDistance,
+        experienceYears: experienceYears ?? undefined,
+        certifications,
+        profileCompleted: true,
+        // Add coordinates if geocoding was successful
+        ...(coordinates && {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+        }),
+      };
+
+      // Upsert profile
       const profile = await prisma.userProfile.upsert({
         where: { userId },
-        update: {
-          dateOfBirth,
-          gender,
-          nationality,
-          address,
-          city,
-          state,
-          postcode,
-          profilePicture,
-          preferredSalaryMin,
-          preferredSalaryMax,
-          availableFrom,
-          workingHours,
-          transportMode,
-          maxTravelDistance,
-          experienceYears: experienceYears ?? undefined,
-          certifications,
-          profileCompleted: true,
-        },
+        update: profileData,
         create: {
           userId,
-          dateOfBirth,
-          gender,
-          nationality,
-          address,
-          city,
-          state,
-          postcode,
-          profilePicture,
-          preferredSalaryMin,
-          preferredSalaryMax,
-          availableFrom,
-          workingHours,
-          transportMode,
-          maxTravelDistance,
-          experienceYears: experienceYears ?? undefined,
-          certifications,
-          profileCompleted: true,
+          ...profileData,
         },
       });
 
@@ -142,13 +237,16 @@ export class OnboardingController {
         await prisma.userSkill.deleteMany({
           where: { userId: profile.userId },
         });
-        await prisma.userSkill.createMany({
-          data: skills.map((skillId: number) => ({
-            userId: profile.userId,
-            skillId,
-          })),
-          skipDuplicates: true,
-        });
+
+        if (skills.length > 0) {
+          await prisma.userSkill.createMany({
+            data: skills.map((skillId: number) => ({
+              userId: profile.userId,
+              skillId,
+            })),
+            skipDuplicates: true,
+          });
+        }
       }
 
       // Handle languages relation
@@ -157,18 +255,22 @@ export class OnboardingController {
         await prisma.userLanguage.deleteMany({
           where: { userId: profile.userId },
         });
-        await prisma.userLanguage.createMany({
-          data: languages.map((languageId: number) => ({
-            userId: profile.userId,
-            languageId,
-          })),
-          skipDuplicates: true,
-        });
+
+        if (languages.length > 0) {
+          await prisma.userLanguage.createMany({
+            data: languages.map((languageId: number) => ({
+              userId: profile.userId,
+              languageId,
+            })),
+            skipDuplicates: true,
+          });
+        }
       }
 
       res.status(200).json({
         message: 'User profile saved successfully',
         profile,
+        geocoded: coordinates !== null, // Indicate if geocoding was successful
       });
 
       console.log('Saved user profile for user:', req.user);
@@ -220,10 +322,29 @@ export class OnboardingController {
 
   async getResumeQuestions(req: any, res: any) {
     try {
-      const questions = await prisma.resumeQuestion.findMany({
+      const { lang = 'en' } = req.query; // default to English if no language specified
+
+      const questions = await prisma.resumequestion.findMany({
         orderBy: { id: 'asc' },
       });
-      res.json(questions);
+
+      // Map questions based on selected language
+      const translatedQuestions = questions.map((q) => {
+        let translatedQuestion = q.question; // default English
+
+        if (lang === 'ms' && q.question_ms) translatedQuestion = q.question_ms;
+        else if (lang === 'zh' && q.question_zh)
+          translatedQuestion = q.question_zh;
+        else if (lang === 'ta' && q.question_ta)
+          translatedQuestion = q.question_ta;
+
+        return {
+          ...q,
+          question: translatedQuestion, // replace the default question text
+        };
+      });
+
+      res.json(translatedQuestions);
     } catch (err) {
       console.error('Error fetching resume questions:', err);
       res.status(500).json({ error: 'Failed to fetch resume questions' });
@@ -330,11 +451,34 @@ export class OnboardingController {
   // Add to OnboardingController class
   async getSkills(req: any, res: any) {
     try {
+      const { lang = 'en' } = req.query; // default language
+
       const skills = await prisma.skill.findMany({
         where: { isActive: true },
-        select: { id: true, name: true },
+        orderBy: { id: 'asc' },
+        select: {
+          id: true,
+          name: true,
+          name_ms: true,
+          name_zh: true,
+          name_ta: true,
+        },
       });
-      res.json(skills);
+
+      // Apply language-based translation
+      const translatedSkills = skills.map((s) => {
+        let translatedName = s.name;
+        if (lang === 'ms' && s.name_ms) translatedName = s.name_ms;
+        else if (lang === 'zh' && s.name_zh) translatedName = s.name_zh;
+        else if (lang === 'ta' && s.name_ta) translatedName = s.name_ta;
+
+        return {
+          id: s.id,
+          name: translatedName,
+        };
+      });
+
+      res.json(translatedSkills);
     } catch (error) {
       console.error('Error fetching skills:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -343,11 +487,34 @@ export class OnboardingController {
 
   async getLanguages(req: any, res: any) {
     try {
+      const { lang = 'en' } = req.query; // default language
+
       const languages = await prisma.language.findMany({
         where: { isActive: true },
-        select: { id: true, name: true },
+        orderBy: { id: 'asc' },
+        select: {
+          id: true,
+          name: true,
+          name_ms: true,
+          name_zh: true,
+          name_ta: true,
+        },
       });
-      res.json(languages);
+
+      // Apply language-based translation
+      const translatedLanguages = languages.map((l) => {
+        let translatedName = l.name;
+        if (lang === 'ms' && l.name_ms) translatedName = l.name_ms;
+        else if (lang === 'zh' && l.name_zh) translatedName = l.name_zh;
+        else if (lang === 'ta' && l.name_ta) translatedName = l.name_ta;
+
+        return {
+          id: l.id,
+          name: translatedName,
+        };
+      });
+
+      res.json(translatedLanguages);
     } catch (error) {
       console.error('Error fetching languages:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -381,7 +548,12 @@ export class OnboardingController {
       const mappedProfile: ResumeProfile = {
         fullName: profile.user.fullName,
         email: profile.user.email,
-        phone: profile.user.phoneNumber ?? '', // fallback if null
+        phone: profile.user.phoneNumber ?? '',
+        gender: profile.gender ?? '',
+        dateOfBirth: profile.dateOfBirth
+          ? profile.dateOfBirth.toISOString()
+          : undefined,
+        profilePicture: profile.profilePicture ?? '',
         skills: profile.skills.map((s) => ({
           id: s.skill.id,
           name: s.skill.name,
