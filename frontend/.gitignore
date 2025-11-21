@@ -43,3 +43,6 @@ app-example
 /android
 
 /app/generated/prisma
+
+backend/*.json
+backend/.env
