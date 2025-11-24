@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { geocodeAddress } from '../utils/geocoding';
+import { getSignedDownloadUrl } from '../services/s3Service';
 
 const prisma = new PrismaClient();
 
@@ -312,6 +313,22 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
         success: false,
         error: 'User profile not found',
       });
+    }
+
+    // ✅ Generate signed URL from stored key (much cleaner!)
+    if (userProfile.profile?.profilePicture) {
+      try {
+        const signedUrl = await getSignedDownloadUrl(
+          userProfile.profile.profilePicture,
+          3600
+        );
+        userProfile.profile.profilePicture = signedUrl;
+      } catch (error) {
+        console.error(
+          'Error generating signed URL for profile picture:',
+          error
+        );
+      }
     }
 
     res.json({

@@ -382,6 +382,147 @@ export const deleteChatAttachment = async (key: string): Promise<void> => {
 };
 
 /**
+ * Upload profile picture to S3
+ * @param userId - User ID
+ * @param fileBuffer - Image buffer
+ * @param mimeType - Image MIME type
+ * @returns Promise<UploadResult>
+ */
+export const uploadProfilePicture = async (
+  userId: number,
+  fileBuffer: Buffer,
+  mimeType: string
+): Promise<UploadResult> => {
+  const fileExtension = mimeType.split('/')[1] || 'jpg';
+  const key = `profile-pictures/${userId}.${fileExtension}`;
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: fileBuffer,
+    ContentType: mimeType,
+    Metadata: {
+      uploadedAt: new Date().toISOString(),
+    },
+  });
+
+  await s3.send(command);
+
+  const url = `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+
+  return {
+    url,
+    key,
+    fileName: `profile-${userId}.${fileExtension}`,
+    fileSize: fileBuffer.length,
+    mimeType,
+  };
+};
+
+/**
+ * Upload company logo to S3
+ * @param companyId - Company ID
+ * @param fileBuffer - Image buffer
+ * @param mimeType - Image MIME type
+ * @returns Promise<UploadResult>
+ */
+export const uploadCompanyLogoService = async (
+  companyId: number,
+  fileBuffer: Buffer,
+  mimeType: string
+): Promise<UploadResult> => {
+  const fileExtension = mimeType.split('/')[1] || 'jpg';
+  const key = `company-logos/${companyId}.${fileExtension}`;
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: fileBuffer,
+    ContentType: mimeType,
+    Metadata: {
+      uploadedAt: new Date().toISOString(),
+    },
+  });
+
+  await s3.send(command);
+
+  const url = `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+
+  return {
+    url,
+    key,
+    fileName: `logo-${companyId}.${fileExtension}`,
+    fileSize: fileBuffer.length,
+    mimeType,
+  };
+};
+
+/**
+ * Upload company verification document to S3
+ * @param companyId - Company ID
+ * @param fileBuffer - Document buffer
+ * @param originalName - Original file name
+ * @param mimeType - Document MIME type
+ * @returns Promise<UploadResult>
+ */
+export const uploadVerificationDocumentService = async (
+  companyId: number,
+  fileBuffer: Buffer,
+  originalName: string,
+  mimeType: string
+): Promise<UploadResult> => {
+  const timestamp = Date.now();
+  const fileExtension = originalName.split('.').pop() || 'pdf';
+  const key = `verification-documents/${companyId}-${timestamp}.${fileExtension}`;
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: fileBuffer,
+    ContentType: mimeType,
+    Metadata: {
+      originalName,
+      uploadedAt: new Date().toISOString(),
+    },
+  });
+
+  await s3.send(command);
+
+  const url = `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+
+  return {
+    url,
+    key,
+    fileName: originalName,
+    fileSize: fileBuffer.length,
+    mimeType,
+  };
+};
+
+/**
+ * Delete old profile picture/logo/document when uploading a new one
+ * @param url - S3 URL of old file
+ */
+export const deleteOldFile = async (url: string): Promise<void> => {
+  try {
+    const key = extractKeyFromUrl(url);
+    if (!key) return;
+
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+      })
+    );
+
+    console.log(`✅ Deleted old file: ${key}`);
+  } catch (error) {
+    console.error('❌ Error deleting old file:', error);
+    // Don't throw - we don't want deletion to break the upload
+  }
+};
+
+/**
  * Get a signed URL for private file access
  */
 export const getSignedDownloadUrl = async (

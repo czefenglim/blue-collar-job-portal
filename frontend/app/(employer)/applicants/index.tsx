@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
+  Alert,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +37,9 @@ interface Applicant {
     fullName: string;
     email: string;
     phoneNumber?: string;
+    profile?: {
+      profilePicture?: string;
+    };
   };
   job: {
     id: number;
@@ -208,6 +212,114 @@ export default function ApplicantsPage() {
     setFilteredApplicants(filtered);
   };
 
+  // ✅ NEW: Handle starting chat
+  // Updated handleStartChat function only
+
+  const handleStartChat = async (applicant: Applicant, e: any) => {
+    e.stopPropagation();
+
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) return;
+
+      let conversationId: number | null = null;
+
+      // First, check if conversation exists
+      const checkResponse = await fetch(
+        `${URL}/api/chat/conversations/application/${applicant.id}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log('Check response status:', checkResponse.status);
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        console.log('Check response data:', JSON.stringify(checkData, null, 2));
+
+        if (checkData.success && checkData.data && checkData.data.id) {
+          conversationId = checkData.data.id;
+          console.log('Found existing conversation:', conversationId);
+        } else if (checkData.success && !checkData.data) {
+          console.log('No conversation found, creating new one...');
+          conversationId = null;
+        } else {
+          console.error('Unexpected response structure:', checkData);
+          throw new Error('Invalid response from server');
+        }
+      } else if (checkResponse.status === 404) {
+        console.log('404 - Conversation not found, creating new one...');
+        conversationId = null;
+      } else {
+        const errorData = await checkResponse.json();
+        console.error('API error:', errorData);
+        throw new Error(errorData.message || 'Failed to check conversation');
+      }
+
+      // If no conversation found, create one
+      if (!conversationId) {
+        console.log('Creating conversation for application:', applicant.id);
+
+        const createResponse = await fetch(`${URL}/api/chat/conversations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ applicationId: applicant.id }),
+        });
+
+        console.log('Create response status:', createResponse.status);
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          console.error('Create error:', errorData);
+          throw new Error(errorData.message || 'Failed to create conversation');
+        }
+
+        const createData = await createResponse.json();
+        console.log(
+          'Create response data:',
+          JSON.stringify(createData, null, 2)
+        );
+
+        if (createData.success && createData.data && createData.data.id) {
+          conversationId = createData.data.id;
+        } else {
+          console.error('Invalid create response:', createData);
+          throw new Error('Failed to get conversation ID from create response');
+        }
+      }
+
+      if (!conversationId) {
+        throw new Error('Unable to obtain conversation ID');
+      }
+
+      console.log('Navigating to conversation:', conversationId);
+
+      // ✅ Use absolute path
+      router.push({
+        pathname: '/(shared)/chat/[id]',
+        params: {
+          id: conversationId.toString(),
+          name: applicant.user.fullName,
+          jobTitle: applicant.job.title,
+        },
+      });
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to start chat. Please try again.'
+      );
+    }
+  };
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchApplicants(1);
@@ -307,9 +419,18 @@ export default function ApplicantsPage() {
     >
       <View style={styles.applicantHeader}>
         <View style={styles.applicantAvatar}>
-          <Text style={styles.applicantAvatarText}>
-            {item.user.fullName.charAt(0).toUpperCase()}
-          </Text>
+          {item.user?.profile?.profilePicture ? (
+            <Image
+              source={{ uri: item.user?.profile?.profilePicture }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {item.user.fullName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.applicantInfo}>
           <View style={styles.nameRow}>
@@ -338,7 +459,7 @@ export default function ApplicantsPage() {
                     { color: getQualityColor(item.qualityScore.quality) },
                   ]}
                 >
-                  {'Quality: ' + item.qualityScore.quality}
+                  {item.qualityScore.quality}
                 </Text>
               </View>
             )}
@@ -384,6 +505,17 @@ export default function ApplicantsPage() {
       </View>
 
       <View style={styles.quickActions}>
+        {/* ✅ NEW: Chat Button */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.chatButton]}
+          onPress={(e) => handleStartChat(item, e)}
+        >
+          <Ionicons name="chatbubble-outline" size={18} color="#10B981" />
+          <Text style={[styles.actionButtonText, { color: '#10B981' }]}>
+            Chat
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.actionButton}
           onPress={(e) => {
@@ -642,6 +774,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1E3A8A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   applicantAvatarText: {
     fontSize: 24,
@@ -742,6 +895,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     gap: 6,
+  },
+  // ✅ NEW: Chat button style
+  chatButton: {
+    borderColor: '#10B981',
+    backgroundColor: '#F0FDF4',
   },
   actionButtonPrimary: {
     backgroundColor: '#1E3A8A',

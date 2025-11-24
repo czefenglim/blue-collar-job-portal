@@ -1,14 +1,15 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // ✅ Add this
 
 export default function EmployerLayout() {
-  const router = useRouter();
-
+  const insets = useSafeAreaInsets(); // ✅ Get safe area insets
+  const URL = Constants.expoConfig?.extra?.API_BASE_URL;
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Load unread count
@@ -53,13 +54,30 @@ export default function EmployerLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
-          height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-          paddingTop: 8,
+          // ✅ Height: Use safe area bottom inset
+          height: Platform.select({
+            ios: 85,
+            android: 65 + (insets.bottom > 0 ? insets.bottom : 0),
+          }),
+          // ✅ Bottom padding: Use safe area insets or minimum value
+          paddingBottom: Platform.select({
+            ios: Math.max(insets.bottom, 20),
+            android: Math.max(insets.bottom, 10),
+          }),
+          paddingTop: 5,
+          elevation: 8, // ✅ Shadow for Android
+          shadowColor: '#000', // Shadow for iOS
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: '600',
+          paddingBottom: Platform.OS === 'android' ? 5 : 0,
+        },
+        tabBarIconStyle: {
+          marginTop: 2,
         },
         headerStyle: {
           backgroundColor: '#1E3A8A',
@@ -99,16 +117,7 @@ export default function EmployerLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
-        options={{
-          title: 'Messages',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
+        name="messages/index"
         options={{
           title: 'Chat',
           tabBarIcon: ({ color, focused, size }) => (
@@ -119,12 +128,6 @@ export default function EmployerLayout() {
             />
           ),
           tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('../(shared)/chat');
-          },
         }}
       />
       <Tabs.Screen

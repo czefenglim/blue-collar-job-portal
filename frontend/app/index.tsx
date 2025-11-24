@@ -39,7 +39,7 @@ const LanguageSelectPage: React.FC = () => {
 
       if (token) {
         // User is already logged in, go to tabs
-        router.push('/(tabs)');
+        router.push('/SelectRoleScreen');
       } else if (userRole) {
         // User has selected a role but not logged in
         if (userRole === 'employer') {

@@ -7,6 +7,7 @@ import {
   sendNewChatMessageToEmployer,
   sendAttachmentNotification,
 } from '../utils/chatNotifications';
+import { getSignedDownloadUrl } from './s3Service';
 
 const prisma = new PrismaClient();
 
@@ -178,7 +179,36 @@ export const getConversationById = async (
     throw new Error('You do not have access to this conversation');
   }
 
-  return conversation;
+  // ✅ Generate signed URLs
+  const convData = { ...conversation };
+
+  if (conversation.employer?.company?.logo) {
+    try {
+      const signedLogoUrl = await getSignedDownloadUrl(
+        conversation.employer.company.logo,
+        3600
+      );
+      conversation.employer.company.logo = signedLogoUrl;
+    } catch (error) {
+      console.error('Error generating signed URL for company logo:', error);
+      conversation.employer.company.logo = null;
+    }
+  }
+
+  if (convData.jobSeeker?.profile?.profilePicture) {
+    try {
+      const signedProfileUrl = await getSignedDownloadUrl(
+        convData.jobSeeker.profile.profilePicture,
+        3600
+      );
+      convData.jobSeeker.profile.profilePicture = signedProfileUrl;
+    } catch (error) {
+      console.error('Error generating signed URL for profile picture:', error);
+      convData.jobSeeker.profile.profilePicture = null;
+    }
+  }
+
+  return convData;
 };
 
 /**
@@ -267,7 +297,7 @@ export const getUserConversations = async (
     }),
   ]);
 
-  // Add unread count for each conversation
+  // Add unread count and generate signed URLs
   const conversationsWithUnread = await Promise.all(
     conversations.map(async (conv) => {
       const unreadCount = await prisma.chatMessage.count({
@@ -279,10 +309,44 @@ export const getUserConversations = async (
         },
       });
 
+      // ✅ Generate signed URLs for images
+      const convData = { ...conv };
+
+      // Generate signed URL for company logo (employer side)
+      if (convData.employer?.company?.logo) {
+        try {
+          const signedLogoUrl = await getSignedDownloadUrl(
+            convData.employer.company.logo,
+            3600
+          );
+          convData.employer.company.logo = signedLogoUrl;
+        } catch (error) {
+          console.error('Error generating signed URL for company logo:', error);
+          convData.employer.company.logo = null;
+        }
+      }
+
+      // Generate signed URL for job seeker profile picture
+      if (convData.jobSeeker?.profile?.profilePicture) {
+        try {
+          const signedProfileUrl = await getSignedDownloadUrl(
+            convData.jobSeeker.profile.profilePicture,
+            3600
+          );
+          convData.jobSeeker.profile.profilePicture = signedProfileUrl;
+        } catch (error) {
+          console.error(
+            'Error generating signed URL for profile picture:',
+            error
+          );
+          convData.jobSeeker.profile.profilePicture = null;
+        }
+      }
+
       return {
-        ...conv,
+        ...convData,
         unreadCount,
-        lastMessage: conv.messages[0] || null,
+        lastMessage: convData.messages[0] || null,
       };
     })
   );
@@ -352,7 +416,38 @@ export const getConversationByApplicationId = async (
     throw new Error('You do not have access to this conversation');
   }
 
-  return conversation;
+  // ✅ Generate signed URLs
+  const convData = { ...conversation };
+
+  if (conversation.employer?.company?.logo) {
+    try {
+      const signedLogoUrl = await getSignedDownloadUrl(
+        conversation.employer.company.logo,
+        3600
+      );
+      conversation.employer.company.logo = signedLogoUrl;
+    } catch (error) {
+      console.error('Error generating signed URL for company logo:', error);
+      conversation.employer.company.logo = null;
+    }
+  }
+
+  if (conversation.jobSeeker?.profile?.profilePicture) {
+    try {
+      const signedProfileUrl = await getSignedDownloadUrl(
+        conversation.jobSeeker.profile.profilePicture,
+        3600
+      );
+      conversation.jobSeeker.profile.profilePicture = signedProfileUrl;
+    } catch (error) {
+      console.error('Error generating signed URL for profile picture:', error);
+      conversation.jobSeeker.profile.profilePicture = null;
+    }
+  }
+
+  return {
+    ...conversation,
+  };
 };
 
 // ============================================

@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { UserFilters, JobFilters, DashboardAnalytics } from '../types/admin';
+import { getSignedDownloadUrl } from './s3Service';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,6 @@ export class AdminService {
 
     const skip = (page - 1) * limit;
 
-    // Build where clause
     const where: any = {};
 
     if (role) {
@@ -33,10 +33,8 @@ export class AdminService {
       ];
     }
 
-    // Get total count
     const total = await prisma.user.count({ where });
 
-    // Get users
     const users = await prisma.user.findMany({
       where,
       select: {
@@ -56,6 +54,7 @@ export class AdminService {
           select: {
             id: true,
             name: true,
+            logo: true, // ✅ Include logo
             isVerified: true,
           },
         },
@@ -63,6 +62,7 @@ export class AdminService {
           select: {
             id: true,
             profileCompleted: true,
+            profilePicture: true, // ✅ Include profile picture
           },
         },
         _count: {
@@ -79,8 +79,51 @@ export class AdminService {
       take: limit,
     });
 
+    // ✅ Generate signed URLs for logos and profile pictures
+    const usersWithSignedUrls = await Promise.all(
+      users.map(async (user) => {
+        const userData = { ...user };
+
+        // Generate signed URL for company logo
+        if (userData.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              userData.company.logo,
+              3600
+            );
+            userData.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            userData.company.logo = null;
+          }
+        }
+
+        // Generate signed URL for profile picture
+        if (userData.profile?.profilePicture) {
+          try {
+            const signedProfileUrl = await getSignedDownloadUrl(
+              userData.profile.profilePicture,
+              3600
+            );
+            userData.profile.profilePicture = signedProfileUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for profile picture:',
+              error
+            );
+            userData.profile.profilePicture = null;
+          }
+        }
+
+        return userData;
+      })
+    );
+
     return {
-      users,
+      users: usersWithSignedUrls,
       pagination: {
         total,
         page,
@@ -148,9 +191,7 @@ export class AdminService {
 
     const skip = (page - 1) * limit;
 
-    // Build where clause
     const where: any = {
-      // ✅ Only get jobs from verified companies
       company: {
         verificationStatus: 'APPROVED',
       },
@@ -158,7 +199,6 @@ export class AdminService {
 
     if (approvalStatus) {
       if (approvalStatus.includes(',')) {
-        // multiple values
         where.approvalStatus = {
           in: approvalStatus.split(',') as Array<
             | 'PENDING'
@@ -169,7 +209,6 @@ export class AdminService {
           >,
         };
       } else {
-        // single value
         where.approvalStatus = approvalStatus as
           | 'PENDING'
           | 'APPROVED'
@@ -189,16 +228,14 @@ export class AdminService {
         {
           company: {
             name: { contains: search, mode: 'insensitive' },
-            verificationStatus: 'APPROVED', // ✅ Maintain filter in OR clause
+            verificationStatus: 'APPROVED',
           },
         },
       ];
     }
 
-    // Get total count
     const total = await prisma.job.count({ where });
 
-    // Get jobs
     const jobs = await prisma.job.findMany({
       where,
       select: {
@@ -235,6 +272,7 @@ export class AdminService {
         _count: {
           select: {
             applications: true,
+            appeals: true, // ✅ Include appeal count
           },
         },
       },
@@ -245,8 +283,33 @@ export class AdminService {
       take: limit,
     });
 
+    // ✅ Generate signed URLs for company logos
+    const jobsWithSignedUrls = await Promise.all(
+      jobs.map(async (job) => {
+        const jobData = { ...job };
+
+        if (jobData.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              jobData.company.logo,
+              3600
+            );
+            jobData.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            jobData.company.logo = null;
+          }
+        }
+
+        return jobData;
+      })
+    );
+
     return {
-      jobs,
+      jobs: jobsWithSignedUrls,
       pagination: {
         total,
         page,
@@ -282,10 +345,25 @@ export class AdminService {
         company: {
           select: {
             name: true,
+            logo: true, // ✅ Include logo
           },
         },
       },
     });
+
+    // ✅ Generate signed URL for company logo
+    if (job.company?.logo) {
+      try {
+        const signedLogoUrl = await getSignedDownloadUrl(
+          job.company.logo,
+          3600
+        );
+        job.company.logo = signedLogoUrl;
+      } catch (error) {
+        console.error('Error generating signed URL for company logo:', error);
+        job.company.logo = null;
+      }
+    }
 
     return job;
   }
@@ -411,7 +489,6 @@ export class AdminService {
             name: true,
           },
         },
-        // ✅ NEW: Include appeals
         appeals: {
           select: {
             id: true,
@@ -423,7 +500,7 @@ export class AdminService {
             reviewNotes: true,
           },
           orderBy: {
-            createdAt: 'desc', // Most recent appeal first
+            createdAt: 'desc',
           },
         },
         _count: {
@@ -436,6 +513,20 @@ export class AdminService {
 
     if (!job) {
       throw new Error('Job not found');
+    }
+
+    // ✅ Generate signed URL for company logo
+    if (job.company?.logo) {
+      try {
+        const signedLogoUrl = await getSignedDownloadUrl(
+          job.company.logo,
+          3600
+        );
+        job.company.logo = signedLogoUrl;
+      } catch (error) {
+        console.error('Error generating signed URL for company logo:', error);
+        job.company.logo = null;
+      }
     }
 
     return job;

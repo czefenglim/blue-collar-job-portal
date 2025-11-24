@@ -125,6 +125,7 @@ export class AuthController {
           password: true,
           fullName: true,
           phoneNumber: true,
+          role: true,
           isEmailVerified: true,
           isActive: true,
           createdAt: true,

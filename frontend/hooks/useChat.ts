@@ -57,194 +57,194 @@ interface UseChatOptions {
   onError?: (error: string) => void;
 }
 
+// ✅ Global socket instance to prevent multiple connections
+let globalSocket: Socket | null = null;
+let socketRefCount = 0;
+
 export const useChat = (options: UseChatOptions = {}) => {
-  const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
+  const currentConversationRef = useRef<number | undefined>(
+    options.conversationId
+  );
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const hasConnectedRef = useRef(false); // ✅ Track if we've already connected
 
-  // Initialize socket connection
+  // ✅ Store callbacks in refs to avoid recreating them
+  const callbacksRef = useRef({
+    onNewMessage: options.onNewMessage,
+    onMessageEdited: options.onMessageEdited,
+    onMessageDeleted: options.onMessageDeleted,
+    onMessagesRead: options.onMessagesRead,
+    onTypingChange: options.onTypingChange,
+    onConversationUpdated: options.onConversationUpdated,
+    onError: options.onError,
+  });
+
+  // Update callbacks ref when they change
+  useEffect(() => {
+    callbacksRef.current = {
+      onNewMessage: options.onNewMessage,
+      onMessageEdited: options.onMessageEdited,
+      onMessageDeleted: options.onMessageDeleted,
+      onMessagesRead: options.onMessagesRead,
+      onTypingChange: options.onTypingChange,
+      onConversationUpdated: options.onConversationUpdated,
+      onError: options.onError,
+    };
+  }, [
+    options.onNewMessage,
+    options.onMessageEdited,
+    options.onMessageDeleted,
+    options.onMessagesRead,
+    options.onTypingChange,
+    options.onConversationUpdated,
+    options.onError,
+  ]);
+
+  // ✅ Initialize socket connection - NO dependencies on callbacks
   const connect = useCallback(async () => {
     // Prevent multiple connection attempts
-    if (socketRef.current?.connected || isConnecting) {
-      console.log('Socket already connected or connecting');
+    if (globalSocket?.connected) {
+      console.log('♻️ Reusing existing socket connection');
+      socketRefCount++;
+      console.log('📊 Active socket refs:', socketRefCount);
+      setIsConnected(true);
+      return;
+    }
+
+    if (isConnecting) {
+      console.log('⏳ Already connecting, waiting...');
       return;
     }
 
     setIsConnecting(true);
 
     try {
-      // FIX 1: Changed from 'token' to 'jwtToken'
       const token = await AsyncStorage.getItem('jwtToken');
 
       if (!token) {
-        console.error('No auth token found');
-        if (isMountedRef.current) {
-          setIsConnecting(false);
-        }
+        console.error('❌ No auth token found');
+        setIsConnecting(false);
         return;
       }
 
-      // FIX 2: Better URL handling
       const baseUrl =
         API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
-      console.log('🔌 Connecting to socket:', baseUrl);
+      console.log('🔌 Creating new socket connection to:', baseUrl);
 
-      // Disconnect existing socket before creating new one
-      if (socketRef.current) {
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      if (!globalSocket) {
+        globalSocket = io(baseUrl, {
+          auth: { token },
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          timeout: 10000,
+        });
 
-      const newSocket = io(baseUrl, {
-        auth: { token },
-        transports: ['websocket', 'polling'], // FIX 3: Added polling as fallback
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        timeout: 10000,
-      });
-
-      // Connection events
-      newSocket.on('connect', () => {
-        console.log('✅ Chat socket connected:', newSocket.id);
-        if (isMountedRef.current) {
+        // Connection events
+        globalSocket.on('connect', () => {
+          console.log('✅ Chat socket connected:', globalSocket?.id);
           setIsConnected(true);
           setIsConnecting(false);
-        }
+        });
 
-        // Auto-join conversation if provided
-        if (options.conversationId) {
-          console.log('Joining conversation:', options.conversationId);
-          newSocket.emit('join_conversation', options.conversationId);
-        }
-      });
-
-      newSocket.on('disconnect', (reason) => {
-        console.log('❌ Chat socket disconnected:', reason);
-        if (isMountedRef.current) {
+        globalSocket.on('disconnect', (reason) => {
+          console.log('❌ Chat socket disconnected:', reason);
           setIsConnected(false);
-        }
-      });
+        });
 
-      newSocket.on('connect_error', (error) => {
-        console.error('❌ Chat socket connection error:', error.message);
-        if (isMountedRef.current) {
+        globalSocket.on('connect_error', (error) => {
+          console.error('❌ Chat socket connection error:', error.message);
           setIsConnecting(false);
           setIsConnected(false);
-        }
-        options.onError?.(error.message);
-      });
+          callbacksRef.current.onError?.(error.message);
+        });
 
-      // Message events with error handling
-      newSocket.on('new_message', (message: Message) => {
-        try {
+        // Global event listeners (for logging)
+        globalSocket.on('new_message', (message: Message) => {
           console.log('📩 New message received:', message.id);
-          options.onNewMessage?.(message);
-        } catch (error) {
-          console.error('Error handling new message:', error);
-        }
-      });
+        });
 
-      newSocket.on('message_edited', (message: Message) => {
-        try {
+        globalSocket.on('message_edited', (message: Message) => {
           console.log('✏️ Message edited:', message.id);
-          options.onMessageEdited?.(message);
-        } catch (error) {
-          console.error('Error handling message edit:', error);
-        }
-      });
+        });
 
-      newSocket.on(
-        'message_deleted',
-        (data: { messageId: number; conversationId: number }) => {
-          try {
+        globalSocket.on(
+          'message_deleted',
+          (data: { messageId: number; conversationId: number }) => {
             console.log('🗑️ Message deleted:', data.messageId);
-            options.onMessageDeleted?.(data);
-          } catch (error) {
-            console.error('Error handling message delete:', error);
           }
-        }
-      );
+        );
 
-      newSocket.on(
-        'messages_read',
-        (data: { conversationId: number; readBy: number; count: number }) => {
-          try {
+        globalSocket.on(
+          'messages_read',
+          (data: { conversationId: number; readBy: number; count: number }) => {
             console.log('👁️ Messages read:', data);
-            options.onMessagesRead?.(data);
-          } catch (error) {
-            console.error('Error handling messages read:', error);
           }
-        }
-      );
+        );
 
-      newSocket.on('user_typing', (data: TypingUser) => {
-        try {
-          options.onTypingChange?.(data);
-        } catch (error) {
-          console.error('Error handling typing change:', error);
-        }
-      });
+        globalSocket.on('user_typing', (data: TypingUser) => {
+          console.log('⌨️ User typing:', data);
+        });
 
-      newSocket.on('conversation_updated', (data: any) => {
-        try {
+        globalSocket.on('conversation_updated', (data: any) => {
           console.log('📝 Conversation updated:', data);
-          options.onConversationUpdated?.(data);
-        } catch (error) {
-          console.error('Error handling conversation update:', error);
-        }
-      });
+        });
 
-      newSocket.on('error', (data: { message: string }) => {
-        console.error('❌ Socket error:', data.message);
-        options.onError?.(data.message);
-      });
+        globalSocket.on('error', (data: { message: string }) => {
+          console.error('❌ Socket error:', data.message);
+        });
+      }
 
-      socketRef.current = newSocket;
+      socketRefCount++;
+      console.log('📊 Active socket refs:', socketRefCount);
+      setIsConnected(globalSocket.connected);
     } catch (error) {
       console.error('Error connecting to chat socket:', error);
-      if (isMountedRef.current) {
-        setIsConnecting(false);
-      }
+      setIsConnecting(false);
     }
-  }, [options.conversationId]); // FIX 4: Removed options from dependencies
+  }, [isConnecting]); // ✅ Only depends on isConnecting
 
-  // Disconnect socket
+  // ✅ Disconnect socket
   const disconnect = useCallback(() => {
-    if (socketRef.current) {
-      console.log('🔌 Disconnecting socket');
+    socketRefCount = Math.max(0, socketRefCount - 1);
+    console.log('📊 Active socket refs after disconnect:', socketRefCount);
 
-      if (options.conversationId && socketRef.current.connected) {
-        socketRef.current.emit('leave_conversation', options.conversationId);
+    if (socketRefCount === 0 && globalSocket) {
+      console.log('🔌 Disconnecting socket (no active users)');
+
+      if (currentConversationRef.current && globalSocket.connected) {
+        globalSocket.emit('leave_conversation', currentConversationRef.current);
       }
 
-      socketRef.current.removeAllListeners();
-      socketRef.current.disconnect();
-      socketRef.current = null;
-
-      if (isMountedRef.current) {
-        setIsConnected(false);
-      }
+      globalSocket.removeAllListeners();
+      globalSocket.disconnect();
+      globalSocket = null;
+      setIsConnected(false);
     }
-  }, [options.conversationId]);
+  }, []); // ✅ No dependencies
 
   // Join a conversation
   const joinConversation = useCallback((conversationId: number) => {
-    if (socketRef.current?.connected) {
-      console.log('Joining conversation:', conversationId);
-      socketRef.current.emit('join_conversation', conversationId);
+    if (globalSocket?.connected) {
+      console.log('👋 Joining conversation:', conversationId);
+      globalSocket.emit('join_conversation', conversationId);
+      currentConversationRef.current = conversationId;
     }
   }, []);
 
   // Leave a conversation
   const leaveConversation = useCallback((conversationId: number) => {
-    if (socketRef.current?.connected) {
-      console.log('Leaving conversation:', conversationId);
-      socketRef.current.emit('leave_conversation', conversationId);
+    if (globalSocket?.connected) {
+      console.log('👋 Leaving conversation:', conversationId);
+      globalSocket.emit('leave_conversation', conversationId);
+      if (currentConversationRef.current === conversationId) {
+        currentConversationRef.current = undefined;
+      }
     }
   }, []);
 
@@ -261,15 +261,15 @@ export const useChat = (options: UseChatOptions = {}) => {
         type: string;
       }
     ) => {
-      if (socketRef.current?.connected) {
-        socketRef.current.emit('send_message', {
+      if (globalSocket?.connected) {
+        globalSocket.emit('send_message', {
           conversationId,
           content,
           messageType,
           attachment,
         });
       } else {
-        console.warn('Cannot send message: socket not connected');
+        console.warn('⚠️ Cannot send message: socket not connected');
       }
     },
     []
@@ -277,41 +277,42 @@ export const useChat = (options: UseChatOptions = {}) => {
 
   // Edit a message via socket
   const editMessage = useCallback((messageId: number, content: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('edit_message', { messageId, content });
+    if (globalSocket?.connected) {
+      globalSocket.emit('edit_message', { messageId, content });
     } else {
-      console.warn('Cannot edit message: socket not connected');
+      console.warn('⚠️ Cannot edit message: socket not connected');
     }
   }, []);
 
   // Delete a message via socket
   const deleteMessage = useCallback((messageId: number) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('delete_message', messageId);
+    if (globalSocket?.connected) {
+      globalSocket.emit('delete_message', messageId);
     } else {
-      console.warn('Cannot delete message: socket not connected');
+      console.warn('⚠️ Cannot delete message: socket not connected');
     }
   }, []);
 
   // Mark messages as read
   const markAsRead = useCallback((conversationId: number) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('mark_read', conversationId);
+    if (globalSocket?.connected) {
+      console.log('📖 Marking as read:', conversationId);
+      globalSocket.emit('mark_read', conversationId);
     }
   }, []);
 
   // Start typing indicator
   const startTyping = useCallback((conversationId: number) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing_start', conversationId);
+    if (globalSocket?.connected) {
+      globalSocket.emit('typing_start', conversationId);
 
       // Auto-stop after 3 seconds
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
       typingTimeoutRef.current = setTimeout(() => {
-        if (socketRef.current?.connected) {
-          socketRef.current.emit('typing_stop', conversationId);
+        if (globalSocket?.connected) {
+          globalSocket.emit('typing_stop', conversationId);
         }
       }, 3000);
     }
@@ -319,8 +320,8 @@ export const useChat = (options: UseChatOptions = {}) => {
 
   // Stop typing indicator
   const stopTyping = useCallback((conversationId: number) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('typing_stop', conversationId);
+    if (globalSocket?.connected) {
+      globalSocket.emit('typing_stop', conversationId);
     }
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -328,16 +329,94 @@ export const useChat = (options: UseChatOptions = {}) => {
     }
   }, []);
 
-  // Handle app state changes (reconnect when coming back to foreground)
+  // ✅ Register component-specific event handlers when socket connects
+  useEffect(() => {
+    if (!globalSocket || !isConnected) {
+      console.log(
+        '⚠️ Waiting for socket connection before registering handlers'
+      );
+      return;
+    }
+
+    console.log('✅ Socket connected, registering event handlers');
+
+    const handleNewMessage = (message: Message) => {
+      console.log('🎯 handleNewMessage called');
+      callbacksRef.current.onNewMessage?.(message);
+    };
+
+    const handleMessageEdited = (message: Message) => {
+      console.log('🎯 handleMessageEdited called');
+      callbacksRef.current.onMessageEdited?.(message);
+    };
+
+    const handleMessageDeleted = (data: {
+      messageId: number;
+      conversationId: number;
+    }) => {
+      console.log('🎯 handleMessageDeleted called');
+      callbacksRef.current.onMessageDeleted?.(data);
+    };
+
+    const handleMessagesRead = (data: {
+      conversationId: number;
+      readBy: number;
+      count: number;
+    }) => {
+      console.log('🎯 handleMessagesRead called');
+      callbacksRef.current.onMessagesRead?.(data);
+    };
+
+    const handleTyping = (data: TypingUser) => {
+      console.log('🎯 handleTyping called');
+      callbacksRef.current.onTypingChange?.(data);
+    };
+
+    const handleConversationUpdated = (data: any) => {
+      console.log('🎯 handleConversationUpdated called in useChat');
+      console.log(
+        '🎯 Callback exists?',
+        !!callbacksRef.current.onConversationUpdated
+      );
+
+      if (callbacksRef.current.onConversationUpdated) {
+        console.log('🎯 Calling onConversationUpdated callback');
+        callbacksRef.current.onConversationUpdated(data);
+      } else {
+        console.warn('⚠️ onConversationUpdated callback is undefined');
+      }
+    };
+
+    // Register handlers
+    globalSocket.on('new_message', handleNewMessage);
+    globalSocket.on('message_edited', handleMessageEdited);
+    globalSocket.on('message_deleted', handleMessageDeleted);
+    globalSocket.on('messages_read', handleMessagesRead);
+    globalSocket.on('user_typing', handleTyping);
+    globalSocket.on('conversation_updated', handleConversationUpdated);
+
+    console.log('✅ All event handlers registered successfully');
+
+    return () => {
+      console.log('🧹 Cleaning up event handlers');
+      globalSocket?.off('new_message', handleNewMessage);
+      globalSocket?.off('message_edited', handleMessageEdited);
+      globalSocket?.off('message_deleted', handleMessageDeleted);
+      globalSocket?.off('messages_read', handleMessagesRead);
+      globalSocket?.off('user_typing', handleTyping);
+      globalSocket?.off('conversation_updated', handleConversationUpdated);
+    };
+  }, [isConnected]); // ✅ Re-run when socket connects!
+
+  // Handle app state changes
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
         appStateRef.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App has come to the foreground
         console.log('App came to foreground, checking socket connection');
-        if (!socketRef.current?.connected && isMountedRef.current) {
+        if (!globalSocket?.connected) {
           connect();
         }
       }
@@ -349,37 +428,52 @@ export const useChat = (options: UseChatOptions = {}) => {
     };
   }, [connect]);
 
-  // Connect on mount
+  // ✅ Connect ONCE on mount
   useEffect(() => {
-    isMountedRef.current = true;
+    if (hasConnectedRef.current) {
+      console.log('⏭️ Skipping connect - already connected');
+      return;
+    }
 
-    // FIX 5: Delay connection slightly to ensure component is fully mounted
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        connect();
-      }
-    }, 100);
+    isMountedRef.current = true;
+    hasConnectedRef.current = true;
+    connect();
 
     return () => {
       isMountedRef.current = false;
-      clearTimeout(timer);
       disconnect();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, []); // FIX 6: Empty deps to connect only once
+  }, []); // ✅ EMPTY dependencies - only runs ONCE
 
-  // Update conversation when conversationId changes
+  // Handle conversation changes
   useEffect(() => {
-    if (socketRef.current?.connected && options.conversationId) {
-      console.log('Conversation ID changed, joining:', options.conversationId);
-      socketRef.current.emit('join_conversation', options.conversationId);
+    if (!globalSocket?.connected) return;
+
+    const previousConversation = currentConversationRef.current;
+    const newConversation = options.conversationId;
+
+    // Leave previous conversation
+    if (previousConversation && previousConversation !== newConversation) {
+      leaveConversation(previousConversation);
     }
+
+    // Join new conversation
+    if (newConversation) {
+      joinConversation(newConversation);
+    }
+
+    return () => {
+      if (newConversation) {
+        leaveConversation(newConversation);
+      }
+    };
   }, [options.conversationId]);
 
   return {
-    socket: socketRef.current,
+    socket: globalSocket,
     isConnected,
     isConnecting,
     connect,

@@ -8,6 +8,7 @@ import { AdminAuthRequest, AdminLoginRequest } from '../types/admin';
 import { adminService } from '../services/adminService';
 import { PrismaClient } from '@prisma/client';
 import { EmployerTrustScoreService } from '../services/employerTrustScoreService';
+import { getSignedDownloadUrl } from '../services/s3Service';
 
 const prisma = new PrismaClient();
 
@@ -458,7 +459,9 @@ export class AdminController {
   async getPendingCompanies(req: AdminAuthRequest, res: Response) {
     try {
       const { page = '1', limit = '20' } = req.query;
-      const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const skip = (pageNum - 1) * limitNum;
 
       const [companies, total] = await Promise.all([
         prisma.company.findMany({
@@ -481,13 +484,19 @@ export class AdminController {
                 slug: true,
               },
             },
-            verification: true,
+            verification: {
+              select: {
+                businessDocument: true,
+                documentType: true,
+                submittedAt: true,
+              },
+            },
           },
+          skip,
+          take: limitNum,
           orderBy: {
             createdAt: 'desc',
           },
-          skip,
-          take: parseInt(limit as string),
         }),
         prisma.company.count({
           where: {
@@ -496,20 +505,72 @@ export class AdminController {
         }),
       ]);
 
+      // ✅ Generate signed URLs for logo and verification document
+      const companiesWithSignedUrls = await Promise.all(
+        companies.map(async (company) => {
+          const companyData = { ...company };
+
+          // Generate signed URL for logo
+          if (companyData.logo) {
+            try {
+              companyData.logo = await getSignedDownloadUrl(
+                companyData.logo,
+                3600
+              );
+            } catch (error) {
+              console.error('Error generating signed URL for logo:', error);
+              companyData.logo = null;
+            }
+          }
+
+          // Generate signed URL for verification document
+          if (companyData.verificationDocument) {
+            try {
+              companyData.verificationDocument = await getSignedDownloadUrl(
+                companyData.verificationDocument,
+                3600
+              );
+            } catch (error) {
+              console.error(
+                'Error generating signed URL for verification document:',
+                error
+              );
+            }
+          }
+
+          // Generate signed URL for verification businessDocument
+          if (companyData.verification?.businessDocument) {
+            try {
+              companyData.verification.businessDocument =
+                await getSignedDownloadUrl(
+                  companyData.verification.businessDocument,
+                  3600
+                );
+            } catch (error) {
+              console.error(
+                'Error generating signed URL for business document:',
+                error
+              );
+            }
+          }
+
+          return companyData;
+        })
+      );
+
       res.json({
         success: true,
-        message: 'Pending companies fetched successfully',
         data: {
-          companies,
+          companies: companiesWithSignedUrls,
           pagination: {
-            page: parseInt(page as string),
-            limit: parseInt(limit as string),
+            page: pageNum,
+            limit: limitNum,
             total,
-            pages: Math.ceil(total / parseInt(limit as string)),
+            pages: Math.ceil(total / limitNum),
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching pending companies:', error);
       res.status(500).json({
         success: false,
@@ -525,66 +586,33 @@ export class AdminController {
   async getCompanyDetails(req: AdminAuthRequest, res: Response) {
     try {
       const { companyId } = req.params;
-      const id = parseInt(companyId);
 
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid company ID',
-        });
-      }
-
-      // Get company with all related data
       const company = await prisma.company.findUnique({
-        where: { id },
+        where: { id: parseInt(companyId) },
         include: {
-          industry: true,
-          verification: true,
           user: {
             select: {
               id: true,
-              fullName: true,
               email: true,
+              fullName: true,
               phoneNumber: true,
+            },
+          },
+          industry: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          verification: {
+            select: {
+              businessDocument: true,
+              documentType: true,
+              submittedAt: true,
+              phoneVerified: true,
+              emailVerified: true,
               status: true,
-              createdAt: true,
-              lastLoginAt: true,
-            },
-          },
-          jobs: {
-            select: {
-              id: true,
-              title: true,
-              approvalStatus: true,
-              createdAt: true,
-              applicationCount: true,
-              jobType: true,
-              isActive: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 10,
-          },
-          reviews: {
-            select: {
-              id: true,
-              rating: true,
-              title: true,
-              comment: true,
-              isVisible: true,
-              isFlagged: true,
-              createdAt: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-            take: 5,
-          },
-          _count: {
-            select: {
-              jobs: true,
-              reviews: true,
             },
           },
         },
@@ -597,37 +625,56 @@ export class AdminController {
         });
       }
 
-      // Calculate trust score
-      let trustScore = null;
-      try {
-        trustScore = await EmployerTrustScoreService.calculateTrustScore(id);
-      } catch (error) {
-        console.error('Error calculating trust score:', error);
+      // ✅ Generate signed URLs
+      const companyData = { ...company };
+
+      if (companyData.logo) {
+        try {
+          companyData.logo = await getSignedDownloadUrl(companyData.logo, 3600);
+        } catch (error) {
+          console.error('Error generating signed URL for logo:', error);
+          companyData.logo = null;
+        }
       }
 
-      // Get report count for this company's jobs
-      const reportCount = await prisma.report.count({
-        where: {
-          job: {
-            companyId: id,
-          },
-        },
-      });
+      if (companyData.verificationDocument) {
+        try {
+          companyData.verificationDocument = await getSignedDownloadUrl(
+            companyData.verificationDocument,
+            3600
+          );
+        } catch (error) {
+          console.error(
+            'Error generating signed URL for verification document:',
+            error
+          );
+        }
+      }
 
-      return res.status(200).json({
+      if (companyData.verification?.businessDocument) {
+        try {
+          companyData.verification.businessDocument =
+            await getSignedDownloadUrl(
+              companyData.verification.businessDocument,
+              3600
+            );
+        } catch (error) {
+          console.error(
+            'Error generating signed URL for business document:',
+            error
+          );
+        }
+      }
+
+      res.json({
         success: true,
-        message: 'Company details fetched successfully',
-        data: {
-          ...company,
-          trustScore,
-          reportCount,
-        },
+        data: companyData,
       });
     } catch (error: any) {
-      console.error('Error fetching company details:', error);
-      return res.status(500).json({
+      console.error('Error fetching company detail:', error);
+      res.status(500).json({
         success: false,
-        message: error.message || 'Failed to fetch company details',
+        message: 'Failed to fetch company details',
       });
     }
   }

@@ -1,6 +1,6 @@
 // src/screens/ChatScreen.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,6 @@ import {
   ActionSheetIOS,
   Linking,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -25,6 +24,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import useChat from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -53,12 +54,6 @@ interface Message {
   };
 }
 
-interface RouteParams {
-  id: string;
-  name?: string;
-  jobTitle?: string;
-}
-
 interface User {
   id: number;
   role: string;
@@ -67,13 +62,14 @@ interface User {
 
 const ChatScreen: React.FC = () => {
   const { t } = useLanguage();
-  const route = useRoute();
-  const navigation = useNavigation<any>();
-  const { id, name, jobTitle } = route.params as RouteParams;
-  const conversationId = parseInt(id);
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const { id, name, jobTitle } = params;
+  const conversationId = parseInt(id as string);
 
   const [token, setToken] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
+  const [userLoaded, setUserLoaded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -84,10 +80,18 @@ const ChatScreen: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const flatListRef = useRef<FlatList>(null);
 
-  // Load user data and token
+  useEffect(() => {
+    if (!id || isNaN(conversationId)) {
+      console.error('Invalid conversation ID:', id);
+      Alert.alert(t('common.error'), 'Invalid conversation ID');
+      router.back();
+    }
+  }, [id, conversationId]);
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -95,23 +99,124 @@ const ChatScreen: React.FC = () => {
   const loadUserData = async () => {
     try {
       const userToken = await AsyncStorage.getItem('jwtToken');
-      const userData = await AsyncStorage.getItem('user');
+      const userData = await AsyncStorage.getItem('userData');
 
       if (!userToken || !userData) {
         Alert.alert(t('common.error'), 'Please login to continue');
-        navigation.goBack();
+        router.back();
         return;
       }
 
       setToken(userToken);
       setUser(JSON.parse(userData));
+      setUserLoaded(true);
     } catch (error) {
       console.error('Error loading user data:', error);
       Alert.alert(t('common.error'), 'Failed to load user data');
     }
   };
 
-  // Socket connection
+  const handleNewMessage = useCallback(
+    (message: Message) => {
+      console.log('New message received:', message);
+      try {
+        setMessages((prev) => {
+          const exists = prev.some((m) => m.id === message.id);
+          if (exists) return prev;
+          return [...prev, message];
+        });
+
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+
+        if (message.senderId !== user?.id && conversationId) {
+          markAsRead(conversationId);
+        }
+      } catch (error) {
+        console.error('Error handling new message:', error);
+      }
+    },
+    [user?.id, conversationId]
+  );
+
+  const handleMessageEdited = useCallback((message: Message) => {
+    console.log('Message edited:', message);
+    try {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === message.id ? message : m))
+      );
+    } catch (error) {
+      console.error('Error handling message edit:', error);
+    }
+  }, []);
+
+  const handleMessageDeleted = useCallback(
+    (data: { messageId: number; conversationId: number }) => {
+      console.log('Message deleted:', data);
+      try {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === data.messageId
+              ? { ...m, isDeleted: true, content: null }
+              : m
+          )
+        );
+      } catch (error) {
+        console.error('Error handling message delete:', error);
+      }
+    },
+    []
+  );
+
+  const handleMessagesRead = useCallback(
+    (data: { conversationId: number; readBy: number; count: number }) => {
+      console.log('Messages read:', data);
+      try {
+        if (data.readBy !== user?.id) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.senderId === user?.id && !m.isRead
+                ? { ...m, isRead: true, readAt: new Date().toISOString() }
+                : m
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Error handling messages read:', error);
+      }
+    },
+    [user?.id]
+  );
+
+  const handleTypingChange = useCallback(
+    (data: { conversationId: number; userId: number; isTyping: boolean }) => {
+      try {
+        if (data.userId !== user?.id) {
+          setTypingUsers((prev) =>
+            data.isTyping
+              ? [...prev.filter((id) => id !== data.userId), data.userId]
+              : prev.filter((id) => id !== data.userId)
+          );
+        }
+      } catch (error) {
+        console.error('Error handling typing change:', error);
+      }
+    },
+    [user?.id]
+  );
+
+  const handleSocketError = useCallback((error: string) => {
+    console.error('Socket error:', error);
+  }, []);
+
+  // Add this callback BEFORE the useChat hook
+  const handleConversationUpdated = useCallback((data: any) => {
+    console.log('📝 Conversation updated in ChatScreen:', data);
+    // This event is mainly for the conversation list, not the chat screen
+    // But we can use it to show a visual indicator if needed
+  }, []);
+
   const {
     isConnected,
     sendMessage: socketSendMessage,
@@ -121,54 +226,23 @@ const ChatScreen: React.FC = () => {
     editMessage: socketEditMessage,
     deleteMessage: socketDeleteMessage,
   } = useChat({
-    conversationId,
-    onNewMessage: (message) => {
-      setMessages((prev) => [...prev, message]);
-      // Scroll to bottom
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-      // Mark as read if from other user
-      if (message.senderId !== user?.id) {
-        markAsRead(conversationId);
-      }
-    },
-    onMessageEdited: (message) => {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === message.id ? message : m))
-      );
-    },
-    onMessageDeleted: (data) => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === data.messageId ? { ...m, isDeleted: true, content: null } : m
-        )
-      );
-    },
-    onMessagesRead: (data) => {
-      if (data.readBy !== user?.id) {
-        // Update all messages as read
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.senderId === user?.id
-              ? { ...m, isRead: true, readAt: new Date().toISOString() }
-              : m
-          )
-        );
-      }
-    },
-    onTypingChange: (data) => {
-      if (data.userId !== user?.id) {
-        setTypingUsers((prev) =>
-          data.isTyping
-            ? [...prev.filter((id) => id !== data.userId), data.userId]
-            : prev.filter((id) => id !== data.userId)
-        );
-      }
-    },
+    conversationId: userLoaded ? conversationId : undefined,
+    onNewMessage: userLoaded ? handleNewMessage : undefined,
+    onMessageEdited: userLoaded ? handleMessageEdited : undefined,
+    onMessageDeleted: userLoaded ? handleMessageDeleted : undefined,
+    onMessagesRead: userLoaded ? handleMessagesRead : undefined,
+    onTypingChange: userLoaded ? handleTypingChange : undefined,
+    onConversationUpdated: userLoaded ? handleConversationUpdated : undefined, // ✅ ADD THIS
+    onError: handleSocketError,
   });
 
-  // Fetch conversation details
+  useEffect(() => {
+    console.log(
+      'Socket connection status:',
+      isConnected ? 'Connected' : 'Disconnected'
+    );
+  }, [isConnected]);
+
   const fetchConversation = async () => {
     if (!token) return;
 
@@ -186,9 +260,6 @@ const ChatScreen: React.FC = () => {
         const data = await response.json();
         if (data.success && data.data) {
           setConversation(data.data);
-          navigation.setOptions({
-            headerTitle: name || getOtherUserName(data.data),
-          });
         }
       }
     } catch (error) {
@@ -196,7 +267,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Fetch messages
   const fetchMessages = async (pageNum: number = 1) => {
     if (!token) return;
 
@@ -221,7 +291,6 @@ const ChatScreen: React.FC = () => {
         if (data.success && data.data) {
           if (pageNum === 1) {
             setMessages(data.data);
-            // Mark all as read
             await markMessagesAsReadApi();
           } else {
             setMessages((prev) => [...data.data, ...prev]);
@@ -240,7 +309,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Mark messages as read
   const markMessagesAsReadApi = async () => {
     if (!token) return;
 
@@ -251,31 +319,47 @@ const ChatScreen: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      // Also emit over socket so the other participant updates immediately
+      if (userLoaded) {
+        try {
+          markAsRead(conversationId);
+        } catch (e) {
+          console.warn('Failed to emit mark_read over socket:', e);
+        }
+      }
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
   };
 
-  // Get other user's name
-  const getOtherUserName = (conv: any) => {
-    if (!conv) return '';
+  const getOtherUserInfo = () => {
+    if (!conversation) return { name: '', avatar: null };
+
     const isEmployer = user?.role === 'EMPLOYER';
+
     if (isEmployer) {
-      return conv.jobSeeker.fullName;
+      // Employer sees job seeker's info
+      return {
+        name: conversation.jobSeeker.fullName,
+        avatar: conversation.jobSeeker.profile?.profilePicture,
+      };
     } else {
-      return conv.employer.company?.name || conv.employer.fullName;
+      // Job seeker sees company info
+      return {
+        name:
+          conversation.employer.company?.name || conversation.employer.fullName,
+        avatar: conversation.employer.company?.logo,
+      };
     }
   };
 
-  // Initial load
   useEffect(() => {
-    if (user && token) {
+    if (userLoaded && user && token) {
       fetchConversation();
       fetchMessages();
     }
-  }, [conversationId, user, token]);
+  }, [conversationId, userLoaded, user, token]);
 
-  // Handle send message
   const handleSend = async () => {
     if (!inputText.trim() && !editingMessage) return;
     if (!token) return;
@@ -285,7 +369,6 @@ const ChatScreen: React.FC = () => {
     stopTyping(conversationId);
 
     if (editingMessage) {
-      // Edit existing message
       try {
         const response = await fetch(
           `${URL}/api/chat/messages/${editingMessage.id}`,
@@ -312,27 +395,32 @@ const ChatScreen: React.FC = () => {
         setEditingMessage(null);
       }
     } else {
-      // Send new message
       setSending(true);
       try {
-        const response = await fetch(
-          `${URL}/api/chat/conversations/${conversationId}/messages`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ content: text }),
-          }
-        );
+        if (isConnected) {
+          // Prefer socket for real-time delivery and read propagation
+          socketSendMessage(conversationId, text);
+          // Rely on 'new_message' event to update both participants
+        } else {
+          // Fallback to API if socket unavailable
+          const response = await fetch(
+            `${URL}/api/chat/conversations/${conversationId}/messages`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ content: text }),
+            }
+          );
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            // Socket will broadcast, but add optimistically
-            setMessages((prev) => [...prev, data.data]);
-            flatListRef.current?.scrollToEnd({ animated: true });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              setMessages((prev) => [...prev, data.data]);
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }
           }
         }
       } catch (error) {
@@ -344,17 +432,15 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle text change with typing indicator
   const handleTextChange = (text: string) => {
     setInputText(text);
-    if (text.length > 0) {
+    if (text.length > 0 && userLoaded) {
       startTyping(conversationId);
-    } else {
+    } else if (userLoaded) {
       stopTyping(conversationId);
     }
   };
 
-  // Handle attachment
   const handleAttachment = () => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -383,7 +469,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle camera
   const handleCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
@@ -401,7 +486,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle image picker
   const handleImagePicker = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -419,7 +503,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle file picker
   const handleFilePicker = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -435,7 +518,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Upload file
   const uploadFile = async (file: any) => {
     if (!token) return;
 
@@ -474,7 +556,6 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle message long press (edit/delete)
   const handleMessageLongPress = (message: Message) => {
     if (message.senderId !== user?.id || message.isDeleted) return;
 
@@ -528,19 +609,16 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Handle edit message
   const handleEditMessage = (message: Message) => {
     setEditingMessage(message);
     setInputText(message.content || '');
   };
 
-  // Cancel editing
   const cancelEditing = () => {
     setEditingMessage(null);
     setInputText('');
   };
 
-  // Handle delete message
   const handleDeleteMessage = async (message: Message) => {
     Alert.alert(t('chat.deleteMessage'), t('chat.deleteConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
@@ -576,7 +654,6 @@ const ChatScreen: React.FC = () => {
     ]);
   };
 
-  // Load more messages
   const handleLoadMore = () => {
     if (hasMore && !loadingMore) {
       const nextPage = page + 1;
@@ -585,24 +662,20 @@ const ChatScreen: React.FC = () => {
     }
   };
 
-  // Format time
   const formatMessageTime = (dateString: string) => {
     return format(new Date(dateString), 'HH:mm');
   };
 
-  // Format file size
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  // Open attachment
   const openAttachment = (url: string) => {
     Linking.openURL(url);
   };
 
-  // Render message bubble
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwnMessage = item.senderId === user?.id;
     const showDate =
@@ -612,7 +685,6 @@ const ChatScreen: React.FC = () => {
 
     return (
       <View>
-        {/* Date separator */}
         {showDate && (
           <View style={styles.dateSeparator}>
             <Text style={styles.dateText}>
@@ -621,7 +693,6 @@ const ChatScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Message bubble */}
         <TouchableOpacity
           onLongPress={() => handleMessageLongPress(item)}
           activeOpacity={0.8}
@@ -642,7 +713,6 @@ const ChatScreen: React.FC = () => {
                 isOwnMessage ? styles.ownBubble : styles.otherBubble,
               ]}
             >
-              {/* Image attachment */}
               {item.messageType === 'IMAGE' && item.attachmentUrl && (
                 <TouchableOpacity
                   onPress={() => openAttachment(item.attachmentUrl!)}
@@ -655,7 +725,6 @@ const ChatScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
 
-              {/* File attachment */}
               {item.messageType === 'FILE' && item.attachmentUrl && (
                 <TouchableOpacity
                   style={styles.fileAttachment}
@@ -675,7 +744,6 @@ const ChatScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
 
-              {/* Text content */}
               {item.content && (
                 <Text
                   style={[
@@ -689,7 +757,6 @@ const ChatScreen: React.FC = () => {
                 </Text>
               )}
 
-              {/* Message meta */}
               <View style={styles.messageMeta}>
                 {item.isEdited && (
                   <Text style={styles.editedLabel}>{t('chat.edited')}</Text>
@@ -707,8 +774,8 @@ const ChatScreen: React.FC = () => {
                 {isOwnMessage && (
                   <Ionicons
                     name={item.isRead ? 'checkmark-done' : 'checkmark'}
-                    size={14}
-                    color={item.isRead ? '#2563eb' : '#9ca3af'}
+                    size={16}
+                    color={item.isRead ? '#EAB308' : '#9ca3af'}
                     style={styles.readIcon}
                   />
                 )}
@@ -720,7 +787,6 @@ const ChatScreen: React.FC = () => {
     );
   };
 
-  // Render typing indicator
   const renderTypingIndicator = () => {
     if (typingUsers.length === 0) return null;
 
@@ -743,7 +809,7 @@ const ChatScreen: React.FC = () => {
     );
   };
 
-  if (loading) {
+  if (!userLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
@@ -757,14 +823,49 @@ const ChatScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      {/* Job title header */}
-      {jobTitle && (
-        <View style={styles.jobHeader}>
-          <Text style={styles.jobHeaderText}>{jobTitle}</Text>
+      {!isConnected && userLoaded && (
+        <View style={styles.connectionBanner}>
+          <Text style={styles.connectionText}>Connecting to chat...</Text>
         </View>
       )}
 
-      {/* Messages list */}
+      {/* ✅ Header already displays avatar correctly */}
+      {conversation && (
+        <View style={styles.chatHeader}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+
+          <View style={styles.headerAvatarContainer}>
+            {getOtherUserInfo().avatar ? (
+              <Image
+                source={{ uri: getOtherUserInfo().avatar }}
+                style={styles.headerAvatar}
+                // ✅ Add these props for better image handling
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.headerAvatar, styles.defaultHeaderAvatar]}>
+                <Ionicons name="person" size={20} color="#fff" />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerName} numberOfLines={1}>
+              {getOtherUserInfo().name}
+            </Text>
+            <Text style={styles.headerJobTitle} numberOfLines={1}>
+              {conversation.job.title}
+            </Text>
+          </View>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -791,7 +892,6 @@ const ChatScreen: React.FC = () => {
         }}
       />
 
-      {/* Editing indicator */}
       {editingMessage && (
         <View style={styles.editingBar}>
           <View style={styles.editingInfo}>
@@ -804,8 +904,16 @@ const ChatScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Input area */}
-      <View style={styles.inputContainer}>
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            paddingBottom:
+              Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : 8,
+            marginBottom: Platform.OS === 'android' ? 8 : 0,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={styles.attachButton}
           onPress={handleAttachment}
@@ -853,17 +961,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  jobHeader: {
-    backgroundColor: '#e0e7ff',
+  connectionBanner: {
+    backgroundColor: '#fef3c7',
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  jobHeaderText: {
-    color: '#3730a3',
+  connectionText: {
+    color: '#92400e',
     fontSize: 12,
-    fontWeight: '500',
     textAlign: 'center',
   },
+
   messagesList: {
     padding: 16,
     paddingBottom: 8,
@@ -1052,6 +1160,65 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#9ca3af',
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingTop: Platform.OS === 'ios' ? 50 : 10,
+  },
+  backButton: {
+    marginRight: 8,
+    padding: 4,
+  },
+  headerAvatarContainer: {
+    marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden', // ✅ Important for circular clipping
+  },
+  headerAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  defaultHeaderAvatar: {
+    backgroundColor: '#3b82f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  headerName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerJobTitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // Update or remove old jobHeader styles if you want
+  jobHeader: {
+    backgroundColor: '#e0e7ff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  jobHeaderText: {
+    color: '#3730a3',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
 

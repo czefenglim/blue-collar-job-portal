@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import useChat from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRouter } from 'expo-router';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -71,15 +72,16 @@ const ConversationsListScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [token, setToken] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
+  const [userLoaded, setUserLoaded] = useState(false); // ✅ NEW
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
+  const router = useRouter();
   const isEmployer = user?.role === 'EMPLOYER';
 
-  // Load user data and token
+  // Load user data and token FIRST
   useEffect(() => {
     loadUserData();
   }, []);
@@ -87,8 +89,9 @@ const ConversationsListScreen: React.FC = () => {
   const loadUserData = async () => {
     try {
       const userToken = await AsyncStorage.getItem('jwtToken');
-      const userData = await AsyncStorage.getItem('user');
-
+      const userData = await AsyncStorage.getItem('userData');
+      console.log('userData in conversation-list:', userData);
+      console.log('userToken in conversation-list:', userToken);
       if (!userToken || !userData) {
         Alert.alert(t('common.error'), 'Please login to continue');
         navigation.goBack();
@@ -97,38 +100,242 @@ const ConversationsListScreen: React.FC = () => {
 
       setToken(userToken);
       setUser(JSON.parse(userData));
+      console.log('user data in conversation-list:', userData);
+      setUserLoaded(true); // ✅ Mark user as loaded
     } catch (error) {
       console.error('Error loading user data:', error);
       Alert.alert(t('common.error'), 'Failed to load user data');
     }
   };
 
-  // Socket connection for real-time updates
-  const { isConnected } = useChat({
-    onConversationUpdated: (data) => {
-      // Update the conversation in list
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === data.conversationId
-            ? {
-                ...conv,
-                lastMessage: data.lastMessage,
-                lastMessageAt: data.lastMessage.createdAt,
-                unreadCount: conv.unreadCount + 1,
-              }
-            : conv
-        )
-      );
+  // ✅ IMPROVED: Socket connection with better update handling
+  const handleConversationUpdated = useCallback(
+    (data: any) => {
+      console.log('=== CONVERSATION_UPDATED RECEIVED ===');
+      console.log('🔔 Conversation ID:', data.conversationId);
+      console.log('🔔 New message:', data.lastMessage.content);
+      console.log('🔔 Current user ID:', user?.id);
+
+      setConversations((prev) => {
+        console.log('📋 Current conversations:', prev.length);
+
+        const updated = prev.map((conv) => {
+          if (conv.id === data.conversationId) {
+            console.log('✅ Found conversation, updating...');
+            console.log('📝 Old message:', conv.lastMessage?.content);
+            console.log('📝 New message:', data.lastMessage.content);
+
+            const updatedConv = {
+              ...conv,
+              lastMessage: {
+                id: data.lastMessage.id,
+                content: data.lastMessage.content,
+                messageType: data.lastMessage.messageType,
+                createdAt: data.lastMessage.createdAt,
+                senderId: data.lastMessage.senderId,
+                isRead: data.lastMessage.isRead,
+              },
+              lastMessageAt: data.lastMessage.createdAt,
+              unreadCount:
+                data.lastMessage.senderId !== user?.id
+                  ? conv.unreadCount + 1
+                  : conv.unreadCount,
+            };
+
+            console.log(
+              '✅ Updated conversation:',
+              updatedConv.lastMessage?.content
+            );
+            return updatedConv;
+          }
+          return conv;
+        });
+
+        // Sort by lastMessageAt
+        const sorted = updated.sort((a, b) => {
+          const dateA = a.lastMessageAt
+            ? new Date(a.lastMessageAt).getTime()
+            : 0;
+          const dateB = b.lastMessageAt
+            ? new Date(b.lastMessageAt).getTime()
+            : 0;
+          return dateB - dateA;
+        });
+
+        console.log('✅ Returning sorted conversations');
+        return sorted;
+      });
+
+      console.log('=== CONVERSATION_UPDATED COMPLETE ===');
     },
-    onMessagesRead: (data) => {
-      // Update unread count
+    [user?.id] // ✅ Stable dependency
+  );
+
+  const handleMessagesRead = useCallback(
+    (data: { conversationId: number; readBy: number; count: number }) => {
+      console.log('📖 Messages read:', data);
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === data.conversationId ? { ...conv, unreadCount: 0 } : conv
         )
       );
     },
+    []
+  );
+
+  const handleNewMessage = useCallback(
+    (message: any) => {
+      console.log('📩 New message in list:', message.id);
+
+      setConversations((prev) => {
+        let found = false;
+        const updated = prev.map((conv) => {
+          if (conv.id === message.conversationId) {
+            found = true;
+            console.log('✅ Updating conversation with new message');
+            return {
+              ...conv,
+              lastMessage: {
+                id: message.id,
+                content: message.content,
+                messageType: message.messageType,
+                createdAt: message.createdAt,
+                senderId: message.senderId,
+                isRead: message.isRead,
+              },
+              lastMessageAt: message.createdAt,
+              unreadCount:
+                message.senderId !== user?.id
+                  ? conv.unreadCount + 1
+                  : conv.unreadCount,
+            };
+          }
+          return conv;
+        });
+
+        if (!found) {
+          console.log('⚠️ Conversation not found, fetching...');
+          upsertConversationFromServer(message.conversationId);
+        }
+
+        // Sort by lastMessageAt
+        return updated.sort((a, b) => {
+          const dateA = a.lastMessageAt
+            ? new Date(a.lastMessageAt).getTime()
+            : 0;
+          const dateB = b.lastMessageAt
+            ? new Date(b.lastMessageAt).getTime()
+            : 0;
+          return dateB - dateA;
+        });
+      });
+    },
+    [user?.id]
+  );
+
+  const handleMessageEdited = useCallback((message: any) => {
+    console.log('✏️ Message edited in list:', message.id);
+    setConversations((prev) =>
+      prev.map((conv) => {
+        if (
+          conv.id === message.conversationId &&
+          conv.lastMessage?.id === message.id
+        ) {
+          return {
+            ...conv,
+            lastMessage: conv.lastMessage
+              ? {
+                  id: conv.lastMessage.id,
+                  content: message.content,
+                  messageType: conv.lastMessage.messageType,
+                  createdAt: message.updatedAt || message.createdAt,
+                  senderId: conv.lastMessage.senderId,
+                  isRead: message.isRead,
+                }
+              : null,
+            lastMessageAt: message.updatedAt || message.createdAt,
+          };
+        }
+        return conv;
+      })
+    );
+  }, []);
+
+  const handleMessageDeleted = useCallback((data: any) => {
+    console.log('🗑️ Message deleted in list:', data.messageId);
+    setConversations((prev) =>
+      prev.map((conv) => {
+        if (
+          conv.id === data.conversationId &&
+          conv.lastMessage?.id === data.messageId
+        ) {
+          return {
+            ...conv,
+            lastMessage: conv.lastMessage
+              ? {
+                  id: conv.lastMessage.id,
+                  content: '', // Clear content for deleted message
+                  messageType: conv.lastMessage.messageType,
+                  createdAt: conv.lastMessage.createdAt,
+                  senderId: conv.lastMessage.senderId,
+                  isRead: conv.lastMessage.isRead,
+                }
+              : null,
+          };
+        }
+        return conv;
+      })
+    );
+  }, []);
+
+  const handleSocketError = useCallback((error: string) => {
+    console.error('Socket error in list:', error);
+  }, []);
+
+  // ✅ Now use the stable callbacks
+  const { isConnected } = useChat({
+    onConversationUpdated: userLoaded ? handleConversationUpdated : undefined,
+    onMessagesRead: userLoaded ? handleMessagesRead : undefined,
+    onNewMessage: userLoaded ? handleNewMessage : undefined,
+    onMessageEdited: userLoaded ? handleMessageEdited : undefined,
+    onMessageDeleted: userLoaded ? handleMessageDeleted : undefined,
+    onError: handleSocketError,
   });
+
+  // Fetch and upsert a single conversation by id
+  const upsertConversationFromServer = async (conversationId: number) => {
+    if (!token) return;
+    try {
+      const response = await fetch(
+        `${URL}/api/chat/conversations/${conversationId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setConversations((prev) => {
+            const exists = prev.some((c) => c.id === conversationId);
+            const next = exists
+              ? prev.map((c) => (c.id === conversationId ? data.data : c))
+              : [data.data, ...prev];
+            return next.sort((a, b) => {
+              const dateA = a.lastMessageAt
+                ? new Date(a.lastMessageAt).getTime()
+                : 0;
+              const dateB = b.lastMessageAt
+                ? new Date(b.lastMessageAt).getTime()
+                : 0;
+              return dateB - dateA;
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error upserting conversation:', error);
+    }
+  };
 
   // Fetch conversations
   const fetchConversations = async (
@@ -173,20 +380,20 @@ const ConversationsListScreen: React.FC = () => {
     }
   };
 
-  // Initial load
+  // Initial load - Only after user is loaded
   useEffect(() => {
-    if (user && token) {
+    if (userLoaded && user && token) {
       fetchConversations();
     }
-  }, [user, token]);
+  }, [userLoaded, user, token]);
 
   // Refresh on focus
   useFocusEffect(
     useCallback(() => {
-      if (user && token) {
+      if (userLoaded && user && token) {
         fetchConversations(1, true);
       }
-    }, [user, token])
+    }, [userLoaded, user, token])
   );
 
   // Handle refresh
@@ -219,8 +426,13 @@ const ConversationsListScreen: React.FC = () => {
   // Get display name
   const getDisplayName = (conversation: Conversation) => {
     if (isEmployer) {
+      console.log('Job seeker displaying:', conversation.jobSeeker.fullName);
       return conversation.jobSeeker.fullName;
     } else {
+      console.log(
+        'Employer displaying:',
+        conversation.employer.company?.name || conversation.employer.fullName
+      );
       return (
         conversation.employer.company?.name || conversation.employer.fullName
       );
@@ -242,6 +454,8 @@ const ConversationsListScreen: React.FC = () => {
       return t('chat.noMessages');
     }
 
+    console.log('Last message:', conversation.lastMessage);
+
     const { messageType, content, senderId } = conversation.lastMessage;
     const isOwnMessage = senderId === user?.id;
     const prefix = isOwnMessage ? `${t('chat.you')}: ` : '';
@@ -258,14 +472,20 @@ const ConversationsListScreen: React.FC = () => {
 
   // Navigate to chat
   const handleConversationPress = (conversation: Conversation) => {
-    const route = isEmployer
-      ? '/(employer)/chat/[id]'
-      : '/(user-hidden)/chat/[id]';
-
-    navigation.navigate(route, {
+    console.log('Navigating to chat with:', {
       id: conversation.id,
       name: getDisplayName(conversation),
       jobTitle: conversation.job.title,
+    });
+
+    // ✅ CORRECT: Use object format with pathname and params
+    router.push({
+      pathname: '/(shared)/chat/[id]',
+      params: {
+        id: conversation.id.toString(), // ✅ Convert to string
+        name: getDisplayName(conversation),
+        jobTitle: conversation.job.title,
+      },
     });
   };
 
@@ -282,7 +502,6 @@ const ConversationsListScreen: React.FC = () => {
         onPress={() => handleConversationPress(item)}
         activeOpacity={0.7}
       >
-        {/* Avatar */}
         <View style={styles.avatarContainer}>
           {avatar ? (
             <Image source={{ uri: avatar }} style={styles.avatar} />
@@ -293,7 +512,6 @@ const ConversationsListScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Content */}
         <View style={styles.conversationContent}>
           <View style={styles.conversationHeader}>
             <Text
@@ -361,7 +579,8 @@ const ConversationsListScreen: React.FC = () => {
     );
   };
 
-  if (loading && conversations.length === 0) {
+  // ✅ Show loading until user is loaded
+  if (!userLoaded || (loading && conversations.length === 0)) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
@@ -371,14 +590,12 @@ const ConversationsListScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Connection status */}
       {!isConnected && (
         <View style={styles.connectionBanner}>
           <Text style={styles.connectionText}>{t('chat.connecting')}</Text>
         </View>
       )}
 
-      {/* Conversations list */}
       <FlatList
         data={conversations}
         renderItem={renderConversationItem}
@@ -397,6 +614,11 @@ const ConversationsListScreen: React.FC = () => {
         contentContainerStyle={
           conversations.length === 0 ? styles.emptyList : undefined
         }
+        // ✅ Add this to prevent flickering
+        removeClippedSubviews={false}
+        // ✅ Optimize performance
+        maxToRenderPerBatch={10}
+        windowSize={10}
       />
     </View>
   );
@@ -434,16 +656,24 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginRight: 12,
-  },
-  avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
+    overflow: 'hidden', // ✅ Important for circular clipping
   },
+
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25,
+  },
+
   defaultAvatar: {
     backgroundColor: '#e5e7eb',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
   conversationContent: {
     flex: 1,

@@ -78,6 +78,7 @@ const LoginScreen: React.FC = () => {
       if (response.ok) {
         const token = data.data.token;
         await AsyncStorage.setItem('jwtToken', token);
+        await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
         console.log('user jwt token: ', token);
         const preferredLanguage = await AsyncStorage.getItem(
           'preferredLanguage'

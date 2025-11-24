@@ -16,9 +16,14 @@ import {
   shortlistApplicant, // ✅ MISSING
   rejectApplicant,
   getVerificationStatus,
-  resubmitCompany, // ✅ MISSING
+  resubmitCompany,
+  uploadVerificationDocument,
+  uploadCompanyLogo, // ✅ MISSING
 } from '../controllers/employerController';
 import authMiddleware from '../middleware/authMiddleware';
+import multer from 'multer';
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
@@ -26,6 +31,20 @@ const router = express.Router();
 // ONBOARDING ROUTES
 // ===================================================================
 
+router.post(
+  '/uploadCompanyLogo',
+  authMiddleware,
+  upload.single('logo'),
+  uploadCompanyLogo.bind(uploadCompanyLogo)
+);
+
+// ✅ Add verification document upload route
+router.post(
+  '/uploadVerificationDocument',
+  authMiddleware,
+  upload.single('document'),
+  uploadVerificationDocument.bind(uploadVerificationDocument)
+);
 /**
  * @route   POST /api/employer/company
  * @desc    Create company profile (Step 2)

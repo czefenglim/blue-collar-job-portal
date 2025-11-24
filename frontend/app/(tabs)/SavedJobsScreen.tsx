@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  Image,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -278,9 +279,18 @@ const SavedJobsScreen: React.FC = () => {
       >
         <View style={styles.jobCardHeader}>
           <View style={styles.companyLogoContainer}>
-            <Text style={styles.companyLogoText}>
-              {item.company.name.charAt(0).toUpperCase()}
-            </Text>
+            {item.company.logo ? (
+              <Image
+                source={{ uri: item.company.logo }}
+                style={styles.companyLogo}
+              />
+            ) : (
+              <View style={styles.companyLogoPlaceholder}>
+                <Text style={styles.companyLogoText}>
+                  {item.company.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
           </View>
           <View style={styles.jobHeaderInfo}>
             <Text style={styles.savedAtText}>
@@ -501,15 +511,32 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 10,
+    overflow: 'hidden', // ✅ Important for clipping
+  },
+
+  // ✅ NEW: Company logo image style
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // ✅ UPDATED: Placeholder for no logo
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
     backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   companyLogoText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+
   jobHeaderInfo: {
     flexDirection: 'row',
     alignItems: 'center',

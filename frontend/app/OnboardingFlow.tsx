@@ -131,6 +131,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeKey, setResumeKey] = useState<string | null>(null);
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -330,17 +332,20 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
   const saveUserProfile = async (profile: UserProfile, token: string) => {
     try {
-      // Create a new object that includes both profile data AND skills/languages
+      // ✅ Remove profilePicture from the payload - it's already uploaded
+      const { profilePicture, ...profileWithoutPicture } = profile;
+
       const profileWithSkillsAndLanguages = {
-        ...profile, // Spread the existing profile data
-        skills: selectedSkills, // Add skills array
-        languages: selectedLanguages, // Add languages array
+        ...profileWithoutPicture, // Don't include profilePicture
+        skills: selectedSkills,
+        languages: selectedLanguages,
       };
 
       console.log('📤 Sending data to backend:', {
         profileData: profileWithSkillsAndLanguages,
         skillsCount: selectedSkills.length,
         languagesCount: selectedLanguages.length,
+        note: 'profilePicture already uploaded to S3',
       });
 
       const response = await fetch(`${URL}/api/onboarding/saveUserProfile`, {
@@ -349,7 +354,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(profileWithSkillsAndLanguages), // Send the combined data
+        body: JSON.stringify(profileWithSkillsAndLanguages),
       });
 
       const data = await response.json();
@@ -527,11 +532,63 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.5,
+      quality: 0.8,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets[0]) {
+      // ✅ Store LOCAL URI first (don't upload yet)
       handleProfileInputChange('profilePicture', result.assets[0].uri);
+      console.log(
+        '📸 Image selected (will upload on Continue):',
+        result.assets[0].uri
+      );
+    }
+  };
+
+  // ✅ Upload profile picture to S3 (called when user clicks Continue)
+  const uploadProfilePicture = async (uri: string) => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) throw new Error('JWT token missing');
+
+      console.log('📤 Uploading profile picture to S3...');
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('profilePicture', {
+        uri,
+        type: 'image/jpeg',
+        name: 'profile.jpg',
+      } as any);
+
+      // Upload to backend
+      const response = await fetch(
+        `${URL}/api/onboarding/uploadProfilePicture`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload profile picture');
+      }
+
+      console.log(
+        '✅ Profile picture uploaded to S3:',
+        data.data.profilePicture
+      );
+
+      // ✅ Return S3 URL instead of updating state
+      return data.data.profilePicture;
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      throw error; // Re-throw to handle in handleNext
     }
   };
 
@@ -644,17 +701,56 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     if (currentStep < onboardingSteps.length - 1) {
       // Save data when moving to next step
       if (currentStep === 2) {
-        // step where profile is saved
+        // ✅ Profile step - upload image first, then save profile
         try {
-          // Retrieve token from AsyncStorage
+          setUploadingImage(true);
+
           const token = await AsyncStorage.getItem('jwtToken');
           if (!token) throw new Error('JWT token missing');
 
-          await saveUserProfile(userProfile, token);
+          let s3ProfilePictureUrl: string | undefined = undefined;
+
+          // ✅ Check if user selected a profile picture (local URI)
+          if (
+            userProfile.profilePicture &&
+            userProfile.profilePicture.startsWith('file://')
+          ) {
+            console.log(
+              '📤 Uploading profile picture before saving profile...'
+            );
+
+            // Upload to S3 and get the URL
+            s3ProfilePictureUrl = await uploadProfilePicture(
+              userProfile.profilePicture
+            );
+
+            console.log(
+              '✅ Profile picture uploaded, S3 URL:',
+              s3ProfilePictureUrl
+            );
+            Alert.alert('Success', 'Profile picture uploaded successfully!');
+          }
+
+          // ✅ Save profile with S3 URL (if uploaded) or without it
+          await saveUserProfile(
+            {
+              ...userProfile,
+              profilePicture: s3ProfilePictureUrl, // Use S3 URL or undefined
+            },
+            token
+          );
+
           console.log('Skills selected:', selectedSkills);
           console.log('Languages selected:', selectedLanguages);
-        } catch (error) {
-          Alert.alert('Error', 'Failed to save profile. Please try again.');
+
+          setUploadingImage(false);
+        } catch (error: any) {
+          setUploadingImage(false);
+          console.error('Error during profile save:', error);
+          Alert.alert(
+            'Error',
+            error.message || 'Failed to save profile. Please try again.'
+          );
           return;
         }
       }
@@ -675,29 +771,18 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         if (!validateCurrentStep()) return;
 
         try {
-          // Save resume answers first
           await saveResumeAnswers(resumeAnswers);
-
-          // Show loading
           setIsGeneratingResume(true);
 
-          // Generate resume
           const result = await generateResume();
-
-          // Extract key from URL
           setResumeKey(result.key);
 
           const resume = await fetchResumeUrl(result.key);
-
-          // Set resume URL to display
           setResumeUrl(resume.resumeUrl);
 
-          console.log('Signed URLL:', resumeUrl);
+          console.log('Signed URL:', resumeUrl);
 
-          // Hide loading
           setIsGeneratingResume(false);
-
-          // Move to next step to show PDF
           setCurrentStep(currentStep + 1);
         } catch (error) {
           setIsGeneratingResume(false);
@@ -709,7 +794,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding
       router.push('/HomeScreen');
     }
   };
@@ -855,8 +939,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           <TouchableOpacity
             style={styles.profilePictureButton}
             onPress={handlePickImage}
+            disabled={uploadingImage} // ✅ Disable during upload
           >
-            {userProfile.profilePicture ? (
+            {uploadingImage ? (
+              // ✅ Show loading spinner during upload
+              <View style={styles.profilePicturePlaceholder}>
+                <ActivityIndicator size="large" color="#1E3A8A" />
+                <Text style={styles.profilePictureLabel}>Uploading...</Text>
+              </View>
+            ) : userProfile.profilePicture ? (
               <Image
                 source={{ uri: userProfile.profilePicture }}
                 style={styles.profilePictureImage}

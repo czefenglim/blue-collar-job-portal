@@ -6,12 +6,19 @@ import {
 } from '@prisma/client';
 import { refineAnswers } from '../services/aiRefine';
 import { generateResumePDF } from '../services/generateResume';
-import { uploadResumeToS3 } from '../services/s3Service';
+import {
+  uploadResumeToS3,
+  uploadProfilePicture,
+  deleteOldFile,
+} from '../services/s3Service';
 import { getResumeSignedUrl } from '../services/s3Service';
 import { Request, Response } from 'express';
 import { geocodeAddress } from '../utils/geocoding';
+import multer from 'multer';
 
 const prisma = new PrismaClient();
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 interface UserProfile {
   fullName: string;
@@ -116,6 +123,99 @@ export class OnboardingController {
     }
   }
 
+  async uploadProfilePicture(req: any, res: any) {
+    try {
+      const userId = Number(req.user?.userId);
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Unauthorized: missing userId',
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: 'No file uploaded',
+        });
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+      ];
+      if (!allowedTypes.includes(req.file.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
+        });
+      }
+
+      // Validate file size (5MB max)
+      if (req.file.size > 5 * 1024 * 1024) {
+        return res.status(400).json({
+          success: false,
+          error: 'File size exceeds 5MB limit',
+        });
+      }
+
+      // Get existing profile to delete old picture
+      const existingProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: { profilePicture: true },
+      });
+
+      console.log(`📸 Uploading profile picture for user ${userId}`);
+
+      // Upload new picture to S3
+      const uploadResult = await uploadProfilePicture(
+        userId,
+        req.file.buffer,
+        req.file.mimetype
+      );
+
+      console.log(`✅ Profile picture uploaded to S3:`, uploadResult.url);
+
+      await prisma.userProfile.upsert({
+        where: { userId },
+        update: { profilePicture: uploadResult.key }, // ← Store key
+        create: {
+          userId,
+          profilePicture: uploadResult.key, // ← Store key
+        },
+      });
+
+      // Delete old picture if exists (async, don't wait)
+      if (
+        existingProfile?.profilePicture &&
+        existingProfile.profilePicture.includes('amazonaws.com')
+      ) {
+        deleteOldFile(existingProfile.profilePicture).catch((err) =>
+          console.error('Error deleting old profile picture:', err)
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          profilePicture: uploadResult.url,
+          key: uploadResult.key,
+        },
+        message: 'Profile picture uploaded successfully',
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to upload profile picture',
+      });
+    }
+  }
+
   // Save or update user profile
   async saveUserProfile(req: any, res: any) {
     const {
@@ -126,7 +226,7 @@ export class OnboardingController {
       city,
       state,
       postcode,
-      profilePicture,
+      // ❌ REMOVED: profilePicture - now handled separately
       preferredSalaryMin,
       preferredSalaryMax,
       availableFrom,
@@ -134,9 +234,9 @@ export class OnboardingController {
       transportMode,
       maxTravelDistance,
       experienceYears,
-      skills, // array of skill IDs
+      skills,
       certifications,
-      languages, // array of language IDs
+      languages,
     }: UserProfile = req.body;
 
     try {
@@ -155,6 +255,7 @@ export class OnboardingController {
           postcode: true,
           latitude: true,
           longitude: true,
+          profilePicture: true, // ✅ Keep existing profilePicture
         },
       });
 
@@ -195,7 +296,7 @@ export class OnboardingController {
         }
       }
 
-      // Prepare profile data with coordinates
+      // ✅ Prepare profile data WITHOUT profilePicture
       const profileData = {
         dateOfBirth,
         gender,
@@ -204,7 +305,7 @@ export class OnboardingController {
         city,
         state,
         postcode,
-        profilePicture,
+        // ❌ DO NOT update profilePicture here - it's handled by uploadProfilePicture endpoint
         preferredSalaryMin,
         preferredSalaryMax,
         availableFrom,
@@ -214,26 +315,26 @@ export class OnboardingController {
         experienceYears: experienceYears ?? undefined,
         certifications,
         profileCompleted: true,
-        // Add coordinates if geocoding was successful
         ...(coordinates && {
           latitude: coordinates.latitude,
           longitude: coordinates.longitude,
         }),
       };
 
-      // Upsert profile
+      // Upsert profile (preserve existing profilePicture)
       const profile = await prisma.userProfile.upsert({
         where: { userId },
         update: profileData,
         create: {
           userId,
           ...profileData,
+          // ✅ Keep existing profilePicture on create if user already uploaded it
+          profilePicture: existingProfile?.profilePicture,
         },
       });
 
       // Handle skills relation
       if (skills && Array.isArray(skills)) {
-        // Clear old skills, then insert new
         await prisma.userSkill.deleteMany({
           where: { userId: profile.userId },
         });
@@ -251,7 +352,6 @@ export class OnboardingController {
 
       // Handle languages relation
       if (languages && Array.isArray(languages)) {
-        // Clear old languages, then insert new
         await prisma.userLanguage.deleteMany({
           where: { userId: profile.userId },
         });
@@ -270,7 +370,7 @@ export class OnboardingController {
       res.status(200).json({
         message: 'User profile saved successfully',
         profile,
-        geocoded: coordinates !== null, // Indicate if geocoding was successful
+        geocoded: coordinates !== null,
       });
 
       console.log('Saved user profile for user:', req.user);

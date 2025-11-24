@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getSignedDownloadUrl } from '../services/s3Service';
 
 const prisma = new PrismaClient();
 
@@ -53,7 +54,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
       prisma.company.count({ where }),
     ]);
 
-    // Get review stats for all companies
+    // Get review stats and generate signed URLs for all companies
     const companiesWithStats = await Promise.all(
       companies.map(async (company) => {
         const reviewStats = await prisma.review.aggregate({
@@ -65,8 +66,23 @@ export const getAllCompanies = async (req: Request, res: Response) => {
           _count: { id: true },
         });
 
+        // ✅ Generate signed URL for company logo
+        let logoUrl = company.logo;
+        if (logoUrl) {
+          try {
+            logoUrl = await getSignedDownloadUrl(logoUrl, 3600);
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            logoUrl = null;
+          }
+        }
+
         return {
           ...company,
+          logo: logoUrl, // ✅ Replace with signed URL
           averageRating: reviewStats._avg.rating
             ? parseFloat(reviewStats._avg.rating.toFixed(1))
             : 0,
@@ -126,10 +142,22 @@ export const getCompanyById = async (req: Request, res: Response) => {
       });
     }
 
+    // ✅ Generate signed URL for company logo
+    let logoUrl = company.logo;
+    if (logoUrl) {
+      try {
+        logoUrl = await getSignedDownloadUrl(logoUrl, 3600);
+      } catch (error) {
+        console.error('Error generating signed URL for company logo:', error);
+        logoUrl = null;
+      }
+    }
+
     return res.status(200).json({
       success: true,
       data: {
         ...company,
+        logo: logoUrl, // ✅ Replace with signed URL
         averageRating: reviewStats._avg.rating
           ? parseFloat(reviewStats._avg.rating.toFixed(1))
           : 0,

@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,14 +30,19 @@ interface User {
   createdAt: string;
   company?: {
     name: string;
+    logo?: string; // ✅ Add logo field
     isVerified: boolean;
+  };
+  profile?: {
+    id: number;
+    profileCompleted: boolean;
+    profilePicture?: string; // ✅ Add profile picture field
   };
   _count: {
     applications: number;
     createdJobs: number;
   };
 }
-
 export default function AdminUsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,15 +171,32 @@ export default function AdminUsersScreen() {
     <View style={styles.userCard}>
       {/* User Header */}
       <View style={styles.userHeader}>
-        <View style={styles.userAvatar}>
-          <Text style={styles.avatarText}>
-            {item.fullName.charAt(0).toUpperCase()}
-          </Text>
+        {/* ✅ UPDATED: Show avatar based on role */}
+        <View style={styles.userAvatarContainer}>
+          {item.role === 'EMPLOYER' && item.company?.logo ? (
+            <Image
+              source={{ uri: item.company.logo }}
+              style={styles.userAvatarImage}
+            />
+          ) : item.role === 'JOB_SEEKER' && item.profile?.profilePicture ? (
+            <Image
+              source={{ uri: item.profile.profilePicture }}
+              style={styles.userAvatarImage}
+            />
+          ) : (
+            <View style={styles.userAvatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {item.fullName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
         </View>
+
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.fullName}</Text>
           <Text style={styles.userEmail}>{item.email}</Text>
         </View>
+
         <View
           style={[
             styles.statusBadge,
@@ -494,11 +517,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  userAvatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+
+  // ✅ NEW: Avatar image
+  userAvatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // ✅ UPDATED: Avatar placeholder
+  userAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   avatarText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+
   userInfo: {
     flex: 1,
   },

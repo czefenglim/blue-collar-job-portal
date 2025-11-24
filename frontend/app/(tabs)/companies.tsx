@@ -252,15 +252,20 @@ const styles = StyleSheet.create({
   },
   companyLogoContainer: {
     marginRight: 12,
-  },
-  companyLogo: {
     width: 60,
     height: 60,
     borderRadius: 10,
+    overflow: 'hidden', // ✅ Add this if not present for proper clipping
+  },
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover', // ✅ Add this if not present
   },
   companyLogoPlaceholder: {
-    width: 60,
-    height: 60,
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
     backgroundColor: '#8B5CF6',
     justifyContent: 'center',

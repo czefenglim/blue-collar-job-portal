@@ -13,6 +13,7 @@ import { geocodeAddress, calculateDistance } from '../utils/geocoding';
 import { AIJobVerificationService } from '../services/aiJobVerification';
 import { AdminAuthRequest } from '../types/admin';
 import { RecruitmentPredictionService } from '../services/recruitmentPrediction';
+import { getSignedDownloadUrl } from '../services/s3Service';
 
 const prisma = new PrismaClient();
 
@@ -39,16 +40,16 @@ export const getAllJobs = async (
       page = '1',
       limit = '20',
       lang = 'en',
-      distance, // ADD THIS
-      userLat, // ADD THIS
-      userLon, // ADD THIS
+      distance,
+      userLat,
+      userLon,
     } = req.query;
 
     const userId = req.user!.userId;
 
     const where: any = {
       isActive: true,
-      approvalStatus: 'APPROVED', // Only show approved jobs
+      approvalStatus: 'APPROVED',
     };
 
     if (keyword && typeof keyword === 'string') {
@@ -102,7 +103,7 @@ export const getAllJobs = async (
       },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: distance ? undefined : take, // Don't limit if filtering by distance
+      take: distance ? undefined : take,
     });
 
     // FILTER BY DISTANCE IF PROVIDED
@@ -117,7 +118,7 @@ export const getAllJobs = async (
 
       jobs = jobs.filter((job) => {
         if (!job.latitude || !job.longitude) {
-          return false; // Exclude jobs without coordinates
+          return false;
         }
 
         const dist = calculateDistance(
@@ -130,12 +131,36 @@ export const getAllJobs = async (
         return dist <= maxDistance;
       });
 
-      // Apply pagination after filtering
       jobs = jobs.slice(skip, skip + take);
     }
 
+    // ✅ Generate signed URLs for company logos
+    const jobsWithSignedUrls = await Promise.all(
+      jobs.map(async (job) => {
+        const jobData = { ...job };
+
+        if (jobData.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              jobData.company.logo,
+              3600
+            );
+            jobData.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            jobData.company.logo = null;
+          }
+        }
+
+        return jobData;
+      })
+    );
+
     // Map data to translated version
-    const jobsWithTranslatedFields = jobs.map((job) => {
+    const jobsWithTranslatedFields = jobsWithSignedUrls.map((job) => {
       const title = (job as any)[`title_${lang}`] || job.title;
       const description =
         (job as any)[`description_${lang}`] || job.description;
@@ -222,6 +247,22 @@ export const getJobBySlug = async (
       data: { viewCount: { increment: 1 } },
     });
 
+    // ✅ FIX: Generate signed URL and store in a variable
+    let signedLogoUrl = job.company?.logo || null;
+
+    if (job.company?.logo) {
+      try {
+        signedLogoUrl = await getSignedDownloadUrl(job.company.logo, 3600);
+        console.log(
+          '✅ Signed URL generated for job details:',
+          signedLogoUrl.substring(0, 100)
+        );
+      } catch (error) {
+        console.error('Error generating signed URL for company logo:', error);
+        signedLogoUrl = null;
+      }
+    }
+
     // 🈶 Replace with translated fields
     const jobWithTranslated = {
       ...job,
@@ -229,12 +270,23 @@ export const getJobBySlug = async (
       description: (job as any)[`description_${lang}`] || job.description,
       requirements: (job as any)[`requirements_${lang}`] || job.requirements,
       benefits: (job as any)[`benefits_${lang}`] || job.benefits,
+      company: {
+        ...job.company,
+        logo: signedLogoUrl, // ✅ Use the signed URL here
+      },
       isSaved: job.savedJobs.length > 0,
       hasApplied: job.applications.length > 0,
       applicationStatus: job.applications[0]?.status || null,
       savedJobs: undefined,
       applications: undefined,
     };
+
+    console.log('📦 Job details response:', {
+      title: jobWithTranslated.title,
+      companyName: jobWithTranslated.company.name,
+      hasLogo: !!jobWithTranslated.company.logo,
+      logoPreview: jobWithTranslated.company.logo?.substring(0, 100),
+    });
 
     res.json({ success: true, data: jobWithTranslated });
   } catch (error: any) {
@@ -344,24 +396,43 @@ export const getSavedJobs = async (
       take,
     });
 
-    // 🈶 Add translation support
-    const jobs = savedJobs.map((saved) => {
-      const job = saved.job as any;
+    // ✅ Add translation support and generate signed URLs
+    const jobs = await Promise.all(
+      savedJobs.map(async (saved) => {
+        const job = saved.job as any;
 
-      const translatedJob = {
-        ...job,
-        title: job[`title_${lang}`] || job.title,
-        description: job[`description_${lang}`] || job.description,
-        requirements: job[`requirements_${lang}`] || job.requirements,
-        benefits: job[`benefits_${lang}`] || job.benefits,
-      };
+        // Generate signed URL for company logo
+        if (job.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              job.company.logo,
+              3600
+            );
+            job.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            job.company.logo = null;
+          }
+        }
 
-      return {
-        ...translatedJob,
-        isSaved: true,
-        savedAt: saved.savedAt,
-      };
-    });
+        const translatedJob = {
+          ...job,
+          title: job[`title_${lang}`] || job.title,
+          description: job[`description_${lang}`] || job.description,
+          requirements: job[`requirements_${lang}`] || job.requirements,
+          benefits: job[`benefits_${lang}`] || job.benefits,
+        };
+
+        return {
+          ...translatedJob,
+          isSaved: true,
+          savedAt: saved.savedAt,
+        };
+      })
+    );
 
     const total = await prisma.savedJob.count({ where: { userId } });
 
@@ -689,23 +760,42 @@ export const getUserApplications = async (
       take,
     });
 
-    // 🈶 Add translation support
-    const applicationsWithTranslatedJobs = applications.map((app) => {
-      const job = app.job as any;
+    // ✅ Add translation support and generate signed URLs
+    const applicationsWithTranslatedJobs = await Promise.all(
+      applications.map(async (app) => {
+        const job = app.job as any;
 
-      const translatedJob = {
-        ...job,
-        title: job[`title_${lang}`] || job.title,
-        description: job[`description_${lang}`] || job.description,
-        requirements: job[`requirements_${lang}`] || job.requirements,
-        benefits: job[`benefits_${lang}`] || job.benefits,
-      };
+        // Generate signed URL for company logo
+        if (job.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              job.company.logo,
+              3600
+            );
+            job.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            job.company.logo = null;
+          }
+        }
 
-      return {
-        ...app,
-        job: translatedJob,
-      };
-    });
+        const translatedJob = {
+          ...job,
+          title: job[`title_${lang}`] || job.title,
+          description: job[`description_${lang}`] || job.description,
+          requirements: job[`requirements_${lang}`] || job.requirements,
+          benefits: job[`benefits_${lang}`] || job.benefits,
+        };
+
+        return {
+          ...app,
+          job: translatedJob,
+        };
+      })
+    );
 
     const total = await prisma.jobApplication.count({ where });
 
@@ -1412,6 +1502,19 @@ export const getJobById = async (req: AuthRequest, res: Response) => {
         success: false,
         message: 'Not authorized to view this job',
       });
+    }
+
+    if (job.company?.logo) {
+      try {
+        const signedLogoUrl = await getSignedDownloadUrl(
+          job.company.logo,
+          3600
+        );
+        job.company.logo = signedLogoUrl;
+      } catch (error) {
+        console.error('Error generating signed URL for company logo:', error);
+        job.company.logo = null;
+      }
     }
 
     return res.status(200).json({

@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Href } from 'expo-router';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -50,6 +51,7 @@ interface ApplicantDetail {
       experienceYears: number;
       city?: string;
       state?: string;
+      profilePicture?: string;
     };
   };
   job: {
@@ -273,6 +275,77 @@ export default function ApplicantDetailPage() {
     }
   };
 
+  const handleStartChat = async () => {
+    if (!applicant) return;
+
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) return;
+
+      // First, check if conversation exists
+      const checkResponse = await fetch(
+        `${URL}/api/chat/conversations/application/${applicant.id}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      let conversationId: number;
+
+      if (checkResponse.ok) {
+        // Conversation exists
+        const checkData = await checkResponse.json();
+        if (checkData.success && checkData.data) {
+          conversationId = checkData.data.id;
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } else if (checkResponse.status === 404) {
+        // Conversation doesn't exist, create it
+        const createResponse = await fetch(`${URL}/api/chat/conversations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ applicationId: applicant.id }),
+        });
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          throw new Error(errorData.message || 'Failed to create conversation');
+        }
+
+        const createData = await createResponse.json();
+        if (createData.success && createData.data) {
+          conversationId = createData.data.id;
+        } else {
+          throw new Error('Failed to create conversation');
+        }
+      } else {
+        throw new Error('Failed to check conversation');
+      }
+
+      // Navigate to chat with the conversation ID
+      router.push(
+        `/(shared)/chat/${conversationId}?name=${encodeURIComponent(
+          applicant.user.fullName
+        )}&jobTitle=${encodeURIComponent(applicant.job.title)}` as Href
+      );
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to start chat. Please try again.'
+      );
+    }
+  };
+
   const renderSection = (title: string, content: React.ReactNode) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -343,11 +416,18 @@ export default function ApplicantDetailPage() {
         {/* Header Card */}
         <View style={styles.headerCard}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {applicant.user.fullName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            {applicant.user.profile?.profilePicture ? (
+              <Image
+                source={{ uri: applicant.user.profile.profilePicture }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {applicant.user.fullName.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
           </View>
 
           <Text style={styles.applicantName}>{applicant.user.fullName}</Text>
@@ -405,6 +485,17 @@ export default function ApplicantDetailPage() {
 
           {/* Quick Contact */}
           <View style={styles.quickContactRow}>
+            {/* ✅ NEW: Chat Button - First position */}
+            <TouchableOpacity
+              style={[styles.quickContactButton, styles.chatContactButton]}
+              onPress={handleStartChat}
+            >
+              <Ionicons name="chatbubble" size={20} color="#10B981" />
+              <Text style={[styles.quickContactText, { color: '#10B981' }]}>
+                Chat
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.quickContactButton}
               onPress={() => handleContact('email')}
@@ -742,10 +833,22 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginBottom: 16,
-  },
-  avatar: {
     width: 80,
     height: 80,
+    borderRadius: 40,
+    overflow: 'hidden', // ✅ Important for circular clipping
+  },
+
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
+    resizeMode: 'cover',
+  },
+
+  avatar: {
+    width: '100%',
+    height: '100%',
     borderRadius: 40,
     backgroundColor: '#1E3A8A',
     justifyContent: 'center',
@@ -1048,5 +1151,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  chatContactButton: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#10B981',
   },
 });

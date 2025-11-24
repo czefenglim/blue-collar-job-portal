@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -302,9 +303,18 @@ const AppliedJobsScreen: React.FC = () => {
         >
           <View style={styles.cardHeader}>
             <View style={styles.companyLogoContainer}>
-              <Text style={styles.companyLogoText}>
-                {item.job.company.name.charAt(0).toUpperCase()}
-              </Text>
+              {item.job.company.logo ? (
+                <Image
+                  source={{ uri: item.job.company.logo }}
+                  style={styles.companyLogo}
+                />
+              ) : (
+                <View style={styles.companyLogoPlaceholder}>
+                  <Text style={styles.companyLogoText}>
+                    {item.job.company.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
             </View>
             <View style={styles.headerInfo}>
               <View
@@ -620,15 +630,32 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 10,
+    overflow: 'hidden', // ✅ Important for clipping
+  },
+
+  // ✅ NEW: Company logo image style
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // ✅ UPDATED: Placeholder for no logo
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
     backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   companyLogoText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+
   headerInfo: {
     flex: 1,
     alignItems: 'flex-end',

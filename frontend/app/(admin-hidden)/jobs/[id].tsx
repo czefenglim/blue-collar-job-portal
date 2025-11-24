@@ -13,6 +13,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -424,9 +425,18 @@ export default function AdminJobDetailsScreen() {
         <View style={styles.section}>
           <View style={styles.companyHeader}>
             <View style={styles.companyLogo}>
-              <Text style={styles.companyLogoText}>
-                {job.company.name.charAt(0).toUpperCase()}
-              </Text>
+              {job.company.logo ? (
+                <Image
+                  source={{ uri: job.company.logo }}
+                  style={styles.companyLogo}
+                />
+              ) : (
+                <View style={styles.companyLogoPlaceholder}>
+                  <Text style={styles.companyLogoText}>
+                    {job.company.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
             </View>
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>{job.company.name}</Text>
@@ -841,10 +851,17 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
+
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginRight: 12,
+  },
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
     backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
   companyLogoText: {
     fontSize: 24,

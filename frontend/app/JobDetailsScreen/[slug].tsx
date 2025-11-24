@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -354,10 +355,19 @@ const JobDetailsScreen: React.FC = () => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Job Header */}
         <View style={styles.jobHeader}>
-          <View style={styles.companyLogo}>
-            <Text style={styles.companyLogoText}>
-              {job.company.name.charAt(0).toUpperCase()}
-            </Text>
+          <View style={styles.companyLogoContainer}>
+            {job.company.logo ? (
+              <Image
+                source={{ uri: job.company.logo }}
+                style={styles.companyLogo}
+              />
+            ) : (
+              <View style={styles.companyLogoPlaceholder}>
+                <Text style={styles.companyLogoText}>
+                  {job.company.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
           </View>
           <Text style={styles.jobTitle}>{job.title}</Text>
           <Text style={styles.companyName}>{job.company.name}</Text>
@@ -610,15 +620,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
-  companyLogo: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
+
   companyLogoText: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -808,6 +810,30 @@ const styles = StyleSheet.create({
   appliedStatus: {
     fontSize: 13,
     color: '#047857',
+  },
+  // ✅ FIXED: Removed the small container style
+  companyLogoContainer: {
+    width: 80, // ✅ Changed from 48 to 80
+    height: 80, // ✅ Changed from 48 to 80
+    borderRadius: 16, // ✅ Changed from 10 to 16
+    overflow: 'hidden',
+    marginBottom: 16, // ✅ Added margin below logo
+  },
+
+  // ✅ NEW: Actual image style
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // ✅ UPDATED: Placeholder with correct size
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

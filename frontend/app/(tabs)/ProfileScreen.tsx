@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native'; // ✅ Add Image import if not already there
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -372,11 +373,20 @@ const ProfileScreen: React.FC = () => {
             style={styles.profileGradient}
           >
             <View style={styles.profileHeader}>
+              {/* ✅ UPDATED: Show profile picture or fallback to initial */}
               <View style={styles.avatarContainer}>
-                <Text style={styles.avatarText}>
-                  {userProfile.fullName.charAt(0).toUpperCase()}
-                </Text>
+                {userProfile.profile?.profilePicture ? (
+                  <Image
+                    source={{ uri: userProfile.profile.profilePicture }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>
+                    {userProfile.fullName.charAt(0).toUpperCase()}
+                  </Text>
+                )}
               </View>
+
               <View style={styles.profileInfo}>
                 <Text style={styles.userName}>{userProfile.fullName}</Text>
                 <Text style={styles.userEmail}>{userProfile.email}</Text>
@@ -879,12 +889,9 @@ const styles = StyleSheet.create({
     marginRight: 16,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+    overflow: 'hidden',
   },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
+
   profileInfo: {
     flex: 1,
   },
@@ -1167,6 +1174,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 2,
+  },
+  // ✅ ADD: New style for the avatar image
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  avatarText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
 

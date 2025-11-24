@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,6 +49,12 @@ interface JobPost {
   updatedAt: string;
   _count: {
     applications: number;
+  };
+  // ✅ Add company field
+  company: {
+    id: number;
+    name: string;
+    logo: string | null;
   };
 }
 
@@ -464,6 +471,22 @@ export default function JobPostsPage() {
         }
       >
         <View style={styles.jobCardHeader}>
+          {/* ✅ Company Logo */}
+          <View style={styles.companyLogoContainer}>
+            {item.company?.logo ? (
+              <Image
+                source={{ uri: item.company.logo }}
+                style={styles.companyLogo}
+              />
+            ) : (
+              <View style={styles.companyLogoPlaceholder}>
+                <Text style={styles.companyLogoText}>
+                  {item.company?.name?.charAt(0).toUpperCase() || '?'}
+                </Text>
+              </View>
+            )}
+          </View>
+
           <View style={{ flex: 1 }}>
             <Text style={styles.jobTitle} numberOfLines={2}>
               {item.title}
@@ -1067,6 +1090,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
+    gap: 12,
   },
   jobTitle: {
     fontSize: 16,
@@ -1463,5 +1487,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: '#7C3AED',
+  },
+  companyLogoContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1E3A8A',
+  },
+  companyLogoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

@@ -69,6 +69,9 @@ export default function EmployerOnboardingFlow() {
     review: false,
   });
 
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -203,12 +206,54 @@ export default function EmployerOnboardingFlow() {
         quality: 0.8,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets[0]) {
+        // ✅ Store LOCAL URI (upload later on Continue)
         setLogo(result.assets[0].uri);
+        console.log(
+          '📸 Logo selected (will upload on Continue):',
+          result.assets[0].uri
+        );
       }
     } catch (error) {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  // ✅ Upload logo to S3 (returns S3 URL)
+  const uploadCompanyLogo = async (uri: string) => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) throw new Error('Authentication required');
+
+      const formData = new FormData();
+      formData.append('logo', {
+        uri,
+        type: 'image/jpeg',
+        name: 'logo.jpg',
+      } as any);
+
+      console.log('📤 Uploading company logo to S3...');
+
+      const response = await fetch(`${URL}/api/employer/uploadCompanyLogo`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload logo');
+      }
+
+      console.log('✅ Company logo uploaded to S3:', data.data.logo);
+      return data.data.key; // Return S3 URL
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      throw error;
     }
   };
 
@@ -220,12 +265,61 @@ export default function EmployerOnboardingFlow() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
+        // ✅ Store LOCAL file info (upload later on Continue)
         setBusinessDocument(result.assets[0]);
-        Alert.alert('Success', 'Document uploaded successfully');
+        console.log(
+          '📄 Document selected (will upload on Continue):',
+          result.assets[0].name
+        );
+        Alert.alert('Success', 'Document selected successfully');
       }
     } catch (error) {
       console.error('Error picking document:', error);
       Alert.alert('Error', 'Failed to pick document');
+    }
+  };
+
+  // ✅ Upload verification document to S3 (returns S3 URL)
+  const uploadVerificationDocument = async (file: any): Promise<string> => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (!token) throw new Error('Authentication required');
+
+      const formData = new FormData();
+      formData.append('document', {
+        uri: file.uri,
+        type: file.mimeType || 'application/pdf',
+        name: file.name,
+      } as any);
+
+      console.log('📤 Uploading verification document to S3...');
+
+      const response = await fetch(
+        `${URL}/api/employer/uploadVerificationDocument`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload document');
+      }
+
+      console.log('✅ Verification document uploaded to S3');
+      console.log('   - S3 URL:', data.data.verificationDocument); // For display
+      console.log('   - S3 Key:', data.data.key); // For storage
+
+      // ✅ Return the KEY (not the URL)
+      return data.data.key;
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      throw error;
     }
   };
 
@@ -271,6 +365,8 @@ export default function EmployerOnboardingFlow() {
     return true;
   };
 
+  // src/screens/EmployerOnboardingFlow.tsx
+
   const handleCompanySubmit = async () => {
     if (!validateCompanyForm()) return;
 
@@ -286,26 +382,7 @@ export default function EmployerOnboardingFlow() {
         throw new Error('Authentication required');
       }
 
-      // Save temp data
-      await AsyncStorage.setItem(
-        'tempCompanyData',
-        JSON.stringify({
-          companyName,
-          industry,
-          companySize,
-          address,
-          city,
-          state,
-          postcode,
-          description,
-          phone,
-          email,
-          website,
-          logo,
-        })
-      );
-
-      // Submit - backend will determine if it's create or update based on userId
+      // ✅ STEP 1: Create/Update company FIRST (without logo)
       const response = await fetch(`${URL}/api/employer/company`, {
         method: 'POST',
         headers: {
@@ -325,7 +402,7 @@ export default function EmployerOnboardingFlow() {
           phone,
           email,
           website,
-          logo,
+          // Logo will be uploaded separately
         }),
       });
 
@@ -335,10 +412,50 @@ export default function EmployerOnboardingFlow() {
         throw new Error(data.message || 'Failed to create/update company');
       }
 
-      // Save companyId for reference
       await AsyncStorage.setItem('companyId', String(data.companyId));
 
-      // Mark step as completed
+      // ✅ STEP 2: Upload logo IMMEDIATELY AFTER company is created (if user selected one)
+      let uploadedLogoKey: string | undefined = undefined;
+
+      if (logo && logo.startsWith('file://')) {
+        setUploadingLogo(true);
+        console.log('📤 Uploading logo after creating company...');
+
+        try {
+          uploadedLogoKey = await uploadCompanyLogo(logo);
+
+          console.log('✅ Logo uploaded, key:', uploadedLogoKey);
+          Alert.alert('Success', 'Logo uploaded successfully!');
+        } catch (error) {
+          console.error('Error uploading logo:', error);
+          Alert.alert(
+            'Warning',
+            'Failed to upload logo, but you can add it later.'
+          );
+        } finally {
+          setUploadingLogo(false);
+        }
+      }
+
+      // Save temp data (use the uploaded logo key if available)
+      await AsyncStorage.setItem(
+        'tempCompanyData',
+        JSON.stringify({
+          companyName,
+          industry,
+          companySize,
+          address,
+          city,
+          state,
+          postcode,
+          description,
+          phone,
+          email,
+          website,
+          logo: uploadedLogoKey, // Store the key (or undefined)
+        })
+      );
+
       const newCompletedSteps = { ...completedSteps, company: true };
       setCompletedSteps(newCompletedSteps);
       await AsyncStorage.setItem(
@@ -358,6 +475,8 @@ export default function EmployerOnboardingFlow() {
     }
   };
 
+  // src/screens/EmployerOnboardingFlow.tsx
+
   const handleVerificationSubmit = async () => {
     if (!validateVerificationForm()) return;
 
@@ -371,15 +490,7 @@ export default function EmployerOnboardingFlow() {
         throw new Error('Authentication required');
       }
 
-      // Save temp data
-      await AsyncStorage.setItem(
-        'tempVerificationData',
-        JSON.stringify({
-          contactPhone,
-          businessEmail,
-        })
-      );
-
+      // ✅ STEP 1: Submit verification details FIRST
       const response = await fetch(`${URL}/api/employer/verification`, {
         method: 'POST',
         headers: {
@@ -390,7 +501,7 @@ export default function EmployerOnboardingFlow() {
           companyId: parseInt(companyId),
           contactPhone,
           businessEmail,
-          businessDocument: businessDocument?.uri || null,
+          // Document will be uploaded separately
         }),
       });
 
@@ -400,7 +511,41 @@ export default function EmployerOnboardingFlow() {
         throw new Error(data.message || 'Failed to submit verification');
       }
 
-      // Mark step as completed
+      // ✅ STEP 2: Upload document IMMEDIATELY AFTER (if user selected one)
+      let uploadedDocumentKey: string | undefined = undefined;
+
+      if (businessDocument && businessDocument.uri.startsWith('file://')) {
+        setUploadingDocument(true);
+        console.log('📤 Uploading verification document...');
+
+        try {
+          uploadedDocumentKey = await uploadVerificationDocument(
+            businessDocument
+          );
+
+          console.log('✅ Document uploaded, key:', uploadedDocumentKey);
+          Alert.alert('Success', 'Document uploaded successfully!');
+        } catch (error) {
+          console.error('Error uploading document:', error);
+          Alert.alert(
+            'Warning',
+            'Failed to upload document, but you can add it later.'
+          );
+        } finally {
+          setUploadingDocument(false);
+        }
+      }
+
+      // Save temp data
+      await AsyncStorage.setItem(
+        'tempVerificationData',
+        JSON.stringify({
+          contactPhone,
+          businessEmail,
+          businessDocument: uploadedDocumentKey, // Store the key
+        })
+      );
+
       const newCompletedSteps = { ...completedSteps, verification: true };
       setCompletedSteps(newCompletedSteps);
       await AsyncStorage.setItem(

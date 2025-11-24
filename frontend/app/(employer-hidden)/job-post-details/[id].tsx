@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -356,8 +357,25 @@ export default function JobDetailPage() {
 
         {/* Job Title & Company */}
         <View style={styles.section}>
-          <Text style={styles.jobTitle}>{job.title}</Text>
-          <Text style={styles.companyName}>{job.company.name}</Text>
+          <View style={styles.companyHeader}>
+            {job.company.logo ? (
+              <Image
+                source={{ uri: job.company.logo }}
+                style={styles.companyLogoLarge}
+              />
+            ) : (
+              <View style={styles.companyLogoPlaceholderLarge}>
+                <Text style={styles.companyLogoTextLarge}>
+                  {job.company.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <View style={styles.companyInfo}>
+              <Text style={styles.jobTitle}>{job.title}</Text>
+              <Text style={styles.companyName}>{job.company.name}</Text>
+            </View>
+          </View>
+
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Ionicons name="location" size={16} color="#64748B" />
@@ -880,5 +898,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#DC2626',
     fontWeight: '500',
+  },
+  companyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  companyLogoLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    resizeMode: 'cover',
+  },
+  companyLogoPlaceholderLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#1E3A8A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogoTextLarge: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  companyInfo: {
+    flex: 1,
   },
 });

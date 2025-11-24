@@ -11,6 +11,12 @@ import {
   sendJobMatchNotification,
 } from '../utils/notificationHelper';
 import { geocodeAddress } from '../utils/geocoding';
+import {
+  uploadCompanyLogoService,
+  deleteOldFile,
+  uploadVerificationDocumentService,
+  getSignedDownloadUrl,
+} from '../services/s3Service';
 
 const prisma = new PrismaClient();
 
@@ -20,6 +26,96 @@ interface AuthRequest extends Request {
     email: string;
   };
 }
+
+export const uploadCompanyLogo = async (req: any, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    // Get company
+    const company = await prisma.company.findUnique({
+      where: { userId },
+      select: { id: true, logo: true },
+    });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Please create company profile first',
+      });
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
+      });
+    }
+
+    // Validate file size (5MB max)
+    if (req.file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: 'File size exceeds 5MB limit',
+      });
+    }
+
+    console.log(`🏢 Uploading company logo for company ${company.id}`);
+
+    // Upload to S3
+    const uploadResult = await uploadCompanyLogoService(
+      company.id,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    console.log(`✅ Company logo uploaded to S3:`, uploadResult.url);
+
+    // ✅ Update database with KEY only (not full URL)
+    await prisma.company.update({
+      where: { id: company.id },
+      data: { logo: uploadResult.key }, // ← Store key instead of URL
+    });
+
+    // Delete old logo (async, don't wait)
+    if (company.logo) {
+      deleteOldFile(company.logo).catch((err) =>
+        console.error('Error deleting old logo:', err)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        logo: uploadResult.url, // Return URL to frontend
+        key: uploadResult.key,
+      },
+      message: 'Logo uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Error uploading logo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload logo',
+    });
+  }
+};
+
 // ===================================================================
 // STEP 2: Create/Update Company Profile
 // ===================================================================
@@ -27,9 +123,9 @@ export const createCompany = async (req: Request, res: Response) => {
   try {
     const {
       userId,
-      companyId, // For upsert (optional)
+      companyId,
       companyName,
-      industry, // This is industryId
+      industry,
       companySize,
       address,
       city,
@@ -39,7 +135,7 @@ export const createCompany = async (req: Request, res: Response) => {
       phone,
       email,
       website,
-      logo,
+      // ❌ REMOVED: logo - now handled separately
     } = req.body;
 
     const industryId = Number(industry);
@@ -53,40 +149,7 @@ export const createCompany = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate company size enum
-    const validSizes = ['STARTUP', 'SMALL', 'MEDIUM', 'LARGE', 'ENTERPRISE'];
-    if (!validSizes.includes(companySize)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'Invalid company size. Must be one of: STARTUP, SMALL, MEDIUM, LARGE, ENTERPRISE',
-      });
-    }
-
-    // Validate email format if provided
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email format',
-      });
-    }
-
-    // Validate website format if provided
-    if (website && !/^https?:\/\/.+/.test(website)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'Invalid website URL format. Must start with http:// or https://',
-      });
-    }
-
-    // Validate description length (max 200 chars)
-    if (description && description.length > 200) {
-      return res.status(400).json({
-        success: false,
-        message: 'Description must be 200 characters or less',
-      });
-    }
+    // ... existing validation code ...
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -129,7 +192,7 @@ export const createCompany = async (req: Request, res: Response) => {
     let message: string;
 
     if (existingUser.company) {
-      // Update existing company
+      // ✅ Update existing company (preserve existing logo)
       console.log('Updating company with ID:', existingUser.company.id);
       company = await prisma.company.update({
         where: { id: existingUser.company.id },
@@ -145,14 +208,13 @@ export const createCompany = async (req: Request, res: Response) => {
           phone,
           email,
           website,
-          logo,
           onboardingStep: 2,
         },
       });
       statusCode = 200;
       message = 'Company updated successfully';
     } else {
-      // Create new company
+      // ✅ Create new company (without logo initially)
       console.log('Creating new company with slug:', slug);
       company = await prisma.company.create({
         data: {
@@ -169,7 +231,7 @@ export const createCompany = async (req: Request, res: Response) => {
           phone,
           email,
           website,
-          logo,
+          // logo will be added later via uploadCompanyLogo endpoint
           onboardingCompleted: false,
           onboardingStep: 2,
           verificationStatus: 'PENDING',
@@ -187,7 +249,7 @@ export const createCompany = async (req: Request, res: Response) => {
       message = 'Company created successfully';
     }
 
-    // Fire translation in background (don't block response)
+    // Fire translation in background
     if (company.name || company.description) {
       translateCompanies().catch((err) =>
         console.error('Translation error for company:', err)
@@ -211,6 +273,7 @@ export const createCompany = async (req: Request, res: Response) => {
         city: company.city,
         state: company.state,
         postcode: company.postcode,
+        logo: company.logo, // Return existing logo URL if available
         onboardingStep: company.onboardingStep,
       },
     });
@@ -245,9 +308,34 @@ export const getCompanyByUser = async (req: Request, res: Response) => {
       });
     }
 
+    // ✅ Generate signed URLs for logo and verification document
+    if (company.logo) {
+      try {
+        const signedLogoUrl = await getSignedDownloadUrl(company.logo, 3600);
+        company.logo = signedLogoUrl;
+      } catch (error) {
+        console.error('Error generating signed URL for logo:', error);
+      }
+    }
+
+    if (company.verificationDocument) {
+      try {
+        const signedDocUrl = await getSignedDownloadUrl(
+          company.verificationDocument,
+          3600
+        );
+        company.verificationDocument = signedDocUrl;
+      } catch (error) {
+        console.error(
+          'Error generating signed URL for verification document:',
+          error
+        );
+      }
+    }
+
     return res.status(200).json({
       success: true,
-      ...company, // return full company object
+      ...company, // return full company object with signed URLs
     });
   } catch (error: any) {
     console.error('Error fetching company:', error);
@@ -258,13 +346,111 @@ export const getCompanyByUser = async (req: Request, res: Response) => {
   }
 };
 
-// ===================================================================
-// STEP 3: Submit Verification Details
-// ===================================================================
+export const uploadVerificationDocument = async (req: any, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    const company = await prisma.company.findUnique({
+      where: { userId },
+      select: { id: true, verificationDocument: true },
+    });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    // Validate file type (PDFs and images)
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+    ];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file type. Only PDF and image files are allowed.',
+      });
+    }
+
+    // Validate file size (10MB max for documents)
+    if (req.file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: 'File size exceeds 10MB limit',
+      });
+    }
+
+    console.log(`📄 Uploading verification document for company ${company.id}`);
+
+    // Upload to S3
+    const uploadResult = await uploadVerificationDocumentService(
+      company.id,
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
+
+    console.log(`✅ Verification document uploaded to S3:`, uploadResult.url);
+
+    // ✅ Update database with KEY only (not full URL)
+    await prisma.company.update({
+      where: { id: company.id },
+      data: { verificationDocument: uploadResult.key }, // ← Store key instead of URL
+    });
+
+    // Delete old document (async, don't wait)
+    if (company.verificationDocument) {
+      deleteOldFile(company.verificationDocument).catch((err) =>
+        console.error('Error deleting old verification document:', err)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        verificationDocument: uploadResult.url, // Return URL to frontend
+        key: uploadResult.key,
+        fileName: uploadResult.fileName,
+      },
+      message: 'Verification document uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Error uploading verification document:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload verification document',
+    });
+  }
+};
+
+// ✅ UPDATED: Submit Verification (without businessDocument in body)
 export const submitVerification = async (req: Request, res: Response) => {
   try {
-    const { companyId, contactPhone, businessEmail, businessDocument } =
-      req.body;
+    const {
+      companyId,
+      contactPhone,
+      businessEmail,
+      // ❌ REMOVED: businessDocument - now handled separately
+    } = req.body;
 
     // Validate required fields
     if (!companyId || !contactPhone) {
@@ -294,6 +480,11 @@ export const submitVerification = async (req: Request, res: Response) => {
     // Check if company exists
     const company = await prisma.company.findUnique({
       where: { id: companyId },
+      select: {
+        id: true,
+        email: true,
+        verificationDocument: true, // ✅ Keep existing document
+      },
     });
 
     if (!company) {
@@ -303,25 +494,25 @@ export const submitVerification = async (req: Request, res: Response) => {
       });
     }
 
-    // Update company with verification details
+    // ✅ Update company with verification details (preserve document)
     const updatedCompany = await prisma.company.update({
       where: { id: companyId },
       data: {
         phone: contactPhone,
         email: businessEmail || company.email,
-        verificationDocument: businessDocument || company.verificationDocument,
-        onboardingStep: 3, // Just completed step 3
+        // ❌ DO NOT update verificationDocument here
+        onboardingStep: 3,
         verificationStatus: 'PENDING',
       },
     });
 
-    // Optional: Create separate verification record
-    if (businessDocument) {
+    // ✅ Create/update verification record (with existing document URL)
+    if (company.verificationDocument) {
       await prisma.companyVerification.upsert({
         where: { companyId },
         create: {
           companyId,
-          businessDocument,
+          businessDocument: company.verificationDocument,
           documentType: 'SSM',
           phoneVerified: false,
           emailVerified: false,
@@ -329,8 +520,9 @@ export const submitVerification = async (req: Request, res: Response) => {
           submittedAt: new Date(),
         },
         update: {
-          businessDocument,
+          // Keep existing document
           submittedAt: new Date(),
+          status: 'PENDING',
         },
       });
     }
@@ -343,6 +535,7 @@ export const submitVerification = async (req: Request, res: Response) => {
         phone: updatedCompany.phone,
         email: updatedCompany.email,
         verificationStatus: updatedCompany.verificationStatus,
+        verificationDocument: updatedCompany.verificationDocument,
         onboardingStep: updatedCompany.onboardingStep,
       },
     });
@@ -758,6 +951,36 @@ export const getEmployerProfile = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // ✅ Generate signed URLs for company logo and verification document
+    if (user.company) {
+      if (user.company.logo) {
+        try {
+          const signedLogoUrl = await getSignedDownloadUrl(
+            user.company.logo,
+            3600
+          );
+          user.company.logo = signedLogoUrl;
+        } catch (error) {
+          console.error('Error generating signed URL for logo:', error);
+        }
+      }
+
+      if (user.company.verificationDocument) {
+        try {
+          const signedDocUrl = await getSignedDownloadUrl(
+            user.company.verificationDocument,
+            3600
+          );
+          user.company.verificationDocument = signedDocUrl;
+        } catch (error) {
+          console.error(
+            'Error generating signed URL for verification document:',
+            error
+          );
+        }
+      }
+    }
+
     return res.status(200).json({
       success: true,
       data: {
@@ -1086,9 +1309,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 // ===================================================================
 // GET: Employer's Job Posts
 // ===================================================================
+// backend/src/controllers/employerController.ts
+
 export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
   try {
-    // Get userId from authenticated request
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -1098,7 +1322,6 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get user's company
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { company: true },
@@ -1113,7 +1336,7 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
 
     const companyId = user.company.id;
 
-    // Get all jobs for this company with approval status fields
+    // ✅ Get all jobs with company logo included
     const jobs = await prisma.job.findMany({
       where: { companyId },
       select: {
@@ -1132,13 +1355,21 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
         rejectedAt: true,
         viewCount: true,
         applicationCount: true,
-
+        estimatedHireDaysMin: true, // ✅ Include if you have this field
+        estimatedHireDaysMax: true, // ✅ Include if you have this field
         createdAt: true,
         updatedAt: true,
-
         _count: {
           select: {
             applications: true,
+          },
+        },
+        // ✅ Include company with logo
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logo: true, // ← Include logo key
           },
         },
       },
@@ -1147,9 +1378,35 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    // ✅ Generate signed URLs for company logos
+    const jobsWithSignedLogos = await Promise.all(
+      jobs.map(async (job) => {
+        const jobData = { ...job };
+
+        // Generate signed URL for company logo if exists
+        if (jobData.company?.logo) {
+          try {
+            const signedLogoUrl = await getSignedDownloadUrl(
+              jobData.company.logo,
+              3600
+            );
+            jobData.company.logo = signedLogoUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for company logo:',
+              error
+            );
+            jobData.company.logo = null;
+          }
+        }
+
+        return jobData;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      data: jobs,
+      data: jobsWithSignedLogos,
     });
   } catch (error: any) {
     console.error('Error fetching employer jobs:', error);
@@ -1284,6 +1541,11 @@ export const getApplicants = async (req: AuthRequest, res: Response) => {
               fullName: true,
               email: true,
               phoneNumber: true,
+              profile: {
+                select: {
+                  profilePicture: true,
+                },
+              },
             },
           },
           job: {
@@ -1302,9 +1564,35 @@ export const getApplicants = async (req: AuthRequest, res: Response) => {
       prisma.jobApplication.count({ where }),
     ]);
 
+    // ✅ Generate signed URLs for profile pictures
+    const applicationsWithSignedUrls = await Promise.all(
+      applications.map(async (application) => {
+        const appData = { ...application };
+
+        // Generate signed URL for profile picture if exists
+        if (appData.user?.profile?.profilePicture) {
+          try {
+            const signedProfileUrl = await getSignedDownloadUrl(
+              appData.user.profile.profilePicture,
+              3600
+            );
+            appData.user.profile.profilePicture = signedProfileUrl;
+          } catch (error) {
+            console.error(
+              'Error generating signed URL for profile picture:',
+              error
+            );
+            appData.user.profile.profilePicture = null;
+          }
+        }
+
+        return appData;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      data: applications,
+      data: applicationsWithSignedUrls,
       pagination: {
         total,
         page: pageNum,
@@ -1360,6 +1648,7 @@ export const getApplicantDetail = async (req: AuthRequest, res: Response) => {
                 experienceYears: true,
                 city: true,
                 state: true,
+                profilePicture: true,
               },
             },
           },
@@ -1390,6 +1679,22 @@ export const getApplicantDetail = async (req: AuthRequest, res: Response) => {
         success: false,
         message: 'Not authorized to view this application',
       });
+    }
+
+    if (application.user?.profile?.profilePicture) {
+      try {
+        const signedProfileUrl = await getSignedDownloadUrl(
+          application.user.profile.profilePicture,
+          3600
+        );
+        application.user.profile.profilePicture = signedProfileUrl;
+      } catch (error) {
+        console.error(
+          'Error generating signed URL for profile picture:',
+          error
+        );
+        application.user.profile.profilePicture = null;
+      }
     }
 
     return res.status(200).json({

@@ -754,7 +754,7 @@
     "image": "Gambar",
     "file": "Fail",
     "connecting": "Menghubungkan ke chat...",
-    
+
     "typeMessage": "Tulis mesej...",
     "messageDeleted": "Pesan ini telah dihapus",
     "edited": "diedit",
@@ -763,7 +763,6 @@
     "messageOptions": "Pilihan mesej",
     "editingMessage": "Menyunting mesej",
     "deleteMessage": "Hapus Mesej",
-    
 
     "deleteConfirm": "Adakah anda pasti ingin menghapus mesej ini?",
     "attachment": "Pembantu",
@@ -780,4 +779,5 @@
     "startChat": "Mula Percakapan",
     "messageApplicant": "Pesan Pelamar",
     "continueChat": "Lanjutkan Percakapan"
+  }
 }

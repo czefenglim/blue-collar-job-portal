@@ -3,9 +3,11 @@ import express from 'express';
 import { OnboardingController } from '../controllers/onboardingController';
 import authMiddleware from '../middleware/authMiddleware';
 import { getResumeSignedUrl } from '../services/s3Service';
+import multer from 'multer';
 
 const router = express.Router();
 const onboardingController = new OnboardingController();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /api/industries
 router.get('/industries', onboardingController.getIndustries);
@@ -15,6 +17,14 @@ router.post(
   '/saveUserProfile',
   authMiddleware,
   onboardingController.saveUserProfile // No .bind()
+);
+
+// ✅ Add profile picture upload route
+router.post(
+  '/uploadProfilePicture',
+  authMiddleware,
+  upload.single('profilePicture'),
+  onboardingController.uploadProfilePicture.bind(onboardingController)
 );
 
 // Save User Industries

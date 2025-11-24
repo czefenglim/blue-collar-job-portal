@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   TextInput,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -327,11 +328,22 @@ export default function AdminJobsScreen() {
       >
         {/* Company Header */}
         <View style={styles.jobHeader}>
-          <View style={styles.companyLogo}>
-            <Text style={styles.companyLogoText}>
-              {item.company.name.charAt(0).toUpperCase()}
-            </Text>
+          {/* ✅ UPDATED: Show logo or fallback */}
+          <View style={styles.companyLogoContainer}>
+            {item.company.logo ? (
+              <Image
+                source={{ uri: item.company.logo }}
+                style={styles.companyLogo}
+              />
+            ) : (
+              <View style={styles.companyLogoPlaceholder}>
+                <Text style={styles.companyLogoText}>
+                  {item.company.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
           </View>
+
           <View style={styles.jobHeaderInfo}>
             <Text style={styles.companyName}>{item.company.name}</Text>
             {item.company.isVerified && (
@@ -676,15 +688,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  companyLogo: {
+  companyLogoContainer: {
     width: 48,
     height: 48,
     borderRadius: 10,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+
+  // ✅ NEW: Company logo image
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // ✅ UPDATED: Placeholder
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
     backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
+
   companyLogoText: {
     fontSize: 20,
     fontWeight: 'bold',
