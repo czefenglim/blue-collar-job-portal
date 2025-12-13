@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -51,6 +53,7 @@ export default function AdminDashboardScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useFocusEffect(
     useCallback(() => {
@@ -108,7 +111,7 @@ export default function AdminDashboardScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#1E3A8A" />
-        <Text style={styles.loadingText}>Loading Dashboard...</Text>
+        <Text style={styles.loadingText}>{t('adminDashboard.loading')}</Text>
       </View>
     );
   }
@@ -117,30 +120,54 @@ export default function AdminDashboardScreen() {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor="#1E3A8A"
+        />
       }
     >
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Admin Dashboard</Text>
-          <Text style={styles.headerSubtitle}>Platform Analytics</Text>
-        </View>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#EF4444" />
-        </TouchableOpacity>
+        <LinearGradient
+          colors={['#2563eb', '#1e40af']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.headerTitle}>
+                {t('adminDashboard.header.title')}
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                {t('adminDashboard.header.subtitle')}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </View>
 
       {/* Quick Navigation */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Access</Text>
+        <Text style={styles.sectionTitle}>
+          {t('adminDashboard.quickAccess.title')}
+        </Text>
         <View style={styles.quickNav}>
           <TouchableOpacity
             style={styles.navCard}
             onPress={() => router.push('/(admin)/users')}
           >
             <Ionicons name="people" size={32} color="#1E3A8A" />
-            <Text style={styles.navCardTitle}>Users</Text>
+            <Text style={styles.navCardTitle}>
+              {t('adminDashboard.quickAccess.users')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -148,7 +175,9 @@ export default function AdminDashboardScreen() {
             onPress={() => router.push('/(admin)/job-management')}
           >
             <Ionicons name="briefcase" size={32} color="#1E3A8A" />
-            <Text style={styles.navCardTitle}>Jobs</Text>
+            <Text style={styles.navCardTitle}>
+              {t('adminDashboard.quickAccess.jobs')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -156,39 +185,51 @@ export default function AdminDashboardScreen() {
             onPress={() => router.push('/(admin-hidden)/companies/page')}
           >
             <Ionicons name="business" size={32} color="#1E3A8A" />
-            <Text style={styles.navCardTitle}>Companies</Text>
+            <Text style={styles.navCardTitle}>
+              {t('adminDashboard.quickAccess.companies')}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* User Statistics */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>User Statistics</Text>
+        <Text style={styles.sectionTitle}>
+          {t('adminDashboard.userStats.title')}
+        </Text>
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { backgroundColor: '#EFF6FF' }]}>
             <Ionicons name="person" size={24} color="#1E3A8A" />
             <Text style={styles.statValue}>{analytics?.totalJobSeekers}</Text>
-            <Text style={styles.statLabel}>Job Seekers</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.userStats.jobSeekers')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#F0FDF4' }]}>
             <Ionicons name="business" size={24} color="#15803D" />
             <Text style={styles.statValue}>{analytics?.totalEmployers}</Text>
-            <Text style={styles.statLabel}>Employers</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.userStats.employers')}
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Company Statistics */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Company Management</Text>
+        <Text style={styles.sectionTitle}>
+          {t('adminDashboard.company.title')}
+        </Text>
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { backgroundColor: '#F8FAFC' }]}>
             <Ionicons name="business-outline" size={24} color="#475569" />
             <Text style={styles.statValue}>
               {analytics?.companyStats?.total || analytics?.totalEmployers || 0}
             </Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.company.total')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#F0FDF4' }]}>
@@ -196,7 +237,9 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statValue}>
               {analytics?.companyStats?.verified || 0}
             </Text>
-            <Text style={styles.statLabel}>Verified</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.company.verified')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#FFF7ED' }]}>
@@ -204,7 +247,9 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statValue}>
               {analytics?.companyStats?.pending || 0}
             </Text>
-            <Text style={styles.statLabel}>Pending</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.company.pending')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#F1F5F9' }]}>
@@ -212,7 +257,9 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statValue}>
               {analytics?.companyStats?.disabled || 0}
             </Text>
-            <Text style={styles.statLabel}>Disabled</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.company.disabled')}
+            </Text>
           </View>
         </View>
 
@@ -222,7 +269,7 @@ export default function AdminDashboardScreen() {
         >
           <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
           <Text style={styles.manageButtonText}>
-            View Trust Scores & Manage
+            {t('adminDashboard.company.manageCta')}
           </Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
@@ -230,18 +277,24 @@ export default function AdminDashboardScreen() {
 
       {/* Job Statistics */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Job Listings</Text>
+        <Text style={styles.sectionTitle}>
+          {t('adminDashboard.stats.jobs')}
+        </Text>
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { backgroundColor: '#F8FAFC' }]}>
             <Ionicons name="briefcase-outline" size={24} color="#475569" />
             <Text style={styles.statValue}>{analytics?.totalJobs.total}</Text>
-            <Text style={styles.statLabel}>Total Jobs</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.stats.totalJobs')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#FFF7ED' }]}>
             <Ionicons name="time-outline" size={24} color="#F97316" />
             <Text style={styles.statValue}>{analytics?.totalJobs.pending}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.stats.pending')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#F0FDF4' }]}>
@@ -253,7 +306,9 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statValue}>
               {analytics?.totalJobs.approved}
             </Text>
-            <Text style={styles.statLabel}>Approved</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.stats.approved')}
+            </Text>
           </View>
 
           <View style={[styles.statCard, { backgroundColor: '#FEF2F2' }]}>
@@ -261,23 +316,39 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statValue}>
               {analytics?.totalJobs.rejected}
             </Text>
-            <Text style={styles.statLabel}>Rejected</Text>
+            <Text style={styles.statLabel}>
+              {t('adminDashboard.stats.rejected')}
+            </Text>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={styles.manageButton}
+          onPress={() => router.push('/(admin)/job-statistics')}
+        >
+          <Ionicons name="stats-chart" size={20} color="#FFFFFF" />
+          <Text style={styles.manageButtonText}>View More Statistics</Text>
+          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       {/* Recent Activity */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity (Last 7 Days)</Text>
+        <Text style={styles.sectionTitle}>
+          {t('adminDashboard.recent.title')}
+        </Text>
         <View style={styles.activityCard}>
           <View style={styles.activityRow}>
             <View style={styles.activityIcon}>
               <Ionicons name="person-add" size={20} color="#1E3A8A" />
             </View>
             <View style={styles.activityContent}>
-              <Text style={styles.activityTitle}>New Users</Text>
+              <Text style={styles.activityTitle}>
+                {t('adminDashboard.recent.newUsers')}
+              </Text>
               <Text style={styles.activityValue}>
-                {analytics?.recentActivity.newUsers} registered
+                {analytics?.recentActivity.newUsers}{' '}
+                {t('adminDashboard.recent.registered')}
               </Text>
             </View>
           </View>
@@ -287,9 +358,12 @@ export default function AdminDashboardScreen() {
               <Ionicons name="briefcase-outline" size={20} color="#1E3A8A" />
             </View>
             <View style={styles.activityContent}>
-              <Text style={styles.activityTitle}>New Jobs</Text>
+              <Text style={styles.activityTitle}>
+                {t('adminDashboard.recent.newJobs')}
+              </Text>
               <Text style={styles.activityValue}>
-                {analytics?.recentActivity.newJobs} posted
+                {analytics?.recentActivity.newJobs}{' '}
+                {t('adminDashboard.recent.posted')}
               </Text>
             </View>
           </View>
@@ -303,9 +377,12 @@ export default function AdminDashboardScreen() {
               />
             </View>
             <View style={styles.activityContent}>
-              <Text style={styles.activityTitle}>Applications</Text>
+              <Text style={styles.activityTitle}>
+                {t('adminDashboard.recent.newApplications')}
+              </Text>
               <Text style={styles.activityValue}>
-                {analytics?.recentActivity.newApplications} submitted
+                {analytics?.recentActivity.newApplications}{' '}
+                {t('adminDashboard.recent.submitted')}
               </Text>
             </View>
           </View>
@@ -315,14 +392,18 @@ export default function AdminDashboardScreen() {
       {/* Review Statistics */}
       {analytics?.reviewStats && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Review Statistics</Text>
+          <Text style={styles.sectionTitle}>
+            {t('adminDashboard.reviews.title')}
+          </Text>
           <View style={styles.statsGrid}>
             <View style={[styles.statCard, { backgroundColor: '#FEF3C7' }]}>
               <Ionicons name="star" size={24} color="#F59E0B" />
               <Text style={styles.statValue}>
                 {analytics.reviewStats.totalReviews}
               </Text>
-              <Text style={styles.statLabel}>Total Reviews</Text>
+              <Text style={styles.statLabel}>
+                {t('adminDashboard.reviews.total')}
+              </Text>
             </View>
 
             <View style={[styles.statCard, { backgroundColor: '#DBEAFE' }]}>
@@ -330,7 +411,9 @@ export default function AdminDashboardScreen() {
               <Text style={styles.statValue}>
                 {analytics.reviewStats.averageRating.toFixed(1)}
               </Text>
-              <Text style={styles.statLabel}>Avg Rating</Text>
+              <Text style={styles.statLabel}>
+                {t('adminDashboard.reviews.average')}
+              </Text>
             </View>
 
             <View style={[styles.statCard, { backgroundColor: '#FEE2E2' }]}>
@@ -338,7 +421,9 @@ export default function AdminDashboardScreen() {
               <Text style={styles.statValue}>
                 {analytics.reviewStats.flaggedReviews}
               </Text>
-              <Text style={styles.statLabel}>Flagged</Text>
+              <Text style={styles.statLabel}>
+                {t('adminDashboard.reviews.flagged')}
+              </Text>
             </View>
           </View>
 
@@ -346,11 +431,25 @@ export default function AdminDashboardScreen() {
             style={styles.manageButton}
             onPress={() => router.push('/(admin-hidden)/review-moderation')}
           >
-            <Text style={styles.manageButtonText}>Manage Reviews</Text>
+            <Text style={styles.manageButtonText}>
+              {t('adminDashboard.reviews.manage')}
+            </Text>
             <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Subscription Plans Management */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Subscription Plans</Text>
+        <TouchableOpacity
+          style={styles.manageButton}
+          onPress={() => router.push('/(admin-hidden)/subscription')}
+        >
+          <Text style={styles.manageButtonText}>Manage Plans</Text>
+          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
 
       <View style={{ height: 40 }} />
     </ScrollView>
@@ -369,31 +468,53 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 16,
     color: '#64748B',
+    fontWeight: '500',
   },
   header: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   logoutButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     padding: 20,

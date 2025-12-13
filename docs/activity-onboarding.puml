@@ -1,0 +1,37 @@
+@startuml UC_Onboarding
+skinparam conditionStyle diamond
+title Activity: Job Seeker Onboarding
+
+|Job Seeker|
+start
+repeat
+  if (Skip Personal Profile?) then (no)
+    :Complete Personal Profile;
+    |System|
+    :Validate & Save Profile;
+    |Job Seeker|
+  endif
+  if (Skip Preferred Industries?) then (no)
+    :Select Preferred Industries;
+    |System|
+    :Save Preferences;
+    |Job Seeker|
+  endif
+  if (Skip Resume Generation?) then (no)
+    :Initiate Resume Generation;
+    |System|
+    :Generate Resume (AI/Template);
+    :Save Resume;
+    |Job Seeker|
+  endif
+  |System|
+  :Display Summary;
+  |Job Seeker|
+  :Review Information;
+repeat while (Edit Information?) is (yes)
+-> no;
+:Click Continue;
+|System|
+:Finalize Onboarding Status;
+stop
+@enduml

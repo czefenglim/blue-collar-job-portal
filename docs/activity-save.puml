@@ -1,0 +1,20 @@
+@startuml UC_Save
+skinparam conditionStyle diamond
+title Activity: Save Jobs
+|Job Seeker|
+start
+if (Screen?) then (Home Screen)
+  :View Job List;
+else (Job Details)
+  :View Job Details;
+endif
+:Click Save/Unsave Button;
+|System|
+if (Currently Saved?) then (yes)
+  :Remove from Saved List in DB;
+else (no)
+  :Add to Saved List in DB;
+endif
+:Update Icon State;
+stop
+@enduml

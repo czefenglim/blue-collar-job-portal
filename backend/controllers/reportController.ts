@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
+import { SupportedLang, labelEnum } from '../utils/enumLabels';
 import {
   uploadToS3,
   deleteFromS3,
@@ -138,12 +140,20 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     }
 
     // Create report
+    const d_ms = await translateText(description.trim(), 'ms');
+    const d_ta = await translateText(description.trim(), 'ta');
+    const d_zh = await translateText(description.trim(), 'zh');
+    const d_en = await translateText(description.trim(), 'en');
     const report = await prisma.report.create({
       data: {
         userId,
         jobId: parseInt(jobId),
         reportType,
         description: description.trim(),
+        description_ms: d_ms ?? undefined,
+        description_ta: d_ta ?? undefined,
+        description_zh: d_zh ?? undefined,
+        description_en: d_en ?? undefined,
         evidence: evidenceUrls.length > 0 ? JSON.stringify(evidenceUrls) : null,
       },
       include: {
@@ -329,11 +339,20 @@ export const updateReportStatus = async (
       where: { email: req.adminEmail },
     });
 
+    const rnText = reviewNotes || null;
+    const rn_ms = rnText ? await translateText(rnText, 'ms') : null;
+    const rn_ta = rnText ? await translateText(rnText, 'ta') : null;
+    const rn_zh = rnText ? await translateText(rnText, 'zh') : null;
+    const rn_en = rnText ? await translateText(rnText, 'en') : null;
     const updatedReport = await prisma.report.update({
       where: { id: parseInt(id) },
       data: {
         status,
         reviewNotes,
+        reviewNotes_ms: rn_ms ?? undefined,
+        reviewNotes_ta: rn_ta ?? undefined,
+        reviewNotes_zh: rn_zh ?? undefined,
+        reviewNotes_en: rn_en ?? undefined,
         reviewedBy: adminUser?.id || null,
         reviewedAt: new Date(),
       },
@@ -448,6 +467,7 @@ export const deleteReport = async (req: AuthRequest, res: Response) => {
 export const getAllReports = async (req: AdminAuthRequest, res: Response) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
+    const langParam: SupportedLang = (req.query.lang as SupportedLang) || 'en';
 
     const where: any = {};
     if (status) {
@@ -484,9 +504,17 @@ export const getAllReports = async (req: AdminAuthRequest, res: Response) => {
       prisma.report.count({ where }),
     ]);
 
-    // Add presigned URLs to all reports
+    // Add presigned URLs and localized labels to all reports
     const reportsWithPresignedUrls = await Promise.all(
-      reports.map((report) => addPresignedUrlsToReport(report))
+      reports.map(async (report) => {
+        const withUrls = await addPresignedUrlsToReport(report);
+        const statusLabel = labelEnum(
+          'JobReportStatus',
+          report.status,
+          langParam
+        );
+        return { ...withUrls, statusLabel };
+      })
     );
 
     return res.status(200).json({

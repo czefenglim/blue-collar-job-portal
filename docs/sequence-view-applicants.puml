@@ -1,0 +1,81 @@
+@startuml
+title Sequence: Manage Applicants
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Application Controller" as API
+participant "Notification Service" as NOTIFY
+database "Database" as DB
+
+EMP -> UI: Navigate to View Applicants Page
+activate UI
+UI -> API: Get Applicants
+activate API
+API -> DB: Query Applications
+activate DB
+DB --> API: List of Applicants
+deactivate DB
+API --> UI: Display Applicant List
+deactivate API
+
+EMP -> UI: Select Applicant
+UI -> API: Get Applicant Profile
+activate API
+API -> DB: Fetch Profile & Resume
+activate DB
+DB --> API: Applicant Details
+deactivate DB
+API --> UI: Display Profile & Resume
+deactivate API
+
+alt Standard Flow: Shortlist Applicant
+    EMP -> UI: Review Details
+    EMP -> UI: Click "Shortlist"
+    UI -> API: Update Application Status (Shortlisted)
+    activate API
+    API -> DB: Update Status
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    
+    API -> NOTIFY: Notify Job Seeker
+    activate NOTIFY
+    NOTIFY --> API: Notification Sent
+    deactivate NOTIFY
+    
+    API --> UI: Status Updated
+    deactivate API
+
+else A1: No Action
+    EMP -> UI: Review Details
+    EMP -> UI: Return to Applicant List
+    UI --> UI: Navigate to List
+
+else A2: Email / Call Applicant
+    alt Email Applicant
+        EMP -> UI: Click "Email"
+        UI -> UI: Open Email Client / Page
+    else Call Applicant
+        EMP -> UI: Click "Call"
+        UI -> UI: Open Phone Dialer / Page
+    end
+
+else A3: Reject Applicant
+    EMP -> UI: Click "Reject"
+    UI -> API: Update Application Status (Rejected)
+    activate API
+    API -> DB: Update Status
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    
+    API -> NOTIFY: Notify Job Seeker
+    activate NOTIFY
+    NOTIFY --> API: Notification Sent
+    deactivate NOTIFY
+    
+    API --> UI: Status Updated
+    deactivate API
+end
+
+deactivate UI
+@enduml

@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -29,6 +30,7 @@ export default function PendingVerificationScreen() {
   const [loading, setLoading] = useState(true);
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchCompanyStatus();
@@ -76,28 +78,27 @@ export default function PendingVerificationScreen() {
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>Verification in Progress</Text>
+        <Text style={styles.title}>{t('pendingVerification.title')}</Text>
 
         {/* Description */}
         <Text style={styles.description}>
-          Thank you for submitting your company profile! Our team is currently
-          reviewing your information.
+          {t('pendingVerification.description')}
         </Text>
 
         {/* Timeline */}
         <View style={styles.timelineCard}>
           <View style={styles.timelineItem}>
             <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-            <Text style={styles.timelineText}>Profile Submitted</Text>
+            <Text style={styles.timelineText}>{t('pendingVerification.statusSubmitted')}</Text>
           </View>
           <View style={styles.timelineItem}>
             <Ionicons name="time-outline" size={24} color="#F59E0B" />
-            <Text style={styles.timelineText}>Under Review (Current)</Text>
+            <Text style={styles.timelineText}>{t('pendingVerification.statusUnderReview')}</Text>
           </View>
           <View style={styles.timelineItem}>
             <Ionicons name="ellipse-outline" size={24} color="#CBD5E1" />
             <Text style={[styles.timelineText, { color: '#94A3B8' }]}>
-              Approval Pending
+              {t('pendingVerification.statusApprovalPending')}
             </Text>
           </View>
         </View>
@@ -106,10 +107,9 @@ export default function PendingVerificationScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color="#3B82F6" />
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.infoTitle}>Expected Review Time</Text>
+            <Text style={styles.infoTitle}>{t('pendingVerification.infoTitle')}</Text>
             <Text style={styles.infoText}>
-              Typically 1-3 business days. We'll notify you via email once the
-              review is complete.
+              {t('pendingVerification.infoText')}
             </Text>
           </View>
         </View>
@@ -117,16 +117,16 @@ export default function PendingVerificationScreen() {
         {/* Company Details */}
         {companyData && (
           <View style={styles.detailsCard}>
-            <Text style={styles.detailsTitle}>Submitted Company Details</Text>
+            <Text style={styles.detailsTitle}>{t('pendingVerification.detailsTitle')}</Text>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Company Name:</Text>
+              <Text style={styles.detailLabel}>{t('pendingVerification.companyName')}</Text>
               <Text style={styles.detailValue}>{companyData.name}</Text>
             </View>
 
             {companyData.industry && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Industry:</Text>
+                <Text style={styles.detailLabel}>{t('pendingVerification.industry')}</Text>
                 <Text style={styles.detailValue}>
                   {companyData.industry.name}
                 </Text>
@@ -135,7 +135,7 @@ export default function PendingVerificationScreen() {
 
             {companyData.city && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Location:</Text>
+                <Text style={styles.detailLabel}>{t('pendingVerification.location')}</Text>
                 <Text style={styles.detailValue}>
                   {companyData.city}, {companyData.state}
                 </Text>
@@ -143,7 +143,7 @@ export default function PendingVerificationScreen() {
             )}
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Submitted:</Text>
+              <Text style={styles.detailLabel}>{t('pendingVerification.submitted')}</Text>
               <Text style={styles.detailValue}>
                 {new Date(companyData.createdAt).toLocaleDateString()}
               </Text>
@@ -153,7 +153,7 @@ export default function PendingVerificationScreen() {
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('pendingVerification.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

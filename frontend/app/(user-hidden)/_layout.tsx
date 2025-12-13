@@ -1,8 +1,10 @@
 import { router, Stack, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function TabsLayout() {
+  const { t } = useLanguage();
   return (
     <Stack
       screenOptions={{
@@ -23,28 +25,25 @@ export default function TabsLayout() {
       <Stack.Screen
         name="report-job"
         options={{
-          title: 'Report Job',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="alert-circle" size={size} color={color} />
-          ),
+          title: t('userHiddenLayout.reportJob'),
         }}
       />
       <Stack.Screen
         name="report-history"
         options={{
-          title: 'Report History',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
-          ),
+          title: t('userHiddenLayout.reportHistory'),
         }}
       />
       <Stack.Screen
         name="companies/[id]"
         options={{
-          title: 'Company Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="business" size={size} color={color} />
-          ),
+          title: t('userHiddenLayout.companyProfile'),
+        }}
+      />
+      <Stack.Screen
+        name="update-location"
+        options={{
+          title: t('userHiddenLayout.updateLocation'),
         }}
       />
     </Stack>

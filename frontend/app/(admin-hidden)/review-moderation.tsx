@@ -19,6 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
+import VoiceTextInput from '@/components/VoiceTextInput';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -56,6 +58,7 @@ export default function ReviewModerationScreen() {
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [showModerateModal, setShowModerateModal] = useState(false);
   const [moderationNotes, setModerationNotes] = useState('');
+  const { t, currentLanguage } = useLanguage();
 
   useEffect(() => {
     fetchReviews(1);
@@ -117,29 +120,31 @@ export default function ReviewModerationScreen() {
 
       if (response.ok) {
         Alert.alert(
-          'Success',
-          `Review ${isVisible ? 'approved' : 'hidden'} successfully`
+          t('common.success'),
+          isVisible
+            ? t('reviewModeration.success.shown')
+            : t('reviewModeration.success.hidden')
         );
         setShowModerateModal(false);
         setModerationNotes('');
         setSelectedReview(null);
         fetchReviews(1);
       } else {
-        Alert.alert('Error', 'Failed to moderate review');
+        Alert.alert(t('common.error'), t('reviewModeration.errors.moderateFailed'));
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to moderate review');
+      Alert.alert(t('common.error'), t('reviewModeration.errors.moderateFailed'));
     }
   };
 
   const handleDeleteReview = async (reviewId: number) => {
     Alert.alert(
-      'Delete Review',
-      'Are you sure you want to permanently delete this review?',
+      t('reviewModeration.delete.title'),
+      t('reviewModeration.delete.confirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -159,13 +164,13 @@ export default function ReviewModerationScreen() {
               );
 
               if (response.ok) {
-                Alert.alert('Success', 'Review deleted successfully');
+                Alert.alert(t('common.success'), t('reviewModeration.success.deleted'));
                 fetchReviews(1);
               } else {
-                Alert.alert('Error', 'Failed to delete review');
+                Alert.alert(t('common.error'), t('reviewModeration.errors.deleteFailed'));
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete review');
+              Alert.alert(t('common.error'), t('reviewModeration.errors.deleteFailed'));
             }
           },
         },
@@ -212,14 +217,14 @@ export default function ReviewModerationScreen() {
         {!item.isVisible && (
           <View style={styles.flagBadge}>
             <Ionicons name="eye-off" size={12} color="#DC2626" />
-            <Text style={styles.flagBadgeText}>Hidden</Text>
+            <Text style={styles.flagBadgeText}>{t('reviewModeration.flags.hidden')}</Text>
           </View>
         )}
         {item.isFlagged && (
-          <View style={[styles.flagBadge, { backgroundColor: '#FEF3C7' }]}>
+          <View style={[styles.flagBadge, { backgroundColor: '#FEF3C7' }]}> 
             <Ionicons name="flag" size={12} color="#F59E0B" />
             <Text style={[styles.flagBadgeText, { color: '#F59E0B' }]}>
-              Flagged
+              {t('reviewModeration.flags.flagged')}
             </Text>
           </View>
         )}
@@ -249,7 +254,7 @@ export default function ReviewModerationScreen() {
       {/* Flag Reason */}
       {item.isFlagged && item.flagReason && (
         <View style={styles.flagReasonContainer}>
-          <Text style={styles.flagReasonLabel}>Flag Reason:</Text>
+          <Text style={styles.flagReasonLabel}>{t('reviewModeration.flags.reasonLabel')}</Text>
           <Text style={styles.flagReasonText}>{item.flagReason}</Text>
         </View>
       )}
@@ -257,18 +262,36 @@ export default function ReviewModerationScreen() {
       {/* Actions */}
       <View style={styles.reviewActions}>
         {item.isVisible ? (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.hideButton]}
-            onPress={() => {
-              setSelectedReview(item);
-              setShowModerateModal(true);
-            }}
-          >
-            <Ionicons name="eye-off-outline" size={16} color="#DC2626" />
-            <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>
-              Hide
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.hideButton]}
+              onPress={() => {
+                setSelectedReview(item);
+                setShowModerateModal(true);
+              }}
+            >
+              <Ionicons name="eye-off-outline" size={16} color="#DC2626" />
+              <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>
+                {t('reviewModeration.actions.hide')}
+              </Text>
+            </TouchableOpacity>
+
+            {item.isFlagged && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.dismissButton]}
+                onPress={() => handleModerateReview(item.id, true)}
+              >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={16}
+                  color="#059669"
+                />
+                <Text style={[styles.actionButtonText, { color: '#059669' }]}>
+                  {t('reviewModeration.actions.dismissFlag')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         ) : (
           <TouchableOpacity
             style={[styles.actionButton, styles.approveButton]}
@@ -276,7 +299,7 @@ export default function ReviewModerationScreen() {
           >
             <Ionicons name="eye-outline" size={16} color="#10B981" />
             <Text style={[styles.actionButtonText, { color: '#10B981' }]}>
-              Show
+              {t('reviewModeration.actions.show')}
             </Text>
           </TouchableOpacity>
         )}
@@ -286,7 +309,7 @@ export default function ReviewModerationScreen() {
         >
           <Ionicons name="trash-outline" size={16} color="#EF4444" />
           <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
-            Delete
+            {t('common.delete')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -308,12 +331,21 @@ export default function ReviewModerationScreen() {
       {/* Search */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#64748B" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search company or user..."
-          placeholderTextColor="#94A3B8"
+        <VoiceTextInput
+          style={styles.voiceInputContainer}
+          inputStyle={styles.voiceInput}
+          placeholder={t('reviewModeration.search.placeholder')}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          language={
+            currentLanguage === 'zh'
+              ? 'zh-CN'
+              : currentLanguage === 'ms'
+              ? 'ms-MY'
+              : currentLanguage === 'ta'
+              ? 'ta-IN'
+              : 'en-US'
+          }
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -339,7 +371,7 @@ export default function ReviewModerationScreen() {
                 filterRating === null && styles.filterChipTextActive,
               ]}
             >
-              All Ratings
+              {t('reviewModeration.filters.allRatings')}
             </Text>
           </TouchableOpacity>
           {[5, 4, 3, 2, 1].map((rating) => (
@@ -390,7 +422,7 @@ export default function ReviewModerationScreen() {
                 filterVisibility === 'hidden' && styles.filterChipTextActive,
               ]}
             >
-              Hidden
+              {t('reviewModeration.filters.hidden')}
             </Text>
           </TouchableOpacity>
 
@@ -413,7 +445,7 @@ export default function ReviewModerationScreen() {
                 filterFlagged && styles.filterChipTextActive,
               ]}
             >
-              Flagged
+              {t('reviewModeration.filters.flagged')}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -442,7 +474,7 @@ export default function ReviewModerationScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="chatbubbles-outline" size={64} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No reviews found</Text>
+            <Text style={styles.emptyText}>{t('reviewModeration.empty.title')}</Text>
           </View>
         }
       />
@@ -471,7 +503,7 @@ export default function ReviewModerationScreen() {
             >
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Hide Review</Text>
+                  <Text style={styles.modalTitle}>{t('reviewModeration.modal.titleHide')}</Text>
                   <TouchableOpacity onPress={() => setShowModerateModal(false)}>
                     <Ionicons name="close" size={24} color="#64748B" />
                   </TouchableOpacity>
@@ -483,14 +515,13 @@ export default function ReviewModerationScreen() {
                   style={styles.modalScrollView}
                 >
                   <Text style={styles.modalDescription}>
-                    This review will be hidden from public view. You can provide
-                    notes for your records.
+                    {t('reviewModeration.modal.descriptionHide')}
                   </Text>
 
-                  <Text style={styles.inputLabel}>Admin Notes (Optional)</Text>
+                  <Text style={styles.inputLabel}>{t('reviewModeration.modal.notesLabelOptional')}</Text>
                   <TextInput
                     style={styles.notesInput}
-                    placeholder="Add notes about this moderation action..."
+                    placeholder={t('reviewModeration.modal.notesPlaceholder')}
                     placeholderTextColor="#94A3B8"
                     value={moderationNotes}
                     onChangeText={setModerationNotes}
@@ -505,7 +536,7 @@ export default function ReviewModerationScreen() {
                     style={styles.modalCancelButton}
                     onPress={() => setShowModerateModal(false)}
                   >
-                    <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                    <Text style={styles.modalCancelButtonText}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.modalConfirmButton}
@@ -515,7 +546,7 @@ export default function ReviewModerationScreen() {
                     }
                   >
                     <Text style={styles.modalConfirmButtonText}>
-                      Hide Review
+                      {t('reviewModeration.modal.confirmHide')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -568,6 +599,17 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     minHeight: 48,
     gap: 8,
+  },
+  voiceInputContainer: {
+    flex: 1,
+  },
+  voiceInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E293B',
+    backgroundColor: 'transparent',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   searchInput: {
     flex: 1,
@@ -718,6 +760,9 @@ const styles = StyleSheet.create({
   },
   hideButton: {
     backgroundColor: '#FEE2E2',
+  },
+  dismissButton: {
+    backgroundColor: '#D1FAE5',
   },
   approveButton: {
     backgroundColor: '#D1FAE5',

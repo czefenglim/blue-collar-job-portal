@@ -1,0 +1,22 @@
+@startuml
+title Sequence: Edit Profile
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "User Controller" as API
+database "Database" as DB
+
+JS -> UI: Click Edit Profile
+activate UI
+UI --> JS: Show Edit Forms
+JS -> UI: Update Info & Click Save
+UI -> API: Update Profile
+activate API
+API -> DB: Save Changes
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Success Message
+deactivate API
+deactivate UI
+@enduml
+

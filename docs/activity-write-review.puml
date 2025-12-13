@@ -1,0 +1,29 @@
+@startuml UC_WriteReview
+skinparam conditionStyle diamond
+title Activity: Write Company Review
+|Job Seeker|
+start
+:Click "Company" on Nav Bar;
+:View Company List;
+if (Search needed?) then (yes)
+  :Search Company Keyword;
+endif
+:Select Company;
+:Click "Write Review";
+:Rate (1-5 Stars);
+if (Add Title?) then (yes)
+  :Input Review Title;
+endif
+if (Add Content?) then (yes)
+  :Input Review Content;
+endif
+if (Post Anonymously?) then (yes)
+  :Check "Post Anonymously";
+endif
+:Click Submit;
+|System|
+:Save Review to DB;
+:Show Success Message;
+stop
+@enduml
+

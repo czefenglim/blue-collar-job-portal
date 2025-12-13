@@ -18,7 +18,7 @@ export const sendChatStartedNotification = async (
     `New Message from ${companyName} 💬`,
     `${employerName} wants to discuss your application for ${jobTitle}`,
     NotificationType.NEW_MESSAGE,
-    `/(user-hidden)/chat/${conversationId}`,
+    `/(shared)/chat/${conversationId}`,
     { conversationId, employerName, companyName, jobTitle }
   );
 };
@@ -44,7 +44,7 @@ export const sendNewChatMessageToJobSeeker = async (
     `Message from ${companyName} 💬`,
     preview,
     NotificationType.NEW_MESSAGE,
-    `/(user-hidden)/chat/${conversationId}`,
+    `/(shared)/chat/${conversationId}`,
     { conversationId, employerName, companyName, messagePreview: preview }
   );
 };
@@ -70,7 +70,7 @@ export const sendNewChatMessageToEmployer = async (
     `Reply from ${jobSeekerName} 💬`,
     `Re: ${jobTitle} - ${preview}`,
     NotificationType.NEW_MESSAGE,
-    `/(employer)/chat/${conversationId}`,
+    `/(shared)/chat/${conversationId}`,
     { conversationId, jobSeekerName, jobTitle, messagePreview: preview }
   );
 };
@@ -94,9 +94,7 @@ export const sendAttachmentNotification = async (
     `${senderName} sent a ${attachmentLabel} 📎`,
     `Tap to view the ${attachmentLabel}`,
     NotificationType.NEW_MESSAGE,
-    isEmployerReceiver
-      ? `/(employer)/chat/${conversationId}`
-      : `/(user-hidden)/chat/${conversationId}`,
+    `/(shared)/chat/${conversationId}`,
     { conversationId, senderName, attachmentType }
   );
 };
@@ -117,8 +115,8 @@ export const sendUnreadMessagesReminder = async (
     `You have unread messages from ${senderName}`,
     NotificationType.NEW_MESSAGE,
     isEmployer
-      ? `/(employer)/chat/${conversationId}`
-      : `/(user-hidden)/chat/${conversationId}`,
+      ? `/(shared)/chat/${conversationId}`
+      : `/(shared)/chat/${conversationId}`,
     { conversationId, unreadCount, senderName }
   );
 };

@@ -19,6 +19,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { useLanguage } from '../../../../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -37,6 +38,7 @@ const AppealSubmissionScreen: React.FC = () => {
   const [showFilePicker, setShowFilePicker] = useState(false);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   const pickImage = async () => {
     try {
@@ -45,8 +47,8 @@ const AppealSubmissionScreen: React.FC = () => {
 
       if (status !== 'granted') {
         Alert.alert(
-          'Permission Required',
-          'Please grant permission to access your photos'
+          t('employerReports.appeal.permissions.photosTitle'),
+          t('employerReports.appeal.permissions.photosMessage')
         );
         return;
       }
@@ -72,7 +74,7 @@ const AppealSubmissionScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.pickImageFailed'));
     }
   };
 
@@ -97,7 +99,7 @@ const AppealSubmissionScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert('Error', 'Failed to pick document');
+      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.pickDocumentFailed'));
     }
   };
 
@@ -109,20 +111,20 @@ const AppealSubmissionScreen: React.FC = () => {
 
   const validateForm = () => {
     if (!explanation.trim()) {
-      Alert.alert('Error', 'Please provide an explanation for your appeal');
+      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.missingExplanation'));
       return false;
     }
 
     if (explanation.trim().length < 20) {
       Alert.alert(
-        'Error',
-        'Please provide a more detailed explanation (minimum 20 characters)'
+        t('employerReports.appeal.errorTitle'),
+        t('employerReports.appeal.errors.tooShortExplanation')
       );
       return false;
     }
 
     if (selectedFiles.length > 5) {
-      Alert.alert('Error', 'Maximum 5 files allowed');
+      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.maxFiles'));
       return false;
     }
 
@@ -133,15 +135,15 @@ const AppealSubmissionScreen: React.FC = () => {
     if (!validateForm()) return;
 
     Alert.alert(
-      'Submit Appeal',
-      'Are you sure you want to submit this appeal? The admin will review your explanation and evidence.',
+      t('employerReports.appeal.submitTitle'),
+      t('employerReports.appeal.submitConfirm'),
       [
         {
-          text: 'Cancel',
+          text: t('employerReports.appeal.actions.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Submit',
+          text: t('employerReports.appeal.actions.submit'),
           onPress: async () => {
             try {
               setIsSubmitting(true);
@@ -149,8 +151,8 @@ const AppealSubmissionScreen: React.FC = () => {
               const token = await AsyncStorage.getItem('jwtToken');
               if (!token) {
                 Alert.alert(
-                  'Authentication Required',
-                  'Please sign in to continue'
+                  t('employerReports.appeal.auth.requiredTitle'),
+                  t('employerReports.appeal.auth.requiredMessage')
                 );
                 return;
               }
@@ -182,22 +184,22 @@ const AppealSubmissionScreen: React.FC = () => {
 
               if (response.ok) {
                 Alert.alert(
-                  'Success',
-                  'Your appeal has been submitted successfully. The admin will review it soon.',
+                  t('employerReports.appeal.success.title'),
+                  t('employerReports.appeal.success.message'),
                   [
                     {
-                      text: 'OK',
+                      text: t('employerReports.appeal.success.ok'),
                       onPress: () => router.back(),
                     },
                   ]
                 );
               } else {
                 const data = await response.json();
-                Alert.alert('Error', data.message || 'Failed to submit appeal');
+                Alert.alert(t('employerReports.appeal.errorTitle'), data.message || t('employerReports.appeal.errors.submitFailed'));
               }
             } catch (error) {
               console.error('Error submitting appeal:', error);
-              Alert.alert('Error', 'Failed to submit appeal');
+              Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.submitFailed'));
             } finally {
               setIsSubmitting(false);
             }
@@ -243,8 +245,8 @@ const AppealSubmissionScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Submit Appeal</Text>
-          <Text style={styles.headerSubtitle}>Report #{id}</Text>
+          <Text style={styles.headerTitle}>{t('employerReports.appeal.headerTitle')}</Text>
+          <Text style={styles.headerSubtitle}>{t('employerReports.appeal.headerSubtitle', { id })}</Text>
         </View>
       </View>
 
@@ -261,37 +263,25 @@ const AppealSubmissionScreen: React.FC = () => {
           <View style={styles.instructionsCard}>
             <View style={styles.instructionsHeader}>
               <Ionicons name="information-circle" size={24} color="#1E3A8A" />
-              <Text style={styles.instructionsTitle}>Appeal Guidelines</Text>
-            </View>
-            <Text style={styles.instructionsText}>
-              • Provide a detailed explanation of why you believe the admin's
-              decision was incorrect
-            </Text>
-            <Text style={styles.instructionsText}>
-              • Include any evidence that supports your case (screenshots,
-              documents, etc.)
-            </Text>
-            <Text style={styles.instructionsText}>
-              • Be respectful and professional in your explanation
-            </Text>
-            <Text style={styles.instructionsText}>
-              • The admin will review your appeal and respond within 2-3
-              business days
-            </Text>
+            <Text style={styles.instructionsTitle}>{t('employerReports.appeal.instructionsTitle')}</Text>
+          </View>
+            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline1')}</Text>
+            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline2')}</Text>
+            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline3')}</Text>
+            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline4')}</Text>
           </View>
 
           {/* Explanation Input */}
           <View style={styles.inputSection}>
             <Text style={styles.inputLabel}>
-              Explanation <Text style={styles.required}>*</Text>
+              {t('employerReports.appeal.explanationLabel')} <Text style={styles.required}>*</Text>
             </Text>
             <Text style={styles.inputHint}>
-              Explain why you believe this action should be reversed (minimum 20
-              characters)
+              {t('employerReports.appeal.explanationHint')}
             </Text>
             <TextInput
               style={styles.textArea}
-              placeholder="Enter your detailed explanation here..."
+              placeholder={t('employerReports.appeal.explanationPlaceholder')}
               placeholderTextColor="#94A3B8"
               value={explanation}
               onChangeText={setExplanation}
@@ -301,17 +291,17 @@ const AppealSubmissionScreen: React.FC = () => {
               editable={!isSubmitting}
             />
             <Text style={styles.characterCount}>
-              {explanation.length} characters (minimum 20)
+              {t('employerReports.appeal.characterCount', { count: explanation.length })}
             </Text>
           </View>
 
           {/* Evidence Section */}
           <View style={styles.inputSection}>
             <Text style={styles.inputLabel}>
-              Supporting Evidence (Optional)
+              {t('employerReports.appeal.evidenceLabel')}
             </Text>
             <Text style={styles.inputHint}>
-              Upload up to 5 files (images or PDFs) that support your appeal
+              {t('employerReports.appeal.evidenceHint')}
             </Text>
 
             {selectedFiles.length > 0 && (
@@ -330,7 +320,7 @@ const AppealSubmissionScreen: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <Ionicons name="image-outline" size={24} color="#1E3A8A" />
-                  <Text style={styles.uploadButtonText}>Add Image</Text>
+                  <Text style={styles.uploadButtonText}>{t('employerReports.appeal.addImage')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -339,7 +329,7 @@ const AppealSubmissionScreen: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <Ionicons name="document-outline" size={24} color="#1E3A8A" />
-                  <Text style={styles.uploadButtonText}>Add Document</Text>
+                  <Text style={styles.uploadButtonText}>{t('employerReports.appeal.addDocument')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -348,7 +338,7 @@ const AppealSubmissionScreen: React.FC = () => {
               <View style={styles.maxFilesWarning}>
                 <Ionicons name="alert-circle" size={16} color="#F59E0B" />
                 <Text style={styles.maxFilesText}>
-                  Maximum number of files reached (5)
+                  {t('employerReports.appeal.maxFilesReached')}
                 </Text>
               </View>
             )}
@@ -358,13 +348,9 @@ const AppealSubmissionScreen: React.FC = () => {
           <View style={styles.noteCard}>
             <View style={styles.noteHeader}>
               <Ionicons name="warning-outline" size={20} color="#F59E0B" />
-              <Text style={styles.noteTitle}>Important Note</Text>
+              <Text style={styles.noteTitle}>{t('employerReports.appeal.noteTitle')}</Text>
             </View>
-            <Text style={styles.noteText}>
-              Submitting an appeal does not guarantee that the action will be
-              reversed. The admin will carefully review your explanation and
-              evidence before making a final decision.
-            </Text>
+            <Text style={styles.noteText}>{t('employerReports.appeal.noteText')}</Text>
           </View>
 
           {/* Submit Button */}
@@ -379,12 +365,12 @@ const AppealSubmissionScreen: React.FC = () => {
             {isSubmitting ? (
               <>
                 <ActivityIndicator size="small" color="#FFFFFF" />
-                <Text style={styles.submitButtonText}>Submitting...</Text>
+                <Text style={styles.submitButtonText}>{t('employerReports.appeal.submitting')}</Text>
               </>
             ) : (
               <>
                 <Ionicons name="send" size={20} color="#FFFFFF" />
-                <Text style={styles.submitButtonText}>Submit Appeal</Text>
+                <Text style={styles.submitButtonText}>{t('employerReports.appeal.submitButton')}</Text>
               </>
             )}
           </TouchableOpacity>

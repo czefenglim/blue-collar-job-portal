@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -45,6 +46,7 @@ const EmployerReportsScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadReports();
@@ -54,12 +56,16 @@ const EmployerReportsScreen: React.FC = () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
+        Alert.alert(
+          t('employerReports.list.errors.authRequiredTitle'),
+          t('employerReports.list.errors.authRequiredMessage'),
+          [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.replace('/LoginScreen'),
           },
-        ]);
+        ]
+        );
         return;
       }
 
@@ -71,11 +77,17 @@ const EmployerReportsScreen: React.FC = () => {
         const data = await response.json();
         setReports(data.data);
       } else {
-        Alert.alert('Error', 'Failed to load reports');
+        Alert.alert(
+          t('employerReports.list.errors.title'),
+          t('employerReports.list.errors.loadFail')
+        );
       }
     } catch (error) {
       console.error('Error loading reports:', error);
-      Alert.alert('Error', 'Failed to load reports');
+      Alert.alert(
+        t('employerReports.list.errors.title'),
+        t('employerReports.list.errors.loadFail')
+      );
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -120,10 +132,10 @@ const EmployerReportsScreen: React.FC = () => {
 
   const getActionTakenText = (report: Report) => {
     if (report.job.isSuspended) {
-      return 'Job Suspended';
+      return t('employerReports.list.action.jobSuspended');
     }
     if (!report.job.isActive) {
-      return 'Job Deleted';
+      return t('employerReports.list.action.jobDeleted');
     }
     return null;
   };
@@ -185,7 +197,9 @@ const EmployerReportsScreen: React.FC = () => {
         </Text>
       </View>
 
-      <Text style={styles.reporterInfo}>Reported by {item.user.fullName}</Text>
+      <Text style={styles.reporterInfo}>
+        {t('employerReports.list.reportedBy', { name: item.user.fullName })}
+      </Text>
 
       <Text style={styles.description} numberOfLines={2}>
         {item.description}
@@ -207,7 +221,9 @@ const EmployerReportsScreen: React.FC = () => {
         {hasActiveAppeal(item) && (
           <View style={styles.appealBadge}>
             <Ionicons name="chatbox" size={14} color="#8B5CF6" />
-            <Text style={styles.appealText}>Appeal Pending</Text>
+            <Text style={styles.appealText}>
+              {t('employerReports.list.action.appealPending')}
+            </Text>
           </View>
         )}
       </View>
@@ -217,9 +233,9 @@ const EmployerReportsScreen: React.FC = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="documents-outline" size={80} color="#CBD5E1" />
-      <Text style={styles.emptyTitle}>No Reports</Text>
+      <Text style={styles.emptyTitle}>{t('employerReports.list.empty.title')}</Text>
       <Text style={styles.emptyText}>
-        There are no reports on your job postings.
+        {t('employerReports.list.empty.text')}
       </Text>
     </View>
   );
@@ -229,7 +245,7 @@ const EmployerReportsScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading reports...</Text>
+          <Text style={styles.loadingText}>{t('employerReports.list.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -240,9 +256,9 @@ const EmployerReportsScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Job Reports</Text>
+          <Text style={styles.headerTitle}>{t('employerReports.list.header.title')}</Text>
           <Text style={styles.headerSubtitle}>
-            {reports.length} {reports.length === 1 ? 'report' : 'reports'}
+            {t('employerReports.list.header.subtitle', { count: reports.length })}
           </Text>
         </View>
       </View>

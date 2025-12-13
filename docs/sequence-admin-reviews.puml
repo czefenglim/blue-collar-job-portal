@@ -1,0 +1,77 @@
+@startuml
+title Sequence: Manage Company Reviews
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+participant "Notification Service" as Notify
+
+Admin -> UI: View Reported Reviews
+activate UI
+UI -> API: Get Reported Reviews
+activate API
+API -> DB: Fetch Reports
+activate DB
+DB --> API: Reports Data
+deactivate DB
+API --> UI: Display Reported Reviews
+deactivate API
+
+Admin -> UI: Select Review & View Content
+UI -> API: Get Review Details
+activate API
+API -> DB: Fetch Review Content
+activate DB
+DB --> API: Review Content
+deactivate DB
+API --> UI: Display Content
+deactivate API
+
+alt Standard Flow: Dismiss Report 
+    Admin -> UI: Click "Dismiss Report"
+    UI -> API: Dismiss Report
+    activate API
+    API -> DB: Update Report Status (Dismissed)
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Report Dismissed
+    deactivate API
+
+else A1: Delete Review
+    Admin -> UI: Click "Delete"
+    UI --> Admin: Show Confirmation Modal
+    Admin -> UI: Click "Delete" (Confirm)
+    UI -> API: Delete Review
+    activate API
+    API -> DB: Mark Review as Deleted
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API -> Notify: Notify Author (Review Deleted)
+    activate Notify
+    Notify --> API: Sent
+    deactivate Notify
+    API --> UI: Review Deleted
+    deactivate API
+
+else A2: Hide Review
+    Admin -> UI: Click "Hide"
+    UI --> Admin: Prompt for Note
+    Admin -> UI: Enter Note & Click "Hide Review"
+    UI -> API: Hide Review (Note)
+    activate API
+    API -> DB: Mark Review as Hidden & Save Note
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API -> Notify: Notify Author (Review Hidden)
+    activate Notify
+    Notify --> API: Sent
+    deactivate Notify
+    API --> UI: Review Hidden
+    deactivate API
+end
+
+deactivate UI
+@enduml

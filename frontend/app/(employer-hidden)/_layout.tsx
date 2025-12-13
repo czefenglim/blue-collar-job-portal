@@ -2,9 +2,11 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function HiddenLayout() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <Stack
@@ -25,37 +27,38 @@ export default function HiddenLayout() {
     >
       <Stack.Screen
         name="edit-company-profile"
-        options={{ title: 'Edit Company Profile' }}
+        options={{ title: t('employerHiddenLayout.editCompanyProfile') }}
       />
       <Stack.Screen
         name="applicant-details/[id]"
-        options={{ title: 'Applicant Details' }}
+        options={{ title: t('employerHiddenLayout.applicantDetails') }}
       />
       <Stack.Screen
         name="job-post-details/[id]"
-        options={{ title: 'Job Post Details' }}
+        options={{ title: t('employerHiddenLayout.jobPostDetails') }}
       />
       <Stack.Screen
         name="job-post-details/[id]/edit"
-        options={{ title: 'Edit Job Post' }}
+        options={{ title: t('employerHiddenLayout.editJobPost') }}
       />
-      <Stack.Screen name="create-job" options={{ title: 'Create Job Post' }} />
+      <Stack.Screen name="create-job" options={{ title: t('employerHiddenLayout.createJobPost') }} />
       <Stack.Screen
         name="reports"
-        options={{ title: 'Reports For Job Post' }}
+        options={{ title: t('employerHiddenLayout.reportsForJobPost') }}
       />
       <Stack.Screen
         name="reports/[id]/page"
-        options={{ title: 'Report Details' }}
+        options={{ title: t('employerHiddenLayout.reportDetails') }}
       />
       <Stack.Screen
         name="reports/[id]/appeal"
-        options={{ title: 'Appeals For Job Post' }}
+        options={{ title: t('employerHiddenLayout.appealsForJobPost') }}
       />
       <Stack.Screen
         name="pending-verification"
-        options={{ title: 'Approval Pending' }}
+        options={{ title: t('employerHiddenLayout.approvalPending') }}
       />
+      <Stack.Screen name="reviews" options={{ title: t('employerHiddenLayout.reviewsManagement') }} />
     </Stack>
   );
 }

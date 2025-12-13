@@ -42,12 +42,84 @@
       "pickImageFailed": "Gagal memilih gambar. Sila cuba lagi.",
       "pickDocumentFailed": "Gagal memilih dokumen. Sila cuba lagi.",
       "submitFailed": "Gagal menghantar laporan. Sila cuba lagi."
+    },
+    "list": {
+      "errors": {
+        "authRequiredTitle": "Pengesahan Diperlukan",
+        "authRequiredMessage": "Sila log masuk untuk meneruskan",
+        "title": "Ralat",
+        "loadFail": "Gagal memuat laporan"
+      },
+      "header": {
+        "title": "Laporan",
+        "subtitle": "Anda mempunyai {count} laporan"
+      },
+      "loading": "Memuat laporan...",
+      "empty": {
+        "title": "Tiada Laporan",
+        "text": "Anda belum mempunyai sebarang laporan untuk iklan kerja."
+      },
+      "action": {
+        "jobSuspended": "Iklan kerja digantung",
+        "jobDeleted": "Iklan kerja dibuang",
+        "appealPending": "Rayuan sedang diproses"
+      },
+      "reportedBy": "Dilaporkan oleh {name}"
+    },
+    "details": {
+      "errors": {
+        "authRequiredTitle": "Pengesahan Diperlukan",
+        "authRequiredMessage": "Sila log masuk untuk meneruskan",
+        "title": "Ralat",
+        "loadFail": "Gagal memuat butiran laporan"
+      },
+      "loading": "Memuat butiran laporan...",
+      "notFound": "Laporan tidak ditemui",
+      "header": {
+        "title": "Butiran Laporan",
+        "subtitle": "Laporan #{id}"
+      },
+      "action": {
+        "title": "Tindakan Diambil",
+        "jobSuspended": "Iklan kerja anda telah digantung. {reason}",
+        "jobDeleted": "Iklan kerja anda telah dibuang.",
+        "appealHint": "Anda boleh menghantar rayuan jika anda percaya tindakan ini tidak tepat."
+      },
+      "sections": {
+        "status": "Status Laporan",
+        "job": "Iklan Kerja Dilaporkan",
+        "type": "Jenis Laporan",
+        "reportedBy": "Dilaporkan Oleh",
+        "description": "Penerangan Laporan",
+        "evidence": "Fail Bukti",
+        "adminReview": "Semakan Admin",
+        "appeals": "Rayuan"
+      },
+      "admin": {
+        "reviewDate": "Tarikh Semakan",
+        "notes": "Nota Admin"
+      },
+      "appeal": {
+        "title": "Rayuan #{id}",
+        "submittedOn": "Dihantar pada {date}",
+        "explanation": "Penjelasan Anda:",
+        "evidence": "Bukti Dilampirkan:",
+        "adminResponse": "Respons Admin",
+        "reviewedOn": "Disemak pada {date}",
+        "accepted": "Rayuan anda diterima. Tindakan telah dibatalkan.",
+        "rejected": "Rayuan anda ditolak. Tindakan asal dikekalkan."
+      },
+      "appealAction": {
+        "title": "Tidak bersetuju dengan keputusan ini?",
+        "text": "Anda boleh menghantar rayuan dengan penjelasan dan sebarang bukti sokongan.",
+        "submit": "Hantar Rayuan"
+      }
     }
   },
   "home": {
     "title": "Cari Kerja",
     "authRequired": "Pengesahan Diperlukan",
-    "signInToContinue": "Sila log masuk untuk teruskan",
+    "signInToContinue": "Sila log masuk untuk meneruskan",
     "loadError": "Gagal memuatkan data",
     "jobsLoadError": "Gagal memuatkan kerja",
     "jobPreferences": "Keutamaan Kerja Anda",
@@ -56,7 +128,7 @@
     "locationPlaceholder": "Lokasi...",
     "clearFilters": "Kosongkan Semua Penapis",
     "jobsFound": "{{count}} Kerja Tersedia",
-    "noJobs": "Tiada Kerja Ditemui",
+    "noJobs": "Tiada Kerja Dijumpai",
     "adjustFilters": "Cuba laraskan penapis carian anda",
     "today": "Hari ini",
     "yesterday": "Semalam",
@@ -70,11 +142,21 @@
     "filterActive": "Kerja ditapis mengikut keutamaan anda",
     "filteredResults": "Ditapis mengikut keutamaan kerja anda",
     "options": "Pilihan Kerja",
-    "selectAction": "Apa yang anda ingin lakukan?",
+    "selectAction": "Apa yang anda mahu lakukan?",
     "viewDetails": "Lihat Butiran",
     "save": "Simpan Kerja",
-    "unsave": "Nyahsimpan Kerja",
-    "reportJob": "Lapor Kerja"
+    "unsave": "Nyah-simpan Kerja",
+    "reportJob": "Laporkan Kerja",
+    "distance": "Jarak:",
+    "jobType": "Jenis Kerja",
+    "workingHours": "Waktu Bekerja",
+    "experienceLevel": "Tahap Pengalaman",
+    "location": "Lokasi",
+    "salary": "Gaji",
+    "distanceFilter": "Penapis Jarak",
+    "all": "Semua",
+    "changeLocation": "Tukar Lokasi",
+    "filteredResultsByPref": "Ditapis mengikut keutamaan kerja anda"
   },
   "selectRole": {
     "title": "Pilih Peranan Anda",
@@ -91,6 +173,8 @@
   "employerLogin": {
     "title": "Log Masuk Majikan",
     "subtitle": "Akses akaun majikan anda",
+    "appSubtitleLogin": "Log masuk untuk urus iklan kerja anda",
+    "appSubtitleRegister": "Buat akaun majikan untuk mula mengambil pekerja",
     "email": "E-mel",
     "password": "Kata Laluan",
     "phoneNumber": "Nombor Telefon",
@@ -100,10 +184,30 @@
     "registerTitle": "Buat Akaun Majikan",
     "registerSubtitle": "Mula mengambil pekerja yang berkelayakan",
     "fullName": "Nama Penuh",
+    "fullNamePlaceholder": "Masukkan nama penuh anda",
+    "phoneNumberPlaceholder": "cth., 0123456789",
+    "phoneHelp": "Sertakan kod negara (cth., +60 untuk Malaysia)",
     "confirmPassword": "Sahkan Kata Laluan",
     "createAccount": "Buat Akaun",
     "haveAccount": "Sudah ada akaun?",
-    "forgotPassword": "Lupa Kata Laluan?"
+    "forgotPassword": "Lupa Kata Laluan?",
+    "getStarted": "Mula",
+    "success": {
+      "welcomeBack": "Selamat kembali!",
+      "accountCreated": "Akaun berjaya dicipta!"
+    },
+    "errors": {
+      "loginFailedTitle": "Log Masuk Gagal",
+      "signupFailedTitle": "Pendaftaran Gagal",
+      "authFailedTryAgain": "Pengesahan gagal. Sila cuba lagi.",
+      "emailExistsLoginInstead": "Akaun dengan emel ini sudah wujud. Sila log masuk.",
+      "invalidEmailOrPassword": "Emel atau kata laluan tidak sah. Sila semak kelayakan anda."
+    },
+    "validation": {
+      "fullNameMin2": "Sila masukkan nama penuh anda (sekurang-kurangnya 2 aksara)",
+      "phoneRequired": "Sila masukkan nombor telefon anda",
+      "phoneLengthInvalidExamples": "Nombor telefon mesti antara 10 hingga 15 digit\n\nContoh:\n+60123456789\n0123456789"
+    }
   },
   "validation": {
     "error": "Ralat",
@@ -120,7 +224,31 @@
     "congratulations": "Tahniah! 🎉",
     "onboardingComplete": "Akaun majikan anda sudah sedia",
     "readyToStart": "Anda kini boleh mula mengiklankan kerja dan mencari calon yang sempurna untuk syarikat anda.",
-    "getStarted": "Mula"
+    "getStarted": "Mula",
+    "steps": {
+      "company": "Syarikat",
+      "verification": "Pengesahan",
+      "review": "Semakan",
+      "complete": "Lengkap"
+    },
+    "alerts": {
+      "permissionRequiredTitle": "Kebenaran Diperlukan",
+      "permissionRequiredMessage": "Kami memerlukan akses pustaka media untuk memuat naik logo.",
+      "stepLockedTitle": "Langkah Dikunci",
+      "stepLockedMessage": "Sila siapkan langkah semasa sebelum menavigasi ke yang ini."
+    },
+    "review": {
+      "title": "Semak Maklumat Anda",
+      "subtitle": "Langkah terakhir. Anda boleh kembali untuk mengedit langkah sebelumnya jika perlu.",
+      "importantNote": "Selepas anda melengkapkan onboarding, profil majikan anda akan dihantar untuk pengesahan. Anda boleh mula mengiklankan kerja selepas diluluskan."
+    },
+    "completeOnboarding": "Lengkapkan Onboarding",
+    "submittedForVerification": "Profil syarikat anda telah dihantar untuk pengesahan. Anda akan dimaklumkan apabila ia diluluskan.",
+    "features": {
+      "pendingVerification": "Pengesahan Tertunda",
+      "emailNotification": "Notifikasi E-mel",
+      "postJobsAfterApproval": "Iklankan Kerja Selepas Diluluskan"
+    }
   },
   "employerCompanyForm": {
     "title": "Maklumat Syarikat",
@@ -128,6 +256,7 @@
     "companyName": "Nama Syarikat",
     "industry": "Industri",
     "selectIndustry": "Pilih Industri",
+    "selectCompanySize": "Pilih Saiz Syarikat",
     "companySize": "Saiz Syarikat",
     "startup": "Permulaan (1-10 pekerja)",
     "small": "Kecil (11-50 pekerja)",
@@ -140,6 +269,7 @@
     "email": "Alamat E-mel",
     "phone": "Nombor Telefon",
     "website": "Laman Web",
+    "websitePlaceholder": "https://www.contoh.com",
     "addressInformation": "Maklumat Alamat",
     "address": "Alamat Jalan",
     "addressPlaceholder": "Masukkan alamat jalan",
@@ -151,8 +281,21 @@
     "postcodePlaceholder": "Masukkan poskod",
     "description": "Penerangan Syarikat",
     "descriptionPlaceholder": "Beritahu kami tentang syarikat, budaya dan nilai anda...",
+    "descriptionCount": "{count}/200 aksara",
     "error": "Ralat",
-    "companyCreationFailed": "Gagal mencipta syarikat. Sila cuba lagi."
+    "companyCreationFailed": "Gagal mencipta syarikat. Sila cuba lagi.",
+    "success": {
+      "logoUploaded": "Logo berjaya dimuat naik!"
+    },
+    "warnings": {
+      "logoUploadFailed": "Gagal memuat naik logo, tetapi anda boleh tambah kemudian."
+    },
+    "errors": {
+      "allFieldsRequired": "Sila isi semua medan yang diperlukan",
+      "descriptionTooLong": "Penerangan mestilah 200 aksara atau kurang",
+      "pickImageFailed": "Gagal memilih imej",
+      "createOrUpdateFailed": "Gagal mencipta/kemas kini profil syarikat"
+    }
   },
   "employerProfileForm": {
     "profileDetails": "Butiran Profil Anda",
@@ -185,7 +328,327 @@
     "select": "Pilih",
     "search": "Cari",
     "ok": "OK",
-    "done": "Selesai"
+    "done": "Selesai",
+    "selectOption": "Pilih satu pilihan"
+  },
+  "adminLogin": {
+    "headerTitle": "Log Masuk Admin",
+    "headerSubtitle": "Akses terhad untuk pengguna pentadbir sahaja",
+    "placeholders": {
+      "email": "Masukkan emel admin",
+      "password": "Masukkan kata laluan"
+    },
+    "actions": {
+      "signIn": "Log Masuk"
+    },
+    "success": {
+      "login": "Berjaya log masuk"
+    },
+    "errors": {
+      "missingCredentials": "Sila masukkan emel dan kata laluan",
+      "loginFailedTitle": "Log Masuk Gagal",
+      "invalidCredentials": "Emel atau kata laluan tidak sah",
+      "serverConnectionFailed": "Gagal menyambung ke pelayan. Sila cuba lagi."
+    },
+    "notice": {
+      "restricted": "Kawasan ini hanya untuk pentadbir yang dibenarkan."
+    }
+  },
+
+  "employerCreateJob": {
+    "validation": {
+      "titleRequired": "Tajuk kerja diperlukan",
+      "descriptionRequired": "Penerangan kerja diperlukan",
+      "industryRequired": "Sila pilih industri",
+      "jobTypeRequired": "Sila pilih jenis kerja",
+      "workingHoursRequired": "Sila pilih waktu bekerja",
+      "experienceRequired": "Sila pilih tahap pengalaman",
+      "cityRequired": "Bandar diperlukan",
+      "stateRequired": "Sila pilih negeri",
+      "minExceedsMax": "Gaji minimum tidak boleh melebihi gaji maksimum"
+    },
+    "success": {
+      "created": "Iklan kerja berjaya dicipta!"
+    },
+    "errors": {
+      "createFailed": "Gagal mencipta kerja. Sila cuba lagi."
+    },
+    "modals": {
+      "selectSkills": "Pilih Kemahiran",
+      "selectJobType": "Pilih Jenis Kerja",
+      "selectWorkingHours": "Pilih Waktu Bekerja",
+      "selectExperience": "Pilih Tahap Pengalaman",
+      "selectSalaryType": "Pilih Jenis Gaji",
+      "selectState": "Pilih Negeri"
+    },
+    "prediction": {
+      "loading": "Menjana ramalan pengambilan...",
+      "title": "Ramalan Pengambilan",
+      "message": "Anggaran masa pengambilan berdasarkan kerja di {state}",
+      "days": "Hari untuk diambil",
+      "confidence": "Keyakinan",
+      "similarJobs": "{count} kerja serupa dianalisis"
+    },
+    "salary": {
+      "title": "Analisis Gaji",
+      "percentile": { "label": "Peratusil", "value": "Teratas {percentile}%" },
+      "comparison": {
+        "yourOffer": "Tawaran anda",
+        "median": "Median",
+        "marketAverage": "Purata pasaran"
+      },
+      "stats": {
+        "vsState": "Berbanding purata negeri",
+        "vsIndustry": "Berbanding purata industri"
+      },
+      "competitiveness": {
+        "EXCELLENT": "Cemerlang",
+        "COMPETITIVE": "Berdaya saing",
+        "BELOW_AVERAGE": "Di bawah purata",
+        "LOW": "Rendah"
+      }
+    },
+    "tips": {
+      "title": "Petua Pengambilan"
+    },
+    "actions": {
+      "editDetails": "Edit Butiran"
+    },
+    "sections": {
+      "basicInfo": "Maklumat Asas",
+      "jobDetails": "Butiran Kerja",
+      "salary": "Gaji",
+      "additional": "Maklumat Tambahan"
+    },
+    "fields": {
+      "title": "Tajuk Kerja",
+      "experienceLevel": "Tahap Pengalaman",
+      "requiredSkills": "Kemahiran Diperlukan",
+      "skillsSelected": "{count} kemahiran dipilih",
+      "remoteWork": "Kerja Jarak Jauh",
+      "salaryType": "Jenis Gaji",
+      "minSalary": "Gaji Minimum (RM)",
+      "maxSalary": "Gaji Maksimum (RM)",
+      "applicationDeadline": "Tarikh Tutup Permohonan",
+      "startDate": "Tarikh Mula"
+    },
+    "placeholders": {
+      "title": "cth. Pekerja Pembinaan",
+      "description": "Terangkan kerja",
+      "requirements": "Keperluan kerja",
+      "benefits": "Faedah dan imbuhan",
+      "selectSkills": "Pilih kemahiran diperlukan",
+      "remoteQuestion": "Adakah kerja ini boleh dilakukan dari jauh?",
+      "city": "cth. Kuala Lumpur",
+      "fullAddress": "Alamat jalan (pilihan)",
+      "minSalary": "cth. 1500",
+      "maxSalary": "cth. 2500",
+      "dateOptional": "YYYY-MM-DD (pilihan)"
+    }
+  },
+  "employerJobDetails": {
+    "errors": {
+      "title": "Ralat",
+      "loadFail": "Gagal memuatkan butiran kerja",
+      "updateStatus": "Gagal mengemas kini status kerja",
+      "deleteFail": "Gagal memadam iklan kerja"
+    },
+    "status": {
+      "toggleCloseMessage": "Adakah anda mahu menutup iklan kerja ini?",
+      "toggleActivateMessage": "Adakah anda mahu mengaktifkan iklan kerja ini?",
+      "active": "Aktif",
+      "closed": "Ditutup",
+      "rejectedAi": "Iklan kerja ditolak oleh AI",
+      "pendingReview": "Iklan kerja sedang disahkan"
+    },
+    "actions": {
+      "closeTitle": "Tutup Iklan Kerja",
+      "activateTitle": "Aktifkan Iklan Kerja",
+      "cancel": "Batal",
+      "close": "Tutup",
+      "activate": "Aktifkan",
+      "edit": "Edit",
+      "delete": "Padam",
+      "copyAddress": "Salin Alamat",
+      "openInMaps": "Buka dalam Peta"
+    },
+    "success": {
+      "title": "Berjaya",
+      "activated": "Iklan kerja diaktifkan",
+      "closed": "Iklan kerja ditutup",
+      "deleted": "Iklan kerja dipadam"
+    },
+    "delete": {
+      "title": "Padam Iklan Kerja",
+      "confirm": "Tindakan ini tidak boleh diundur. Padam iklan ini?"
+    },
+    "copyAddress": {
+      "title": "Alamat Disalin",
+      "success": "Alamat berjaya disalin",
+      "error": "Gagal menyalin alamat"
+    },
+    "openMaps": {
+      "error": "Gagal membuka peta"
+    },
+    "salary": {
+      "negotiable": "Boleh dirunding",
+      "rm": "RM",
+      "from": "Daripada",
+      "upTo": "Sehingga"
+    },
+    "loading": "Memuatkan kerja...",
+    "notFound": "Kerja tidak ditemui",
+    "stats": {
+      "views": "Lihat",
+      "applications": "Permohonan"
+    },
+    "sections": {
+      "details": "Butiran Kerja",
+      "description": "Penerangan",
+      "requirements": "Keperluan",
+      "benefits": "Faedah",
+      "location": "Lokasi",
+      "dates": "Tarikh Penting"
+    },
+    "labels": {
+      "industry": "Industri",
+      "workingHours": "Waktu Bekerja",
+      "experienceLevel": "Tahap Pengalaman",
+      "salary": "Gaji",
+      "remoteAvailable": "Kerja Jarak Jauh Tersedia",
+      "applicationDeadline": "Tarikh Tutup Permohonan",
+      "expectedStartDate": "Tarikh Mula Dijangka"
+    },
+    "rejectionNotice": "Iklan kerja ini telah ditolak dan tidak dipaparkan kepada pencari kerja."
+  },
+  "employerJobEdit": {
+    "errors": {
+      "title": "Ralat",
+      "loadFail": "Gagal memuatkan butiran kerja",
+      "updateFail": "Gagal mengemas kini kerja"
+    },
+    "validation": {
+      "title": "Ralat Pengesahan",
+      "titleRequired": "Tajuk kerja diperlukan",
+      "descriptionRequired": "Penerangan kerja diperlukan",
+      "industryRequired": "Sila pilih industri",
+      "jobTypeRequired": "Sila pilih jenis kerja",
+      "workingHoursRequired": "Sila pilih waktu bekerja",
+      "experienceRequired": "Sila pilih tahap pengalaman",
+      "cityRequired": "Bandar diperlukan",
+      "stateRequired": "Sila pilih negeri",
+      "salaryMinMaxInvalid": "Gaji minimum tidak boleh melebihi gaji maksimum"
+    },
+    "submit": {
+      "title": "Kemas Kini Iklan Kerja",
+      "confirm": "Simpan perubahan untuk iklan ini?",
+      "save": "Simpan",
+      "saveChanges": "Simpan Perubahan"
+    },
+    "success": {
+      "title": "Berjaya",
+      "updated": "Iklan kerja berjaya dikemas kini!"
+    },
+    "loading": "Memuatkan...",
+    "headerTitle": "Edit Iklan Kerja",
+    "sections": {
+      "basicInfo": "Maklumat Asas",
+      "jobDetails": "Butiran Kerja",
+      "location": "Lokasi",
+      "salary": "Maklumat Gaji",
+      "additionalInfo": "Maklumat Tambahan"
+    },
+    "labels": {
+      "jobTitle": "Tajuk Kerja",
+      "industry": "Industri",
+      "description": "Penerangan",
+      "requirements": "Keperluan",
+      "benefits": "Faedah",
+      "jobType": "Jenis Kerja",
+      "workingHours": "Waktu Bekerja",
+      "experienceLevel": "Tahap Pengalaman",
+      "requiredSkills": "Kemahiran Diperlukan",
+      "skillsSelected": "{count} kemahiran dipilih",
+      "remoteWork": "Kerja Jarak Jauh",
+      "city": "Bandar",
+      "state": "Negeri",
+      "postcode": "Poskod",
+      "address": "Alamat Penuh",
+      "salaryType": "Jenis Gaji",
+      "minSalary": "Gaji Minimum (RM)",
+      "maxSalary": "Gaji Maksimum (RM)",
+      "applicationDeadline": "Tarikh Tutup Permohonan",
+      "startDate": "Tarikh Mula"
+    },
+    "placeholders": {
+      "jobTitle": "cth. Pekerja Pembinaan",
+      "selectIndustry": "Pilih industri",
+      "description": "Terangkan kerja",
+      "requirements": "Keperluan kerja",
+      "benefits": "Faedah dan imbuhan",
+      "selectJobType": "Pilih jenis kerja",
+      "selectWorkingHours": "Pilih waktu bekerja",
+      "selectExperience": "Pilih tahap pengalaman",
+      "selectSkills": "Pilih kemahiran diperlukan",
+      "city": "cth. Kuala Lumpur",
+      "selectState": "Pilih negeri",
+      "postcode": "cth. 50000",
+      "address": "Alamat jalan (pilihan)",
+      "selectSalaryType": "Pilih jenis gaji",
+      "minSalary": "cth. 1500",
+      "maxSalary": "cth. 2500",
+      "dateOptional": "YYYY-MM-DD (pilihan)"
+    },
+    "jobType": {
+      "FULL_TIME": "Sepenuh Masa",
+      "PART_TIME": "Separuh Masa",
+      "CONTRACT": "Kontrak",
+      "TEMPORARY": "Sementara",
+      "FREELANCE": "Bebas"
+    },
+    "workingHours": {
+      "DAY_SHIFT": "Syif Siang",
+      "NIGHT_SHIFT": "Syif Malam",
+      "ROTATING_SHIFT": "Syif Berpusing",
+      "FLEXIBLE": "Fleksibel",
+      "WEEKEND_ONLY": "Hujung Minggu Sahaja"
+    },
+    "experience": {
+      "ENTRY_LEVEL": "Permulaan",
+      "JUNIOR": "Junior (1-2 tahun)",
+      "MID_LEVEL": "Pertengahan (3-5 tahun)",
+      "SENIOR": "Senior (5+ tahun)",
+      "EXPERT": "Pakar (10+ tahun)"
+    },
+    "salaryType": {
+      "HOURLY": "Sejam",
+      "DAILY": "Sehari",
+      "WEEKLY": "Seminggu",
+      "MONTHLY": "Sebulan",
+      "YEARLY": "Setahun",
+      "PER_PROJECT": "Setiap Projek",
+      "hourly": "Sejam",
+      "daily": "Sehari",
+      "weekly": "Seminggu",
+      "monthly": "Sebulan",
+      "yearly": "Setahun",
+      "per_project": "Setiap Projek",
+      "annual": "Setahun",
+      "piece_rate": "Setiap Unit"
+    },
+    "hints": {
+      "remoteWork": "Adakah kerja ini boleh dilakukan dari jauh?"
+    },
+    "pickers": {
+      "selectIndustry": "Pilih Industri",
+      "selectJobType": "Pilih Jenis Kerja",
+      "selectWorkingHours": "Pilih Waktu Bekerja",
+      "selectExperience": "Pilih Tahap Pengalaman",
+      "selectSalaryType": "Pilih Jenis Gaji",
+      "selectState": "Pilih Negeri",
+      "selectSkills": "Pilih Kemahiran",
+      "done": "Selesai"
+    }
   },
   "jobDetails": {
     "title": "Butiran Kerja",
@@ -326,7 +789,7 @@
     }
   },
   "editProfile": {
-    "title": "Edit Profil",
+    "title": "Sunting Profil",
     "subtitle": "Kemas kini maklumat anda",
     "loading": "Memuatkan profil anda...",
     "authenticationRequired": "Pengesahan Diperlukan",
@@ -345,7 +808,9 @@
       "personalInfoSubtitle": "Butiran asas anda",
       "addressSubtitle": "Lokasi semasa anda",
       "jobPreferencesSubtitle": "Keperluan kerjaya anda",
-      "skillsExperienceSubtitle": "Kelayakan anda"
+      "skillsExperienceSubtitle": "Kelayakan anda",
+      "resume": "Resume",
+      "resumeSubtitle": "Urus dan kemas kini resume anda"
     },
     "placeholders": {
       "fullName": "Masukkan nama penuh anda",
@@ -371,7 +836,12 @@
       "loadFailed": "Gagal memuatkan data. Sila cuba lagi.",
       "updateFailed": "Gagal mengemas kini profil. Sila cuba lagi.",
       "fullNameRequired": "Sila masukkan nama penuh anda"
-    }
+    },
+    "viewResume": "Lihat Resume",
+    "uploadPdf": "Muat Naik PDF",
+    "regenerateAi": "Jana Semula (AI)",
+    "resumeUploaded": "Resume berjaya dimuat naik",
+    "resumeRegenerated": "Resume dijana semula"
   },
   "profile": {
     "title": "Profil Saya",
@@ -435,8 +905,10 @@
       "jobPreferences": "Keutamaan Kerja",
       "skillsExperience": "Kemahiran & Pengalaman",
       "quickActions": "Tindakan Pantas",
-      "language": "Bahasa"
+      "language": "Bahasa",
+      "reports": "Laporan"
     },
+
     "actions": {
       "savedJobs": "Kerja Disimpan",
       "myApplications": "Permohonan Saya",
@@ -541,6 +1013,39 @@
     "flexible": "Fleksibel",
     "weekendOnly": "Hujung Minggu Sahaja"
   },
+  "experienceLevels": {
+    "entryLevel": "Peringkat Permulaan",
+    "junior": "Junior (1-2 tahun)",
+    "midLevel": "Pertengahan (3-5 tahun)",
+    "senior": "Senior (5+ tahun)",
+    "expert": "Pakar (10+ tahun)"
+  },
+  "salaryTypes": {
+    "hourly": "Sejam",
+    "daily": "Sehari",
+    "weekly": "Seminggu",
+    "monthly": "Sebulan",
+    "yearly": "Setahun",
+    "perProject": "Setiap Projek"
+  },
+  "states": {
+    "Johor": "Johor",
+    "Kedah": "Kedah",
+    "Kelantan": "Kelantan",
+    "Kuala Lumpur": "Kuala Lumpur",
+    "Labuan": "Labuan",
+    "Melaka": "Melaka",
+    "Negeri Sembilan": "Negeri Sembilan",
+    "Pahang": "Pahang",
+    "Penang": "Pulau Pinang",
+    "Perak": "Perak",
+    "Perlis": "Perlis",
+    "Putrajaya": "Putrajaya",
+    "Sabah": "Sabah",
+    "Sarawak": "Sarawak",
+    "Selangor": "Selangor",
+    "Terengganu": "Terengganu"
+  },
   "signUp": {
     "appTitle": "Portal Kerja Kolar Biru",
     "appSubtitle": "Mulakan perjalanan kerjaya anda",
@@ -562,6 +1067,7 @@
     "termsOfService": "Terma Perkhidmatan",
     "and": "dan",
     "privacyPolicy": "Dasar Privasi",
+    "termsClickHint": "Ketik terma untuk baca dan setuju",
     "createAccountButton": "Buat Akaun",
     "creatingAccount": "Mencipta Akaun...",
     "or": "ATAU",
@@ -586,6 +1092,20 @@
       "title": "Berjaya!",
       "message": "Akaun berjaya dicipta. Selamat datang ke Kerja Kolar Biru!",
       "continue": "Teruskan"
+    }
+  },
+  "terms": {
+    "title": "Terma & Syarat",
+    "subtitle": "Sila semak Terma Perkhidmatan dan Dasar Privasi kami.",
+    "lastUpdated": "Kemas kini terakhir: 1 Jan 2025",
+    "agreeButton": "Saya Setuju",
+    "section": {
+      "introduction": "Pengenalan",
+      "introductionText": "Dengan menggunakan aplikasi ini, anda bersetuju untuk mematuhi terma dan polisi kami bagi memastikan keselamatan dan pengalaman yang adil.",
+      "privacy": "Privasi",
+      "privacyText": "Kami menghormati privasi anda dan mengendalikan data mengikut Dasar Privasi kami. Kami hanya mengumpul maklumat yang diperlukan untuk menyediakan perkhidmatan.",
+      "usage": "Penggunaan yang Dibenarkan",
+      "usageText": "Jangan salah guna platform. Patuhi undang-undang tempatan, elakkan aktiviti penipuan dan hormati pengguna lain pada setiap masa."
     }
   },
   "login": {
@@ -778,6 +1298,1150 @@
     "uploadError": "Gagal mengunggah fail",
     "startChat": "Mula Percakapan",
     "messageApplicant": "Pesan Pelamar",
-    "continueChat": "Lanjutkan Percakapan"
+    "continueChat": "Lanjutkan Percakapan",
+    "active": "Aktif",
+    "today": "Hari Ini",
+    "job": "Pekerjaan",
+    "typing": "sedang menaip...",
+    "loadingMessages": "Memuatkan mesej...",
+    "messages": "Pesan"
+  },
+  "companies": {
+    "title": "Syarikat",
+    "featuredCompanies": "Syarikat Pilihan",
+    "loading": "Memuatkan syarikat...",
+    "searchPlaceholder": "Cari syarikat...",
+    "empty": "Tiada syarikat ditemui",
+    "reviewsCount": "{count} ulasan",
+    "noReviews": "Tiada ulasan lagi",
+    "reviews": "ulasan",
+    "preview": {
+      "title": "Pembekalan Syarikat",
+      "badge": "Pembekalan",
+      "infoBanner": "Ini adalah bagaimana pelamar melihat profil syarikat anda. Ulasan hanya boleh dibaca sahaja."
+    },
+    "detail": {
+      "notFound": "Syarikat tidak ditemui",
+      "basedOnReviews": "Berdasarkan {count} ulasan",
+      "yourReview": "Ulasan Anda",
+      "writeReview": "Tulis Ulasan",
+      "deleteReviewTitle": "Padam Ulasan",
+      "deleteReviewConfirm": "Adakah anda pasti mahu memadam ulasan anda?",
+      "successReviewDeleted": "Ulasan dipadam",
+      "errorReviewDeleteFailed": "Gagal memadam ulasan",
+      "about": "Tentang",
+      "contactInformation": "Maklumat Perhubungan",
+      "website": "Laman web",
+      "email": "E-mel",
+      "phone": "Telefon",
+      "address": "Alamat"
+    }
+  },
+  "employerDashboard": {
+    "loading": "Memuatkan papan pemuka...",
+    "loadFailed": "Gagal memuatkan papan pemuka",
+    "tryAgain": "Cuba Lagi",
+    "welcomeBack": "Selamat kembali",
+    "pricing": "Pricing",
+
+    "totalJobs": "Jumlah Jawatan",
+    "activeJobs": "Jawatan Aktif",
+    "activeCount": "{count} aktif",
+    "currentlyHiring": "Sedang mengupah",
+
+    "totalApplicants": "Jumlah Pemohon",
+    "pendingCount": "{count} tertunda",
+    "shortlisted": "Disenarai Pendek",
+    "topCandidates": "Calon terbaik",
+
+    "quickActions": "Tindakan Pantas",
+    "postNewJob": "Iklankan Jawatan Baharu",
+    "viewApplicants": "Lihat Pemohon",
+    "previewJobs": "Pratonton Jawatan",
+    "settings": "Tetapan",
+
+    "recentJobPosts": "Iklan Jawatan Terkini",
+    "viewAll": "Lihat Semua",
+    "noJobPostsYet": "Belum ada iklan jawatan",
+    "createYourFirstJob": "Cipta iklan jawatan pertama anda",
+
+    "companyReviews": "Ulasan Syarikat",
+    "manageReviews": "Urus Ulasan",
+    "totalReviews": "{count} ulasan",
+    "recentReviews": "Ulasan Terkini",
+    "noReviewsYet": "Belum ada ulasan",
+    "noReviewsMessage": "Ulasan daripada pencari kerja akan dipaparkan di sini",
+
+    "active": "Aktif",
+    "closed": "Ditutup",
+    "applicants": "{count} pemohon",
+
+    "tipsTitle": "Petua Untuk Pengambilan Lebih Baik",
+    "tip1": "💡 Nyatakan syarat kerja yang jelas untuk menarik calon berkualiti",
+    "tip2": "💡 Balas pemohon dalam 24 jam untuk penglibatan yang lebih baik",
+    "tip3": "💡 Kemas kini iklan jawatan anda untuk kekal kelihatan kepada pencari kerja"
+  },
+  "employerReviews": {
+    "title": "Pengurusan Ulasan",
+    "loading": "Memuatkan ulasan...",
+    "labels": {
+      "yourReply": "Balasan Anda",
+      "replyAction": "Balas",
+      "flagAction": "Tandakan",
+      "average": "Purata",
+      "totalReviews": "Jumlah Ulasan",
+      "all": "Semua",
+      "newest": "Terbaharu",
+      "highest": "Tertinggi",
+      "lowest": "Terendah",
+      "noReviews": "Tiada ulasan ditemui",
+      "replyModalTitle": "Balas Ulasan",
+      "replyPlaceholder": "Tulis balasan anda...",
+      "postReply": "Hantar Balasan",
+      "posting": "Menghantar..."
+    },
+    "success": {
+      "replyPosted": "Balasan berjaya dihantar",
+      "reviewFlagged": "Ulasan ditandakan untuk semakan admin"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan ulasan",
+      "missingReply": "Sila masukkan balasan",
+      "postFailed": "Gagal menghantar balasan",
+      "flagFailed": "Gagal menandakan ulasan",
+      "provideReason": "Sila berikan alasan"
+    },
+    "prompt": {
+      "flagTitle": "Tandakan Ulasan",
+      "flagMessage": "Sila berikan alasan untuk menandakan ulasan ini:",
+      "submit": "Hantar"
+    }
+  },
+  "employerReports": {
+    "appeal": {
+      "headerTitle": "Hantar Rayuan",
+      "headerSubtitle": "Laporan #{id}",
+      "instructionsTitle": "Garis Panduan Rayuan",
+      "guideline1": "Berikan penjelasan terperinci mengapa anda percaya keputusan admin adalah tidak tepat",
+      "guideline2": "Sertakan sebarang bukti yang menyokong kes anda (tangkapan skrin, dokumen, dan lain-lain)",
+      "guideline3": "Bersikap hormat dan profesional dalam penjelasan anda",
+      "guideline4": "Admin akan menyemak rayuan anda dan memberi maklum balas dalam 2–3 hari bekerja",
+      "explanationLabel": "Penjelasan",
+      "explanationHint": "Terangkan mengapa tindakan ini patut dibatalkan (minimum 20 aksara)",
+      "explanationPlaceholder": "Masukkan penjelasan terperinci anda di sini...",
+      "characterCount": "{count} aksara (minimum 20)",
+      "evidenceLabel": "Bukti Sokongan (Pilihan)",
+      "evidenceHint": "Muat naik sehingga 5 fail (imej atau PDF) yang menyokong rayuan anda",
+      "addImage": "Tambah Imej",
+      "addDocument": "Tambah Dokumen",
+      "maxFilesReached": "Jumlah maksimum fail dicapai (5)",
+      "noteTitle": "Nota Penting",
+      "noteText": "Mengemukakan rayuan tidak menjamin tindakan akan dibatalkan. Admin akan menyemak penjelasan dan bukti anda dengan teliti sebelum membuat keputusan akhir.",
+      "submitButton": "Hantar Rayuan",
+      "submitting": "Menghantar...",
+      "submitTitle": "Hantar Rayuan",
+      "submitConfirm": "Adakah anda pasti mahu menghantar rayuan ini? Admin akan menyemak penjelasan dan bukti anda.",
+      "actions": {
+        "cancel": "Batal",
+        "submit": "Hantar"
+      },
+      "auth": {
+        "requiredTitle": "Pengesahan Diperlukan",
+        "requiredMessage": "Sila log masuk untuk meneruskan"
+      },
+      "success": {
+        "title": "Berjaya",
+        "message": "Rayuan anda telah dihantar dengan berjaya. Admin akan menyemaknya tidak lama lagi.",
+        "ok": "OK"
+      },
+      "errorTitle": "Ralat",
+      "errors": {
+        "pickImageFailed": "Gagal memilih imej",
+        "pickDocumentFailed": "Gagal memilih dokumen",
+        "missingExplanation": "Sila berikan penjelasan untuk rayuan anda",
+        "tooShortExplanation": "Sila berikan penjelasan yang lebih terperinci (minimum 20 aksara)",
+        "maxFiles": "Maksimum 5 fail dibenarkan",
+        "submitFailed": "Gagal menghantar rayuan"
+      },
+      "permissions": {
+        "photosTitle": "Kebenaran Diperlukan",
+        "photosMessage": "Sila benarkan akses kepada foto anda"
+      }
+    }
+  },
+  "employerProfile": {
+    "loading": "Memuatkan profil...",
+    "errorNotFound": "Profil tidak ditemui",
+    "tryAgain": "Cuba Lagi",
+    "editProfile": "Sunting Profil",
+    "companyInformation": "Maklumat Syarikat",
+    "industry": "Industri",
+    "companySize": "Saiz Syarikat",
+    "address": "Alamat",
+    "contactInformation": "Maklumat Perhubungan",
+    "email": "E-mel",
+    "phone": "Telefon",
+    "website": "Laman web",
+    "accountInformation": "Maklumat Akaun",
+    "fullName": "Nama Penuh",
+    "role": "Peranan",
+    "onboardingStatus": "Status Onboarding",
+    "stepOfTotal": "Langkah {step} dari {total}",
+    "onboardingCompleted": "Onboarding selesai",
+    "onboardingInProgress": "Onboarding sedang berlangsung",
+    "settings": "Tetapan",
+    "comingSoon": "Akan Datang",
+    "notifications": "Pemberitahuan",
+    "privacySettings": "Tetapan privasi",
+    "helpSupport": "Bantuan & Sokongan",
+    "notProvided": "Tidak disediakan",
+    "notSpecified": "Tidak dinyatakan",
+    "sizeStartup": "1-10 pekerja",
+    "sizeSmall": "11-50 pekerja",
+    "sizeMedium": "51-200 pekerja",
+    "sizeLarge": "201-500 pekerja",
+    "sizeEnterprise": "500+ pekerja"
+  },
+  "pendingVerification": {
+    "title": "Pengesahan Sedang Diproses",
+    "description": "Terima kasih kerana menghantar profil syarikat anda! Pasukan kami sedang menilai maklumat anda.",
+    "statusSubmitted": "Profil Dihantar",
+    "statusUnderReview": "Sedang Disemak (Semasa)",
+    "statusApprovalPending": "Menunggu Kelulusan",
+    "infoTitle": "Tempoh Semakan Dijangka",
+    "infoText": "Biasanya 1-3 hari bekerja. Kami akan memaklumkan anda melalui e-mel selepas semakan selesai.",
+    "detailsTitle": "Butiran Syarikat Yang Dihantar",
+    "companyName": "Nama Syarikat:",
+    "industry": "Industri:",
+    "location": "Lokasi:",
+    "submitted": "Dihantar:",
+    "logout": "Log keluar"
+  },
+  "notifications": {
+    "title": "Pemberitahuan",
+    "loading": "Memuatkan pemberitahuan...",
+    "unreadCount": "{count} belum dibaca",
+    "markAllRead": "Tanda semua sebagai dibaca",
+    "deleteAll": "Padam semua",
+    "deleteAllTitle": "Padam Semua",
+    "deleteAllConfirm": "Adakah anda pasti mahu memadam semua pemberitahuan?",
+    "success": {
+      "allRead": "Semua pemberitahuan ditandakan sebagai dibaca",
+      "allDeleted": "Semua pemberitahuan dipadam"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan pemberitahuan",
+      "markAllFailed": "Gagal menanda semua sebagai dibaca",
+      "deleteFailed": "Gagal memadam pemberitahuan",
+      "deleteAllFailed": "Gagal memadam semua pemberitahuan"
+    },
+    "emptyTitle": "Tiada pemberitahuan",
+    "emptySubtitle": "Anda sudah selesai! Kami akan memaklumkan apabila ada yang baharu.",
+    "errorTitle": "Ralat",
+    "successTitle": "Berjaya",
+    "filterAll": "Semua ({count})",
+    "filterUnread": "Belum dibaca ({count})",
+    "deleteTitle": "Padam Pemberitahuan",
+    "deleteConfirm": "Adakah anda pasti mahu memadam pemberitahuan ini?",
+    "actions": {
+      "cancel": "Batal",
+      "delete": "Padam"
+    },
+    "emptyCaughtUp": "Anda sudah selesai!",
+    "emptyNoneYet": "Anda belum mempunyai sebarang pemberitahuan",
+    "time": {
+      "now": "Baru sahaja",
+      "minutesAgo": "{count} minit lalu",
+      "hoursAgo": "{count} jam lalu",
+      "daysAgo": "{count} hari lalu"
+    }
+  },
+  "adminCompanies": {
+    "headerTitle": "Pengurusan Syarikat",
+    "headerSubtitle": "{count} syarikat didaftarkan",
+    "loading": "Memuatkan syarikat...",
+    "searchPlaceholder": "Cari mengikut nama, e-mel atau bandar...",
+    "filterAll": "Semua",
+    "filterApproved": "Diluluskan",
+    "filterPending": "Tertunda",
+    "filterRejected": "Ditolak",
+    "filterDisabled": "Dilumpuhkan",
+    "noIndustry": "Tiada industri",
+    "locationNA": "Tiada",
+    "statsJobs": "Jawatan",
+    "statsReviews": "Ulasan",
+    "trustScore": "Skor Kepercayaan",
+    "trustScoreUnavailable": "Skor kepercayaan tidak tersedia",
+    "userSuspended": "DIGANTUNG",
+    "joined": "Disertai",
+    "tryAgain": "Cuba Lagi",
+    "emptyTitle": "Tiada syarikat ditemui",
+    "emptyAdjust": "Cuba ubah carian atau penapis",
+    "emptyNoRegistered": "Belum ada syarikat berdaftar",
+    "loadingMore": "Memuatkan lagi..."
+  },
+
+  "employerApplicants": {
+    "searchPlaceholder": "Cari mengikut nama, pekerjaan atau e-mel...",
+    "filters": {
+      "all": "Semua",
+      "pending": "Menunggu",
+      "shortlisted": "Disenarai Pendek",
+      "interviewed": "Ditemuduga",
+      "rejected": "Ditolak"
+    },
+    "stats": {
+      "total": "Jumlah",
+      "pending": "Menunggu",
+      "shortlisted": "Disenarai Pendek"
+    },
+    "loading": "Memuatkan pemohon...",
+    "loadingMore": "Memuatkan lebih banyak...",
+    "tryAgain": "Cuba Lagi",
+    "empty": {
+      "found": "Tiada pemohon dijumpai",
+      "none": "Tiada pemohon lagi",
+      "adjust": "Cuba laraskan carian atau penapis anda",
+      "hint": "Permohonan akan muncul di sini apabila pencari kerja memohon pekerjaan anda"
+    },
+    "status": {
+      "pending": "Menunggu",
+      "shortlisted": "Disenarai Pendek",
+      "interviewed": "Ditemuduga",
+      "rejected": "Ditolak",
+      "hired": "Diambil Bekerja"
+    },
+    "actions": {
+      "chat": "Sembang",
+      "view": "Lihat",
+      "shortlist": "Senarai Pendek"
+    },
+    "appliedFor": "Memohon untuk",
+    "errors": {
+      "fetchFailed": "Gagal mendapatkan pemohon",
+      "loadFailed": "Gagal memuatkan pemohon",
+      "startChatFailed": "Gagal memulakan sembang. Sila cuba lagi."
+    }
+  },
+  "employerApplicantDetails": {
+    "loading": "Memuat butiran pemohon...",
+    "actions": {
+      "chat": "Sembang",
+      "email": "Emel",
+      "call": "Panggil",
+      "resume": "Resume",
+      "shortlist": "Senarai Pendek",
+      "reject": "Tolak",
+      "shortlisted": "Disenarai Pendek"
+    },
+    "alerts": {
+      "shortlistTitle": "Senarai Pendek Pemohon",
+      "rejectTitle": "Tolak Pemohon",
+      "confirmShortlist": "Adakah anda pasti mahu menyenarai pendek {name}?",
+      "confirmReject": "Adakah anda pasti mahu menolak {name}?",
+      "shortlistedSuccess": "Pemohon berjaya disenarai pendek",
+      "rejectedSuccess": "Pemohon berjaya ditolak"
+    },
+    "errors": {
+      "notFound": "Pemohon tidak ditemui",
+      "resumeOpenFailed": "Tidak dapat membuka pautan resume",
+      "noResumeTitle": "Tiada Resume",
+      "noResumeMessage": "Pemohon ini belum memuat naik resume",
+      "noPhoneTitle": "Tiada Nombor Telefon",
+      "noPhoneMessage": "Pemohon ini tidak memberikan nombor telefon",
+      "shortlistFailed": "Gagal menyenarai pendek pemohon",
+      "rejectFailed": "Gagal menolak pemohon"
+    },
+    "sections": {
+      "qualityTitle": "Analisis Skor Kualiti",
+      "appliedPosition": "Jawatan Dipohon",
+      "contactInformation": "Maklumat Hubungan",
+      "experience": "Pengalaman",
+      "coverLetter": "Surat Permohonan",
+      "timeline": "Garis Masa",
+      "applied": "Dipohon",
+      "lastUpdated": "Kali Terakhir Dikemas Kini"
+    },
+    "quality": {
+      "profileCompleteness": "Kelengkapan Profil",
+      "experienceMatch": "Padanan Pengalaman",
+      "skillsMatch": "Padanan Kemahiran",
+      "locationMatch": "Padanan Lokasi",
+      "additionalFactors": "Faktor Tambahan",
+      "analyzing": "Menganalisis kualiti pemohon...",
+      "qualityCandidateLabel": "CALON BERKUALITI {quality}",
+      "strengthsTitle": "Kekuatan",
+      "improvementsTitle": "Bidang untuk Penambahbaikan",
+      "label": "Kualiti",
+      "level": {
+        "high": "Tinggi",
+        "medium": "Sederhana",
+        "low": "Rendah"
+      }
+    },
+    "statuses": {
+      "PENDING": "Menunggu",
+      "REVIEWING": "Dalam Semakan",
+      "SHORTLISTED": "Disenarai Pendek",
+      "INTERVIEW_SCHEDULED": "Temu Duga Dijadualkan",
+      "INTERVIEWED": "Ditemu Duga",
+      "REJECTED": "Ditolak",
+      "HIRED": "Diambil Bekerja"
+    },
+    "experienceYears": "{years} tahun pengalaman"
+  },
+  "employerJobPosts": {
+    "loading": "Memuat kerja…",
+    "searchPlaceholder": "Cari kerja…",
+    "filters": {
+      "status": "Status",
+      "visibility": "Keterlihatan",
+      "all": "Semua",
+      "pending": "Menunggu",
+      "approved": "Diluluskan",
+      "aiRejected": "Ditolak oleh AI",
+      "appealed": "Dirayu",
+      "finalRejected": "Ditolak Sepenuhnya",
+      "active": "Aktif",
+      "closed": "Ditutup"
+    },
+    "errorTryAgain": "Cuba Lagi",
+    "empty": {
+      "found": "Tiada kerja ditemui",
+      "none": "Belum ada iklan kerja",
+      "adjust": "Cuba laraskan carian atau penapis anda",
+      "cta": "Cipta iklan kerja pertama anda untuk mula mengambil pekerja"
+    },
+    "cta": {
+      "create": "Cipta Iklan Kerja"
+    },
+    "appeal": {
+      "title": "Rayuan Penolakan Kerja",
+      "button": "Hantar Rayuan",
+      "rejectionReason": "Sebab Penolakan:",
+      "noReason": "Tiada sebab diberikan",
+      "explanation": "Penjelasan",
+      "explanationPlaceholder": "Jelaskan mengapa iklan kerja ini sah dan patut diluluskan…",
+      "supportingDocs": "Dokumen Sokongan (Pilihan)",
+      "uploadHelper": "Muat naik pendaftaran syarikat, lesen, atau bukti lain",
+      "uploadFiles": "Muat Naik Fail",
+      "cancel": "Batal",
+      "submit": "Hantar Rayuan",
+      "aiRejectedNotice": "Iklan kerja ini ditolak oleh AI. Ketik untuk lihat butiran.",
+      "appealedNotice": "Rayuan anda sedang disemak. Kami akan maklumkan keputusan sebaik sahaja siap.",
+      "finalRejectedNotice": "Iklan kerja ini telah dinilai dan penolakan adalah muktamad.",
+      "rejectedTitle": "Iklan kerja ditolak"
+    },
+    "stats": {
+      "views": "lihat",
+      "applicant": "pemohon",
+      "applicants": "pemohon"
+    },
+    "errors": {
+      "pickDocumentFailed": "Gagal memilih dokumen"
+    },
+    "pendingAiNotice": "Iklan kerja anda sedang disemak oleh sistem AI kami. Anda akan dimaklumkan apabila diluluskan."
+  },
+  "adminJobApproval": {
+    "flaggedAiNotice": "Iklan kerja ini telah ditandai oleh sistem AI kami dan memerlukan semakan manusia sebelum diluluskan."
+  },
+  "adminReports": {
+    "headerTitle": "Pengurusan Laporan",
+    "headerSubtitle": "{count} jumlah laporan",
+    "appeals": "Rayuan",
+    "pendingAppeals": "Rayuan Tertunda",
+    "searchPlaceholder": "Cari mengikut pelapor, e-mel atau jenis...",
+    "filters": {
+      "all": "Semua",
+      "pending": "Menunggu",
+      "underReview": "Sedang Disemak",
+      "resolved": "Selesai",
+      "dismissed": "Ditolak"
+    },
+    "evidenceTitle": "Fail Bukti",
+    "reportCard": {
+      "type": "Jenis",
+      "status": "Status",
+      "reporter": "Pelapor",
+      "description": "Penerangan",
+      "submittedOn": "Dihantar",
+      "viewJob": "Lihat Iklan Kerja"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "Iklan kerja palsu",
+      "MISLEADING_INFO": "Maklumat mengelirukan",
+      "INAPPROPRIATE_CONTENT": "Kandungan tidak sesuai",
+      "SCAM_SUSPECTED": "Disyaki penipuan",
+      "DISCRIMINATION": "Diskriminasi",
+      "DUPLICATE_POSTING": "Posting duplikasi",
+      "OTHERS": "Lain-lain"
+    },
+    "detailModal": {
+      "viewJob": "Lihat Iklan Kerja & Ambil Tindakan",
+      "sections": {
+        "type": "Jenis Laporan",
+        "status": "Status Laporan",
+        "reporter": "Dilaporkan Oleh",
+        "description": "Penerangan Laporan",
+        "evidence": "Bukti",
+        "reviewInfo": "Maklumat Semakan",
+        "submitted": "Dihantar",
+        "updated": "Dikemas kini"
+      }
+    },
+    "loading": "Memuatkan laporan...",
+    "empty": {
+      "title": "Tiada laporan ditemui",
+      "adjust": "Cuba ubah carian atau penapis"
+    },
+    "errors": {
+      "authRequiredTitle": "Pengesahan Diperlukan",
+      "authRequiredMessage": "Sila log masuk untuk meneruskan",
+      "loadFailed": "Gagal memuatkan laporan"
+    }
+  },
+  "adminCompanyApproval": {
+    "headerTitle": "Kelulusan Syarikat",
+    "headerSubtitle": "{count} pengesahan tertunda",
+    "loading": "Memuatkan kelulusan tertunda...",
+    "actions": { "approve": "Luluskan", "reject": "Tolak" },
+    "alerts": {
+      "authRequiredTitle": "Pengesahan Diperlukan",
+      "authRequiredMessage": "Sila log masuk untuk meneruskan",
+      "approvalSuccess": "Syarikat berjaya diluluskan",
+      "rejectionSuccess": "Syarikat berjaya ditolak",
+      "reasonRequiredTitle": "Sebab Penolakan Diperlukan",
+      "reasonRequiredMessage": "Sila berikan sebab penolakan"
+    },
+    "errors": {
+      "loadFailed": "Gagal memuatkan kelulusan tertunda",
+      "approveFailed": "Gagal meluluskan syarikat",
+      "rejectFailed": "Gagal menolak syarikat"
+    },
+    "prompt": {
+      "rejectTitle": "Tolak Syarikat",
+      "rejectPlaceholder": "Masukkan sebab penolakan",
+      "approveTitle": "Luluskan Syarikat",
+      "confirmApprove": "Adakah anda pasti mahu meluluskan {name}?"
+    },
+    "empty": {
+      "title": "Tiada kelulusan tertunda",
+      "subtitle": "Semua sudah selesai!"
+    },
+    "pagination": {
+      "prev": "Sebelumnya",
+      "next": "Seterusnya",
+      "page": "Halaman {page} daripada {total}"
+    },
+    "labels": {
+      "submitted": "Dihantar",
+      "documentAttached": "Dokumen Dilampirkan"
+    }
+  },
+  "adminDashboard": {
+    "loading": "Memuatkan papan pemuka...",
+    "header": {
+      "title": "Papan Pemuka Admin",
+      "subtitle": "Analitik Platform"
+    },
+    "quickAccess": {
+      "title": "Akses Pantas",
+      "users": "Pengguna",
+      "jobs": "Kerja",
+      "companies": "Syarikat"
+    },
+    "userStats": {
+      "title": "Statistik Pengguna",
+      "jobSeekers": "Pencari Kerja",
+      "employers": "Majikan"
+    },
+    "company": {
+      "title": "Pengurusan Syarikat",
+      "total": "Jumlah",
+      "verified": "Disahkan",
+      "pending": "Tertunda",
+      "disabled": "Dilumpuhkan",
+      "manageCta": "Lihat Skor Kepercayaan & Urus"
+    },
+    "stats": {
+      "jobs": "Statistik Kerja",
+      "totalJobs": "Jumlah Kerja",
+      "pending": "Tertunda",
+      "approved": "Diluluskan",
+      "rejected": "Ditolak"
+    },
+    "recent": {
+      "title": "Aktiviti Terkini",
+      "newUsers": "Pengguna Baharu",
+      "newJobs": "Kerja Baharu",
+      "newApplications": "Permohonan Baharu",
+      "registered": "berdaftar",
+      "posted": "disiarkan",
+      "submitted": "dihantar"
+    },
+    "reviews": {
+      "title": "Statistik Ulasan",
+      "total": "Jumlah Ulasan",
+      "average": "Purata Penilaian",
+      "flagged": "Ulasan Ditandai",
+      "manage": "Urus Ulasan"
+    }
+  },
+  "adminUsers": {
+    "title": "Pengurusan Pengguna",
+    "subtitle": "Urus akaun pengguna dan kebenaran",
+    "loading": "Memuatkan pengguna...",
+    "searchPlaceholder": "Cari mengikut nama, e-mel atau bandar...",
+    "filters": {
+      "title": "Tapis mengikut Peranan",
+      "all": "Semua",
+      "jobSeekers": "Pencari Kerja",
+      "employers": "Majikan"
+    },
+    "actions": {
+      "suspend": "Gantung",
+      "activate": "Aktifkan",
+      "delete": "Padam",
+      "suspendUser": "Gantung Pengguna",
+      "activateUser": "Aktifkan Pengguna",
+      "deleteUser": "Padam Pengguna",
+      "confirmSuspend": "Adakah anda pasti mahu menggantung {name}?",
+      "confirmActivate": "Adakah anda pasti mahu mengaktifkan {name}?",
+      "confirmDelete": "Adakah anda pasti mahu memadam {name}? Tindakan ini tidak boleh dibatalkan.",
+      "cancel": "Batal",
+      "confirm": "Sahkan",
+      "success": "Berjaya",
+      "error": "Ralat",
+      "updateFailed": "Gagal mengemas kini status"
+    },
+    "common": {
+      "joinedToday": "Disertai hari ini",
+      "joinedDaysAgo": "Disertai {days} hari lalu"
+    },
+    "stats": {
+      "applications": "permohonan",
+      "jobsPosted": "kerja disiarkan",
+      "applicationsLabel": "Permohonan",
+      "jobsLabel": "Kerja Disiarkan",
+      "profile": "Profil"
+    },
+    "status": { "suspended": "DIGANTUNG" },
+    "details": {
+      "joined": "Disertai",
+      "applications": "permohonan",
+      "jobsPosted": "kerja disiarkan"
+    },
+    "empty": {
+      "title": "Tiada pengguna ditemui",
+      "adjust": "Cuba ubah carian atau penapis"
+    },
+    "tryAgain": "Cuba Lagi",
+    "errors": {
+      "loadFailed": "Gagal memuatkan pengguna"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "Pengurusan Laporan",
+    "headerSubtitle": "{count} jumlah laporan",
+    "appeals": "Rayuan",
+    "searchPlaceholder": "Cari laporan...",
+    "loading": "Memuatkan laporan...",
+    "filters": {
+      "all": "Semua",
+      "pending": "Menunggu",
+      "underReview": "Sedang Disemak",
+      "resolved": "Diselesaikan",
+      "dismissed": "Dibuang"
+    },
+    "reportTypes": {
+      "SCAM": "Penipuan",
+      "INAPPROPRIATE": "Kandungan Tidak Sesuai",
+      "SPAM": "Spam",
+      "OTHER": "Lain-lain"
+    },
+    "status": {
+      "PENDING": "Menunggu",
+      "UNDER_REVIEW": "Sedang Disemak",
+      "RESOLVED": "Diselesaikan",
+      "DISMISSED": "Dibuang"
+    },
+    "reportCard": {
+      "viewJob": "Lihat Kerja"
+    },
+    "empty": {
+      "title": "Tiada laporan ditemui",
+      "adjust": "Cuba ubah carian atau penapis"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "Butiran Laporan",
+        "type": "Jenis Laporan",
+        "status": "Status"
+      },
+      "reportedBy": "Dilaporkan Oleh",
+      "description": "Penerangan",
+      "reviewedBy": "Disemak Oleh",
+      "admin": "Admin",
+      "reviewNotes": "Nota Semakan",
+      "submitted": "Dihantar",
+      "viewJob": "Lihat Jawatan Kerja"
+    }
+  },
+  "adminJobManagement": {
+    "title": "Pengurusan Kerja",
+    "loading": "Memuatkan kerja...",
+    "searchPlaceholder": "Cari kerja mengikut tajuk atau syarikat...",
+    "headerSubtitle": "Urus dan semak tawaran kerja",
+    "salary": {
+      "notSpecified": "Tidak dinyatakan"
+    },
+    "status": {
+      "approved": "Diluluskan",
+      "pendingReview": "Menunggu Semakan",
+      "aiRejected": "Ditolak oleh AI",
+      "appealPending": "Rayuan Menunggu",
+      "finalRejection": "Penolakan Akhir"
+    },
+    "tabs": {
+      "pending": "Menunggu",
+      "approved": "Diluluskan",
+      "rejected": "Ditolak",
+      "appeals": "Rayuan"
+    },
+    "rejectedFilters": {
+      "allRejected": "Semua Ditolak",
+      "aiRejected": "Ditolak oleh AI",
+      "finalRejected": "Ditolak Sepenuhnya"
+    },
+    "prompts": {
+      "tapToReview": "Ketik untuk menyemak"
+    },
+    "jobCard": {
+      "verified": "Disahkan",
+      "views": "Paparan",
+      "applications": "Permohonan",
+      "daysAgo": "Hari lalu",
+      "appeal": "rayuan",
+      "appeals": "rayuan",
+      "appealPrompt": "Majikan telah mengemukakan rayuan - memerlukan semakan segera"
+    },
+    "empty": {
+      "appealsTitle": "Tiada Rayuan Ditemui",
+      "pendingTitle": "Tiada Kerja Menunggu",
+      "rejectedTitle": "Tiada Kerja Ditolak",
+      "approvedTitle": "Tiada Kerja Diluluskan",
+      "appealsSubtitle": "Semua rayuan telah diproses",
+      "pendingSubtitle": "Tiada kerja yang menunggu semakan",
+      "rejectedSubtitle": "Tiada kerja yang ditolak",
+      "approvedSubtitle": "Tiada kerja yang diluluskan lagi",
+      "adjust": "Cuba ubah carian atau penapis"
+    }
+  },
+  "pricing": {
+    "title": "Pilih Pelan Anda",
+    "subtitle": "Pilih pelan yang sesuai dengan keperluan pengambilan pekerja anda",
+    "popular": "Paling Popular",
+    "selectPlan": "Pilih Pelan",
+    "currentPlan": "Pelan Semasa",
+    "jobPost": "jawatan",
+    "jobPosts": "jawatan",
+    "success": "Berjaya",
+    "freePlanActivated": "Pelan percuma diaktifkan dengan jayanya!",
+    "footerText": "Semua pelan termasuk akses ke pangkalan data pencari kerja dan alat pengurusan permohonan.",
+
+    "free": {
+      "name": "Percuma",
+      "period": "sebulan",
+      "feature1": "1 jawatan",
+      "feature2": "Lihat ulasan syarikat",
+      "feature3": "Balas ulasan",
+      "feature4": "Analisis asas"
+    },
+
+    "pro": {
+      "name": "Pro",
+      "period": "sebulan",
+      "feature1": "5 jawatan",
+      "feature2": "Lihat ulasan syarikat",
+      "feature3": "Balas ulasan",
+      "feature4": "Analisis lanjutan",
+      "feature5": "Sokongan keutamaan"
+    },
+
+    "max": {
+      "name": "Maks",
+      "period": "sebulan",
+      "unlimited": "Tanpa Had",
+      "feature1": "Jawatan tanpa had",
+      "feature2": "Lihat ulasan syarikat",
+      "feature3": "Balas ulasan",
+      "feature4": "Analisis lanjutan",
+      "feature5": "Sokongan keutamaan",
+      "feature6": "Penyenaraian kerja ditonjolkan"
+    },
+    "cancelSubscription": "Batalkan Langganan",
+    "cancel": {
+      "confirmTitle": "Batalkan Langganan",
+      "confirmMessage": "Adakah anda pasti mahu membatalkan langganan anda? Anda akan diturunkan taraf ke pelan Percuma pada akhir tempoh pengebilan anda.",
+      "success": "Langganan berjaya dibatalkan."
+    }
+  },
+  "reviewModeration": {
+    "search": { "placeholder": "Cari syarikat atau pengguna..." },
+    "filters": {
+      "allRatings": "Semua Penilaian",
+      "hidden": "Tersembunyi",
+      "flagged": "Ditandai"
+    },
+    "flags": {
+      "hidden": "Tersembunyi",
+      "flagged": "Ditandai",
+      "reasonLabel": "Sebab Penandaan:"
+    },
+    "actions": {
+      "hide": "Sembunyikan",
+      "show": "Tunjukkan"
+    },
+    "empty": { "title": "Tiada ulasan ditemui" },
+    "success": {
+      "shown": "Ulasan berjaya ditunjukkan",
+      "hidden": "Ulasan berjaya disembunyikan",
+      "deleted": "Ulasan berjaya dipadam"
+    },
+    "errors": {
+      "moderateFailed": "Gagal memoderasi ulasan",
+      "deleteFailed": "Gagal memadam ulasan"
+    },
+    "delete": {
+      "title": "Padam Ulasan",
+      "confirm": "Adakah anda pasti mahu memadam ulasan ini secara kekal?"
+    },
+    "modal": {
+      "titleHide": "Sembunyikan Ulasan",
+      "descriptionHide": "Ulasan ini akan disembunyikan daripada pandangan awam. Anda boleh memberikan nota untuk rekod anda.",
+      "notesLabelOptional": "Nota Admin (Pilihan)",
+      "notesPlaceholder": "Tambah nota tentang tindakan moderasi ini...",
+      "confirmHide": "Sembunyikan Ulasan"
+    }
+  },
+  "updateLocation": {
+    "heroTitle": "Kemas Kini Lokasi Anda",
+    "heroSubtitle": "Tetapkan lokasi pilihan anda untuk padanan kerja yang lebih baik",
+    "infoTitle": "Mengapa kemas kini lokasi?",
+    "privacyNote": "Data lokasi anda dirahsiakan dan selamat",
+    "infoText": "Kemas kini lokasi anda untuk mencari pekerjaan berdekatan. Kami akan mengira koordinat secara automatik untuk penapisan berdasarkan jarak.",
+    "labels": {
+      "address": "Alamat",
+      "city": "Bandar",
+      "state": "Negeri",
+      "postcode": "Poskod"
+    },
+    "placeholders": {
+      "address": "cth., 123 Jalan Bukit Bintang",
+      "city": "cth., Kuala Lumpur",
+      "state": "cth., Wilayah Persekutuan",
+      "postcode": "cth., 55100"
+    },
+    "actions": {
+      "saveLocation": "Simpan Lokasi"
+    },
+    "alerts": {
+      "validationMissingCityState": "Sila masukkan sekurang-kurangnya bandar dan negeri",
+      "successGeocoded": "Lokasi dikemas kini dan koordinat dikira!",
+      "successUpdated": "Lokasi berjaya dikemas kini",
+      "updateFailed": "Gagal mengemas kini lokasi"
+    },
+    "tipLabel": "Tip:",
+    "tipText": "Lokasi yang tepat membantu kami menunjukkan pekerjaan paling relevan di kawasan anda."
+  },
+
+  "adminJobDetails": {
+    "loading": "Memuatkan Butiran Kerja...",
+    "status": {
+      "pending": "Menunggu",
+      "appealed": "Rayuan",
+      "approved": "Diluluskan",
+      "rejectedAI": "Ditolak oleh AI",
+      "rejectedFinal": "Penolakan Akhir"
+    },
+    "appeal": {
+      "title": "Rayuan Dihantar",
+      "submitted": "Dihantar",
+      "explanationLabel": "Penjelasan Majikan:",
+      "evidenceLabel": "Fail Bukti:",
+      "filesAttached": "fail dilampirkan"
+    },
+    "company": { "verified": "Syarikat Disahkan" },
+    "sections": {
+      "keyInfo": "Maklumat Utama",
+      "statistics": "Statistik",
+      "description": "Penerangan Kerja",
+      "requirements": "Keperluan",
+      "benefits": "Faedah",
+      "rejectionReason": "Sebab Penolakan"
+    },
+    "info": {
+      "location": "Lokasi",
+      "remoteTag": "Boleh Bekerja Secara Jauh",
+      "jobType": "Jenis Kerja",
+      "salary": "Gaji",
+      "workingHours": "Waktu Bekerja",
+      "experience": "Pengalaman",
+      "startDate": "Tarikh Mula"
+    },
+    "stats": {
+      "views": "Paparan",
+      "applications": "Permohonan",
+      "posted": "Dihantar"
+    },
+    "actions": {
+      "reject": "Tolak",
+      "approve": "Lulus",
+      "rejectAppeal": "Tolak Rayuan",
+      "approveAppeal": "Lulus Rayuan"
+    },
+    "prompts": {
+      "confirmApproveAppeal": "Lulus rayuan untuk \"{{title}}\"? Ini akan menerbitkan kerja.",
+      "confirmApproveJob": "Lulus \"{{title}}\"?"
+    },
+    "modal": {
+      "titleRejectAppeal": "Tolak Rayuan",
+      "titleRejectJob": "Tolak Kerja",
+      "subtitleRejectAppeal": "Sila berikan sebab untuk menolak rayuan ini. Ini keputusan muktamad.",
+      "subtitleRejectJob": "Sila berikan sebab untuk menolak senarai kerja ini",
+      "reasonPlaceholder": "Masukkan sebab penolakan...",
+      "cancel": "Batal"
+    },
+    "alerts": {
+      "success": {
+        "approveAppeal": "Rayuan berjaya diluluskan",
+        "approveJob": "Kerja berjaya diluluskan",
+        "rejectAppeal": "Rayuan berjaya ditolak",
+        "rejectJob": "Kerja berjaya ditolak"
+      }
+    },
+    "errors": {
+      "failApprove": "Gagal meluluskan",
+      "failReject": "Gagal menolak",
+      "loadFailed": "Gagal memuatkan butiran kerja",
+      "missingReason": "Sila berikan sebab penolakan"
+    }
+  },
+  "adminCompanyDetails": {
+    "loading": "Memuatkan butiran syarikat...",
+    "companyNotFound": "Syarikat tidak ditemui",
+    "goBack": "Kembali",
+    "inactive": "TIDAK AKTIF",
+    "employerTrustScore": "Skor Kepercayaan Majikan",
+    "verificationStatus": "Status Pengesahan",
+    "companyCompleteness": "Kelengkapan Syarikat",
+    "jobPostingHistory": "Sejarah Iklan Kerja",
+    "applicantEngagement": "Penglibatan Pemohon",
+    "reviewScore": "Skor Ulasan",
+    "reportHistory": "Sejarah Laporan",
+    "strengths": "Kekuatan",
+    "warnings": "Amaran",
+    "companyInformation": "Maklumat Syarikat",
+    "size": "Saiz",
+    "ownerInformation": "Maklumat Pemilik",
+    "status": "Status",
+    "lastLogin": "Log masuk terakhir",
+    "recentJobs": "Iklan Kerja Terkini ({{count}})",
+    "applications": "permohonan",
+    "description": "Penerangan",
+    "timeline": "Garis Masa",
+    "registered": "Didaftarkan",
+    "lastUpdated": "Kemas kini terakhir",
+    "accountAge": "Usia Akaun",
+    "days": "hari",
+    "enableCompany": "Aktifkan Syarikat",
+    "disableCompany": "Nyahaktifkan Syarikat",
+    "thisWill": "Ini akan menyahaktifkan profil syarikat dan iklan kerja.",
+    "disableEffect1": "Syarikat tidak akan dapat dilihat oleh pencari kerja.",
+    "disableEffect2": "Semua kerja aktif akan dijeda.",
+    "disableEffect3": "Majikan akan dimaklumkan melalui e-mel.",
+    "reasonOptional": "Sebab (pilihan)",
+    "cancel": "Batal",
+    "disable": "Nyahaktifkan"
+  },
+  "employerVerification": {
+    "title": "Pengesahan & Kesahihan",
+    "subtitle": "Bantu kami mengesahkan perniagaan anda untuk membina kepercayaan dengan pencari kerja",
+    "documentLabel": "Dokumen Pendaftaran Perniagaan",
+    "documentHint": "Muat naik pendaftaran SSM atau dokumen perniagaan setara",
+    "uploadDocument": "Muat Naik Dokumen",
+    "contactPhone": "Nombor Telefon Perhubungan",
+    "businessEmail": "E-mel Perniagaan",
+    "autoFilled": "Diisi automatik dari emel log masuk anda",
+    "notUploaded": "Tidak dimuat naik",
+    "success": {
+      "documentSelected": "Dokumen berjaya dipilih",
+      "documentUploaded": "Dokumen berjaya dimuat naik!"
+    },
+    "warnings": {
+      "documentUploadFailed": "Gagal memuat naik dokumen, tetapi anda boleh tambah kemudian."
+    },
+    "errors": {
+      "pickDocumentFailed": "Gagal memilih dokumen",
+      "phoneRequired": "Sila berikan nombor telefon perhubungan",
+      "submitFailed": "Gagal menghantar butiran pengesahan"
+    }
+  },
+  "tabsLayout": {
+    "home": "Utama",
+    "saved": "Disimpan",
+    "applied": "Dipohon",
+    "company": "Syarikat",
+    "chat": "Chat",
+    "profile": "Profil"
+  },
+  "employerLayout": {
+    "dashboard": "Papan Pemuka",
+    "jobPosts": "Iklan Kerja",
+    "applicants": "Pemohon",
+    "chat": "Chat",
+    "profile": "Profil"
+  },
+  "userHiddenLayout": {
+    "reportJob": "Lapor Kerja",
+    "reportHistory": "Sejarah Laporan",
+    "companyProfile": "Profil Syarikat",
+    "updateLocation": "Kemaskini Lokasi"
+  },
+  "employerHiddenLayout": {
+    "editCompanyProfile": "Edit Profil Syarikat",
+    "applicantDetails": "Butiran Pemohon",
+    "jobPostDetails": "Butiran Iklan Kerja",
+    "editJobPost": "Edit Iklan Kerja",
+    "createJobPost": "Cipta Iklan Kerja",
+    "reportsForJobPost": "Laporan Untuk Iklan Kerja",
+    "reportDetails": "Butiran Laporan",
+    "appealsForJobPost": "Rayuan Untuk Iklan Kerja",
+    "approvalPending": "Menunggu Kelulusan",
+    "reviewsManagement": "Pengurusan Ulasan"
+  },
+  "adminLayout": {
+    "dashboard": "Papan Pemuka",
+    "jobs": "Kerja",
+    "users": "Pengguna",
+    "reports": "Laporan",
+    "companies": "Syarikat"
+  },
+  "adminHiddenLayout": {
+    "login": "Log Masuk",
+    "jobPostReview": "Semakan Iklan Kerja",
+    "jobDetails": "Butiran Kerja",
+    "appealsForJobPost": "Rayuan Untuk Iklan Kerja",
+    "appealDetails": "Butiran Rayuan",
+    "reviewModeration": "Moderasi Ulasan",
+    "companyApprovalDetails": "Butiran Kelulusan Syarikat",
+    "companies": "Syarikat",
+    "companyDetails": "Butiran Syarikat"
+  },
+  "adminUsers": {
+    "title": "Pengurusan Pengguna",
+    "subtitle": "Urus pengguna dan akaun mereka",
+    "searchPlaceholder": "Cari pengguna...",
+    "loading": "Memuatkan pengguna...",
+    "actions": {
+      "suspendUser": "Gantung Pengguna",
+      "activateUser": "Aktifkan Pengguna",
+      "deleteUser": "Padam Pengguna",
+      "confirmSuspend": "Adakah anda pasti mahu menggantung {{name}}?",
+      "confirmActivate": "Adakah anda pasti mahu mengaktifkan {{name}}?",
+      "confirmDelete": "Adakah anda pasti mahu memadam {{name}}?",
+      "cancel": "Batal",
+      "confirm": "Sahkan",
+      "success": "Berjaya",
+      "error": "Ralat",
+      "updateFailed": "Gagal mengemaskini status pengguna"
+    },
+    "common": {
+      "joinedToday": "Menyertai hari ini",
+      "joinedDaysAgo": "Menyertai {{days}} hari lalu"
+    },
+    "stats": {
+      "applications": "permohonan",
+      "jobsPosted": "kerja dipos",
+      "applicationsLabel": "Permohonan",
+      "jobsLabel": "Kerja",
+      "profile": "Profil"
+    },
+    "filters": {
+      "title": "Tapis mengikut Peranan",
+      "all": "Semua",
+      "jobSeeker": "Pencari Kerja",
+      "employer": "Majikan"
+    },
+    "empty": {
+      "noJobSeekers": "Tiada pencari kerja dijumpai",
+      "noEmployers": "Tiada majikan dijumpai",
+      "noCriteria": "Tiada pengguna sepadan dengan kriteria anda"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "Laporan & Moderasi",
+    "headerSubtitle": "{{count}} laporan menunggu semakan",
+    "appeals": "Rayuan",
+    "searchPlaceholder": "Cari laporan...",
+    "loading": "Memuatkan laporan...",
+    "evidenceTitle": "BUKTI",
+    "filters": {
+      "all": "Semua",
+      "pending": "Menunggu",
+      "underReview": "Sedang Disemak",
+      "resolved": "Diselesaikan",
+      "dismissed": "Dibatalkan"
+    },
+    "status": {
+      "PENDING": "Menunggu",
+      "UNDER_REVIEW": "Sedang Disemak",
+      "RESOLVED": "Diselesaikan",
+      "DISMISSED": "Dibatalkan",
+      "PENDING_EMPLOYER_RESPONSE": "Menunggu Jawapan Majikan"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "Kerja Palsu",
+      "MISLEADING_INFO": "Maklumat Mengelirukan",
+      "INAPPROPRIATE_CONTENT": "Kandungan Tidak Sesuai",
+      "SCAM_SUSPECTED": "Disyaki Penipuan",
+      "DISCRIMINATION": "Diskriminasi",
+      "DUPLICATE_POSTING": "Iklan Bertindih",
+      "OTHERS": "Lain-lain"
+    },
+    "reportCard": {
+      "viewJob": "Lihat Kerja"
+    },
+    "empty": {
+      "title": "Tiada Laporan Ditemui",
+      "adjust": "Cuba laraskan penapis carian anda"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "Maklumat Semakan",
+        "type": "Jenis Laporan",
+        "status": "Status",
+        "reportedBy": "Dilaporkan Oleh",
+        "description": "Penerangan",
+        "evidence": "Bukti",
+        "review": "Semakan"
+      },
+      "reportedBy": "Dilaporkan Oleh",
+      "description": "Penerangan",
+      "reviewedBy": "Disemak Oleh",
+      "admin": "Admin",
+      "reviewNotes": "Nota Semakan",
+      "submitted": "Dihantar",
+      "viewJob": "Lihat Iklan Kerja"
+    },
+    "errors": {
+      "authRequiredTitle": "Log Masuk Diperlukan",
+      "authRequiredMessage": "Sila log masuk untuk melihat laporan",
+      "loadFailed": "Gagal memuatkan laporan"
+    },
+    "alerts": {
+      "error": "Ralat",
+      "ok": "OK"
+    }
   }
 }

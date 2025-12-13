@@ -1,0 +1,24 @@
+@startuml UC_CreateJob
+skinparam conditionStyle diamond
+title Activity: Create Job Post
+|Employer|
+start
+:Go to Job Dashboard;
+:Click Create New Job;
+|System|
+:Check Quota/Subscription;
+if (Has Quota?) then (yes)
+  |Employer|
+  :Enter Job Details (Title, Desc, Salary);
+  :Set Requirements;
+  :Click Publish;
+  |System|
+  :Validate Data;
+  :Save Job to DB;
+  :Deduct Quota;
+  :Show Success Message;
+else (no)
+  :Prompt to Upgrade/Pay;
+endif
+stop
+@enduml

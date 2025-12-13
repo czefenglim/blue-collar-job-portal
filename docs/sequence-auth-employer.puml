@@ -1,0 +1,45 @@
+@startuml
+title Sequence: Sign Up / Login (Employer)
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Auth Controller" as Auth
+database "Database" as DB
+
+EMP -> UI: Enter Email & Password
+activate UI
+UI -> Auth: Request Login
+activate Auth
+Auth -> DB: Validate Credentials
+activate DB
+DB --> Auth: Result
+deactivate DB
+alt Valid
+  Auth -> UI: Success (Token)
+  UI -> EMP: Redirect to Dashboard
+else Invalid
+  Auth -> UI: Error Message
+end
+deactivate Auth
+deactivate UI
+
+EMP -> UI: Enter Registration Details
+activate UI
+UI -> Auth: Request Sign Up
+activate Auth
+Auth -> DB: Check Existing
+activate DB
+DB --> Auth: Result
+deactivate DB
+alt User Exists
+  Auth -> UI: Error: Taken
+else New User
+  Auth -> DB: Create Employer Account
+  activate DB
+  DB --> Auth: Created
+  deactivate DB
+  Auth -> UI: Success (Redirect to Onboarding)
+end
+deactivate Auth
+deactivate UI
+@enduml
+

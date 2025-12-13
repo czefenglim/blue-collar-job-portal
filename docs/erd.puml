@@ -1,0 +1,228 @@
+@startuml
+title ERD — Blue‑Collar Job Portal (Prisma)
+left to right direction
+skinparam classBackgroundColor #F8FAFC
+skinparam classBorderColor #1E3A8A
+skinparam ArrowColor #334155
+
+' Core entities
+entity "User" as User {
+  *id : Int
+  email : String
+  role : UserRole
+}
+
+entity "UserProfile" as UserProfile {
+  *id : Int
+  userId : Int (unique)
+}
+
+entity "Company" as Company {
+  *id : Int
+  userId : Int? (unique)
+  industryId : Int?
+}
+
+entity "CompanyVerification" as CompanyVerification {
+  *id : Int
+  companyId : Int (unique)
+}
+
+entity "Industry" as Industry {
+  *id : Int
+}
+
+entity "Job" as Job {
+  *id : Int
+  companyId : Int
+  industryId : Int
+  createdBy : Int?
+  updatedBy : Int?
+}
+
+entity "JobAnalytics" as JobAnalytics {
+  *id : Int
+  jobId : Int (unique)
+}
+
+entity "JobApplication" as JobApplication {
+  *id : Int
+  userId : Int
+  jobId : Int
+}
+
+entity "SavedJob" as SavedJob {
+  *id : Int
+  userId : Int
+  jobId : Int
+}
+
+entity "Notification" as Notification {
+  *id : Int
+  userId : Int
+}
+
+entity "Message" as Message {
+  *id : Int
+  senderId : Int
+  receiverId : Int
+}
+
+entity "Review" as Review {
+  *id : Int
+  userId : Int
+  companyId : Int
+}
+
+entity "Report" as Report {
+  *id : Int
+  userId : Int (reporter)
+  jobId : Int
+  reviewedBy : Int?
+}
+
+entity "Appeal" as Appeal {
+  *id : Int
+  reportId : Int
+  employerId : Int
+  reviewedBy : Int?
+}
+
+entity "JobAppeal" as JobAppeal {
+  *id : Int
+  jobId : Int
+  employerId : Int
+  reviewedBy : Int?
+}
+
+entity "Conversation" as Conversation {
+  *id : Int
+  applicationId : Int (unique)
+  employerId : Int
+  jobSeekerId : Int
+  jobId : Int
+}
+
+entity "ChatMessage" as ChatMessage {
+  *id : Int
+  conversationId : Int
+  senderId : Int
+}
+
+entity "Subscription" as Subscription {
+  *id : Int
+  companyId : Int (unique)
+}
+
+entity "Invoice" as Invoice {
+  *id : Int
+  subscriptionId : Int
+}
+
+entity "UserIndustry" as UserIndustry {
+  *id : Int
+  userId : Int (UserProfile)
+  industryId : Int
+}
+
+entity "UserLanguage" as UserLanguage {
+  *id : Int
+  userId : Int (UserProfile)
+  languageId : Int
+}
+
+entity "UserSkill" as UserSkill {
+  *id : Int
+  userId : Int (UserProfile)
+  skillId : Int
+}
+
+entity "language" as language {
+  *id : Int
+}
+
+entity "skill" as skill {
+  *id : Int
+}
+
+entity "resumequestion" as resumequestion {
+  *id : Int
+  questionId : String (unique)
+}
+
+entity "ResumeAnswer" as ResumeAnswer {
+  *id : Int
+  userId : Int
+  questionId : String
+}
+
+entity "PasswordResetOTP" as PasswordResetOTP {
+  *id : String
+  userId : Int
+}
+
+entity "AdminAction" as AdminAction {
+  *id : Int
+}
+
+' Relationships (crow's foot notation)
+User ||--|| UserProfile : has
+User ||--|| Company : owns
+Company ||--|| CompanyVerification : verification
+
+Industry ||--o{ Company : has
+Industry ||--o{ Job : has
+Company ||--o{ Job : posts
+
+Job ||--|| JobAnalytics : analytics
+
+User ||--o{ JobApplication : applies
+Job ||--o{ JobApplication : receives
+
+User ||--o{ SavedJob : saves
+Job ||--o{ SavedJob : saved_by
+
+User ||--o{ Notification : receives
+
+User ||--o{ Message : sends
+User ||--o{ Message : receives
+
+User ||--o{ Review : writes
+Company ||--o{ Review : receives
+
+User ||--o{ Report : reports
+Job ||--o{ Report : reported
+User ||--o{ Report : reviews (reviewer)
+
+Report ||--o{ Appeal : appeals
+User ||--o{ Appeal : employer
+User ||--o{ Appeal : reviewer
+
+Job ||--o{ JobAppeal : appealed
+User ||--o{ JobAppeal : employer
+User ||--o{ JobAppeal : reviewer
+
+JobApplication ||--|| Conversation : linked
+Conversation ||--o{ ChatMessage : messages
+User ||--o{ Conversation : employer
+User ||--o{ Conversation : jobSeeker
+User ||--o{ ChatMessage : sends
+
+Company ||--|| Subscription : has
+Subscription ||--o{ Invoice : invoices
+
+UserProfile ||--o{ UserIndustry : links
+Industry ||--o{ UserIndustry : links
+
+UserProfile ||--o{ UserLanguage : links
+language ||--o{ UserLanguage : links
+
+UserProfile ||--o{ UserSkill : links
+skill ||--o{ UserSkill : links
+
+User ||--o{ ResumeAnswer : answers
+resumequestion ||--o{ ResumeAnswer : has
+
+User ||--o{ PasswordResetOTP : resets
+@enduml
+

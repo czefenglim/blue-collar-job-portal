@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -48,6 +49,7 @@ interface JobDetails {
 }
 
 export default function AdminJobDetailScreen() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [job, setJob] = useState<JobDetails | null>(null);
@@ -251,8 +253,8 @@ export default function AdminJobDetailScreen() {
             <Text style={styles.aiWarningTitle}>AI Verification Alert</Text>
           </View>
           <Text style={styles.aiWarningText}>
-            This job post has been flagged by our AI system and requires human
-            review before approval.
+            - This job post has been flagged by our AI system and requires human
+            - review before approval. + {t('adminJobApproval.flaggedAiNotice')}
           </Text>
         </View>
 

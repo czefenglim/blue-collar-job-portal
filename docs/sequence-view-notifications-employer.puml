@@ -1,0 +1,32 @@
+@startuml
+title Sequence: View Notifications (Employer)
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Notification Controller" as API
+database "Database" as DB
+
+EMP -> UI: Click Notification Icon
+activate UI
+UI -> API: Get Notifications
+activate API
+API -> DB: Fetch Employer Notifications
+activate DB
+DB --> API: List
+deactivate DB
+API --> UI: Display List
+deactivate API
+deactivate UI
+
+EMP -> UI: Click Notification
+activate UI
+UI -> API: Mark Read
+activate API
+API -> DB: Update Status
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Redirect to Target
+deactivate API
+deactivate UI
+@enduml
+

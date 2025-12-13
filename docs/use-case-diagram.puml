@@ -1,0 +1,95 @@
+@startuml
+left to right direction
+skinparam usecase {
+  BackgroundColor #EFF6FF
+  BorderColor #1E3A8A
+  ArrowColor #475569
+}
+
+actor "Job Seeker" as JS
+actor "Employer" as EMP
+actor "Admin" as ADM
+
+rectangle "Blue-Collar Job Portal" {
+  ' Authentication
+  (Sign Up / Login - Job Seeker) as UC_AuthJS
+  (Sign Up / Login - Employer) as UC_AuthEmp
+
+  ' Job Seeker Use Cases
+  (Onboarding - Job Seeker) as UC_OnboardJS
+  (Browse & Search Jobs) as UC_Browse
+  (Save Jobs) as UC_Save
+  (Apply to Jobs) as UC_Apply
+  (Chat with Employer) as UC_ChatEmp
+  (View Profile) as UC_ViewProfile
+  (Edit Profile) as UC_EditProfile
+  (View Notifications) as UC_NotifyJS
+  (Write Reviews) as UC_WriteReview
+  (Manage Preferences) as UC_PrefsJS
+
+  ' Employer Use Cases
+  (Employer Onboarding) as UC_OnboardEmp
+  (Create Job Post) as UC_CreateJob
+  (Edit / Manage Job Post) as UC_EditJob
+  (Manage Company Profile) as UC_Company
+  (View Applicants) as UC_ViewApps
+  (Chat with Job Seeker) as UC_ChatJS
+  (Manage Subscription) as UC_Sub
+  (Make Payments) as UC_Pay
+  (Respond to Reviews) as UC_RespondReview
+  (Flag Review) as UC_FlagReview
+  (View Notifications) as UC_NotifyEmp
+  (Manage Preferences) as UC_PrefsEmp
+
+  ' Admin Use Cases
+  (Manage Users) as UC_AdminUsers
+  (Manage Jobs) as UC_AdminJobs
+  (Manage Companies) as UC_AdminCompanies
+  (Manage Industries) as UC_AdminIndustries
+  (Manage Reviews) as UC_AdminReviews
+  (Manage Subscriptions) as UC_AdminSubs
+}
+
+' Job Seeker Relationships
+JS --> UC_AuthJS
+JS --> UC_OnboardJS
+JS --> UC_Browse
+JS --> UC_Save
+JS --> UC_Apply
+JS --> UC_ChatEmp
+JS --> UC_ViewProfile
+JS --> UC_EditProfile
+JS --> UC_NotifyJS
+JS --> UC_WriteReview
+JS --> UC_PrefsJS
+
+' Employer Relationships
+EMP --> UC_AuthEmp
+EMP --> UC_OnboardEmp
+EMP --> UC_CreateJob
+EMP --> UC_EditJob
+EMP --> UC_Company
+EMP --> UC_ViewApps
+EMP --> UC_ChatJS
+EMP --> UC_Sub
+EMP --> UC_Pay
+EMP --> UC_RespondReview
+EMP --> UC_FlagReview
+EMP --> UC_NotifyEmp
+EMP --> UC_PrefsEmp
+
+' Admin Relationships
+ADM --> UC_AdminUsers
+ADM --> UC_AdminJobs
+ADM --> UC_AdminCompanies
+ADM --> UC_AdminIndustries
+ADM --> UC_AdminReviews
+ADM --> UC_AdminSubs
+
+' Associations
+UC_AuthJS ..> UC_OnboardJS : <<triggers>>
+UC_AuthEmp ..> UC_OnboardEmp : <<triggers>>
+UC_Sub ..> UC_Pay : <<include>>
+UC_WriteReview ..> UC_RespondReview : <<related>>
+UC_WriteReview ..> UC_FlagReview : <<related>>
+@enduml

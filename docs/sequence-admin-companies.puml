@@ -1,0 +1,72 @@
+@startuml
+title Sequence: Manage Companies Registration Approval
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+participant "Notification Service" as Notify
+
+Admin -> UI: Access Company Approval Page
+activate UI
+UI -> API: Get Company List
+activate API
+API -> DB: Fetch Companies
+activate DB
+DB --> API: Company List
+deactivate DB
+API --> UI: Display Company List
+deactivate API
+
+Admin -> UI: Select Company
+UI -> API: Get Company Details
+activate API
+API -> DB: Fetch Details & Docs
+activate DB
+DB --> API: Company Details
+deactivate DB
+API --> UI: Display Details & Documents
+deactivate API
+
+alt Standard Flow: Approve Company
+    Admin -> UI: Review Documents
+    Admin -> UI: Click "Approve"
+    UI -> API: Update Status (APPROVED)
+    activate API
+    API -> DB: Update Status
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API -> Notify: Notify Employer (Approved)
+    activate Notify
+    Notify --> API: Sent
+    deactivate Notify
+    API --> UI: Success Message
+    deactivate API
+
+else A1: Reject Company
+    Admin -> UI: Click "Reject"
+    UI --> Admin: Prompt for Rejection Reason
+    
+    alt E1: Validation Error
+        Admin -> UI: Click "Reject" (Empty Reason)
+        UI --> Admin: Display Error (Reason Required)
+    else Valid Reason
+        Admin -> UI: Enter Reason
+        Admin -> UI: Click "Reject" (Confirmation Modal)
+        UI -> API: Update Status (Rejected, Reason)
+        activate API
+        API -> DB: Update Status & Save Reason
+        activate DB
+        DB --> API: Success
+        deactivate DB
+        API -> Notify: Notify Employer (Rejected)
+        activate Notify
+        Notify --> API: Sent
+        deactivate Notify
+        API --> UI: Success Message
+        deactivate API
+    end
+end
+
+deactivate UI
+@enduml

@@ -22,6 +22,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 type OnboardingStep = 'company' | 'verification' | 'review' | 'complete';
 
@@ -58,6 +59,11 @@ export default function EmployerOnboardingFlow() {
   const [contactPhone, setContactPhone] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
 
+  // Autocomplete: track auto-filled state to default fields as read-only
+  const [cityAutoFilled, setCityAutoFilled] = useState(false);
+  const [stateAutoFilled, setStateAutoFilled] = useState(false);
+  const [postcodeAutoFilled, setPostcodeAutoFilled] = useState(false);
+
   // Modal states
   const [showIndustryModal, setShowIndustryModal] = useState(false);
   const [showCompanySizeModal, setShowCompanySizeModal] = useState(false);
@@ -77,6 +83,8 @@ export default function EmployerOnboardingFlow() {
 
   const URL =
     Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
+  const GOOGLE_MAPS_AUTOCOMPLETE_KEY =
+    Constants.expoConfig?.extra?.GOOGLE_MAPS_AUTOCOMPLETE_KEY || '';
 
   useEffect(() => {
     fetchIndustries();
@@ -164,26 +172,86 @@ export default function EmployerOnboardingFlow() {
     }
   };
 
+  // Helper: parse Google Place details into address fields
+  type AddressComponent = {
+    long_name: string;
+    short_name: string;
+    types: string[];
+  };
+  type PlaceDetails = {
+    formatted_address?: string;
+    address_components?: AddressComponent[];
+  };
+
+  // Normalize Malaysian state names to simple, commonly used forms
+  const normalizeMYStateName = (name: string) => {
+    const n = (name || '').toLowerCase();
+    if (!n) return '';
+    if (n.includes('johor')) return 'Johor';
+    if (n.includes('kedah')) return 'Kedah';
+    if (n.includes('kelantan')) return 'Kelantan';
+    if (n.includes('melaka') || n.includes('malacca')) return 'Melaka';
+    if (n.includes('negeri sembilan')) return 'Negeri Sembilan';
+    if (n.includes('pahang')) return 'Pahang';
+    if (n.includes('perak')) return 'Perak';
+    if (n.includes('perlis')) return 'Perlis';
+    if (n.includes('pulau pinang') || n.includes('penang'))
+      return 'Pulau Pinang';
+    if (n.includes('sabah')) return 'Sabah';
+    if (n.includes('sarawak')) return 'Sarawak';
+    if (n.includes('selangor')) return 'Selangor';
+    if (n.includes('terengganu')) return 'Terengganu';
+    if (
+      n.includes('wilayah persekutuan kuala lumpur') ||
+      n.includes('kuala lumpur')
+    )
+      return 'Kuala Lumpur';
+    if (n.includes('wilayah persekutuan labuan') || n.includes('labuan'))
+      return 'Labuan';
+    if (n.includes('putrajaya')) return 'Putrajaya';
+    return name; // fallback to original if no match
+  };
+
+  const parsePlaceDetails = (details?: PlaceDetails) => {
+    const comps = details?.address_components || [];
+    const getComp = (type: string) =>
+      comps.find((c) => c.types.includes(type))?.long_name || '';
+
+    const locality = getComp('locality');
+    const sublocality = getComp('sublocality');
+    const admin1 = getComp('administrative_area_level_1');
+    const postal = getComp('postal_code');
+
+    return {
+      formatted: details?.formatted_address || '',
+      city: locality || sublocality || '',
+      stateName: normalizeMYStateName(admin1 || ''),
+      postcode: postal || '',
+    };
+  };
+
   const companySizeOptions = [
-    { value: 'STARTUP', label: '1-10 employees (Startup)' },
-    { value: 'SMALL', label: '11-50 employees (Small)' },
-    { value: 'MEDIUM', label: '51-200 employees (Medium)' },
-    { value: 'LARGE', label: '201-1000 employees (Large)' },
-    { value: 'ENTERPRISE', label: '1000+ employees (Enterprise)' },
+    { value: 'STARTUP', label: t('employerCompanyForm.startup') },
+    { value: 'SMALL', label: t('employerCompanyForm.small') },
+    { value: 'MEDIUM', label: t('employerCompanyForm.medium') },
+    { value: 'LARGE', label: t('employerCompanyForm.large') },
+    { value: 'ENTERPRISE', label: t('employerCompanyForm.enterprise') },
   ];
 
   const getSelectedIndustryName = () => {
     const selected = industries.find(
       (ind) => String(ind.id) === String(industry)
     );
-    return selected ? selected.name : 'Select industry';
+    return selected ? selected.name : t('employerCompanyForm.selectIndustry');
   };
 
   const getSelectedCompanySizeName = () => {
     const selected = companySizeOptions.find(
       (opt) => opt.value === companySize
     );
-    return selected ? selected.label : 'Select company size';
+    return selected
+      ? selected.label
+      : t('employerCompanyForm.selectCompanySize');
   };
 
   const pickImage = async () => {
@@ -193,8 +261,8 @@ export default function EmployerOnboardingFlow() {
 
       if (status !== 'granted') {
         Alert.alert(
-          'Permission Required',
-          'Sorry, we need camera roll permissions to upload a logo.'
+          t('employerOnboarding.alerts.permissionRequiredTitle'),
+          t('employerOnboarding.alerts.permissionRequiredMessage')
         );
         return;
       }
@@ -216,7 +284,10 @@ export default function EmployerOnboardingFlow() {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert(
+        t('common.error'),
+        t('employerCompanyForm.errors.pickImageFailed')
+      );
     }
   };
 
@@ -271,11 +342,17 @@ export default function EmployerOnboardingFlow() {
           '📄 Document selected (will upload on Continue):',
           result.assets[0].name
         );
-        Alert.alert('Success', 'Document selected successfully');
+        Alert.alert(
+          t('common.success'),
+          t('employerVerification.success.documentSelected')
+        );
       }
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert('Error', 'Failed to pick document');
+      Alert.alert(
+        t('common.error'),
+        t('employerVerification.errors.pickDocumentFailed')
+      );
     }
   };
 
@@ -325,25 +402,28 @@ export default function EmployerOnboardingFlow() {
 
   const validateCompanyForm = () => {
     if (!companyName || !industry || !companySize) {
-      Alert.alert('Error', 'Please fill in all required fields');
-      return false;
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return false;
-    }
-
-    if (website && !/^https?:\/\/.+/.test(website)) {
       Alert.alert(
-        'Error',
-        'Please enter a valid website URL (starting with http:// or https://)'
+        t('validation.error'),
+        t('employerCompanyForm.errors.allFieldsRequired')
       );
       return false;
     }
 
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      Alert.alert(t('validation.error'), t('validation.invalidEmail'));
+      return false;
+    }
+
+    if (website && !/^https?:\/\/.+/.test(website)) {
+      Alert.alert(t('validation.error'), t('validation.invalidWebsite'));
+      return false;
+    }
+
     if (description && description.length > 200) {
-      Alert.alert('Error', 'Description must be 200 characters or less');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCompanyForm.errors.descriptionTooLong')
+      );
       return false;
     }
 
@@ -352,13 +432,16 @@ export default function EmployerOnboardingFlow() {
 
   const validateVerificationForm = () => {
     if (!contactPhone) {
-      Alert.alert('Error', 'Please provide a contact phone number');
+      Alert.alert(
+        t('validation.error'),
+        t('employerVerification.errors.phoneRequired')
+      );
       return false;
     }
 
     const phoneRegex = /^\+?[0-9]{8,15}$/;
     if (!phoneRegex.test(contactPhone)) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+      Alert.alert(t('validation.error'), t('validation.invalidPhone'));
       return false;
     }
 
@@ -425,12 +508,15 @@ export default function EmployerOnboardingFlow() {
           uploadedLogoKey = await uploadCompanyLogo(logo);
 
           console.log('✅ Logo uploaded, key:', uploadedLogoKey);
-          Alert.alert('Success', 'Logo uploaded successfully!');
+          Alert.alert(
+            t('common.success'),
+            t('employerCompanyForm.success.logoUploaded')
+          );
         } catch (error) {
           console.error('Error uploading logo:', error);
           Alert.alert(
-            'Warning',
-            'Failed to upload logo, but you can add it later.'
+            t('common.error'),
+            t('employerCompanyForm.warnings.logoUploadFailed')
           );
         } finally {
           setUploadingLogo(false);
@@ -467,8 +553,8 @@ export default function EmployerOnboardingFlow() {
     } catch (error: any) {
       console.error('Error creating/updating company:', error);
       Alert.alert(
-        'Error',
-        error.message || 'Failed to create/update company profile'
+        t('common.error'),
+        error.message || t('employerCompanyForm.errors.createOrUpdateFailed')
       );
     } finally {
       setLoading(false);
@@ -524,12 +610,15 @@ export default function EmployerOnboardingFlow() {
           );
 
           console.log('✅ Document uploaded, key:', uploadedDocumentKey);
-          Alert.alert('Success', 'Document uploaded successfully!');
+          Alert.alert(
+            t('common.success'),
+            t('employerVerification.success.documentUploaded')
+          );
         } catch (error) {
           console.error('Error uploading document:', error);
           Alert.alert(
-            'Warning',
-            'Failed to upload document, but you can add it later.'
+            t('common.error'),
+            t('employerVerification.warnings.documentUploadFailed')
           );
         } finally {
           setUploadingDocument(false);
@@ -557,8 +646,8 @@ export default function EmployerOnboardingFlow() {
     } catch (error: any) {
       console.error('Error submitting verification:', error);
       Alert.alert(
-        'Error',
-        error.message || 'Failed to submit verification details'
+        t('common.error'),
+        error.message || t('employerVerification.errors.submitFailed')
       );
     } finally {
       setLoading(false);
@@ -634,10 +723,26 @@ export default function EmployerOnboardingFlow() {
 
   const renderProgressBar = () => {
     const steps = [
-      { number: 2, label: 'Company', key: 'company' as const },
-      { number: 3, label: 'Verification', key: 'verification' as const },
-      { number: 4, label: 'Review', key: 'review' as const },
-      { number: 5, label: 'Complete', key: 'complete' as const },
+      {
+        number: 2,
+        label: t('employerOnboarding.steps.company'),
+        key: 'company' as const,
+      },
+      {
+        number: 3,
+        label: t('employerOnboarding.steps.verification'),
+        key: 'verification' as const,
+      },
+      {
+        number: 4,
+        label: t('employerOnboarding.steps.review'),
+        key: 'review' as const,
+      },
+      {
+        number: 5,
+        label: t('employerOnboarding.steps.complete'),
+        key: 'complete' as const,
+      },
     ];
 
     const canNavigateToStep = (stepKey: string) => {
@@ -659,8 +764,8 @@ export default function EmployerOnboardingFlow() {
         setCurrentStep(stepKey as OnboardingStep);
       } else {
         Alert.alert(
-          'Step Locked',
-          'Please complete the current step before navigating to this one.'
+          t('employerOnboarding.alerts.stepLockedTitle'),
+          t('employerOnboarding.alerts.stepLockedMessage')
         );
       }
     };
@@ -801,39 +906,48 @@ export default function EmployerOnboardingFlow() {
       style={styles.scrollWrapper}
       showsVerticalScrollIndicator={false}
       enableOnAndroid={true}
+      nestedScrollEnabled={true}
       extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Company Profile Setup</Text>
-        <Text style={styles.subtitle}>Let's set up your company profile</Text>
+        <Text style={styles.title}>{t('employerCompanyForm.title')}</Text>
+        <Text style={styles.subtitle}>{t('employerCompanyForm.subtitle')}</Text>
 
         <View style={styles.formContainer}>
           {/* Logo Upload - Centered */}
           <View style={styles.logoContainerWrapper}>
-            <Text style={styles.label}>Company Logo (Optional)</Text>
+            <Text style={styles.label}>
+              {t('employerCompanyForm.logo')} ({t('common.optional')})
+            </Text>
             <TouchableOpacity style={styles.logoContainer} onPress={pickImage}>
               {logo ? (
                 <Image source={{ uri: logo }} style={styles.logoImage} />
               ) : (
                 <View style={styles.logoPlaceholder}>
                   <Ionicons name="camera" size={40} color="#64748B" />
-                  <Text style={styles.logoText}>Tap to upload logo</Text>
+                  <Text style={styles.logoText}>
+                    {t('employerCompanyForm.uploadLogo')}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Company Name *</Text>
+          <Text style={styles.label}>
+            {t('employerCompanyForm.companyName')} *
+          </Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter company name"
+            placeholder={t('employerCompanyForm.companyName')}
             placeholderTextColor="#94A3B8"
             value={companyName}
             onChangeText={setCompanyName}
           />
 
-          <Text style={styles.label}>Industry *</Text>
+          <Text style={styles.label}>
+            {t('employerCompanyForm.industry')} *
+          </Text>
           <TouchableOpacity
             style={styles.selectButton}
             onPress={() => setShowIndustryModal(true)}
@@ -849,7 +963,9 @@ export default function EmployerOnboardingFlow() {
             <Ionicons name="chevron-down" size={20} color="#64748B" />
           </TouchableOpacity>
 
-          <Text style={styles.label}>Company Size *</Text>
+          <Text style={styles.label}>
+            {t('employerCompanyForm.companySize')} *
+          </Text>
           <TouchableOpacity
             style={styles.selectButton}
             onPress={() => setShowCompanySizeModal(true)}
@@ -865,52 +981,168 @@ export default function EmployerOnboardingFlow() {
             <Ionicons name="chevron-down" size={20} color="#64748B" />
           </TouchableOpacity>
 
-          <Text style={styles.label}>Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Street address"
-            placeholderTextColor="#94A3B8"
-            value={address}
-            onChangeText={setAddress}
+          <Text style={styles.label}>{t('employerCompanyForm.address')}</Text>
+          <GooglePlacesAutocomplete
+            placeholder={t('employerCompanyForm.addressPlaceholder')}
+            fetchDetails
+            enablePoweredByContainer={false}
+            debounce={300}
+            onFail={(error) => {
+              console.error('Places API error:', error);
+              Alert.alert(
+                t('common.error'),
+                'Failed to fetch address suggestions. You can type manually.'
+              );
+            }}
+            onPress={(data, details) => {
+              const parsed = parsePlaceDetails(details as PlaceDetails);
+              // Fill address
+              setAddress(parsed.formatted);
+
+              // Auto-fill city/state/postcode and mark read-only by default
+              if (parsed.city) {
+                setCity(parsed.city);
+                setCityAutoFilled(true);
+              } else {
+                setCityAutoFilled(false);
+              }
+              if (parsed.stateName) {
+                setState(parsed.stateName);
+                setStateAutoFilled(true);
+              } else {
+                setStateAutoFilled(false);
+              }
+              if (parsed.postcode) {
+                setPostcode(parsed.postcode);
+                setPostcodeAutoFilled(true);
+              } else {
+                setPostcodeAutoFilled(false);
+              }
+            }}
+            query={{
+              key: GOOGLE_MAPS_AUTOCOMPLETE_KEY,
+              language: 'en',
+              components: 'country:my',
+              types: 'address',
+            }}
+            textInputProps={{
+              style: styles.input,
+              placeholderTextColor: '#94A3B8',
+              value: address,
+              multiline: false,
+              numberOfLines: 1,
+              onChangeText: (text: string) => {
+                setAddress(text);
+                if (!text || text.trim() === '') {
+                  // Clear dependent fields when address is cleared manually
+                  setCity('');
+                  setState('');
+                  setPostcode('');
+                  setCityAutoFilled(false);
+                  setStateAutoFilled(false);
+                  setPostcodeAutoFilled(false);
+                }
+              },
+            }}
+            styles={{
+              container: {
+                flex: 0,
+                width: '100%',
+                alignSelf: 'stretch',
+              },
+              textInputContainer: {
+                paddingHorizontal: 0,
+                width: '100%',
+                backgroundColor: 'transparent',
+              },
+              textInput: {
+                height: 50,
+                width: '100%',
+                borderWidth: 1,
+                borderColor: '#CBD5E1',
+                borderRadius: 8,
+                paddingHorizontal: 15,
+                fontSize: 16,
+                color: '#1E293B',
+                backgroundColor: '#FFFFFF',
+                marginBottom: 0,
+                textAlign: 'left',
+              },
+              listView: {
+                backgroundColor: '#FFFFFF',
+                borderRadius: 8,
+                maxHeight: 160,
+                shadowColor: '#000',
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 3,
+                marginTop: 4,
+                marginBottom: 36,
+              },
+              row: {
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+              },
+              separator: { height: 1, backgroundColor: '#E2E8F0' },
+              description: { color: '#0F172A' },
+            }}
           />
 
           <View style={styles.rowContainer}>
             <View style={styles.halfWidth}>
-              <Text style={styles.label}>City</Text>
+              <Text style={styles.label}>{t('employerCompanyForm.city')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="City"
+                placeholder={t('employerCompanyForm.cityPlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={city}
-                onChangeText={setCity}
+                onChangeText={(txt) => {
+                  setCity(txt);
+                  setCityAutoFilled(false);
+                }}
+                editable={!cityAutoFilled}
+                onPressIn={() => setCityAutoFilled(false)}
               />
             </View>
             <View style={styles.halfWidth}>
-              <Text style={styles.label}>State</Text>
+              <Text style={styles.label}>{t('employerCompanyForm.state')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="State"
+                placeholder={t('employerCompanyForm.statePlaceholder')}
                 placeholderTextColor="#94A3B8"
                 value={state}
-                onChangeText={setState}
+                onChangeText={(txt) => {
+                  setState(txt);
+                  setStateAutoFilled(false);
+                }}
+                editable={!stateAutoFilled}
+                onPressIn={() => setStateAutoFilled(false)}
               />
             </View>
           </View>
 
-          <Text style={styles.label}>Postcode</Text>
+          <Text style={styles.label}>{t('employerCompanyForm.postcode')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Postcode"
+            placeholder={t('employerCompanyForm.postcodePlaceholder')}
             placeholderTextColor="#94A3B8"
             value={postcode}
-            onChangeText={setPostcode}
+            onChangeText={(txt) => {
+              setPostcode(txt);
+              setPostcodeAutoFilled(false);
+            }}
             keyboardType="numeric"
+            editable={!postcodeAutoFilled}
+            onPressIn={() => setPostcodeAutoFilled(false)}
           />
 
-          <Text style={styles.label}>Website (Optional)</Text>
+          <Text style={styles.label}>
+            {t('employerCompanyForm.website')} ({t('common.optional')})
+          </Text>
           <TextInput
             style={styles.input}
-            placeholder="https://www.example.com"
+            placeholder={t('employerCompanyForm.websitePlaceholder')}
             placeholderTextColor="#94A3B8"
             value={website}
             onChangeText={setWebsite}
@@ -918,10 +1150,12 @@ export default function EmployerOnboardingFlow() {
             autoCapitalize="none"
           />
 
-          <Text style={styles.label}>Description (Max 200 characters)</Text>
+          <Text style={styles.label}>
+            {t('employerCompanyForm.description')}
+          </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Brief overview of your company"
+            placeholder={t('employerCompanyForm.descriptionPlaceholder')}
             placeholderTextColor="#94A3B8"
             value={description}
             onChangeText={setDescription}
@@ -930,7 +1164,9 @@ export default function EmployerOnboardingFlow() {
             maxLength={200}
           />
           <Text style={styles.helperText}>
-            {description.length}/200 characters
+            {t('employerCompanyForm.descriptionCount', {
+              count: description.length,
+            })}
           </Text>
 
           <TouchableOpacity
@@ -941,7 +1177,7 @@ export default function EmployerOnboardingFlow() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Continue</Text>
+              <Text style={styles.buttonText}>{t('common.continue')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -954,21 +1190,22 @@ export default function EmployerOnboardingFlow() {
       style={styles.scrollWrapper}
       showsVerticalScrollIndicator={false}
       enableOnAndroid={true}
+      nestedScrollEnabled={true}
       extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Verification & Legitimacy</Text>
+        <Text style={styles.title}>{t('employerVerification.title')}</Text>
         <Text style={styles.subtitle}>
-          Help us verify your business to build trust with job seekers
+          {t('employerVerification.subtitle')}
         </Text>
 
         <View style={styles.formContainer}>
           <Text style={styles.label}>
-            Business Registration Document (Optional)
+            {t('employerVerification.documentLabel')} ({t('common.optional')})
           </Text>
           <Text style={styles.helperText}>
-            Upload SSM registration or similar business document
+            {t('employerVerification.documentHint')}
           </Text>
           <TouchableOpacity
             style={styles.documentButton}
@@ -980,11 +1217,15 @@ export default function EmployerOnboardingFlow() {
               color="#1E3A8A"
             />
             <Text style={styles.documentButtonText}>
-              {businessDocument ? businessDocument.name : 'Upload Document'}
+              {businessDocument
+                ? businessDocument.name
+                : t('employerVerification.uploadDocument')}
             </Text>
           </TouchableOpacity>
 
-          <Text style={styles.label}>Contact Phone Number *</Text>
+          <Text style={styles.label}>
+            {t('employerVerification.contactPhone')} *
+          </Text>
           <TextInput
             style={styles.input}
             placeholder="+60123456789"
@@ -994,7 +1235,9 @@ export default function EmployerOnboardingFlow() {
             keyboardType="phone-pad"
           />
 
-          <Text style={styles.label}>Business Email</Text>
+          <Text style={styles.label}>
+            {t('employerVerification.businessEmail')}
+          </Text>
           <TextInput
             style={styles.input}
             placeholder="contact@company.com"
@@ -1005,7 +1248,7 @@ export default function EmployerOnboardingFlow() {
             autoCapitalize="none"
           />
           <Text style={styles.helperText}>
-            Auto-filled from your login email
+            {t('employerVerification.autoFilled')}
           </Text>
 
           <TouchableOpacity
@@ -1016,7 +1259,7 @@ export default function EmployerOnboardingFlow() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Continue</Text>
+              <Text style={styles.buttonText}>{t('common.continue')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -1029,14 +1272,14 @@ export default function EmployerOnboardingFlow() {
       style={styles.scrollWrapper}
       showsVerticalScrollIndicator={false}
       enableOnAndroid={true}
+      nestedScrollEnabled={true}
       extraScrollHeight={20}
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Review Your Information</Text>
+        <Text style={styles.title}>{t('employerOnboarding.review.title')}</Text>
         <Text style={styles.subtitle}>
-          This is the final step. You can go back to previous steps to make
-          changes if needed.
+          {t('employerOnboarding.review.subtitle')}
         </Text>
 
         <View style={styles.reviewContainer}>
@@ -1044,36 +1287,46 @@ export default function EmployerOnboardingFlow() {
           <View style={styles.reviewSection}>
             <View style={styles.reviewSectionHeader}>
               <Ionicons name="business" size={24} color="#1E3A8A" />
-              <Text style={styles.reviewSectionTitle}>Company Information</Text>
+              <Text style={styles.reviewSectionTitle}>
+                {t('employerCompanyForm.title')}
+              </Text>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => setCurrentStep('company')}
               >
                 <Ionicons name="create-outline" size={20} color="#1E3A8A" />
-                <Text style={styles.editButtonText}>Edit</Text>
+                <Text style={styles.editButtonText}>{t('common.edit')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Company Name:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerCompanyForm.companyName')}:
+              </Text>
               <Text style={styles.reviewValue}>
-                {companyName || 'Not provided'}
+                {companyName || t('profile.notProvided')}
               </Text>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Industry:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerCompanyForm.industry')}:
+              </Text>
               <Text style={styles.reviewValue}>
                 {getSelectedIndustryName()}
               </Text>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Company Size:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerCompanyForm.companySize')}:
+              </Text>
               <Text style={styles.reviewValue}>
                 {getSelectedCompanySizeName()}
               </Text>
             </View>
             {city && (
               <View style={styles.reviewItem}>
-                <Text style={styles.reviewLabel}>Location:</Text>
+                <Text style={styles.reviewLabel}>
+                  {t('employerCreateJob.labels.city')}:
+                </Text>
                 <Text style={styles.reviewValue}>
                   {city}, {state}
                 </Text>
@@ -1085,31 +1338,41 @@ export default function EmployerOnboardingFlow() {
           <View style={styles.reviewSection}>
             <View style={styles.reviewSectionHeader}>
               <Ionicons name="shield-checkmark" size={24} color="#1E3A8A" />
-              <Text style={styles.reviewSectionTitle}>Verification</Text>
+              <Text style={styles.reviewSectionTitle}>
+                {t('employerVerification.title')}
+              </Text>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => setCurrentStep('verification')}
               >
                 <Ionicons name="create-outline" size={20} color="#1E3A8A" />
-                <Text style={styles.editButtonText}>Edit</Text>
+                <Text style={styles.editButtonText}>{t('common.edit')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Contact Phone:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerVerification.contactPhone')}:
+              </Text>
               <Text style={styles.reviewValue}>
-                {contactPhone || 'Not provided'}
+                {contactPhone || t('profile.notProvided')}
               </Text>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Business Email:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerVerification.businessEmail')}:
+              </Text>
               <Text style={styles.reviewValue}>
-                {businessEmail || 'Not provided'}
+                {businessEmail || t('profile.notProvided')}
               </Text>
             </View>
             <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Document:</Text>
+              <Text style={styles.reviewLabel}>
+                {t('employerVerification.documentLabel')}:
+              </Text>
               <Text style={styles.reviewValue}>
-                {businessDocument ? businessDocument.name : 'Not uploaded'}
+                {businessDocument
+                  ? businessDocument.name
+                  : t('employerVerification.notUploaded')}
               </Text>
             </View>
           </View>
@@ -1118,9 +1381,7 @@ export default function EmployerOnboardingFlow() {
           <View style={styles.importantNote}>
             <Ionicons name="information-circle" size={24} color="#1E3A8A" />
             <Text style={styles.importantNoteText}>
-              Once you click "Complete Onboarding", your employer profile will
-              be submitted for verification. You can start posting jobs once
-              your company is verified by our team.
+              {t('employerOnboarding.review.importantNote')}
             </Text>
           </View>
 
@@ -1132,7 +1393,9 @@ export default function EmployerOnboardingFlow() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Complete Onboarding</Text>
+              <Text style={styles.buttonText}>
+                {t('employerOnboarding.completeOnboarding')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -1147,30 +1410,37 @@ export default function EmployerOnboardingFlow() {
           <Ionicons name="checkmark-circle" size={100} color="#10B981" />
         </View>
 
-        <Text style={styles.completeTitle}>✅ Onboarding Complete!</Text>
+        <Text style={styles.completeTitle}>
+          {t('employerOnboarding.congratulations')}
+        </Text>
 
         <Text style={styles.completeDescription}>
-          Your company profile has been submitted for verification. You'll be
-          notified once it's approved.
+          {t('employerOnboarding.submittedForVerification')}
         </Text>
 
         <View style={styles.featureList}>
           <View style={styles.featureItem}>
             <Ionicons name="time-outline" size={24} color="#F59E0B" />
-            <Text style={styles.featureText}>Pending Verification</Text>
+            <Text style={styles.featureText}>
+              {t('employerOnboarding.features.pendingVerification')}
+            </Text>
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="mail-outline" size={24} color="#1E3A8A" />
-            <Text style={styles.featureText}>Email Notification</Text>
+            <Text style={styles.featureText}>
+              {t('employerOnboarding.features.emailNotification')}
+            </Text>
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="briefcase-outline" size={24} color="#1E3A8A" />
-            <Text style={styles.featureText}>Post Jobs After Approval</Text>
+            <Text style={styles.featureText}>
+              {t('employerOnboarding.features.postJobsAfterApproval')}
+            </Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleComplete}>
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>{t('common.continue')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -1188,7 +1458,9 @@ export default function EmployerOnboardingFlow() {
           >
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Employer Onboarding</Text>
+          <Text style={styles.headerTitle}>
+            {t('employerOnboarding.title')}
+          </Text>
           <View style={{ width: 24 }} />
         </View>
       )}
@@ -1206,7 +1478,7 @@ export default function EmployerOnboardingFlow() {
       {renderSelectionModal(
         showIndustryModal,
         () => setShowIndustryModal(false),
-        'Select Industry',
+        t('employerCompanyForm.selectIndustry'),
         industries,
         industry,
         setIndustry,
@@ -1216,7 +1488,7 @@ export default function EmployerOnboardingFlow() {
       {renderSelectionModal(
         showCompanySizeModal,
         () => setShowCompanySizeModal(false),
-        'Select Company Size',
+        t('employerCompanyForm.selectCompanySize'),
         companySizeOptions,
         companySize,
         setCompanySize,
@@ -1485,6 +1757,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    paddingHorizontal: 100,
   },
   buttonDisabled: {
     backgroundColor: '#94A3B8',

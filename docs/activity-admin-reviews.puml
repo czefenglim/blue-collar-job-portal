@@ -1,0 +1,31 @@
+@startuml UC_AdminReviews
+skinparam conditionStyle diamond
+title Activity: Moderate Job Reports
+|Admin|
+start
+:Access Reports Dashboard;
+|System|
+:Fetch Pending Reports;
+:Display Reports;
+|Admin|
+:Select Report;
+|System|
+:Fetch Report Details & Evidence;
+:Display Details;
+|Admin|
+:Analyze Evidence / Content;
+if (Violation?) then (yes)
+  :Select Action (Delete/Ban);
+  :Confirm Action;
+  |System|
+  :Execute Action;
+  :Update Report Status (Resolved);
+  :Notify Reporter;
+else (no)
+  :Click Dismiss Report;
+  |System|
+  :Update Report Status (Dismissed);
+endif
+stop
+@enduml
+

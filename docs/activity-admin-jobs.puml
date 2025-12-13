@@ -1,0 +1,41 @@
+@startuml UC_AdminJobs
+skinparam conditionStyle diamond
+skinparam activityDiamondShape true
+title Activity: Manage Jobs
+|Admin|
+start
+:Access Job Management;
+|System|
+:Fetch Job List;
+:Display Job List;
+|Admin|
+:Filter by Status (Pending/Active/Rejected/Appealed);
+|System|
+:Update Job List;
+|Admin|
+:Select Job;
+|System|
+:Fetch Job Details;
+:Display Job Details;
+|Admin|
+:Review Details;
+if (Action?) then (Approve)
+  :Click Approve Job;
+  |System|
+  :Update Status to Active;
+  :Publish Job;
+elseif (Reject)
+  :Click Reject Job;
+  :Enter Reason;
+  |System|
+  :Update Status to Rejected;
+  :Notify Employer;
+
+endif
+stop
+@enduml
+
+
+
+
+

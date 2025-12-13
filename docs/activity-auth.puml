@@ -1,0 +1,52 @@
+@startuml UC_Auth_JobSeeker
+skinparam conditionStyle diamond
+title Activity: Job Seeker Sign Up / Login
+|Job Seeker|
+start
+:Open Application;
+if (Has Account?) then (yes)
+  :Select Login;
+  :Enter Credentials (Email/Phone, Password);
+  :Submit;
+  |System|
+  if (Valid Credentials?) then (yes)
+    :Authenticate User;
+    :Generate Session/Token;
+    :Redirect to Dashboard;
+    stop
+  else (no)
+    :Show Error Message;
+    stop
+  endif
+else (no)
+  |Job Seeker|
+  :Select Language;
+  :Select Role (Job Seeker);
+  :Select Sign Up;
+  :Enter Details (Name, Contact, Password);
+  :Submit Registration;
+  |System|
+  if (Validation Passed?) then (yes)
+    :Create Account Record;
+    :Send Verification Email/OTP;
+    |Job Seeker|
+    :Enter Verification Code;
+    |System|
+    if (Verified?) then (yes)
+      :Mark Account Verified;
+      |Job Seeker|
+      #pink:call Onboarding Flow>
+      |System|
+      :Redirect to Dashboard;
+    else (no)
+      :Show Verification Error;
+      stop
+    endif
+  else (no)
+    :Show Validation Errors;
+    stop
+  endif
+endif
+stop
+@enduml
+

@@ -1,0 +1,11 @@
+@startuml UC_ViewProfile
+skinparam conditionStyle diamond
+title Activity: View Profile
+|Job Seeker|
+start
+:Go to Profile Tab;
+|System|
+:Fetch Profile Data;
+:Display Current Profile;
+stop
+@enduml

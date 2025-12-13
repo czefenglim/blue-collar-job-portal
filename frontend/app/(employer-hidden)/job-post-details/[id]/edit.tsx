@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLanguage } from '../../../../contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -84,6 +85,7 @@ const MALAYSIAN_STATES = [
 
 export default function EditJobPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const params = useLocalSearchParams();
   const jobId = params.id as string;
 
@@ -180,7 +182,10 @@ export default function EditJobPage() {
       }
     } catch (error: any) {
       console.error('Error fetching job:', error);
-      Alert.alert('Error', 'Failed to load job details');
+      Alert.alert(
+        t('employerJobEdit.errors.title'),
+        t('employerJobEdit.errors.loadFail')
+      );
       router.back();
     } finally {
       setLoading(false);
@@ -190,9 +195,12 @@ export default function EditJobPage() {
   const fetchIndustries = async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/industries`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/industries?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       if (response.ok) setIndustries(data.data || []);
     } catch (error) {
@@ -203,11 +211,14 @@ export default function EditJobPage() {
   const fetchSkills = async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/users/getSkills`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/onboarding/getSkills?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
-      if (response.ok) setSkills(data.data || []);
+      if (response.ok) setSkills(Array.isArray(data) ? data : data.data || []);
     } catch (error) {
       console.error('Error fetching skills:', error);
     }
@@ -223,41 +234,65 @@ export default function EditJobPage() {
 
   const validateForm = () => {
     if (!title.trim()) {
-      Alert.alert('Validation Error', 'Job title is required');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.titleRequired')
+      );
       return false;
     }
     if (!description.trim()) {
-      Alert.alert('Validation Error', 'Job description is required');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.descriptionRequired')
+      );
       return false;
     }
     if (!industryId) {
-      Alert.alert('Validation Error', 'Please select an industry');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.industryRequired')
+      );
       return false;
     }
     if (!jobType) {
-      Alert.alert('Validation Error', 'Please select job type');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.jobTypeRequired')
+      );
       return false;
     }
     if (!workingHours) {
-      Alert.alert('Validation Error', 'Please select working hours');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.workingHoursRequired')
+      );
       return false;
     }
     if (!experienceLevel) {
-      Alert.alert('Validation Error', 'Please select experience level');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.experienceRequired')
+      );
       return false;
     }
     if (!city.trim()) {
-      Alert.alert('Validation Error', 'City is required');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.cityRequired')
+      );
       return false;
     }
     if (!state) {
-      Alert.alert('Validation Error', 'Please select state');
+      Alert.alert(
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.stateRequired')
+      );
       return false;
     }
     if (salaryMin && salaryMax && parseInt(salaryMin) > parseInt(salaryMax)) {
       Alert.alert(
-        'Validation Error',
-        'Minimum salary cannot exceed maximum salary'
+        t('employerJobEdit.validation.title'),
+        t('employerJobEdit.validation.salaryMinMaxInvalid')
       );
       return false;
     }
@@ -267,70 +302,83 @@ export default function EditJobPage() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    Alert.alert('Update Job Post', 'Save changes to this job post?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Save',
-        onPress: async () => {
-          try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem('jwtToken');
+    Alert.alert(
+      t('employerJobEdit.submit.title'),
+      t('employerJobEdit.submit.confirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('employerJobEdit.submit.save'),
+          onPress: async () => {
+            try {
+              setSaving(true);
+              const token = await AsyncStorage.getItem('jwtToken');
 
-            const payload = {
-              title: title.trim(),
-              description: description.trim(),
-              requirements: requirements.trim() || undefined,
-              benefits: benefits.trim() || undefined,
-              industryId,
-              jobType,
-              workingHours,
-              experienceLevel,
-              skills:
-                selectedSkills.length > 0
-                  ? JSON.stringify(selectedSkills)
-                  : undefined,
-              city: city.trim(),
-              state,
-              postcode: postcode.trim() || undefined,
-              address: address.trim() || undefined,
-              isRemote,
-              salaryMin: salaryMin ? parseInt(salaryMin) : undefined,
-              salaryMax: salaryMax ? parseInt(salaryMax) : undefined,
-              salaryType: salaryType || undefined,
-              applicationDeadline: applicationDeadline || undefined,
-              startDate: startDate || undefined,
-            };
+              const payload = {
+                title: title.trim(),
+                description: description.trim(),
+                requirements: requirements.trim() || undefined,
+                benefits: benefits.trim() || undefined,
+                industryId,
+                jobType,
+                workingHours,
+                experienceLevel,
+                skills:
+                  selectedSkills.length > 0
+                    ? JSON.stringify(selectedSkills)
+                    : undefined,
+                city: city.trim(),
+                state,
+                postcode: postcode.trim() || undefined,
+                address: address.trim() || undefined,
+                isRemote,
+                salaryMin: salaryMin ? parseInt(salaryMin) : undefined,
+                salaryMax: salaryMax ? parseInt(salaryMax) : undefined,
+                salaryType: salaryType || undefined,
+                applicationDeadline: applicationDeadline || undefined,
+                startDate: startDate || undefined,
+              };
 
-            const response = await fetch(`${URL}/api/jobs/update/${jobId}`, {
-              method: 'PATCH',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(payload),
-            });
+              const response = await fetch(`${URL}/api/jobs/update/${jobId}`, {
+                method: 'PATCH',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+              });
 
-            const data = await response.json();
+              const data = await response.json();
 
-            if (!response.ok) {
-              throw new Error(data.message || 'Failed to update job');
+              if (!response.ok) {
+                throw new Error(
+                  data.message || t('employerJobEdit.errors.updateFail')
+                );
+              }
+
+              Alert.alert(
+                t('employerJobEdit.success.title'),
+                t('employerJobEdit.success.updated'),
+                [
+                  {
+                    text: t('common.ok'),
+                    onPress: () => router.back(),
+                  },
+                ]
+              );
+            } catch (error: any) {
+              console.error('Error updating job:', error);
+              Alert.alert(
+                t('employerJobEdit.errors.title'),
+                error.message || t('employerJobEdit.errors.updateFail')
+              );
+            } finally {
+              setSaving(false);
             }
-
-            Alert.alert('Success', 'Job post updated successfully!', [
-              {
-                text: 'OK',
-                onPress: () => router.back(),
-              },
-            ]);
-          } catch (error: any) {
-            console.error('Error updating job:', error);
-            Alert.alert('Error', error.message || 'Failed to update job');
-          } finally {
-            setSaving(false);
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const renderInput = (
@@ -404,7 +452,9 @@ export default function EditJobPage() {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Skills</Text>
+            <Text style={styles.modalTitle}>
+              {t('employerJobEdit.pickers.selectSkills')}
+            </Text>
             <TouchableOpacity onPress={() => setShowSkillsPicker(false)}>
               <Ionicons name="close" size={24} color="#64748B" />
             </TouchableOpacity>
@@ -427,7 +477,9 @@ export default function EditJobPage() {
             style={styles.doneButton}
             onPress={() => setShowSkillsPicker(false)}
           >
-            <Text style={styles.doneButtonText}>Done</Text>
+            <Text style={styles.doneButtonText}>
+              {t('employerJobEdit.pickers.done')}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -439,7 +491,7 @@ export default function EditJobPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('employerJobEdit.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -468,7 +520,9 @@ export default function EditJobPage() {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Job Post</Text>
+        <Text style={styles.headerTitle}>
+          {t('employerJobEdit.headerTitle')}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -478,17 +532,20 @@ export default function EditJobPage() {
       >
         {/* Same sections as create page */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobEdit.sections.basicInfo')}
+          </Text>
 
-          {renderInput('Job Title', title, setTitle, {
-            placeholder: 'e.g. Construction Worker',
+          {renderInput(t('employerJobEdit.labels.jobTitle'), title, setTitle, {
+            placeholder: t('employerJobEdit.placeholders.jobTitle'),
             required: true,
             maxLength: 100,
           })}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Industry <Text style={styles.required}>*</Text>
+              {t('employerJobEdit.labels.industry')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -501,39 +558,58 @@ export default function EditJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedIndustry?.name || 'Select industry'}
+                {selectedIndustry?.name ||
+                  t('employerJobEdit.placeholders.selectIndustry')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Description', description, setDescription, {
-            placeholder: 'Describe the job',
-            required: true,
-            multiline: true,
-            maxLength: 2000,
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.description'),
+            description,
+            setDescription,
+            {
+              placeholder: t('employerJobEdit.placeholders.description'),
+              required: true,
+              multiline: true,
+              maxLength: 2000,
+            }
+          )}
 
-          {renderInput('Requirements', requirements, setRequirements, {
-            placeholder: 'Job requirements',
-            multiline: true,
-            maxLength: 1000,
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.requirements'),
+            requirements,
+            setRequirements,
+            {
+              placeholder: t('employerJobEdit.placeholders.requirements'),
+              multiline: true,
+              maxLength: 1000,
+            }
+          )}
 
-          {renderInput('Benefits', benefits, setBenefits, {
-            placeholder: 'Benefits and perks',
-            multiline: true,
-            maxLength: 1000,
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.benefits'),
+            benefits,
+            setBenefits,
+            {
+              placeholder: t('employerJobEdit.placeholders.benefits'),
+              multiline: true,
+              maxLength: 1000,
+            }
+          )}
         </View>
 
         {/* Job Details - same as create */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Details</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobEdit.sections.jobDetails')}
+          </Text>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Job Type <Text style={styles.required}>*</Text>
+              {t('employerJobEdit.labels.jobType')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -544,7 +620,9 @@ export default function EditJobPage() {
                   selectedJobType ? styles.pickerText : styles.pickerPlaceholder
                 }
               >
-                {selectedJobType?.label || 'Select job type'}
+                {selectedJobType
+                  ? t(`employerJobEdit.jobType.${selectedJobType.value}`)
+                  : t('employerJobEdit.placeholders.selectJobType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -552,7 +630,8 @@ export default function EditJobPage() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Working Hours <Text style={styles.required}>*</Text>
+              {t('employerJobEdit.labels.workingHours')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -565,7 +644,11 @@ export default function EditJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedWorkingHours?.label || 'Select working hours'}
+                {selectedWorkingHours
+                  ? t(
+                      `employerJobEdit.workingHours.${selectedWorkingHours.value}`
+                    )
+                  : t('employerJobEdit.placeholders.selectWorkingHours')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -573,7 +656,8 @@ export default function EditJobPage() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Experience Level <Text style={styles.required}>*</Text>
+              {t('employerJobEdit.labels.experienceLevel')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -586,14 +670,18 @@ export default function EditJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedExperience?.label || 'Select experience level'}
+                {selectedExperience
+                  ? t(`employerJobEdit.experience.${selectedExperience.value}`)
+                  : t('employerJobEdit.placeholders.selectExperience')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Required Skills</Text>
+            <Text style={styles.label}>
+              {t('employerJobEdit.labels.requiredSkills')}
+            </Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowSkillsPicker(true)}
@@ -606,13 +694,16 @@ export default function EditJobPage() {
                 }
                 numberOfLines={2}
               >
-                {selectedSkillsText || 'Select required skills'}
+                {selectedSkillsText ||
+                  t('employerJobEdit.placeholders.selectSkills')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
             {selectedSkills.length > 0 && (
               <Text style={styles.helperText}>
-                {selectedSkills.length} skill(s) selected
+                {t('employerJobEdit.labels.skillsSelected', {
+                  count: selectedSkills.length,
+                })}
               </Text>
             )}
           </View>
@@ -620,13 +711,17 @@ export default function EditJobPage() {
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobEdit.sections.location')}
+          </Text>
 
           <View style={styles.remoteToggle}>
             <View>
-              <Text style={styles.label}>Remote Work</Text>
+              <Text style={styles.label}>
+                {t('employerJobEdit.labels.remoteWork')}
+              </Text>
               <Text style={styles.helperText}>
-                Can this job be done remotely?
+                {t('employerJobEdit.hints.remoteWork')}
               </Text>
             </View>
             <Switch
@@ -637,14 +732,15 @@ export default function EditJobPage() {
             />
           </View>
 
-          {renderInput('City', city, setCity, {
-            placeholder: 'e.g. Kuala Lumpur',
+          {renderInput(t('employerJobEdit.labels.city'), city, setCity, {
+            placeholder: t('employerJobEdit.placeholders.city'),
             required: true,
           })}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              State <Text style={styles.required}>*</Text>
+              {t('employerJobEdit.labels.state')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -653,30 +749,44 @@ export default function EditJobPage() {
               <Text
                 style={state ? styles.pickerText : styles.pickerPlaceholder}
               >
-                {state || 'Select state'}
+                {state || t('employerJobEdit.placeholders.selectState')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Postcode', postcode, setPostcode, {
-            placeholder: '50000',
-            keyboardType: 'number-pad',
-            maxLength: 5,
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.postcode'),
+            postcode,
+            setPostcode,
+            {
+              placeholder: t('employerJobEdit.placeholders.postcode'),
+              keyboardType: 'number-pad',
+              maxLength: 5,
+            }
+          )}
 
-          {renderInput('Full Address', address, setAddress, {
-            placeholder: 'Street address (optional)',
-            multiline: true,
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.address'),
+            address,
+            setAddress,
+            {
+              placeholder: t('employerJobEdit.placeholders.address'),
+              multiline: true,
+            }
+          )}
         </View>
 
         {/* Salary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Salary Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobEdit.sections.salary')}
+          </Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Salary Type</Text>
+            <Text style={styles.label}>
+              {t('employerJobEdit.labels.salaryType')}
+            </Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowSalaryTypePicker(true)}
@@ -688,7 +798,9 @@ export default function EditJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedSalaryType?.label || 'Select salary type'}
+                {selectedSalaryType
+                  ? t(`employerJobEdit.salaryType.${selectedSalaryType.value}`)
+                  : t('employerJobEdit.placeholders.selectSalaryType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -696,23 +808,27 @@ export default function EditJobPage() {
 
           <View style={styles.row}>
             <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>Min Salary (RM)</Text>
+              <Text style={styles.label}>
+                {t('employerJobEdit.labels.minSalary')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={salaryMin}
                 onChangeText={setSalaryMin}
-                placeholder="e.g. 1500"
+                placeholder={t('employerJobEdit.placeholders.minSalary')}
                 placeholderTextColor="#94A3B8"
                 keyboardType="number-pad"
               />
             </View>
             <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-              <Text style={styles.label}>Max Salary (RM)</Text>
+              <Text style={styles.label}>
+                {t('employerJobEdit.labels.maxSalary')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={salaryMax}
                 onChangeText={setSalaryMax}
-                placeholder="e.g. 2500"
+                placeholder={t('employerJobEdit.placeholders.maxSalary')}
                 placeholderTextColor="#94A3B8"
                 keyboardType="number-pad"
               />
@@ -722,20 +838,27 @@ export default function EditJobPage() {
 
         {/* Additional Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Additional Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobEdit.sections.additionalInfo')}
+          </Text>
 
           {renderInput(
-            'Application Deadline',
+            t('employerJobEdit.labels.applicationDeadline'),
             applicationDeadline,
             setApplicationDeadline,
             {
-              placeholder: 'YYYY-MM-DD (optional)',
+              placeholder: t('employerJobEdit.placeholders.dateOptional'),
             }
           )}
 
-          {renderInput('Start Date', startDate, setStartDate, {
-            placeholder: 'YYYY-MM-DD (optional)',
-          })}
+          {renderInput(
+            t('employerJobEdit.labels.startDate'),
+            startDate,
+            setStartDate,
+            {
+              placeholder: t('employerJobEdit.placeholders.dateOptional'),
+            }
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -753,7 +876,9 @@ export default function EditJobPage() {
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Save Changes</Text>
+              <Text style={styles.submitButtonText}>
+                {t('employerJobEdit.submit.saveChanges')}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -763,7 +888,7 @@ export default function EditJobPage() {
       {renderPickerModal(
         showIndustryPicker,
         () => setShowIndustryPicker(false),
-        'Select Industry',
+        t('employerJobEdit.pickers.selectIndustry'),
         industries,
         (id) => setIndustryId(id),
         (item) => item.name,
@@ -773,50 +898,50 @@ export default function EditJobPage() {
       {renderPickerModal(
         showJobTypePicker,
         () => setShowJobTypePicker(false),
-        'Select Job Type',
+        t('employerJobEdit.pickers.selectJobType'),
         JOB_TYPES,
         (value) => setJobType(value),
-        (item) => item.label,
+        (item) => t(`employerJobEdit.jobType.${item.value}`),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showWorkingHoursPicker,
         () => setShowWorkingHoursPicker(false),
-        'Select Working Hours',
+        t('employerJobEdit.pickers.selectWorkingHours'),
         WORKING_HOURS,
         (value) => setWorkingHours(value),
-        (item) => item.label,
+        (item) => t(`employerJobEdit.workingHours.${item.value}`),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showExperiencePicker,
         () => setShowExperiencePicker(false),
-        'Select Experience Level',
+        t('employerJobEdit.pickers.selectExperience'),
         EXPERIENCE_LEVELS,
         (value) => setExperienceLevel(value),
-        (item) => item.label,
+        (item) => t(`employerJobEdit.experience.${item.value}`),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showSalaryTypePicker,
         () => setShowSalaryTypePicker(false),
-        'Select Salary Type',
+        t('employerJobEdit.pickers.selectSalaryType'),
         SALARY_TYPES,
         (value) => setSalaryType(value),
-        (item) => item.label,
+        (item) => t(`employerJobEdit.salaryType.${item.value}`),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showStatePicker,
         () => setShowStatePicker(false),
-        'Select State',
+        t('employerJobEdit.pickers.selectState'),
         MALAYSIAN_STATES,
         (value) => setState(value),
-        (item) => item,
+        (item) => t(`states.${item}`),
         (item) => item
       )}
 

@@ -42,6 +42,78 @@
       "pickImageFailed": "Failed to pick image. Please try again.",
       "pickDocumentFailed": "Failed to pick document. Please try again.",
       "submitFailed": "Failed to submit report. Please try again."
+    },
+    "list": {
+      "errors": {
+        "authRequiredTitle": "Authentication Required",
+        "authRequiredMessage": "Please sign in to continue",
+        "title": "Error",
+        "loadFail": "Failed to load reports"
+      },
+      "header": {
+        "title": "Reports",
+        "subtitle": "You have {count} report(s)"
+      },
+      "loading": "Loading reports...",
+      "empty": {
+        "title": "No Reports",
+        "text": "You currently have no reports on your job posts."
+      },
+      "action": {
+        "jobSuspended": "Job post suspended",
+        "jobDeleted": "Job post removed",
+        "appealPending": "Appeal pending"
+      },
+      "reportedBy": "Reported by {name}"
+    },
+    "details": {
+      "errors": {
+        "authRequiredTitle": "Authentication Required",
+        "authRequiredMessage": "Please sign in to continue",
+        "title": "Error",
+        "loadFail": "Failed to load report details"
+      },
+      "loading": "Loading report details...",
+      "notFound": "Report not found",
+      "header": {
+        "title": "Report Details",
+        "subtitle": "Report #{id}"
+      },
+      "action": {
+        "title": "Action Taken",
+        "jobSuspended": "Your job post has been suspended. {reason}",
+        "jobDeleted": "Your job post has been removed.",
+        "appealHint": "You can submit an appeal if you believe this action was taken in error."
+      },
+      "sections": {
+        "status": "Report Status",
+        "job": "Reported Job",
+        "type": "Report Type",
+        "reportedBy": "Reported By",
+        "description": "Report Description",
+        "evidence": "Evidence Files",
+        "adminReview": "Admin Review",
+        "appeals": "Appeals"
+      },
+      "admin": {
+        "reviewDate": "Review Date",
+        "notes": "Admin Notes"
+      },
+      "appeal": {
+        "title": "Appeal #{id}",
+        "submittedOn": "Submitted on {date}",
+        "explanation": "Your Explanation:",
+        "evidence": "Evidence Attached:",
+        "adminResponse": "Admin Response",
+        "reviewedOn": "Reviewed on {date}",
+        "accepted": "Your appeal was accepted. The action has been reversed.",
+        "rejected": "Your appeal was rejected. The original action stands."
+      },
+      "appealAction": {
+        "title": "Disagree with this decision?",
+        "text": "You can submit an appeal with your explanation and any supporting evidence.",
+        "submit": "Submit Appeal"
+      }
     }
   },
   "home": {
@@ -74,7 +146,17 @@
     "viewDetails": "View Details",
     "save": "Save Job",
     "unsave": "Unsave Job",
-    "reportJob": "Report Job"
+    "reportJob": "Report Job",
+    "distance": "Distance:",
+    "jobType": "Job Type",
+    "workingHours": "Working Hours",
+    "experienceLevel": "Experience",
+    "location": "Location",
+    "salary": "Salary",
+    "distanceFilter": "Distance Filter",
+    "all": "All",
+    "changeLocation": "Change Location",
+    "filteredResultsByPref": "Filtered by your job preferences"
   },
   "selectRole": {
     "title": "Select Your Role",
@@ -91,6 +173,8 @@
   "employerLogin": {
     "title": "Employer Login",
     "subtitle": "Access your employer account",
+    "appSubtitleLogin": "Sign in to manage your job postings",
+    "appSubtitleRegister": "Create an employer account to start hiring",
     "email": "Email",
     "password": "Password",
     "phoneNumber": "Phone Number",
@@ -100,10 +184,30 @@
     "registerTitle": "Create Employer Account",
     "registerSubtitle": "Start hiring qualified candidates",
     "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phoneNumberPlaceholder": "e.g., 0123456789",
+    "phoneHelp": "Include country code (e.g., +60 for Malaysia)",
     "confirmPassword": "Confirm Password",
     "createAccount": "Create Account",
     "haveAccount": "Already have an account?",
-    "forgotPassword": "Forgot Password?"
+    "forgotPassword": "Forgot Password?",
+    "getStarted": "Get Started",
+    "success": {
+      "welcomeBack": "Welcome back!",
+      "accountCreated": "Account created successfully!"
+    },
+    "errors": {
+      "loginFailedTitle": "Login Failed",
+      "signupFailedTitle": "Sign Up Failed",
+      "authFailedTryAgain": "Authentication failed. Please try again.",
+      "emailExistsLoginInstead": "An account with this email already exists. Please login instead.",
+      "invalidEmailOrPassword": "Invalid email or password. Please check your credentials."
+    },
+    "validation": {
+      "fullNameMin2": "Please enter your full name (at least 2 characters)",
+      "phoneRequired": "Please enter your phone number",
+      "phoneLengthInvalidExamples": "Phone number must be between 10 and 15 digits\n\nExamples:\n+60123456789\n0123456789"
+    }
   },
   "validation": {
     "error": "Error",
@@ -120,7 +224,31 @@
     "congratulations": "Congratulations! 🎉",
     "onboardingComplete": "Your employer account is ready",
     "readyToStart": "You can now start posting jobs and finding the perfect candidates for your company.",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "steps": {
+      "company": "Company",
+      "verification": "Verification",
+      "review": "Review",
+      "complete": "Complete"
+    },
+    "alerts": {
+      "permissionRequiredTitle": "Permission Required",
+      "permissionRequiredMessage": "We need media library access to upload a logo.",
+      "stepLockedTitle": "Step Locked",
+      "stepLockedMessage": "Please complete the current step before navigating to this one."
+    },
+    "review": {
+      "title": "Review Your Information",
+      "subtitle": "Final step. You can go back to edit previous steps if needed.",
+      "importantNote": "Once you complete onboarding, your employer profile will be submitted for verification. You can start posting jobs after approval."
+    },
+    "completeOnboarding": "Complete Onboarding",
+    "submittedForVerification": "Your company profile has been submitted for verification. You'll be notified once it's approved.",
+    "features": {
+      "pendingVerification": "Pending Verification",
+      "emailNotification": "Email Notification",
+      "postJobsAfterApproval": "Post Jobs After Approval"
+    }
   },
   "employerCompanyForm": {
     "title": "Company Information",
@@ -128,6 +256,7 @@
     "companyName": "Company Name",
     "industry": "Industry",
     "selectIndustry": "Select Industry",
+    "selectCompanySize": "Select Company Size",
     "companySize": "Company Size",
     "startup": "Startup (1-10 employees)",
     "small": "Small (11-50 employees)",
@@ -140,6 +269,7 @@
     "email": "Email Address",
     "phone": "Phone Number",
     "website": "Website",
+    "websitePlaceholder": "https://www.example.com",
     "addressInformation": "Address Information",
     "address": "Street Address",
     "addressPlaceholder": "Enter street address",
@@ -151,8 +281,21 @@
     "postcodePlaceholder": "Enter postcode",
     "description": "Company Description",
     "descriptionPlaceholder": "Tell us about your company, culture, and values...",
+    "descriptionCount": "{count}/200 characters",
     "error": "Error",
-    "companyCreationFailed": "Failed to create company. Please try again."
+    "companyCreationFailed": "Failed to create company. Please try again.",
+    "success": {
+      "logoUploaded": "Logo uploaded successfully!"
+    },
+    "warnings": {
+      "logoUploadFailed": "Failed to upload logo, but you can add it later."
+    },
+    "errors": {
+      "allFieldsRequired": "Please fill in all required fields",
+      "descriptionTooLong": "Description must be 200 characters or less",
+      "pickImageFailed": "Failed to pick image",
+      "createOrUpdateFailed": "Failed to create/update company profile"
+    }
   },
   "employerProfileForm": {
     "profileDetails": "Your Profile Details",
@@ -185,7 +328,328 @@
     "select": "Select",
     "search": "Search",
     "ok": "OK",
-    "done": "Done"
+    "done": "Done",
+    "selectOption": "Select an option"
+  },
+  "adminLogin": {
+    "headerTitle": "Admin Login",
+    "headerSubtitle": "Restricted access for administrative users only",
+    "placeholders": {
+      "email": "Enter admin email",
+      "password": "Enter password"
+    },
+    "actions": {
+      "signIn": "Sign In"
+    },
+    "success": {
+      "login": "Logged in successfully"
+    },
+    "errors": {
+      "missingCredentials": "Please enter both email and password",
+      "loginFailedTitle": "Login Failed",
+      "invalidCredentials": "Invalid email or password",
+      "serverConnectionFailed": "Failed to connect to server. Please try again."
+    },
+    "notice": {
+      "restricted": "This area is restricted to authorized administrators."
+    }
+  },
+
+  "employerCreateJob": {
+    "validation": {
+      "titleRequired": "Job title is required",
+      "descriptionRequired": "Job description is required",
+      "industryRequired": "Please select an industry",
+      "jobTypeRequired": "Please select job type",
+      "workingHoursRequired": "Please select working hours",
+      "experienceRequired": "Please select experience level",
+      "cityRequired": "City is required",
+      "stateRequired": "Please select state",
+      "minExceedsMax": "Minimum salary cannot exceed maximum salary"
+    },
+    "success": {
+      "created": "Job post created successfully!"
+    },
+    "errors": {
+      "createFailed": "Failed to create job. Please try again."
+    },
+    "modals": {
+      "selectSkills": "Select Skills",
+      "selectJobType": "Select Job Type",
+      "selectWorkingHours": "Select Working Hours",
+      "selectExperience": "Select Experience Level",
+      "selectSalaryType": "Select Salary Type",
+      "selectState": "Select State"
+    },
+    "prediction": {
+      "loading": "Generating recruitment prediction...",
+      "title": "Recruitment Prediction",
+      "message": "Estimated hiring time based on jobs in {state}",
+      "days": "Days to hire",
+      "confidence": "Confidence",
+      "similarJobs": "{count} similar jobs analyzed"
+    },
+    "salary": {
+      "title": "Salary Analysis",
+      "percentile": { "label": "Percentile" },
+      "percentile": { "label": "Percentile", "value": "Top {percentile}%" },
+      "comparison": {
+        "yourOffer": "Your offer",
+        "median": "Median",
+        "marketAverage": "Market average"
+      },
+      "stats": {
+        "vsState": "Compared to state average",
+        "vsIndustry": "Compared to industry average"
+      },
+      "competitiveness": {
+        "EXCELLENT": "Excellent",
+        "COMPETITIVE": "Competitive",
+        "BELOW_AVERAGE": "Below average",
+        "LOW": "Low"
+      }
+    },
+    "tips": {
+      "title": "Hiring Tips"
+    },
+    "actions": {
+      "editDetails": "Edit Details"
+    },
+    "sections": {
+      "basicInfo": "Basic Information",
+      "jobDetails": "Job Details",
+      "salary": "Salary",
+      "additional": "Additional Information"
+    },
+    "fields": {
+      "title": "Job Title",
+      "experienceLevel": "Experience Level",
+      "requiredSkills": "Required Skills",
+      "skillsSelected": "{count} skills selected",
+      "remoteWork": "Remote Work",
+      "salaryType": "Salary Type",
+      "minSalary": "Min Salary (RM)",
+      "maxSalary": "Max Salary (RM)",
+      "applicationDeadline": "Application Deadline",
+      "startDate": "Start Date"
+    },
+    "placeholders": {
+      "title": "e.g. Construction Worker",
+      "description": "Describe the job",
+      "requirements": "Job requirements",
+      "benefits": "Benefits and perks",
+      "selectSkills": "Select required skills",
+      "remoteQuestion": "Can this job be done remotely?",
+      "city": "e.g. Kuala Lumpur",
+      "fullAddress": "Street address (optional)",
+      "minSalary": "e.g. 1500",
+      "maxSalary": "e.g. 2500",
+      "dateOptional": "YYYY-MM-DD (optional)"
+    }
+  },
+  "employerJobDetails": {
+    "errors": {
+      "title": "Error",
+      "loadFail": "Failed to load job details",
+      "updateStatus": "Failed to update job status",
+      "deleteFail": "Failed to delete job post"
+    },
+    "status": {
+      "toggleCloseMessage": "Do you want to close this job post?",
+      "toggleActivateMessage": "Do you want to activate this job post?",
+      "active": "Active",
+      "closed": "Closed",
+      "rejectedAi": "Your job post is rejected by AI",
+      "pendingReview": "Your job post is pending review"
+    },
+    "actions": {
+      "closeTitle": "Close Job Post",
+      "activateTitle": "Activate Job Post",
+      "cancel": "Cancel",
+      "close": "Close",
+      "activate": "Activate",
+      "edit": "Edit",
+      "delete": "Delete",
+      "copyAddress": "Copy Address",
+      "openInMaps": "Open in Maps"
+    },
+    "success": {
+      "title": "Success",
+      "activated": "Job post activated",
+      "closed": "Job post closed",
+      "deleted": "Job post deleted"
+    },
+    "delete": {
+      "title": "Delete Job Post",
+      "confirm": "This action cannot be undone. Delete this job?"
+    },
+    "copyAddress": {
+      "title": "Address Copied",
+      "success": "Address copied to clipboard",
+      "error": "Failed to copy address"
+    },
+    "openMaps": {
+      "error": "Failed to open maps"
+    },
+    "salary": {
+      "negotiable": "Negotiable",
+      "rm": "RM",
+      "from": "From",
+      "upTo": "Up to"
+    },
+    "loading": "Loading job...",
+    "notFound": "Job not found",
+    "stats": {
+      "views": "Views",
+      "applications": "Applications"
+    },
+    "sections": {
+      "details": "Job Details",
+      "description": "Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "location": "Location",
+      "dates": "Important Dates"
+    },
+    "labels": {
+      "industry": "Industry",
+      "workingHours": "Working Hours",
+      "experienceLevel": "Experience Level",
+      "salary": "Salary",
+      "remoteAvailable": "Remote Work Available",
+      "applicationDeadline": "Application Deadline",
+      "expectedStartDate": "Expected Start Date"
+    },
+    "rejectionNotice": "This job was rejected and is not visible to job seekers."
+  },
+  "employerJobEdit": {
+    "errors": {
+      "title": "Error",
+      "loadFail": "Failed to load job details",
+      "updateFail": "Failed to update job"
+    },
+    "validation": {
+      "title": "Validation Error",
+      "titleRequired": "Job title is required",
+      "descriptionRequired": "Job description is required",
+      "industryRequired": "Please select an industry",
+      "jobTypeRequired": "Please select job type",
+      "workingHoursRequired": "Please select working hours",
+      "experienceRequired": "Please select experience level",
+      "cityRequired": "City is required",
+      "stateRequired": "Please select state",
+      "salaryMinMaxInvalid": "Minimum salary cannot exceed maximum salary"
+    },
+    "submit": {
+      "title": "Update Job Post",
+      "confirm": "Save changes to this job post?",
+      "save": "Save",
+      "saveChanges": "Save Changes"
+    },
+    "success": {
+      "title": "Success",
+      "updated": "Job post updated successfully!"
+    },
+    "loading": "Loading...",
+    "headerTitle": "Edit Job Post",
+    "sections": {
+      "basicInfo": "Basic Information",
+      "jobDetails": "Job Details",
+      "location": "Location",
+      "salary": "Salary Information",
+      "additionalInfo": "Additional Information"
+    },
+    "labels": {
+      "jobTitle": "Job Title",
+      "industry": "Industry",
+      "description": "Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "jobType": "Job Type",
+      "workingHours": "Working Hours",
+      "experienceLevel": "Experience Level",
+      "requiredSkills": "Required Skills",
+      "skillsSelected": "{count} skill(s) selected",
+      "remoteWork": "Remote Work",
+      "city": "City",
+      "state": "State",
+      "postcode": "Postcode",
+      "address": "Full Address",
+      "salaryType": "Salary Type",
+      "minSalary": "Min Salary (RM)",
+      "maxSalary": "Max Salary (RM)",
+      "applicationDeadline": "Application Deadline",
+      "startDate": "Start Date"
+    },
+    "placeholders": {
+      "jobTitle": "e.g. Construction Worker",
+      "selectIndustry": "Select industry",
+      "description": "Describe the job",
+      "requirements": "Job requirements",
+      "benefits": "Benefits and perks",
+      "selectJobType": "Select job type",
+      "selectWorkingHours": "Select working hours",
+      "selectExperience": "Select experience level",
+      "selectSkills": "Select required skills",
+      "city": "e.g. Kuala Lumpur",
+      "selectState": "Select state",
+      "postcode": "e.g. 50000",
+      "address": "Street address (optional)",
+      "selectSalaryType": "Select salary type",
+      "minSalary": "e.g. 1500",
+      "maxSalary": "e.g. 2500",
+      "dateOptional": "YYYY-MM-DD (optional)"
+    },
+    "jobType": {
+      "FULL_TIME": "Full Time",
+      "PART_TIME": "Part Time",
+      "CONTRACT": "Contract",
+      "TEMPORARY": "Temporary",
+      "FREELANCE": "Freelance"
+    },
+    "workingHours": {
+      "DAY_SHIFT": "Day Shift",
+      "NIGHT_SHIFT": "Night Shift",
+      "ROTATING_SHIFT": "Rotating Shift",
+      "FLEXIBLE": "Flexible",
+      "WEEKEND_ONLY": "Weekend Only"
+    },
+    "experience": {
+      "ENTRY_LEVEL": "Entry Level",
+      "JUNIOR": "Junior (1-2 years)",
+      "MID_LEVEL": "Mid Level (3-5 years)",
+      "SENIOR": "Senior (5+ years)",
+      "EXPERT": "Expert (10+ years)"
+    },
+    "salaryType": {
+      "HOURLY": "Per Hour",
+      "DAILY": "Per Day",
+      "WEEKLY": "Per Week",
+      "MONTHLY": "Per Month",
+      "YEARLY": "Per Year",
+      "PER_PROJECT": "Per Project",
+      "hourly": "Per Hour",
+      "daily": "Per Day",
+      "weekly": "Per Week",
+      "monthly": "Per Month",
+      "yearly": "Per Year",
+      "per_project": "Per Project",
+      "annual": "Per Year",
+      "piece_rate": "Per Piece"
+    },
+    "hints": {
+      "remoteWork": "Can this job be done remotely?"
+    },
+    "pickers": {
+      "selectIndustry": "Select Industry",
+      "selectJobType": "Select Job Type",
+      "selectWorkingHours": "Select Working Hours",
+      "selectExperience": "Select Experience Level",
+      "selectSalaryType": "Select Salary Type",
+      "selectState": "Select State",
+      "selectSkills": "Select Skills",
+      "done": "Done"
+    }
   },
   "jobDetails": {
     "title": "Job Details",
@@ -345,7 +809,9 @@
       "personalInfoSubtitle": "Your basic details",
       "addressSubtitle": "Your current location",
       "jobPreferencesSubtitle": "Your career requirements",
-      "skillsExperienceSubtitle": "Your qualifications"
+      "skillsExperienceSubtitle": "Your qualifications",
+      "resume": "Resume",
+      "resumeSubtitle": "Manage and update your resume"
     },
     "placeholders": {
       "fullName": "Enter your full name",
@@ -371,7 +837,12 @@
       "loadFailed": "Failed to load data. Please try again.",
       "updateFailed": "Failed to update profile. Please try again.",
       "fullNameRequired": "Please enter your full name"
-    }
+    },
+    "viewResume": "View Resume",
+    "uploadPdf": "Upload PDF",
+    "regenerateAi": "Regenerate (AI)",
+    "resumeUploaded": "Resume uploaded successfully",
+    "resumeRegenerated": "Resume regenerated successfully"
   },
   "profile": {
     "title": "My Profile",
@@ -435,8 +906,10 @@
       "jobPreferences": "Job Preferences",
       "skillsExperience": "Skills & Experience",
       "quickActions": "Quick Actions",
-      "language": "Language"
+      "language": "Language",
+      "reports": "Reports"
     },
+
     "actions": {
       "savedJobs": "Saved Jobs",
       "myApplications": "My Applications",
@@ -541,6 +1014,39 @@
     "flexible": "Flexible",
     "weekendOnly": "Weekend Only"
   },
+  "experienceLevels": {
+    "entryLevel": "Entry Level",
+    "junior": "Junior (1-2 years)",
+    "midLevel": "Mid Level (3-5 years)",
+    "senior": "Senior (5+ years)",
+    "expert": "Expert (10+ years)"
+  },
+  "salaryTypes": {
+    "hourly": "Per Hour",
+    "daily": "Per Day",
+    "weekly": "Per Week",
+    "monthly": "Per Month",
+    "yearly": "Per Year",
+    "perProject": "Per Project"
+  },
+  "states": {
+    "Johor": "Johor",
+    "Kedah": "Kedah",
+    "Kelantan": "Kelantan",
+    "Kuala Lumpur": "Kuala Lumpur",
+    "Labuan": "Labuan",
+    "Melaka": "Melaka",
+    "Negeri Sembilan": "Negeri Sembilan",
+    "Pahang": "Pahang",
+    "Penang": "Penang",
+    "Perak": "Perak",
+    "Perlis": "Perlis",
+    "Putrajaya": "Putrajaya",
+    "Sabah": "Sabah",
+    "Sarawak": "Sarawak",
+    "Selangor": "Selangor",
+    "Terengganu": "Terengganu"
+  },
   "signUp": {
     "appTitle": "Blue-Collar Job Portal",
     "appSubtitle": "Start your career journey",
@@ -562,6 +1068,7 @@
     "termsOfService": "Terms of Service",
     "and": "and",
     "privacyPolicy": "Privacy Policy",
+    "termsClickHint": "Tap the terms to review and agree",
     "createAccountButton": "Create Account",
     "creatingAccount": "Creating Account...",
     "or": "OR",
@@ -586,6 +1093,20 @@
       "title": "Success!",
       "message": "Account created successfully. Welcome to Blue-Collar Jobs!",
       "continue": "Continue"
+    }
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "subtitle": "Please review our Terms of Service and Privacy Policy.",
+    "lastUpdated": "Last updated: Jan 1, 2025",
+    "agreeButton": "I Agree",
+    "section": {
+      "introduction": "Introduction",
+      "introductionText": "By using this app, you agree to abide by our terms and policies designed to keep users safe and experiences fair.",
+      "privacy": "Privacy",
+      "privacyText": "We respect your privacy and handle data according to our Privacy Policy. We only collect necessary information to provide our services.",
+      "usage": "Acceptable Use",
+      "usageText": "Do not misuse the platform. Follow local laws, avoid fraudulent activity, and respect other users at all times."
     }
   },
   "login": {
@@ -777,6 +1298,1239 @@
     "uploadError": "Failed to upload file",
     "startChat": "Start Chat",
     "messageApplicant": "Message Applicant",
-    "continueChat": "Continue Chat"
+    "continueChat": "Continue Chat",
+    "active": "Active",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "job": "Job",
+    "typeMessage": "Type a message...",
+    "messageDeleted": "This message was deleted",
+    "edited": "(edited)",
+    "typing": "typing...",
+    "loadingMessages": "Loading messages...",
+    "connecting": "Connecting...",
+    "messages": "Messages"
+  },
+  "companies": {
+    "title": "Companies",
+    "featuredCompanies": "Featured Companies",
+    "loading": "Loading companies...",
+    "searchPlaceholder": "Search companies...",
+    "empty": "No companies found",
+    "reviewsCount": "{count} reviews",
+    "noReviews": "No reviews yet",
+    "reviews": "reviews",
+    "preview": {
+      "title": "Company Preview",
+      "badge": "Preview",
+      "infoBanner": "This is how job seekers see your company profile. Reviews are read-only in this preview."
+    },
+    "detail": {
+      "notFound": "Company not found",
+      "basedOnReviews": "Based on {count} reviews",
+      "yourReview": "Your Review",
+      "writeReview": "Write a Review",
+      "deleteReviewTitle": "Delete Review",
+      "deleteReviewConfirm": "Are you sure you want to delete your review?",
+      "successReviewDeleted": "Review deleted",
+      "errorReviewDeleteFailed": "Failed to delete review",
+      "about": "About",
+      "contactInformation": "Contact Information",
+      "website": "Website",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address"
+    }
+  },
+  "employerDashboard": {
+    "loading": "Loading dashboard...",
+    "loadFailed": "Failed to load dashboard",
+    "tryAgain": "Try Again",
+    "welcomeBack": "Welcome back",
+    "pricing": "Pricing",
+
+    "totalJobs": "Total Jobs",
+    "activeJobs": "Active Jobs",
+    "activeCount": "{count} active",
+    "currentlyHiring": "Currently hiring",
+
+    "totalApplicants": "Total Applicants",
+    "pendingCount": "{count} pending",
+    "shortlisted": "Shortlisted",
+    "topCandidates": "Top candidates",
+
+    "quickActions": "Quick Actions",
+    "postNewJob": "Post New Job",
+    "viewApplicants": "View Applicants",
+    "previewJobs": "Preview Jobs",
+    "settings": "Settings",
+
+    "recentJobPosts": "Recent Job Posts",
+    "viewAll": "View All",
+    "noJobPostsYet": "No job posts yet",
+    "createYourFirstJob": "Create your first job",
+
+    "companyReviews": "Company Reviews",
+    "manageReviews": "Manage Reviews",
+    "totalReviews": "{count} reviews",
+    "recentReviews": "Recent Reviews",
+    "noReviewsYet": "No reviews yet",
+    "noReviewsMessage": "Reviews from job seekers will appear here",
+
+    "active": "Active",
+    "closed": "Closed",
+    "applicants": "{count} applicants",
+
+    "tipsTitle": "Tips for Better Hiring",
+    "tip1": "💡 Add clear job requirements to attract qualified candidates",
+    "tip2": "💡 Respond to applicants within 24 hours for better engagement",
+    "tip3": "💡 Keep your job posts updated to stay visible to job seekers"
+  },
+  "employerReviews": {
+    "title": "Reviews Management",
+    "loading": "Loading reviews...",
+    "labels": {
+      "yourReply": "Your Reply",
+      "replyAction": "Reply",
+      "flagAction": "Flag",
+      "average": "Average",
+      "totalReviews": "Total Reviews",
+      "all": "All",
+      "newest": "Newest",
+      "highest": "Highest",
+      "lowest": "Lowest",
+      "noReviews": "No reviews found",
+      "replyModalTitle": "Reply to Review",
+      "replyPlaceholder": "Write your reply...",
+      "postReply": "Post Reply",
+      "posting": "Posting..."
+    },
+    "success": {
+      "replyPosted": "Reply posted successfully",
+      "reviewFlagged": "Review flagged for admin review"
+    },
+    "errors": {
+      "loadFailed": "Failed to load reviews",
+      "missingReply": "Please enter a reply",
+      "postFailed": "Failed to post reply",
+      "flagFailed": "Failed to flag review",
+      "provideReason": "Please provide a reason"
+    },
+    "prompt": {
+      "flagTitle": "Flag Review",
+      "flagMessage": "Please provide a reason for flagging this review:",
+      "submit": "Submit"
+    }
+  },
+  "employerReports": {
+    "appeal": {
+      "headerTitle": "Submit Appeal",
+      "headerSubtitle": "Report #{id}",
+      "instructionsTitle": "Appeal Guidelines",
+      "guideline1": "Provide a detailed explanation of why you believe the admin's decision was incorrect",
+      "guideline2": "Include any evidence that supports your case (screenshots, documents, etc.)",
+      "guideline3": "Be respectful and professional in your explanation",
+      "guideline4": "The admin will review your appeal and respond within 2–3 business days",
+      "explanationLabel": "Explanation",
+      "explanationHint": "Explain why you believe this action should be reversed (minimum 20 characters)",
+      "explanationPlaceholder": "Enter your detailed explanation here...",
+      "characterCount": "{count} characters (minimum 20)",
+      "evidenceLabel": "Supporting Evidence (Optional)",
+      "evidenceHint": "Upload up to 5 files (images or PDFs) that support your appeal",
+      "addImage": "Add Image",
+      "addDocument": "Add Document",
+      "maxFilesReached": "Maximum number of files reached (5)",
+      "noteTitle": "Important Note",
+      "noteText": "Submitting an appeal does not guarantee that the action will be reversed. The admin will carefully review your explanation and evidence before making a final decision.",
+      "submitButton": "Submit Appeal",
+      "submitting": "Submitting...",
+      "submitTitle": "Submit Appeal",
+      "submitConfirm": "Are you sure you want to submit this appeal? The admin will review your explanation and evidence.",
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Submit"
+      },
+      "auth": {
+        "requiredTitle": "Authentication Required",
+        "requiredMessage": "Please sign in to continue"
+      },
+      "success": {
+        "title": "Success",
+        "message": "Your appeal has been submitted successfully. The admin will review it soon.",
+        "ok": "OK"
+      },
+      "errorTitle": "Error",
+      "errors": {
+        "pickImageFailed": "Failed to pick image",
+        "pickDocumentFailed": "Failed to pick document",
+        "missingExplanation": "Please provide an explanation for your appeal",
+        "tooShortExplanation": "Please provide a more detailed explanation (minimum 20 characters)",
+        "maxFiles": "Maximum 5 files allowed",
+        "submitFailed": "Failed to submit appeal"
+      },
+      "permissions": {
+        "photosTitle": "Permission Required",
+        "photosMessage": "Please grant permission to access your photos"
+      }
+    }
+  },
+  "employerProfile": {
+    "loading": "Loading profile...",
+    "errorNotFound": "Profile not found",
+    "loadFailed": "Failed to load profile",
+    "tryAgain": "Try Again",
+    "editProfile": "Edit Profile",
+    "companyInformation": "Company Information",
+    "companyName": "Company Name",
+    "industry": "Industry",
+    "companySize": "Company Size",
+    "selectCompanySize": "Select Company Size",
+    "address": "Address",
+    "contactInformation": "Contact Information",
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "description": "Description",
+    "location": "Location",
+    "city": "City",
+    "state": "State",
+    "selectState": "Select State",
+    "postcode": "Postcode",
+    "accountInformation": "Account Information",
+    "fullName": "Full Name",
+    "role": "Role",
+    "onboardingStatus": "Onboarding Status",
+    "stepOfTotal": "Step {step} of {total}",
+    "onboardingCompleted": "Onboarding completed",
+    "onboardingInProgress": "Onboarding in progress",
+    "settings": "Settings",
+    "comingSoon": "Coming Soon",
+    "notifications": "Notifications",
+    "privacySettings": "Privacy settings",
+    "helpSupport": "Help & Support",
+    "notProvided": "Not provided",
+    "notSpecified": "Not specified",
+    "sizeStartup": "1-10 employees",
+    "sizeSmall": "11-50 employees",
+    "sizeMedium": "51-200 employees",
+    "sizeLarge": "201-500 employees",
+    "sizeEnterprise": "500+ employees",
+    "logoHint": "Tap to change logo",
+    "saveChanges": "Save Changes",
+    "updateConfirm": "Update your profile?",
+    "updated": "Profile updated!",
+    "updateFailed": "Failed to update",
+    "note": "Note",
+    "uploadNote": "Logo is updated after you save changes",
+    "permissions": {
+      "cameraRollRequiredTitle": "Permission Required",
+      "cameraRollRequiredMessage": "We need photo library permission to pick a logo"
+    },
+    "validation": {
+      "companyNameRequired": "Company name is required",
+      "industryRequired": "Industry is required",
+      "sizeRequired": "Company size is required",
+      "invalidEmail": "Please enter a valid email",
+      "invalidWebsite": "Please enter a valid website URL"
+    },
+    "placeholders": {
+      "companyName": "Enter company name",
+      "description": "Describe your company, culture, and values...",
+      "address": "Enter street address",
+      "city": "Enter city"
+    }
+  },
+  "pendingVerification": {
+    "title": "Verification in Progress",
+    "description": "Thank you for submitting your company profile! Our team is currently reviewing your information.",
+    "statusSubmitted": "Profile Submitted",
+    "statusUnderReview": "Under Review (Current)",
+    "statusApprovalPending": "Approval Pending",
+    "infoTitle": "Expected Review Time",
+    "infoText": "Typically 1-3 business days. We'll notify you via email once the review is complete.",
+    "detailsTitle": "Submitted Company Details",
+    "companyName": "Company Name:",
+    "industry": "Industry:",
+    "location": "Location:",
+    "submitted": "Submitted:",
+    "logout": "Logout"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "unreadCount": "{count} unread",
+    "markAllRead": "Mark all as read",
+    "deleteAll": "Delete all",
+    "deleteAllTitle": "Delete All",
+    "deleteAllConfirm": "Are you sure you want to delete all notifications?",
+    "success": {
+      "allRead": "All notifications marked as read",
+      "allDeleted": "All notifications deleted"
+    },
+    "errors": {
+      "loadFailed": "Failed to load notifications",
+      "markAllFailed": "Failed to mark all as read",
+      "deleteFailed": "Failed to delete notification",
+      "deleteAllFailed": "Failed to delete all notifications"
+    },
+    "emptyTitle": "No notifications",
+    "emptySubtitle": "You're all caught up! We'll notify you when something new happens.",
+    "errorTitle": "Error",
+    "successTitle": "Success",
+    "filterAll": "All ({count})",
+    "filterUnread": "Unread ({count})",
+    "deleteTitle": "Delete Notification",
+    "deleteConfirm": "Are you sure you want to delete this notification?",
+    "actions": {
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "emptyCaughtUp": "You're all caught up!",
+    "emptyNoneYet": "You don't have any notifications yet",
+    "time": {
+      "now": "Just now",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago"
+    }
+  },
+  "adminCompanies": {
+    "headerTitle": "Company Management",
+    "headerSubtitle": "{count} companies registered",
+    "loading": "Loading companies...",
+    "searchPlaceholder": "Search by name, email, or city...",
+    "filterAll": "All",
+    "filterApproved": "Approved",
+    "filterPending": "Pending",
+    "filterRejected": "Rejected",
+    "filterDisabled": "Disabled",
+    "noIndustry": "No industry",
+    "locationNA": "N/A",
+    "statsJobs": "Jobs",
+    "statsReviews": "Reviews",
+    "trustScore": "Trust Score",
+    "trustScoreUnavailable": "Trust score unavailable",
+    "userSuspended": "SUSPENDED",
+    "joined": "Joined",
+    "tryAgain": "Try Again",
+    "emptyTitle": "No companies found",
+    "emptyAdjust": "Try adjusting your search or filter",
+    "emptyNoRegistered": "No companies have registered yet",
+    "loadingMore": "Loading more..."
+  },
+
+  "employerApplicants": {
+    "searchPlaceholder": "Search by name, job, or email...",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "shortlisted": "Shortlisted",
+      "interviewed": "Interviewed",
+      "rejected": "Rejected"
+    },
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "shortlisted": "Shortlisted"
+    },
+    "loading": "Loading applicants...",
+    "loadingMore": "Loading more...",
+    "tryAgain": "Try Again",
+    "empty": {
+      "found": "No applicants found",
+      "none": "No applicants yet",
+      "adjust": "Try adjusting your search or filter",
+      "hint": "Applications will appear here when job seekers apply for your jobs"
+    },
+    "status": {
+      "pending": "Pending",
+      "shortlisted": "Shortlisted",
+      "interviewed": "Interviewed",
+      "rejected": "Rejected",
+      "hired": "Hired"
+    },
+    "actions": {
+      "chat": "Chat",
+      "view": "View",
+      "shortlist": "Shortlist"
+    },
+    "appliedFor": "Applied for",
+    "errors": {
+      "fetchFailed": "Failed to fetch applicants",
+      "loadFailed": "Failed to load applicants",
+      "startChatFailed": "Failed to start chat. Please try again."
+    }
+  },
+  "employerApplicantDetails": {
+    "loading": "Loading applicant details...",
+    "actions": {
+      "chat": "Chat",
+      "email": "Email",
+      "call": "Call",
+      "resume": "Resume",
+      "shortlist": "Shortlist",
+      "reject": "Reject",
+      "shortlisted": "Shortlisted"
+    },
+    "alerts": {
+      "shortlistTitle": "Shortlist Applicant",
+      "rejectTitle": "Reject Applicant",
+      "confirmShortlist": "Are you sure you want to shortlist {name}?",
+      "confirmReject": "Are you sure you want to reject {name}?",
+      "shortlistedSuccess": "Applicant shortlisted successfully",
+      "rejectedSuccess": "Applicant rejected successfully"
+    },
+    "errors": {
+      "notFound": "Applicant not found",
+      "resumeOpenFailed": "Could not open resume link",
+      "noResumeTitle": "No Resume",
+      "noResumeMessage": "This applicant has not uploaded a resume",
+      "noPhoneTitle": "No Phone Number",
+      "noPhoneMessage": "This applicant has not provided a phone number",
+      "shortlistFailed": "Failed to shortlist applicant",
+      "rejectFailed": "Failed to reject applicant"
+    },
+    "sections": {
+      "qualityTitle": "Quality Score Analysis",
+      "appliedPosition": "Applied Position",
+      "contactInformation": "Contact Information",
+      "experience": "Experience",
+      "coverLetter": "Cover Letter",
+      "timeline": "Timeline",
+      "applied": "Applied",
+      "lastUpdated": "Last Updated"
+    },
+    "quality": {
+      "profileCompleteness": "Profile Completeness",
+      "experienceMatch": "Experience Match",
+      "skillsMatch": "Skills Match",
+      "locationMatch": "Location Match",
+      "additionalFactors": "Additional Factors",
+      "analyzing": "Analyzing applicant quality...",
+      "qualityCandidateLabel": "{quality} QUALITY CANDIDATE",
+      "strengthsTitle": "Strengths",
+      "improvementsTitle": "Areas for Improvement",
+      "label": "Quality",
+      "level": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "statuses": {
+      "PENDING": "Pending",
+      "REVIEWING": "Reviewing",
+      "SHORTLISTED": "Shortlisted",
+      "INTERVIEW_SCHEDULED": "Interview Scheduled",
+      "INTERVIEWED": "Interviewed",
+      "REJECTED": "Rejected",
+      "HIRED": "Hired"
+    },
+    "experienceYears": "{years} years of experience"
+  },
+  "employerJobPosts": {
+    "loading": "Loading jobs...",
+    "searchPlaceholder": "Search jobs...",
+    "filters": {
+      "status": "Status",
+      "visibility": "Visibility",
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "aiRejected": "AI Rejected",
+      "appealed": "Appealed",
+      "finalRejected": "Final Rejection",
+      "active": "Active",
+      "closed": "Closed"
+    },
+    "errorTryAgain": "Try Again",
+    "empty": {
+      "found": "No jobs found",
+      "none": "No job posts yet",
+      "adjust": "Try adjusting your search or filter",
+      "cta": "Create your first job post to start hiring"
+    },
+    "cta": {
+      "create": "Create Job Post"
+    },
+    "appeal": {
+      "title": "Appeal Job Rejection",
+      "button": "Appeal Decision",
+      "rejectionReason": "Rejection Reason:",
+      "noReason": "No reason provided",
+      "explanation": "Explanation",
+      "explanationPlaceholder": "Explain why this job post is legitimate and should be approved...",
+      "supportingDocs": "Supporting Documents (Optional)",
+      "uploadHelper": "Upload company registration, licenses, or other proof",
+      "uploadFiles": "Upload Files",
+      "cancel": "Cancel",
+      "submit": "Submit Appeal",
+      "aiRejectedNotice": "This job post was rejected by AI. Tap to view details.",
+      "appealedNotice": "Your appeal is being reviewed by our team. We'll notify you of the decision soon.",
+      "finalRejectedNotice": "This job post has been reviewed and the rejection decision is final.",
+      "rejectedTitle": "Job Rejected"
+    },
+    "stats": {
+      "views": "views",
+      "applicant": "applicant",
+      "applicants": "applicants"
+    },
+    "errors": {
+      "pickDocumentFailed": "Failed to pick document"
+    },
+    "pendingAiNotice": "Your job post is being reviewed by our AI system. You'll be notified once approved."
+  },
+  "adminJobApproval": {
+    "flaggedAiNotice": "This job post has been flagged by our AI system and requires human review before approval."
+  },
+  "adminReports": {
+    "headerTitle": "Report Management",
+    "headerSubtitle": "{count} total reports",
+    "appeals": "Appeals",
+    "pendingAppeals": "Pending Appeals",
+    "searchPlaceholder": "Search by reporter, email, or report type...",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "evidenceTitle": "Evidence Files",
+    "reportCard": {
+      "type": "Type",
+      "status": "Status",
+      "reporter": "Reporter",
+      "description": "Description",
+      "submittedOn": "Submitted",
+      "viewJob": "View Job Post"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "Fake Job",
+      "MISLEADING_INFO": "Misleading Information",
+      "INAPPROPRIATE_CONTENT": "Inappropriate Content",
+      "SCAM_SUSPECTED": "Scam Suspected",
+      "DISCRIMINATION": "Discrimination",
+      "DUPLICATE_POSTING": "Duplicate Posting",
+      "OTHERS": "Others"
+    },
+    "detailModal": {
+      "viewJob": "View Job Post & Take Action",
+      "sections": {
+        "type": "Report Type",
+        "status": "Report Status",
+        "reporter": "Reported By",
+        "description": "Report Description",
+        "evidence": "Evidence",
+        "reviewInfo": "Review Information",
+        "submitted": "Submitted",
+        "updated": "Last Updated"
+      }
+    },
+    "loading": "Loading reports...",
+    "empty": {
+      "title": "No reports found",
+      "adjust": "Try adjusting your search or filter"
+    },
+    "errors": {
+      "authRequiredTitle": "Authentication Required",
+      "authRequiredMessage": "Please sign in to continue",
+      "loadFailed": "Failed to load reports"
+    }
+  },
+  "adminCompanyApproval": {
+    "headerTitle": "Company Approval",
+    "headerSubtitle": "{count} pending verifications",
+    "loading": "Loading pending approvals...",
+    "actions": { "approve": "Approve", "reject": "Reject" },
+    "alerts": {
+      "authRequiredTitle": "Authentication Required",
+      "authRequiredMessage": "Please sign in to continue",
+      "approvalSuccess": "Company approved successfully",
+      "rejectionSuccess": "Company rejected successfully",
+      "reasonRequiredTitle": "Rejection Reason Required",
+      "reasonRequiredMessage": "Please provide a reason for rejection"
+    },
+    "errors": {
+      "loadFailed": "Failed to load pending approvals",
+      "approveFailed": "Failed to approve company",
+      "rejectFailed": "Failed to reject company"
+    },
+    "prompt": {
+      "rejectTitle": "Reject Company",
+      "rejectPlaceholder": "Enter rejection reason",
+      "approveTitle": "Approve Company",
+      "confirmApprove": "Are you sure you want to approve {name}?"
+    },
+    "empty": {
+      "title": "No pending approvals",
+      "subtitle": "You're all caught up!"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "labels": {
+      "submitted": "Submitted",
+      "documentAttached": "Document Attached"
+    }
+  },
+  "adminDashboard": {
+    "loading": "Loading dashboard...",
+    "header": {
+      "title": "Admin Dashboard",
+      "subtitle": "Platform Analytics"
+    },
+    "quickAccess": {
+      "title": "Quick Access",
+      "users": "Users",
+      "jobs": "Jobs",
+      "companies": "Companies"
+    },
+    "userStats": {
+      "title": "User Statistics",
+      "jobSeekers": "Job Seekers",
+      "employers": "Employers"
+    },
+    "company": {
+      "title": "Company Management",
+      "total": "Total",
+      "verified": "Verified",
+      "pending": "Pending",
+      "disabled": "Disabled",
+      "manageCta": "View Trust Scores & Manage"
+    },
+    "stats": {
+      "jobs": "Job Statistics",
+      "totalJobs": "Total Jobs",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "recent": {
+      "title": "Recent Activity",
+      "newUsers": "New Users",
+      "newJobs": "New Jobs",
+      "newApplications": "New Applications",
+      "registered": "registered",
+      "posted": "posted",
+      "submitted": "submitted"
+    },
+    "reviews": {
+      "title": "Review Statistics",
+      "total": "Total Reviews",
+      "average": "Average Rating",
+      "flagged": "Flagged Reviews",
+      "manage": "Manage Reviews"
+    }
+  },
+  "adminUsers": {
+    "title": "User Management",
+    "subtitle": "Manage user accounts and permissions",
+    "loading": "Loading users...",
+    "searchPlaceholder": "Search by name, email, or city...",
+    "filters": {
+      "title": "Filter by Role",
+      "all": "All",
+      "jobSeekers": "Job Seekers",
+      "employers": "Employers"
+    },
+    "actions": {
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "delete": "Delete",
+      "suspendUser": "Suspend User",
+      "activateUser": "Activate User",
+      "deleteUser": "Delete User",
+      "confirmSuspend": "Are you sure you want to suspend {name}?",
+      "confirmActivate": "Are you sure you want to activate {name}?",
+      "confirmDelete": "Are you sure you want to delete {name}? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "success": "Success",
+      "error": "Error",
+      "updateFailed": "Failed to update status"
+    },
+    "common": {
+      "joinedToday": "Joined today",
+      "joinedDaysAgo": "Joined {days} days ago"
+    },
+    "stats": {
+      "applications": "applications",
+      "jobsPosted": "jobs posted",
+      "applicationsLabel": "Applications",
+      "jobsLabel": "Jobs Posted",
+      "profile": "Profile"
+    },
+    "status": { "suspended": "Suspended" },
+    "details": {
+      "joined": "Joined",
+      "applications": "applications",
+      "jobsPosted": "jobs posted"
+    },
+    "empty": {
+      "title": "No users found",
+      "adjust": "Try adjusting your search or filter"
+    },
+    "tryAgain": "Try Again",
+    "errors": {
+      "loadFailed": "Failed to load users"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "Report Management",
+    "headerSubtitle": "{count} total reports",
+    "appeals": "Appeals",
+    "searchPlaceholder": "Search reports...",
+    "loading": "Loading reports...",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "reportTypes": {
+      "SCAM": "Scam",
+      "INAPPROPRIATE": "Inappropriate Content",
+      "SPAM": "Spam",
+      "OTHER": "Other"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "UNDER_REVIEW": "Under Review",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed"
+    },
+    "reportCard": {
+      "viewJob": "View Job"
+    },
+    "empty": {
+      "title": "No reports found",
+      "adjust": "Try adjusting your search or filter"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "Report Details",
+        "type": "Report Type",
+        "status": "Status"
+      },
+      "reportedBy": "Reported By",
+      "description": "Description",
+      "reviewedBy": "Reviewed By",
+      "admin": "Admin",
+      "reviewNotes": "Review Notes",
+      "submitted": "Submitted",
+      "viewJob": "View Job Post"
+    }
+  },
+  "adminJobManagement": {
+    "title": "Job Management",
+    "loading": "Loading jobs...",
+    "searchPlaceholder": "Search jobs by title or company...",
+    "headerSubtitle": "Manage and review job postings",
+    "salary": {
+      "notSpecified": "Not specified"
+    },
+    "status": {
+      "approved": "Approved",
+      "pendingReview": "Pending Review",
+      "aiRejected": "AI Rejected",
+      "appealPending": "Appeal Pending",
+      "finalRejection": "Final Rejection"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "appeals": "Appeals"
+    },
+    "rejectedFilters": {
+      "allRejected": "All Rejected",
+      "aiRejected": "AI Rejected",
+      "finalRejected": "Final Rejected"
+    },
+    "prompts": {
+      "tapToReview": "Tap to review"
+    },
+    "jobCard": {
+      "verified": "Verified",
+      "views": "Views",
+      "applications": "Applications",
+      "daysAgo": "Days ago",
+      "appeal": "appeal",
+      "appeals": "appeals",
+      "appealPrompt": "Employer has submitted an appeal - requires immediate review"
+    },
+    "empty": {
+      "appealsTitle": "No Appeals Found",
+      "pendingTitle": "No Pending Jobs",
+      "rejectedTitle": "No Rejected Jobs",
+      "approvedTitle": "No Approved Jobs",
+      "appealsSubtitle": "All appeals have been processed",
+      "pendingSubtitle": "No jobs are pending review",
+      "rejectedSubtitle": "No jobs have been rejected",
+      "approvedSubtitle": "No jobs have been approved yet",
+      "adjust": "Try adjusting your search or filter"
+    }
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Select the plan that best fits your hiring needs",
+    "popular": "Most Popular",
+    "selectPlan": "Select Plan",
+    "currentPlan": "Current Plan",
+    "jobPost": "job post",
+    "jobPosts": "job posts",
+    "success": "Success",
+    "freePlanActivated": "Free plan activated successfully!",
+    "footerText": "All plans include access to our job seeker database and application management tools.",
+
+    "free": {
+      "name": "Free",
+      "period": "per month",
+      "feature1": "1 job post",
+      "feature2": "View company reviews",
+      "feature3": "Reply to reviews",
+      "feature4": "Basic analytics"
+    },
+
+    "pro": {
+      "name": "Pro",
+      "period": "per month",
+      "feature1": "5 job posts",
+      "feature2": "View company reviews",
+      "feature3": "Reply to reviews",
+      "feature4": "Advanced analytics",
+      "feature5": "Priority support"
+    },
+
+    "max": {
+      "name": "Max",
+      "period": "per month",
+      "unlimited": "Unlimited",
+      "feature1": "Unlimited job posts",
+      "feature2": "View company reviews",
+      "feature3": "Reply to reviews",
+      "feature4": "Advanced analytics",
+      "feature5": "Priority support",
+      "feature6": "Featured job listings"
+    },
+    "cancelSubscription": "Cancel Subscription",
+    "cancel": {
+      "confirmTitle": "Cancel Subscription",
+      "confirmMessage": "Are you sure you want to cancel your subscription? You will be downgraded to the Free plan at the end of your billing period.",
+      "success": "Subscription cancelled successfully."
+    }
+  },
+
+  "subscription": {
+    "yourPlan": "You're on the",
+    "freePlan": "Free Plan",
+    "proPlan": "Pro Plan",
+    "maxPlan": "Max Plan",
+    "unlimited": "Unlimited job posts",
+    "remaining": "remaining",
+    "of": "of",
+    "posts": "posts",
+    "canReply": "Can reply to reviews",
+    "upgrade": "Upgrade",
+    "used": "used"
+  },
+
+  "jobPostLimit": {
+    "title": "You've Reached Your Limit",
+    "message": "You've used all available job posts on your current plan.",
+    "upgradeTitle": "Upgrade to get:",
+    "benefit1Pro": "Up to 5 job posts",
+    "benefit1Max": "Unlimited job posts",
+    "benefit2": "Reply to company reviews",
+    "benefit3": "Priority support",
+    "benefit4": "Advanced analytics",
+    "upgradeButton": "Upgrade Plan",
+    "cancelButton": "Maybe Later"
+  },
+
+  "paymentSuccess": {
+    "title": "Payment Successful!",
+    "message": "Your subscription has been activated. You can now enjoy all the features of your selected plan.",
+    "feature1": "Full access to job posting",
+    "feature2": "Reply to company reviews",
+    "feature3": "Priority support",
+    "proceedButton": "Proceed to Dashboard",
+    "helperText": "A receipt has been sent to your email",
+    "verifying": "Verifying payment..."
+  },
+
+  "paymentFailed": {
+    "title": "Payment Failed",
+    "message": "We couldn't process your payment. Please check your payment details and try again.",
+    "reasonsTitle": "Common reasons:",
+    "reason1": "Insufficient funds",
+    "reason2": "Incorrect card details",
+    "reason3": "Card expired or blocked",
+    "retryButton": "Try Again",
+    "contactSupport": "Contact Support",
+    "skipForNow": "Skip for now"
+  },
+  "reviewModeration": {
+    "search": { "placeholder": "Search company or user..." },
+    "filters": {
+      "allRatings": "All Ratings",
+      "hidden": "Hidden",
+      "flagged": "Flagged"
+    },
+    "flags": {
+      "hidden": "Hidden",
+      "flagged": "Flagged",
+      "reasonLabel": "Flag Reason:"
+    },
+    "actions": {
+      "hide": "Hide",
+      "show": "Show",
+      "dismissFlag": "Dismiss Flag"
+    },
+    "empty": { "title": "No reviews found" },
+    "success": {
+      "shown": "Review shown successfully",
+      "hidden": "Review hidden successfully",
+      "deleted": "Review deleted successfully"
+    },
+    "errors": {
+      "moderateFailed": "Failed to moderate review",
+      "deleteFailed": "Failed to delete review"
+    },
+    "delete": {
+      "title": "Delete Review",
+      "confirm": "Are you sure you want to permanently delete this review?"
+    },
+    "modal": {
+      "titleHide": "Hide Review",
+      "descriptionHide": "This review will be hidden from public view. You can provide notes for your records.",
+      "notesLabelOptional": "Admin Notes (Optional)",
+      "notesPlaceholder": "Add notes about this moderation action...",
+      "confirmHide": "Hide Review"
+    }
+  },
+  "updateLocation": {
+    "heroTitle": "Update Your Location",
+    "heroSubtitle": "Set your preferred location for better job matches",
+    "infoTitle": "Why update location?",
+    "privacyNote": "Your location data is kept private and secure",
+    "infoText": "Update your location to find jobs near you. We'll automatically calculate coordinates for distance-based filtering.",
+    "labels": {
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "postcode": "Postcode"
+    },
+    "placeholders": {
+      "address": "e.g., 123 Jalan Bukit Bintang",
+      "city": "e.g., Kuala Lumpur",
+      "state": "e.g., Wilayah Persekutuan",
+      "postcode": "e.g., 55100"
+    },
+    "actions": {
+      "saveLocation": "Save Location"
+    },
+    "alerts": {
+      "validationMissingCityState": "Please enter at least city and state",
+      "successGeocoded": "Location updated and coordinates calculated!",
+      "successUpdated": "Location updated successfully",
+      "updateFailed": "Failed to update location"
+    },
+    "tipLabel": "Tip:",
+    "tipText": "Providing accurate location helps us show you the most relevant jobs in your area."
+  },
+
+  "adminJobDetails": {
+    "loading": "Loading Job Details...",
+    "status": {
+      "pending": "Pending",
+      "appealed": "Appealed",
+      "approved": "Approved",
+      "rejectedAI": "AI Rejected",
+      "rejectedFinal": "Final Rejection"
+    },
+    "appeal": {
+      "title": "Appeal Submitted",
+      "submitted": "Submitted",
+      "explanationLabel": "Employer's Explanation:",
+      "evidenceLabel": "Evidence Files:",
+      "filesAttached": "file(s) attached"
+    },
+    "company": { "verified": "Verified Company" },
+    "sections": {
+      "keyInfo": "Key Information",
+      "statistics": "Statistics",
+      "description": "Job Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "rejectionReason": "Rejection Reason"
+    },
+    "info": {
+      "location": "Location",
+      "remoteTag": "Remote Available",
+      "jobType": "Job Type",
+      "salary": "Salary",
+      "workingHours": "Working Hours",
+      "experience": "Experience",
+      "startDate": "Start Date"
+    },
+    "stats": {
+      "views": "Views",
+      "applications": "Applications",
+      "posted": "Posted"
+    },
+    "actions": {
+      "reject": "Reject",
+      "approve": "Approve",
+      "rejectAppeal": "Reject Appeal",
+      "approveAppeal": "Approve Appeal"
+    },
+    "prompts": {
+      "confirmApproveAppeal": "Approve appeal for \"{{title}}\"? This will publish the job post.",
+      "confirmApproveJob": "Approve \"{{title}}\"?"
+    },
+    "modal": {
+      "titleRejectAppeal": "Reject Appeal",
+      "titleRejectJob": "Reject Job",
+      "subtitleRejectAppeal": "Please provide a reason for rejecting this appeal. This will be the final decision.",
+      "subtitleRejectJob": "Please provide a reason for rejecting this job listing",
+      "reasonPlaceholder": "Enter rejection reason...",
+      "cancel": "Cancel"
+    },
+    "alerts": {
+      "success": {
+        "approveAppeal": "Appeal approved successfully",
+        "approveJob": "Job approved successfully",
+        "rejectAppeal": "Appeal rejected successfully",
+        "rejectJob": "Job rejected successfully"
+      }
+    },
+    "errors": {
+      "failApprove": "Failed to approve",
+      "failReject": "Failed to reject",
+      "loadFailed": "Failed to load job details",
+      "missingReason": "Please provide a rejection reason"
+    }
+  },
+  "adminCompanyDetails": {
+    "loading": "Loading company details...",
+    "companyNotFound": "Company not found",
+    "goBack": "Go Back",
+    "inactive": "INACTIVE",
+    "employerTrustScore": "Employer Trust Score",
+    "verificationStatus": "Verification Status",
+    "companyCompleteness": "Company Completeness",
+    "jobPostingHistory": "Job Posting History",
+    "applicantEngagement": "Applicant Engagement",
+    "reviewScore": "Review Score",
+    "reportHistory": "Report History",
+    "strengths": "Strengths",
+    "warnings": "Warnings",
+    "companyInformation": "Company Information",
+    "size": "Size",
+    "ownerInformation": "Owner Information",
+    "status": "Status",
+    "lastLogin": "Last login",
+    "recentJobs": "Recent Jobs ({{count}})",
+    "applications": "applications",
+    "description": "Description",
+    "timeline": "Timeline",
+    "registered": "Registered",
+    "lastUpdated": "Last Updated",
+    "accountAge": "Account Age",
+    "days": "days",
+    "enableCompany": "Enable Company",
+    "disableCompany": "Disable Company",
+    "thisWill": "This will disable the company profile and job postings.",
+    "disableEffect1": "Company will not be visible to job seekers.",
+    "disableEffect2": "All active jobs will be paused.",
+    "disableEffect3": "Employer will be notified via email.",
+    "reasonOptional": "Reason (optional)",
+    "cancel": "Cancel",
+    "disable": "Disable"
+  },
+  "employerVerification": {
+    "title": "Verification & Legitimacy",
+    "subtitle": "Help us verify your business to build trust with job seekers",
+    "documentLabel": "Business Registration Document",
+    "documentHint": "Upload SSM registration or a similar business document",
+    "uploadDocument": "Upload Document",
+    "contactPhone": "Contact Phone Number",
+    "businessEmail": "Business Email",
+    "autoFilled": "Auto-filled from your login email",
+    "notUploaded": "Not uploaded",
+    "success": {
+      "documentSelected": "Document selected successfully",
+      "documentUploaded": "Document uploaded successfully!"
+    },
+    "warnings": {
+      "documentUploadFailed": "Failed to upload document, but you can add it later."
+    },
+    "errors": {
+      "pickDocumentFailed": "Failed to pick document",
+      "phoneRequired": "Please provide a contact phone number",
+      "submitFailed": "Failed to submit verification details"
+    }
+  },
+  "tabsLayout": {
+    "home": "Home",
+    "saved": "Saved",
+    "applied": "Applied",
+    "company": "Company",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "employerLayout": {
+    "dashboard": "Dashboard",
+    "jobPosts": "Job Posts",
+    "applicants": "Applicants",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "userHiddenLayout": {
+    "reportJob": "Report Job",
+    "reportHistory": "Report History",
+    "companyProfile": "Company Profile",
+    "updateLocation": "Update Location"
+  },
+  "employerHiddenLayout": {
+    "editCompanyProfile": "Edit Company Profile",
+    "applicantDetails": "Applicant Details",
+    "jobPostDetails": "Job Post Details",
+    "editJobPost": "Edit Job Post",
+    "createJobPost": "Create Job Post",
+    "reportsForJobPost": "Reports For Job Post",
+    "reportDetails": "Report Details",
+    "appealsForJobPost": "Appeals For Job Post",
+    "approvalPending": "Approval Pending",
+    "reviewsManagement": "Reviews Management"
+  },
+  "adminLayout": {
+    "dashboard": "Dashboard",
+    "jobs": "Jobs",
+    "users": "Users",
+    "reports": "Reports",
+    "companies": "Companies"
+  },
+  "adminHiddenLayout": {
+    "login": "Login",
+    "jobPostReview": "Job Post Review",
+    "jobDetails": "Job Details",
+    "appealsForJobPost": "Appeals For Job Post",
+    "appealDetails": "Appeal Details",
+    "reviewModeration": "Review Moderation",
+    "companyApprovalDetails": "Company Approval Details",
+    "companies": "Companies",
+    "companyDetails": "Company Details"
+  },
+  "adminUsers": {
+    "title": "User Management",
+    "subtitle": "Manage users and their accounts",
+    "searchPlaceholder": "Search users by name or email...",
+    "loading": "Loading users...",
+    "actions": {
+      "suspendUser": "Suspend User",
+      "activateUser": "Activate User",
+      "deleteUser": "Delete User",
+      "confirmSuspend": "Are you sure you want to suspend {{name}}?",
+      "confirmActivate": "Are you sure you want to activate {{name}}?",
+      "confirmDelete": "Are you sure you want to delete {{name}}?",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "success": "Success",
+      "error": "Error",
+      "updateFailed": "Failed to update user status",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "delete": "Delete"
+    },
+    "common": {
+      "joinedToday": "Joined today",
+      "joinedDaysAgo": "Joined {{days}} days ago"
+    },
+    "stats": {
+      "applications": "applications",
+      "jobsPosted": "jobs posted",
+      "applicationsLabel": "Applications",
+      "jobsLabel": "Jobs",
+      "profile": "Profile"
+    },
+    "filters": {
+      "title": "Filter by Role",
+      "all": "All",
+      "jobSeekers": "Job Seekers",
+      "employers": "Employers"
+    },
+    "empty": {
+      "title": "No Users Found",
+      "noJobSeekers": "No job seekers found",
+      "noEmployers": "No employers found",
+      "noCriteria": "No users match your criteria"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "Reports",
+    "headerSubtitle": "You have {count} report(s)",
+    "appeals": "Appeals",
+    "searchPlaceholder": "Search reports...",
+    "loading": "Loading reports...",
+    "evidenceTitle": "Evidence",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "UNDER_REVIEW": "Under Review",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed",
+      "PENDING_EMPLOYER_RESPONSE": "Pending Employer Response"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "Fake Job",
+      "MISLEADING_INFO": "Misleading Info",
+      "INAPPROPRIATE_CONTENT": "Inappropriate Content",
+      "SCAM_SUSPECTED": "Scam Suspected",
+      "DISCRIMINATION": "Discrimination",
+      "DUPLICATE_POSTING": "Duplicate Posting",
+      "OTHERS": "Others"
+    },
+    "reportCard": {
+      "viewJob": "View Job"
+    },
+    "empty": {
+      "title": "No Reports",
+      "adjust": "Try adjusting your search or filter"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "Report Details",
+        "type": "Report Type",
+        "status": "Status"
+      },
+      "reportedBy": "Reported By",
+      "description": "Description",
+      "reviewedBy": "Reviewed By",
+      "admin": "Admin",
+      "reviewNotes": "Review Notes",
+      "submitted": "Submitted",
+      "viewJob": "View Job Post"
+    },
+    "errors": {
+      "authRequiredTitle": "Authentication Required",
+      "authRequiredMessage": "Please sign in to continue",
+      "loadFailed": "Failed to load reports"
+    },
+    "alerts": {
+      "ok": "OK",
+      "error": "Error"
+    }
   }
 }

@@ -1,0 +1,33 @@
+@startuml UC_Browse
+skinparam conditionStyle diamond
+title Activity: Browse & Search Jobs
+|Job Seeker|
+start
+:Open Job Board;
+|System|
+:Fetch Recommended Jobs;
+:Display Recommended Jobs;
+|Job Seeker|
+if (Search?) then (yes)
+  :Enter Keywords (Title, Company);
+  :Apply Filters (Location, Salary, Industry);
+  
+  |System|
+  :Query Database;
+  :Display Search Results;
+else (no)
+  |Job Seeker|
+  :Scroll Feed;
+  |System|
+  :Load More Jobs (Pagination);
+endif
+|Job Seeker|
+if (Select Job?) then (yes)
+  :Click Job Card;
+  |System|
+  :Fetch Job Details;
+  :Navigate to Job Details Screen;
+endif
+stop
+@enduml
+

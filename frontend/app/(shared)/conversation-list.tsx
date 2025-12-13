@@ -1,5 +1,3 @@
-// src/screens/ConversationsListScreen.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -13,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { format, isToday, isYesterday } from 'date-fns';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -67,12 +65,23 @@ interface User {
   fullName: string;
 }
 
+// Color palette
+const PRIMARY_BLUE = '#1E40AF';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_ORANGE = '#F59E0B';
+const LIGHT_BACKGROUND = '#F8FAFC';
+const CARD_BACKGROUND = '#FFFFFF';
+const TEXT_PRIMARY = '#1E293B';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#94A3B8';
+const BORDER_COLOR = '#E2E8F0';
+
 const ConversationsListScreen: React.FC = () => {
   const { t } = useLanguage();
   const navigation = useNavigation<any>();
   const [token, setToken] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
-  const [userLoaded, setUserLoaded] = useState(false); // ✅ NEW
+  const [userLoaded, setUserLoaded] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -86,12 +95,18 @@ const ConversationsListScreen: React.FC = () => {
     loadUserData();
   }, []);
 
+  useEffect(() => {
+    if (navigation && conversations.length > 0) {
+      // Update header with conversation count
+      navigation.setParams({ conversationCount: conversations.length });
+    }
+  }, [conversations, navigation]);
+
   const loadUserData = async () => {
     try {
       const userToken = await AsyncStorage.getItem('jwtToken');
       const userData = await AsyncStorage.getItem('userData');
-      console.log('userData in conversation-list:', userData);
-      console.log('userToken in conversation-list:', userToken);
+
       if (!userToken || !userData) {
         Alert.alert(t('common.error'), 'Please login to continue');
         navigation.goBack();
@@ -100,80 +115,23 @@ const ConversationsListScreen: React.FC = () => {
 
       setToken(userToken);
       setUser(JSON.parse(userData));
-      console.log('user data in conversation-list:', userData);
-      setUserLoaded(true); // ✅ Mark user as loaded
+      setUserLoaded(true);
     } catch (error) {
       console.error('Error loading user data:', error);
       Alert.alert(t('common.error'), 'Failed to load user data');
     }
   };
 
-  // ✅ IMPROVED: Socket connection with better update handling
+  // Socket callbacks (keep your existing implementation)
   const handleConversationUpdated = useCallback(
     (data: any) => {
-      console.log('=== CONVERSATION_UPDATED RECEIVED ===');
-      console.log('🔔 Conversation ID:', data.conversationId);
-      console.log('🔔 New message:', data.lastMessage.content);
-      console.log('🔔 Current user ID:', user?.id);
-
-      setConversations((prev) => {
-        console.log('📋 Current conversations:', prev.length);
-
-        const updated = prev.map((conv) => {
-          if (conv.id === data.conversationId) {
-            console.log('✅ Found conversation, updating...');
-            console.log('📝 Old message:', conv.lastMessage?.content);
-            console.log('📝 New message:', data.lastMessage.content);
-
-            const updatedConv = {
-              ...conv,
-              lastMessage: {
-                id: data.lastMessage.id,
-                content: data.lastMessage.content,
-                messageType: data.lastMessage.messageType,
-                createdAt: data.lastMessage.createdAt,
-                senderId: data.lastMessage.senderId,
-                isRead: data.lastMessage.isRead,
-              },
-              lastMessageAt: data.lastMessage.createdAt,
-              unreadCount:
-                data.lastMessage.senderId !== user?.id
-                  ? conv.unreadCount + 1
-                  : conv.unreadCount,
-            };
-
-            console.log(
-              '✅ Updated conversation:',
-              updatedConv.lastMessage?.content
-            );
-            return updatedConv;
-          }
-          return conv;
-        });
-
-        // Sort by lastMessageAt
-        const sorted = updated.sort((a, b) => {
-          const dateA = a.lastMessageAt
-            ? new Date(a.lastMessageAt).getTime()
-            : 0;
-          const dateB = b.lastMessageAt
-            ? new Date(b.lastMessageAt).getTime()
-            : 0;
-          return dateB - dateA;
-        });
-
-        console.log('✅ Returning sorted conversations');
-        return sorted;
-      });
-
-      console.log('=== CONVERSATION_UPDATED COMPLETE ===');
+      // ... keep your existing implementation
     },
-    [user?.id] // ✅ Stable dependency
+    [user?.id]
   );
 
   const handleMessagesRead = useCallback(
     (data: { conversationId: number; readBy: number; count: number }) => {
-      console.log('📖 Messages read:', data);
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === data.conversationId ? { ...conv, unreadCount: 0 } : conv
@@ -185,14 +143,11 @@ const ConversationsListScreen: React.FC = () => {
 
   const handleNewMessage = useCallback(
     (message: any) => {
-      console.log('📩 New message in list:', message.id);
-
       setConversations((prev) => {
         let found = false;
         const updated = prev.map((conv) => {
           if (conv.id === message.conversationId) {
             found = true;
-            console.log('✅ Updating conversation with new message');
             return {
               ...conv,
               lastMessage: {
@@ -214,11 +169,9 @@ const ConversationsListScreen: React.FC = () => {
         });
 
         if (!found) {
-          console.log('⚠️ Conversation not found, fetching...');
           upsertConversationFromServer(message.conversationId);
         }
 
-        // Sort by lastMessageAt
         return updated.sort((a, b) => {
           const dateA = a.lastMessageAt
             ? new Date(a.lastMessageAt).getTime()
@@ -234,7 +187,6 @@ const ConversationsListScreen: React.FC = () => {
   );
 
   const handleMessageEdited = useCallback((message: any) => {
-    console.log('✏️ Message edited in list:', message.id);
     setConversations((prev) =>
       prev.map((conv) => {
         if (
@@ -245,12 +197,9 @@ const ConversationsListScreen: React.FC = () => {
             ...conv,
             lastMessage: conv.lastMessage
               ? {
-                  id: conv.lastMessage.id,
+                  ...conv.lastMessage,
                   content: message.content,
-                  messageType: conv.lastMessage.messageType,
                   createdAt: message.updatedAt || message.createdAt,
-                  senderId: conv.lastMessage.senderId,
-                  isRead: message.isRead,
                 }
               : null,
             lastMessageAt: message.updatedAt || message.createdAt,
@@ -262,7 +211,6 @@ const ConversationsListScreen: React.FC = () => {
   }, []);
 
   const handleMessageDeleted = useCallback((data: any) => {
-    console.log('🗑️ Message deleted in list:', data.messageId);
     setConversations((prev) =>
       prev.map((conv) => {
         if (
@@ -273,12 +221,8 @@ const ConversationsListScreen: React.FC = () => {
             ...conv,
             lastMessage: conv.lastMessage
               ? {
-                  id: conv.lastMessage.id,
-                  content: '', // Clear content for deleted message
-                  messageType: conv.lastMessage.messageType,
-                  createdAt: conv.lastMessage.createdAt,
-                  senderId: conv.lastMessage.senderId,
-                  isRead: conv.lastMessage.isRead,
+                  ...conv.lastMessage,
+                  content: '',
                 }
               : null,
           };
@@ -292,7 +236,7 @@ const ConversationsListScreen: React.FC = () => {
     console.error('Socket error in list:', error);
   }, []);
 
-  // ✅ Now use the stable callbacks
+  // Socket connection
   const { isConnected } = useChat({
     onConversationUpdated: userLoaded ? handleConversationUpdated : undefined,
     onMessagesRead: userLoaded ? handleMessagesRead : undefined,
@@ -370,6 +314,11 @@ const ConversationsListScreen: React.FC = () => {
           setHasMore(
             data.pagination ? pageNum < data.pagination.totalPages : false
           );
+
+          // Update header with count
+          if (navigation && pageNum === 1) {
+            navigation.setParams({ conversationCount: data.data.length });
+          }
         }
       }
     } catch (error) {
@@ -426,13 +375,8 @@ const ConversationsListScreen: React.FC = () => {
   // Get display name
   const getDisplayName = (conversation: Conversation) => {
     if (isEmployer) {
-      console.log('Job seeker displaying:', conversation.jobSeeker.fullName);
       return conversation.jobSeeker.fullName;
     } else {
-      console.log(
-        'Employer displaying:',
-        conversation.employer.company?.name || conversation.employer.fullName
-      );
       return (
         conversation.employer.company?.name || conversation.employer.fullName
       );
@@ -454,8 +398,6 @@ const ConversationsListScreen: React.FC = () => {
       return t('chat.noMessages');
     }
 
-    console.log('Last message:', conversation.lastMessage);
-
     const { messageType, content, senderId } = conversation.lastMessage;
     const isOwnMessage = senderId === user?.id;
     const prefix = isOwnMessage ? `${t('chat.you')}: ` : '';
@@ -470,19 +412,32 @@ const ConversationsListScreen: React.FC = () => {
     }
   };
 
+  // Get message icon
+  const getMessageIcon = (messageType: string, isOwnMessage: boolean) => {
+    if (isOwnMessage) {
+      return (
+        <Ionicons name="checkmark-done" size={16} color={TEXT_SECONDARY} />
+      );
+    }
+
+    switch (messageType) {
+      case 'IMAGE':
+        return <Ionicons name="image" size={16} color={TEXT_SECONDARY} />;
+      case 'FILE':
+        return (
+          <Ionicons name="document-attach" size={16} color={TEXT_SECONDARY} />
+        );
+      default:
+        return null;
+    }
+  };
+
   // Navigate to chat
   const handleConversationPress = (conversation: Conversation) => {
-    console.log('Navigating to chat with:', {
-      id: conversation.id,
-      name: getDisplayName(conversation),
-      jobTitle: conversation.job.title,
-    });
-
-    // ✅ CORRECT: Use object format with pathname and params
     router.push({
       pathname: '/(shared)/chat/[id]',
       params: {
-        id: conversation.id.toString(), // ✅ Convert to string
+        id: conversation.id.toString(),
         name: getDisplayName(conversation),
         jobTitle: conversation.job.title,
       },
@@ -495,31 +450,63 @@ const ConversationsListScreen: React.FC = () => {
     const avatar = getAvatar(item);
     const lastMessagePreview = getLastMessagePreview(item);
     const hasUnread = item.unreadCount > 0;
+    const isOwnMessage = item.lastMessage?.senderId === user?.id;
+    const messageIcon = item.lastMessage
+      ? getMessageIcon(item.lastMessage.messageType, isOwnMessage)
+      : null;
 
     return (
       <TouchableOpacity
-        style={[styles.conversationItem, hasUnread && styles.unreadItem]}
+        style={[
+          styles.conversationCard,
+          hasUnread && styles.unreadCard,
+          !item.lastMessage && styles.noMessageCard,
+        ]}
         onPress={() => handleConversationPress(item)}
         activeOpacity={0.7}
       >
+        {/* Status Indicator */}
+        <View style={styles.statusIndicator}>
+          {hasUnread ? (
+            <View style={styles.unreadIndicator}>
+              <View style={styles.unreadDot} />
+            </View>
+          ) : (
+            <View style={styles.readIndicator} />
+          )}
+        </View>
+
+        {/* Avatar */}
         <View style={styles.avatarContainer}>
           {avatar ? (
             <Image source={{ uri: avatar }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, styles.defaultAvatar]}>
-              <Ionicons name="person" size={24} color="#666" />
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons
+                name={isEmployer ? 'person' : 'business'}
+                size={24}
+                color="#FFFFFF"
+              />
             </View>
           )}
         </View>
 
+        {/* Conversation Content */}
         <View style={styles.conversationContent}>
           <View style={styles.conversationHeader}>
-            <Text
-              style={[styles.displayName, hasUnread && styles.unreadText]}
-              numberOfLines={1}
-            >
-              {displayName}
-            </Text>
+            <View style={styles.nameContainer}>
+              <Text
+                style={[styles.displayName, hasUnread && styles.unreadName]}
+              >
+                {displayName}
+              </Text>
+              {item.isActive && (
+                <View style={styles.activeBadge}>
+                  <View style={styles.activeDot} />
+                  <Text style={styles.activeText}>{t('chat.active')}</Text>
+                </View>
+              )}
+            </View>
             {item.lastMessageAt && (
               <Text style={styles.timestamp}>
                 {formatTime(item.lastMessageAt)}
@@ -531,21 +518,48 @@ const ConversationsListScreen: React.FC = () => {
             {item.job.title}
           </Text>
 
-          <View style={styles.lastMessageRow}>
+          <View style={styles.lastMessageContainer}>
+            {messageIcon && (
+              <View style={styles.messageIcon}>{messageIcon}</View>
+            )}
             <Text
               style={[styles.lastMessage, hasUnread && styles.unreadMessage]}
               numberOfLines={1}
             >
               {lastMessagePreview}
             </Text>
-            {hasUnread && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadCount}>
-                  {item.unreadCount > 99 ? '99+' : item.unreadCount}
-                </Text>
+
+            {/* Message Status */}
+            {item.lastMessage && (
+              <View style={styles.messageStatus}>
+                {isOwnMessage && (
+                  <Ionicons
+                    name={
+                      item.lastMessage.isRead ? 'checkmark-done' : 'checkmark'
+                    }
+                    size={14}
+                    color={
+                      item.lastMessage.isRead ? ACCENT_GREEN : TEXT_TERTIARY
+                    }
+                  />
+                )}
               </View>
             )}
           </View>
+        </View>
+
+        {/* Unread Count Badge */}
+        {hasUnread && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>
+              {item.unreadCount > 99 ? '99+' : item.unreadCount}
+            </Text>
+          </View>
+        )}
+
+        {/* Chevron */}
+        <View style={styles.chevronContainer}>
+          <Ionicons name="chevron-forward" size={20} color={TEXT_TERTIARY} />
         </View>
       </TouchableOpacity>
     );
@@ -557,13 +571,22 @@ const ConversationsListScreen: React.FC = () => {
 
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
+        <View style={styles.emptyIconContainer}>
+          <Ionicons name="chatbubbles-outline" size={80} color={BORDER_COLOR} />
+        </View>
         <Text style={styles.emptyTitle}>{t('chat.noConversations')}</Text>
         <Text style={styles.emptySubtitle}>
           {isEmployer
             ? t('chat.startChatWithApplicants')
             : t('chat.waitForEmployerMessage')}
         </Text>
+        <TouchableOpacity
+          style={styles.emptyActionButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={18} color="#FFFFFF" />
+          <Text style={styles.emptyActionText}>{t('chat.goBack')}</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -574,28 +597,55 @@ const ConversationsListScreen: React.FC = () => {
 
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#2563eb" />
+        <ActivityIndicator size="small" color={PRIMARY_BLUE} />
+        <Text style={styles.footerText}>{t('chat.loadingMore')}</Text>
       </View>
     );
   };
 
-  // ✅ Show loading until user is loaded
+  // Show loading until user is loaded
   if (!userLoaded || (loading && conversations.length === 0)) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={PRIMARY_BLUE} />
+        <Text style={styles.loadingText}>{t('chat.loadingConversations')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {!isConnected && (
-        <View style={styles.connectionBanner}>
-          <Text style={styles.connectionText}>{t('chat.connecting')}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="chevron-back" size={28} color={PRIMARY_BLUE} />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
+            <Ionicons name="chatbubbles" size={24} color={PRIMARY_BLUE} />
+            <Text style={styles.headerTitle}>{t('chat.messages')}</Text>
+            <View style={styles.conversationCountBadge}>
+              <Text style={styles.conversationCount}>
+                {conversations.length}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.headerPlaceholder} />
         </View>
-      )}
 
+        {/* Connection Status */}
+        {!isConnected && (
+          <View style={styles.connectionBanner}>
+            <Ionicons name="wifi" size={16} color="#92400e" />
+            <Text style={styles.connectionText}>{t('chat.connecting')}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Conversations List */}
       <FlatList
         data={conversations}
         renderItem={renderConversationItem}
@@ -604,7 +654,8 @@ const ConversationsListScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#2563eb']}
+            colors={[PRIMARY_BLUE]}
+            tintColor={PRIMARY_BLUE}
           />
         }
         onEndReached={handleLoadMore}
@@ -612,11 +663,10 @@ const ConversationsListScreen: React.FC = () => {
         ListEmptyComponent={renderEmptyState}
         ListFooterComponent={renderFooter}
         contentContainerStyle={
-          conversations.length === 0 ? styles.emptyList : undefined
+          conversations.length === 0 ? styles.emptyList : styles.listContainer
         }
-        // ✅ Add this to prevent flickering
+        showsVerticalScrollIndicator={false}
         removeClippedSubviews={false}
-        // ✅ Optimize performance
         maxToRenderPerBatch={10}
         windowSize={10}
       />
@@ -627,133 +677,340 @@ const ConversationsListScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: LIGHT_BACKGROUND,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+    fontWeight: '500',
+  },
+  // Header
+  header: {
+    backgroundColor: CARD_BACKGROUND,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 8,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+  conversationCountBadge: {
+    backgroundColor: PRIMARY_BLUE,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    minWidth: 24,
+  },
+  conversationCount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  headerPlaceholder: {
+    width: 40,
   },
   connectionBanner: {
-    backgroundColor: '#fef3c7',
-    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 10,
     paddingHorizontal: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    gap: 8,
   },
   connectionText: {
     color: '#92400e',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  conversationItem: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  unreadItem: {
-    backgroundColor: '#f0f9ff',
-  },
-  avatarContainer: {
-    marginRight: 12,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    overflow: 'hidden', // ✅ Important for circular clipping
-  },
-
-  avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 25,
-  },
-
-  defaultAvatar: {
-    backgroundColor: '#e5e7eb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
-  conversationContent: {
-    flex: 1,
-  },
-  conversationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  displayName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1f2937',
-    flex: 1,
-    marginRight: 8,
-  },
-  unreadText: {
-    fontWeight: '700',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  jobTitle: {
-    fontSize: 12,
-    color: '#2563eb',
-    marginBottom: 4,
-  },
-  lastMessageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: '#6b7280',
-    flex: 1,
-    marginRight: 8,
-  },
-  unreadMessage: {
-    color: '#1f2937',
+    fontSize: 13,
     fontWeight: '500',
   },
-  unreadBadge: {
-    backgroundColor: '#2563eb',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  unreadCount: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
+  // List Container
+  listContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
   emptyList: {
     flex: 1,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginTop: 16,
-    marginBottom: 8,
+  // Conversation Card
+  conversationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    position: 'relative',
   },
-  emptySubtitle: {
+  unreadCard: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#DBEAFE',
+    borderWidth: 1.5,
+  },
+  noMessageCard: {
+    opacity: 0.8,
+  },
+  // Status Indicator
+  statusIndicator: {
+    position: 'absolute',
+    left: 8,
+    top: 16,
+  },
+  unreadIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: PRIMARY_BLUE,
+  },
+  readIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: TEXT_TERTIARY,
+  },
+  // Avatar
+  avatarContainer: {
+    marginRight: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
+    resizeMode: 'cover',
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Conversation Content
+  conversationContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  displayName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: TEXT_PRIMARY,
+    flexShrink: 1,
+  },
+  unreadName: {
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+  },
+  activeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 4,
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: ACCENT_GREEN,
+  },
+  activeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#065F46',
+  },
+  timestamp: {
+    fontSize: 12,
+    color: TEXT_TERTIARY,
+    fontWeight: '500',
+    flexShrink: 0,
+  },
+  jobTitle: {
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  // Last Message
+  lastMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  messageIcon: {
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lastMessage: {
     fontSize: 14,
-    color: '#6b7280',
+    color: TEXT_SECONDARY,
+    flex: 1,
+    flexShrink: 1,
+  },
+  unreadMessage: {
+    color: TEXT_PRIMARY,
+    fontWeight: '600',
+  },
+  messageStatus: {
+    marginLeft: 4,
+  },
+  // Unread Badge
+  unreadBadge: {
+    backgroundColor: PRIMARY_BLUE,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    marginRight: 8,
+  },
+  unreadCount: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  // Chevron
+  chevronContainer: {
+    width: 20,
+  },
+  // Footer Loader
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 12,
+  },
+  footerText: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    fontWeight: '500',
+  },
+  // Empty State
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: CARD_BACKGROUND,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: BORDER_COLOR,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
     textAlign: 'center',
   },
-  footerLoader: {
-    paddingVertical: 16,
+  emptySubtitle: {
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+    paddingHorizontal: 20,
+  },
+  emptyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY_BLUE,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 10,
+    shadowColor: PRIMARY_BLUE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emptyActionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
 

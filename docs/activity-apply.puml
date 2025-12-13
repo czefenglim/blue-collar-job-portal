@@ -1,0 +1,34 @@
+@startuml UC_Apply
+skinparam conditionStyle diamond
+title Activity: Apply to Jobs
+|Job Seeker|
+start
+:View Job Details;
+:Click Apply Button;
+|System|
+:Check Profile Completeness;
+if (Profile Complete?) then (yes)
+  |Job Seeker|
+  repeat
+    :Display Application Confirmation;
+    if (Action?) then (Edit Profile Details)
+      :Navigate to Edit Profile;
+      #pink:call Edit Profile>
+      :Return to Application;
+    else (Confirm and Send)
+      :Submit Application;
+      |System|
+      :Record Application in DB;
+      :Notify Employer;
+      :Show Success Message;
+      stop
+    endif
+  repeat while (Editing Profile?)
+else (no)
+  :Prompt to Complete Profile;
+  #pink:call Edit Profile>
+endif
+stop
+@enduml
+
+

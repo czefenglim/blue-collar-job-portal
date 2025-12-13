@@ -1,0 +1,39 @@
+@startuml UC_Chat
+skinparam conditionStyle diamond
+title Activity: Chat
+|User|
+start
+:Navigate to Chat Section;
+|System|
+:Fetch Conversation List;
+:Display Conversations;
+|User|
+if (Select existing conversation?) then (yes)
+  :Click Conversation;
+  |System|
+  :Open Chat Window;
+  :Load Message History;
+else (no)
+  :Search User / Company;
+  :Select User;
+  |System|
+  :Initialize New Conversation;
+endif
+|User|
+repeat
+  :View Messages;
+  if (Type Message?) then (yes)
+    :Enter Text / Attach Media;
+    :Click Send;
+    |System|
+    :Validate Content;
+    :Save Message to DB;
+    :Broadcast to Recipient;
+    :Send Push Notification (if offline);
+    :Update Chat View;
+  endif
+|User|
+repeat while (Continue chatting?)
+stop
+@enduml
+

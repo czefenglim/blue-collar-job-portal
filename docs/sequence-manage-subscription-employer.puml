@@ -1,0 +1,47 @@
+@startuml
+title Sequence: Manage Subscription
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Subscription Controller" as API
+database "Database" as DB
+
+EMP -> UI: Navigate to Pricing Page
+activate UI
+UI -> API: Get Current Plan
+activate API
+API -> DB: Fetch Subscription
+activate DB
+DB --> API: Plan Details
+deactivate DB
+API --> UI: Display Plan
+deactivate API
+
+alt Standard Flow: Upgrade / Renew
+    EMP -> UI: Click Upgrade/Renew
+    UI -> API: Get Available Plans
+    activate API
+    API -> DB: Fetch Plans
+    activate DB
+    DB --> API: List of Plans
+    deactivate DB
+    API --> UI: Display Plans
+    deactivate API
+
+    EMP -> UI: Select Plan
+    UI -> API: Initiate Subscription
+    activate API
+    API -> UI: Redirect to Payment (See UC: Make Payments)
+    deactivate API
+else Cancel Subscription
+    EMP -> UI: Click Cancel Subscription
+    UI -> API: Cancel Subscription
+    activate API
+    API -> DB: Update Status (Cancelled, Set Expiry)
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Subscription Cancelled
+    deactivate API
+end
+deactivate UI
+@enduml

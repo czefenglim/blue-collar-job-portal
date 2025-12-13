@@ -2,6 +2,7 @@
 
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
 import { AuthRequest } from '../types/user';
 import { uploadToS3 } from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
@@ -100,11 +101,19 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
     }
 
     // ✅ Create appeal
+    const e_en = await translateText(explanation.trim(), 'en');
+    const e_ms = await translateText(explanation.trim(), 'ms');
+    const e_ta = await translateText(explanation.trim(), 'ta');
+    const e_zh = await translateText(explanation.trim(), 'zh');
     const appeal = await prisma.jobAppeal.create({
       data: {
         jobId: parseInt(jobId),
         employerId: userId,
         explanation: explanation.trim(),
+        explanation_en: e_en ?? undefined,
+        explanation_ms: e_ms ?? undefined,
+        explanation_ta: e_ta ?? undefined,
+        explanation_zh: e_zh ?? undefined,
         evidence: evidenceUrls.length > 0 ? JSON.stringify(evidenceUrls) : null,
         status: 'PENDING',
       },
@@ -119,13 +128,22 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
     });
 
     // ✅ Send notification to employer
+    const notifMsg = `Your appeal for "${job.title}" has been submitted and will be reviewed by our team.`;
+    const notif_en = await translateText(notifMsg, 'en');
+    const notif_ms = await translateText(notifMsg, 'ms');
+    const notif_ta = await translateText(notifMsg, 'ta');
+    const notif_zh = await translateText(notifMsg, 'zh');
     await prisma.notification.create({
       data: {
         userId,
         title: 'Appeal Submitted',
-        message: `Your appeal for "${job.title}" has been submitted and will be reviewed by our team.`,
+        message: notifMsg,
+        message_en: notif_en ?? undefined,
+        message_ms: notif_ms ?? undefined,
+        message_ta: notif_ta ?? undefined,
+        message_zh: notif_zh ?? undefined,
         type: 'SYSTEM_UPDATE',
-        actionUrl: `/employer/jobs/${jobId}`,
+        actionUrl: `/(employer-hidden)/job-post-details/${jobId}`,
       },
     });
 
@@ -208,12 +226,20 @@ export const reviewJobAppeal = async (req: AdminAuthRequest, res: Response) => {
     }
 
     // ✅ Update appeal status
+    const rn_en = reviewNotes ? await translateText(reviewNotes, 'en') : null;
+    const rn_ms = reviewNotes ? await translateText(reviewNotes, 'ms') : null;
+    const rn_ta = reviewNotes ? await translateText(reviewNotes, 'ta') : null;
+    const rn_zh = reviewNotes ? await translateText(reviewNotes, 'zh') : null;
     const updatedAppeal = await prisma.jobAppeal.update({
       where: { id: parseInt(appealId) },
       data: {
         status: decision === 'APPROVE' ? 'ACCEPTED' : 'REJECTED',
         adminDecision: decision,
         reviewNotes: reviewNotes || null,
+        reviewNotes_en: rn_en ?? undefined,
+        reviewNotes_ms: rn_ms ?? undefined,
+        reviewNotes_ta: rn_ta ?? undefined,
+        reviewNotes_zh: rn_zh ?? undefined,
         reviewedAt: new Date(),
         // Note: reviewedBy should be admin user ID, but we're using email for now
         // You may need to adjust this based on your admin user structure
@@ -234,6 +260,11 @@ export const reviewJobAppeal = async (req: AdminAuthRequest, res: Response) => {
     });
 
     // ✅ Log admin action
+    const reasonText = reviewNotes || `Appeal ${decision.toLowerCase()}ed`;
+    const r_en = await translateText(reasonText, 'en');
+    const r_ms = await translateText(reasonText, 'ms');
+    const r_ta = await translateText(reasonText, 'ta');
+    const r_zh = await translateText(reasonText, 'zh');
     await prisma.adminAction.create({
       data: {
         adminEmail,
@@ -241,7 +272,11 @@ export const reviewJobAppeal = async (req: AdminAuthRequest, res: Response) => {
           decision === 'APPROVE' ? 'APPROVE_COMPANY' : 'REJECT_COMPANY',
         targetType: 'JOB_APPEAL',
         targetId: appeal.jobId,
-        reason: reviewNotes || `Appeal ${decision.toLowerCase()}ed`,
+        reason: reasonText,
+        reason_en: r_en ?? undefined,
+        reason_ms: r_ms ?? undefined,
+        reason_ta: r_ta ?? undefined,
+        reason_zh: r_zh ?? undefined,
         notes: `Appeal ID: ${appealId}`,
       },
     });
@@ -256,13 +291,21 @@ export const reviewJobAppeal = async (req: AdminAuthRequest, res: Response) => {
             reviewNotes ? ` Reason: ${reviewNotes}` : ''
           }`;
 
+    const n_en = await translateText(notificationMessage, 'en');
+    const n_ms = await translateText(notificationMessage, 'ms');
+    const n_ta = await translateText(notificationMessage, 'ta');
+    const n_zh = await translateText(notificationMessage, 'zh');
     await prisma.notification.create({
       data: {
         userId: appeal.employerId,
         title: decision === 'APPROVE' ? 'Appeal Approved' : 'Appeal Rejected',
         message: notificationMessage,
+        message_en: n_en ?? undefined,
+        message_ms: n_ms ?? undefined,
+        message_ta: n_ta ?? undefined,
+        message_zh: n_zh ?? undefined,
         type: 'SYSTEM_UPDATE',
-        actionUrl: `/employer/jobs/${appeal.jobId}`,
+        actionUrl: `/(employer-hidden)/job-post-details/${appeal.jobId}`,
       },
     });
 

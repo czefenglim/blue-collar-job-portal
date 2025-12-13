@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams, Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -64,6 +65,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
   const [report, setReport] = useState<Report | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadReportDetails();
@@ -73,12 +75,16 @@ const EmployerReportDetailsScreen: React.FC = () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/LoginScreen'),
-          },
-        ]);
+        Alert.alert(
+          t('employerReports.details.errors.authRequiredTitle'),
+          t('employerReports.details.errors.authRequiredMessage'),
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.replace('/LoginScreen'),
+            },
+          ]
+        );
         return;
       }
 
@@ -93,11 +99,17 @@ const EmployerReportDetailsScreen: React.FC = () => {
         const data = await response.json();
         setReport(data.data);
       } else {
-        Alert.alert('Error', 'Failed to load report details');
+        Alert.alert(
+          t('employerReports.details.errors.title'),
+          t('employerReports.details.errors.loadFail')
+        );
       }
     } catch (error) {
       console.error('Error loading report details:', error);
-      Alert.alert('Error', 'Failed to load report details');
+      Alert.alert(
+        t('employerReports.details.errors.title'),
+        t('employerReports.details.errors.loadFail')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +179,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
       <View style={styles.detailSection}>
         <View style={styles.sectionHeaderRow}>
           <Ionicons name="image-outline" size={18} color="#1E3A8A" />
-          <Text style={styles.detailLabel}>Evidence Files</Text>
+          <Text style={styles.detailLabel}>
+            {t('employerReports.details.sections.evidence')}
+          </Text>
         </View>
         <ScrollView
           horizontal
@@ -207,7 +221,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading report details...</Text>
+          <Text style={styles.loadingText}>
+            {t('employerReports.details.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -218,12 +234,14 @@ const EmployerReportDetailsScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorText}>Report not found</Text>
+          <Text style={styles.errorText}>
+            {t('employerReports.details.notFound')}
+          </Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Go Back</Text>
+            <Text style={styles.backButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -241,8 +259,12 @@ const EmployerReportDetailsScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Report Details</Text>
-          <Text style={styles.headerSubtitle}>Report #{report.id}</Text>
+          <Text style={styles.headerTitle}>
+            {t('employerReports.details.header.title')}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {t('employerReports.details.header.subtitle', { id: report.id })}
+          </Text>
         </View>
       </View>
 
@@ -254,18 +276,19 @@ const EmployerReportDetailsScreen: React.FC = () => {
               <Ionicons name="warning" size={24} color="#DC2626" />
             </View>
             <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>Action Taken</Text>
+              <Text style={styles.alertTitle}>
+                {t('employerReports.details.action.title')}
+              </Text>
               <Text style={styles.alertText}>
                 {report.job.isSuspended
-                  ? `Your job post has been suspended. ${
-                      report.job.suspensionReason || ''
-                    }`
-                  : 'Your job post has been removed.'}
+                  ? t('employerReports.details.action.jobSuspended', {
+                      reason: report.job.suspensionReason || '',
+                    })
+                  : t('employerReports.details.action.jobDeleted')}
               </Text>
               {canAppeal() && (
                 <Text style={styles.alertSubtext}>
-                  You can submit an appeal if you believe this action was taken
-                  in error.
+                  {t('employerReports.details.action.appealHint')}
                 </Text>
               )}
             </View>
@@ -280,7 +303,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
               size={18}
               color="#1E3A8A"
             />
-            <Text style={styles.detailLabel}>Report Status</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerReports.details.sections.status')}
+            </Text>
           </View>
           <View
             style={[
@@ -310,7 +335,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
         <View style={styles.detailSection}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="briefcase-outline" size={18} color="#1E3A8A" />
-            <Text style={styles.detailLabel}>Reported Job</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerReports.details.sections.job')}
+            </Text>
           </View>
           <View style={styles.jobInfoCard}>
             <Text style={styles.jobInfoTitle}>{report.job.title}</Text>
@@ -324,7 +351,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
         <View style={styles.detailSection}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="flag-outline" size={18} color="#1E3A8A" />
-            <Text style={styles.detailLabel}>Report Type</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerReports.details.sections.type')}
+            </Text>
           </View>
           <View style={styles.reportTypeCard}>
             <Ionicons name="alert-circle" size={24} color="#EF4444" />
@@ -340,7 +369,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
         <View style={styles.detailSection}>
           <View style={styles.sectionHeaderRow}>
             <Ionicons name="person-outline" size={18} color="#1E3A8A" />
-            <Text style={styles.detailLabel}>Reported By</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerReports.details.sections.reportedBy')}
+            </Text>
           </View>
           <View style={styles.reporterCard}>
             <Text style={styles.reporterName}>{report.user.fullName}</Text>
@@ -360,7 +391,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
               size={18}
               color="#1E3A8A"
             />
-            <Text style={styles.detailLabel}>Report Description</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerReports.details.sections.description')}
+            </Text>
           </View>
           <View style={styles.descriptionCard}>
             <Text style={styles.detailValueText}>{report.description}</Text>
@@ -382,7 +415,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
             <View style={styles.adminReviewSection}>
               <View style={styles.adminReviewHeader}>
                 <Ionicons name="shield-checkmark" size={22} color="#1E3A8A" />
-                <Text style={styles.adminReviewTitle}>Admin Review</Text>
+                <Text style={styles.adminReviewTitle}>
+                  {t('employerReports.details.sections.adminReview')}
+                </Text>
               </View>
 
               <View style={styles.reviewInfoCard}>
@@ -391,7 +426,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
                     <Ionicons name="calendar" size={18} color="#64748B" />
                   </View>
                   <View style={styles.reviewInfoTextContainer}>
-                    <Text style={styles.reviewInfoLabel}>Review Date</Text>
+                    <Text style={styles.reviewInfoLabel}>
+                      {t('employerReports.details.admin.reviewDate')}
+                    </Text>
                     <Text style={styles.reviewInfoText}>
                       {formatDate(report.reviewedAt!)}
                     </Text>
@@ -403,7 +440,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
                 <View style={styles.reviewNotesCard}>
                   <View style={styles.reviewNotesHeader}>
                     <Ionicons name="document-text" size={18} color="#1E3A8A" />
-                    <Text style={styles.reviewNotesLabel}>Admin Notes</Text>
+                    <Text style={styles.reviewNotesLabel}>
+                      {t('employerReports.details.admin.notes')}
+                    </Text>
                   </View>
                   <Text style={styles.reviewNotesText}>
                     {report.reviewNotes}
@@ -421,13 +460,19 @@ const EmployerReportDetailsScreen: React.FC = () => {
             <View style={styles.detailSection}>
               <View style={styles.sectionHeaderRow}>
                 <Ionicons name="chatbox" size={18} color="#1E3A8A" />
-                <Text style={styles.detailLabel}>Appeals</Text>
+                <Text style={styles.detailLabel}>
+                  {t('employerReports.details.sections.appeals')}
+                </Text>
               </View>
 
               {report.appeals.map((appeal, index) => (
                 <View key={appeal.id} style={styles.appealCard}>
                   <View style={styles.appealHeader}>
-                    <Text style={styles.appealTitle}>Appeal #{appeal.id}</Text>
+                    <Text style={styles.appealTitle}>
+                      {t('employerReports.details.appeal.title', {
+                        id: appeal.id,
+                      })}
+                    </Text>
                     <View
                       style={[
                         styles.appealStatusBadge,
@@ -449,12 +494,14 @@ const EmployerReportDetailsScreen: React.FC = () => {
                   </View>
 
                   <Text style={styles.appealDate}>
-                    Submitted on {formatDate(appeal.createdAt)}
+                    {t('employerReports.details.appeal.submittedOn', {
+                      date: formatDate(appeal.createdAt),
+                    })}
                   </Text>
 
                   <View style={styles.appealExplanationContainer}>
                     <Text style={styles.appealExplanationLabel}>
-                      Your Explanation:
+                      {t('employerReports.details.appeal.explanation')}
                     </Text>
                     <Text style={styles.appealExplanation}>
                       {appeal.explanation}
@@ -464,7 +511,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
                   {appeal.evidenceUrls && appeal.evidenceUrls.length > 0 && (
                     <View style={styles.appealEvidenceContainer}>
                       <Text style={styles.appealEvidenceLabel}>
-                        Evidence Attached:
+                        {t('employerReports.details.appeal.evidence')}
                       </Text>
                       <ScrollView
                         horizontal
@@ -506,11 +553,13 @@ const EmployerReportDetailsScreen: React.FC = () => {
                           color="#1E3A8A"
                         />
                         <Text style={styles.appealReviewTitle}>
-                          Admin Response
+                          {t('employerReports.details.appeal.adminResponse')}
                         </Text>
                       </View>
                       <Text style={styles.appealReviewDate}>
-                        Reviewed on {formatDate(appeal.reviewedAt!)}
+                        {t('employerReports.details.appeal.reviewedOn', {
+                          date: formatDate(appeal.reviewedAt!),
+                        })}
                       </Text>
                       {appeal.reviewNotes && (
                         <Text style={styles.appealReviewNotes}>
@@ -526,8 +575,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
                             color="#10B981"
                           />
                           <Text style={styles.appealAcceptedText}>
-                            Your appeal was accepted. The action has been
-                            reversed.
+                            {t('employerReports.details.appeal.accepted')}
                           </Text>
                         </View>
                       )}
@@ -540,8 +588,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
                             color="#EF4444"
                           />
                           <Text style={styles.appealRejectedText}>
-                            Your appeal was rejected. The original action
-                            stands.
+                            {t('employerReports.details.appeal.rejected')}
                           </Text>
                         </View>
                       )}
@@ -559,11 +606,10 @@ const EmployerReportDetailsScreen: React.FC = () => {
             <View style={styles.divider} />
             <View style={styles.appealActionSection}>
               <Text style={styles.appealActionTitle}>
-                Disagree with this decision?
+                {t('employerReports.details.appealAction.title')}
               </Text>
               <Text style={styles.appealActionText}>
-                You can submit an appeal with your explanation and any
-                supporting evidence.
+                {t('employerReports.details.appealAction.text')}
               </Text>
               <TouchableOpacity
                 style={styles.submitAppealButton}
@@ -572,7 +618,9 @@ const EmployerReportDetailsScreen: React.FC = () => {
                 }
               >
                 <Ionicons name="chatbox-ellipses" size={20} color="#FFFFFF" />
-                <Text style={styles.submitAppealButtonText}>Submit Appeal</Text>
+                <Text style={styles.submitAppealButtonText}>
+                  {t('employerReports.details.appealAction.submit')}
+                </Text>
               </TouchableOpacity>
             </View>
           </>

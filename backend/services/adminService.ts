@@ -3,6 +3,7 @@
 import { PrismaClient } from '@prisma/client';
 import { UserFilters, JobFilters, DashboardAnalytics } from '../types/admin';
 import { getSignedDownloadUrl } from './s3Service';
+import { labelEnum, SupportedLang } from '../utils/enumLabels';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +12,7 @@ export class AdminService {
   // USER MANAGEMENT
   // ==========================================
 
-  async getUsers(filters: UserFilters) {
+  async getUsers(filters: UserFilters, lang: SupportedLang = 'en') {
     const { role, status, search, page = 1, limit = 20 } = filters;
 
     const skip = (page - 1) * limit;
@@ -82,7 +83,7 @@ export class AdminService {
     // ✅ Generate signed URLs for logos and profile pictures
     const usersWithSignedUrls = await Promise.all(
       users.map(async (user) => {
-        const userData = { ...user };
+        const userData: any = { ...user };
 
         // Generate signed URL for company logo
         if (userData.company?.logo) {
@@ -117,6 +118,9 @@ export class AdminService {
             userData.profile.profilePicture = null;
           }
         }
+
+        // ✅ Attach localized status label
+        userData.statusLabel = labelEnum('UserStatus', user.status, lang);
 
         return userData;
       })
@@ -186,7 +190,7 @@ export class AdminService {
   // JOB MANAGEMENT
   // ==========================================
 
-  async getJobs(filters: JobFilters) {
+  async getJobs(filters: JobFilters, lang: SupportedLang = 'en') {
     const { approvalStatus, isActive, search, page = 1, limit = 20 } = filters;
 
     const skip = (page - 1) * limit;
@@ -245,6 +249,8 @@ export class AdminService {
         city: true,
         state: true,
         jobType: true,
+        workingHours: true,
+        experienceLevel: true,
         salaryMin: true,
         salaryMax: true,
         salaryType: true,
@@ -266,7 +272,11 @@ export class AdminService {
         industry: {
           select: {
             id: true,
+            slug: true,
             name: true,
+            name_ms: true,
+            name_ta: true,
+            name_zh: true,
           },
         },
         _count: {
@@ -286,7 +296,7 @@ export class AdminService {
     // ✅ Generate signed URLs for company logos
     const jobsWithSignedUrls = await Promise.all(
       jobs.map(async (job) => {
-        const jobData = { ...job };
+        const jobData: any = { ...job };
 
         if (jobData.company?.logo) {
           try {
@@ -303,6 +313,39 @@ export class AdminService {
             jobData.company.logo = null;
           }
         }
+
+        // ✅ Localize industry.name
+        if (jobData.industry) {
+          const localizedIndustryName =
+            (jobData.industry as any)[`name_${lang}`] || jobData.industry.name;
+          jobData.industry = {
+            id: jobData.industry.id,
+            slug: (jobData.industry as any).slug,
+            name: localizedIndustryName,
+          } as any;
+        }
+
+        // ✅ Attach localized enum labels
+        jobData.jobTypeLabel = labelEnum(
+          'JobType',
+          jobData.jobType,
+          lang
+        ) as any;
+        jobData.workingHoursLabel = labelEnum(
+          'WorkingHours',
+          jobData.workingHours,
+          lang
+        ) as any;
+        jobData.experienceLevelLabel = labelEnum(
+          'ExperienceLevel',
+          jobData.experienceLevel,
+          lang
+        ) as any;
+        jobData.salaryTypeLabel = labelEnum(
+          'SalaryType',
+          jobData.salaryType,
+          lang
+        ) as any;
 
         return jobData;
       })
@@ -468,7 +511,7 @@ export class AdminService {
     };
   }
 
-  async getJobById(jobId: number) {
+  async getJobById(jobId: number, lang: SupportedLang = 'en') {
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: {
@@ -486,7 +529,11 @@ export class AdminService {
         industry: {
           select: {
             id: true,
+            slug: true,
             name: true,
+            name_ms: true,
+            name_ta: true,
+            name_zh: true,
           },
         },
         appeals: {
@@ -528,6 +575,39 @@ export class AdminService {
         job.company.logo = null;
       }
     }
+
+    // ✅ Attach localized enum labels for job details
+    // ✅ Localize industry.name
+    if ((job as any).industry) {
+      const ind = (job as any).industry;
+      const localizedIndustryName = ind[`name_${lang}`] || ind.name;
+      (job as any).industry = {
+        id: ind.id,
+        slug: ind.slug,
+        name: localizedIndustryName,
+      };
+    }
+
+    (job as any).jobTypeLabel = labelEnum(
+      'JobType',
+      (job as any).jobType,
+      lang
+    );
+    (job as any).workingHoursLabel = labelEnum(
+      'WorkingHours',
+      (job as any).workingHours,
+      lang
+    );
+    (job as any).experienceLevelLabel = labelEnum(
+      'ExperienceLevel',
+      (job as any).experienceLevel,
+      lang
+    );
+    (job as any).salaryTypeLabel = labelEnum(
+      'SalaryType',
+      (job as any).salaryType,
+      lang
+    );
 
     return job;
   }

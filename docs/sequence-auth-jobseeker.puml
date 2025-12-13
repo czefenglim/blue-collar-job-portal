@@ -1,0 +1,50 @@
+@startuml
+title Sequence: Sign Up / Login (Job Seeker)
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Auth Controller" as Auth
+database "Database" as DB
+participant "Email Service" as Email
+
+JS -> UI: Enter Email & Password
+activate UI
+UI -> Auth: Request Login
+activate Auth
+Auth -> DB: Validate Credentials
+activate DB
+DB --> Auth: Result (Valid/Invalid)
+deactivate DB
+alt Valid
+  Auth -> UI: Success (Token)
+  UI -> JS: Redirect to Home
+else Invalid
+  Auth -> UI: Error Message
+  UI -> JS: Show Error
+end
+deactivate Auth
+deactivate UI
+
+JS -> UI: Enter Registration Details
+activate UI
+UI -> Auth: Request Sign Up
+activate Auth
+Auth -> DB: Check Existing User
+activate DB
+DB --> Auth: Result
+deactivate DB
+alt User Exists
+  Auth -> UI: Error: Email Taken
+else New User
+  Auth -> DB: Create User
+  activate DB
+  DB --> Auth: Created
+  deactivate DB
+  Auth -> Email: Send Welcome/Verify Email
+  activate Email
+  Email --> Auth: Sent
+  deactivate Email
+  Auth -> UI: Success (Redirect to Onboarding)
+end
+deactivate Auth
+deactivate UI
+@enduml

@@ -1,0 +1,101 @@
+@startuml
+title Manage Job Industries
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+
+== Access Industry Management ==
+Admin -> UI: Access Industry Management
+activate UI
+UI -> API: Get Industry List
+activate API
+API -> DB: Fetch Industries
+activate DB
+DB --> API: Industries Data
+deactivate DB
+API --> UI: Display Industry List
+deactivate API
+deactivate UI
+
+alt Standard Flow: Add New Industry
+    Admin -> UI: Click "Add New Industry"
+    activate UI
+    UI --> Admin: Show Add Form
+    deactivate UI
+    Admin -> UI: Enter Industry Name & Save
+    activate UI
+    UI -> API: Create Industry(Name)
+    activate API
+    API -> DB: Check for Duplicate Name
+    activate DB
+    DB --> API: Result
+    deactivate DB
+    
+    alt E1: Duplicate Name
+        API --> UI: Error: Industry already exists
+        UI --> Admin: Show Error Message
+    else Name is Unique
+        API -> DB: Insert New Industry
+        activate DB
+        DB --> API: Success
+        deactivate DB
+        API --> UI: Success Message & Updated List
+        deactivate API
+        UI --> Admin: Show Success Message
+    end
+    deactivate UI
+
+else A1: Edit Industry
+    Admin -> UI: Select Industry & Click "Edit"
+    activate UI
+    UI --> Admin: Show Edit Form
+    deactivate UI
+    Admin -> UI: Update Name & Save
+    activate UI
+    UI -> API: Update Industry(ID, New Name)
+    activate API
+    API -> DB: Check for Duplicate Name (if changed)
+    activate DB
+    DB --> API: Result
+    deactivate DB
+    
+    alt Duplicate Name
+        API --> UI: Error: Name already taken
+    else Valid Name
+        API -> DB: Update Industry Record
+        activate DB
+        DB --> API: Success
+        deactivate DB
+        API --> UI: Success Message
+        deactivate API
+        UI --> Admin: Show Success Message
+    end
+    deactivate UI
+
+else A2: Delete Industry
+    Admin -> UI: Click "Delete"
+    activate UI
+    UI -> API: Delete Industry(ID)
+    activate API
+    API -> DB: Check Usage (Jobs linked to Industry)
+    activate DB
+    DB --> API: Usage Result
+    deactivate DB
+    
+    alt Industry is Used
+        API --> UI: Error: Cannot delete (Used by Jobs)
+        UI --> Admin: Show Error Message
+    else Industry is Unused
+        API -> DB: Delete Industry Record
+        activate DB
+        DB --> API: Success
+        deactivate DB
+        API --> UI: Success Message
+        deactivate API
+        UI --> Admin: Show Success Message
+    end
+    deactivate UI
+end
+
+@enduml

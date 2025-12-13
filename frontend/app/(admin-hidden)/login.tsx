@@ -16,10 +16,12 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 export default function AdminLoginScreen() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function AdminLoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert(t('common.error'), t('adminLogin.errors.missingCredentials'));
       return;
     }
 
@@ -55,18 +57,18 @@ export default function AdminLoginScreen() {
         await AsyncStorage.setItem('isAdmin', 'true');
 
         console.log('Admin token:', data.data.token);
-        Alert.alert('Success', 'Admin login successful', [
+        Alert.alert(t('common.success'), t('adminLogin.success.login'), [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.replace('/(admin)/dashboard'),
           },
         ]);
       } else {
-        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+        Alert.alert(t('adminLogin.errors.loginFailedTitle'), data.message || t('adminLogin.errors.invalidCredentials'));
       }
     } catch (error) {
       console.error('Admin login error:', error);
-      Alert.alert('Error', 'Failed to connect to server');
+      Alert.alert(t('common.error'), t('adminLogin.errors.serverConnectionFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +83,8 @@ export default function AdminLoginScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Ionicons name="shield-checkmark" size={64} color="#1E3A8A" />
-          <Text style={styles.title}>Admin Login</Text>
-          <Text style={styles.subtitle}>Authorized Personnel Only</Text>
+          <Text style={styles.title}>{t('adminLogin.headerTitle')}</Text>
+          <Text style={styles.subtitle}>{t('adminLogin.headerSubtitle')}</Text>
         </View>
 
         {/* Login Form */}
@@ -97,7 +99,7 @@ export default function AdminLoginScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Admin Email"
+              placeholder={t('adminLogin.placeholders.email')}
               placeholderTextColor="#94A3B8"
               value={email}
               onChangeText={setEmail}
@@ -117,7 +119,7 @@ export default function AdminLoginScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder={t('adminLogin.placeholders.password')}
               placeholderTextColor="#94A3B8"
               value={password}
               onChangeText={setPassword}
@@ -150,7 +152,7 @@ export default function AdminLoginScreen() {
             ) : (
               <>
                 <Ionicons name="log-in-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.loginButtonText}>Sign In</Text>
+                <Text style={styles.loginButtonText}>{t('adminLogin.actions.signIn')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -160,7 +162,7 @@ export default function AdminLoginScreen() {
         <View style={styles.warningContainer}>
           <Ionicons name="warning-outline" size={16} color="#F97316" />
           <Text style={styles.warningText}>
-            This area is restricted to authorized administrators only
+            {t('adminLogin.notice.restricted')}
           </Text>
         </View>
       </View>

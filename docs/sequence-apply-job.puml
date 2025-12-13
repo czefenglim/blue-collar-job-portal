@@ -1,0 +1,40 @@
+@startuml
+title Sequence: Apply to Jobs
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Application Controller" as API
+database "Database" as DB
+participant "Notification Service" as Notify
+
+JS -> UI: Click Apply Now
+activate UI
+UI -> API: Check Profile Completeness
+activate API
+API -> DB: Fetch Profile Status
+activate DB
+DB --> API: Status
+deactivate DB
+alt Incomplete
+  API --> UI: Redirect to Edit Profile
+else Complete
+  API --> UI: Show Confirmation (Resume Preview)
+end
+deactivate API
+deactivate UI
+
+JS -> UI: Submit Application (Message optional)
+activate UI
+UI -> API: Create Application
+activate API
+API -> DB: Insert Application
+activate DB
+DB --> API: Success
+deactivate DB
+API -> Notify: Notify Employer
+activate Notify
+Notify --> API: Sent
+deactivate Notify
+API --> UI: Success Message
+deactivate API
+deactivate UI
+@enduml

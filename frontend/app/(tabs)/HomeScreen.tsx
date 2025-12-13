@@ -7,10 +7,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Image,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +21,19 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '@/utils/pushNotifications';
+import VoiceTextInput from '@/components/VoiceTextInput';
+
+// --- Theme/Style Constants ---
+const PRIMARY_BLUE = '#0D47A1';
+const ACCENT_ORANGE = '#FF9800';
+const GRAY_TEXT = '#455A64';
+const LIGHT_BACKGROUND = '#F5F5F5';
+const CARD_BACKGROUND = '#FFFFFF';
+const BORDER_COLOR = '#E0E0E0';
+
+const { width } = Dimensions.get('window');
+const CARD_PADDING = 20;
+const SPACING = 16;
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -37,6 +50,9 @@ interface Job {
   jobType: string;
   workingHours: string;
   experienceLevel: string;
+  jobTypeLabel: string;
+  workingHoursLabel: string;
+  experienceLevelLabel: string;
   salaryMin?: number;
   salaryMax?: number;
   salaryType?: string;
@@ -83,6 +99,8 @@ const HomeScreen: React.FC = () => {
     longitude: number;
   } | null>(null);
 
+  // --- Data Fetching Hooks ---
+
   useEffect(() => {
     fetchUserCoordinates();
   }, [token]);
@@ -96,13 +114,9 @@ const HomeScreen: React.FC = () => {
   }, [currentLanguage, isFocused, token]);
 
   useEffect(() => {
-    // Register for push notifications
     registerForPushNotificationsAsync();
-
-    // Load unread count
     loadUnreadCount();
 
-    // Listen for notifications
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log('Notification received:', notification);
@@ -114,32 +128,48 @@ const HomeScreen: React.FC = () => {
         console.log('Notification response:', response);
         const data = response.notification.request.content.data;
 
-        // Navigate based on notification data
         if (data.actionUrl) {
           router.push(data.actionUrl as any);
         }
       });
 
     return () => {
-      if (notificationListener.current) {
+      if (notificationListener.current?.remove) {
         notificationListener.current.remove();
       }
-      if (responseListener.current) {
+      if (responseListener.current?.remove) {
         responseListener.current.remove();
       }
     };
   }, []);
 
-  // Add this useEffect after line 130 (after the other useEffects)
   useEffect(() => {
     if (token && distanceFilter !== undefined) {
       console.log(
         '🔄 Distance filter changed, refetching jobs with:',
         distanceFilter
       );
-      fetchJobs(token);
+      if (distanceFilter === null || userCoordinates) {
+        fetchJobs(token);
+      }
     }
-  }, [distanceFilter, token]); // Watch for distanceFilter changes
+  }, [distanceFilter, token, userCoordinates]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (isFocused && token) {
+      fetchUserPreferences(token);
+    }
+  }, [isFocused, token]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchKeyword, locationFilter, jobs, userPreferences, showAllJobs]);
+
+  // --- Data Loading Functions ---
 
   const loadUnreadCount = async () => {
     try {
@@ -158,20 +188,6 @@ const HomeScreen: React.FC = () => {
       console.error('Error loading unread count:', error);
     }
   };
-
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (isFocused && token) {
-      fetchUserPreferences(token);
-    }
-  }, [isFocused, token]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [searchKeyword, locationFilter, jobs, userPreferences, showAllJobs]);
 
   const loadInitialData = async () => {
     try {
@@ -194,6 +210,8 @@ const HomeScreen: React.FC = () => {
         setLocationFilter(sessionLocation);
         setHasLoadedLocation(true);
       }
+
+      await fetchUserCoordinates(userToken);
 
       await Promise.all([
         fetchUserPreferences(userToken),
@@ -236,30 +254,13 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  // const fetchJobs = async (userToken: string) => {
-  //   try {
-  //     const storedLang = await AsyncStorage.getItem('preferredLanguage');
-  //     const lang = storedLang || 'en';
-
-  //     const response = await fetch(`${URL}/api/jobs?lang=${lang}`, {
-  //       headers: { Authorization: `Bearer ${userToken}` },
-  //     });
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setJobs(data.data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching jobs:', error);
-  //     Alert.alert(t('common.error'), t('home.jobsLoadError'));
-  //   }
-  // };
-
-  const fetchUserCoordinates = async () => {
+  const fetchUserCoordinates = async (userToken?: string) => {
     try {
-      if (!token) return;
+      const activeToken = userToken || token;
+      if (!activeToken) return;
 
       const response = await fetch(`${URL}/api/users/location`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${activeToken}` },
       });
 
       if (response.ok) {
@@ -269,11 +270,6 @@ const HomeScreen: React.FC = () => {
             latitude: data.data.latitude,
             longitude: data.data.longitude,
           });
-          console.log(
-            'User coordinates are:',
-            data.data.latitude,
-            data.data.longitude
-          );
         }
       }
     } catch (error) {
@@ -281,7 +277,6 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  // Update fetchJobs function
   const fetchJobs = async (userToken: string) => {
     try {
       const storedLang = await AsyncStorage.getItem('preferredLanguage');
@@ -289,15 +284,9 @@ const HomeScreen: React.FC = () => {
 
       let url = `${URL}/api/jobs?lang=${lang}`;
 
-      // Add distance filter if available
-      if (distanceFilter && userCoordinates) {
+      if (distanceFilter !== null && userCoordinates) {
         url += `&distance=${distanceFilter}&userLat=${userCoordinates.latitude}&userLon=${userCoordinates.longitude}`;
       }
-
-      console.log('Distance filter:', distanceFilter);
-      console.log('User coordinates:', userCoordinates);
-
-      console.log('Fetching jobs with URL:', url);
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${userToken}` },
@@ -313,23 +302,17 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  // Update the clearFilters function
+  // --- Filtering and Actions ---
+
   const clearFilters = () => {
     setSearchKeyword('');
     const preferredLoc = userPreferences?.preferredLocation || '';
     setLocationFilter(preferredLoc);
     setShowAllJobs(false);
-    setDistanceFilter(null); // ADD THIS
+    setDistanceFilter(null);
     AsyncStorage.setItem('sessionLocationFilter', preferredLoc);
   };
 
-  // const clearFilters = () => {
-  //     setSearchKeyword('');
-  //     const preferredLoc = userPreferences?.preferredLocation || '';
-  //     setLocationFilter(preferredLoc);
-  //     setShowAllJobs(false);
-  //     AsyncStorage.setItem('sessionLocationFilter', preferredLoc);
-  //   };
   const applyFilters = () => {
     let filtered = [...jobs];
 
@@ -359,6 +342,7 @@ const HomeScreen: React.FC = () => {
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    await fetchUserPreferences(token);
     await fetchJobs(token);
     setIsRefreshing(false);
   }, [token]);
@@ -385,10 +369,12 @@ const HomeScreen: React.FC = () => {
             job.id === jobId ? { ...job, isSaved: data.data.isSaved } : job
           )
         );
+      } else {
+        Alert.alert(t('common.error'), t('home.saveJobFailed'));
       }
     } catch (error) {
       console.error('Error toggling save job:', error);
-      Alert.alert('Error', 'Failed to save job. Please try again.');
+      Alert.alert(t('common.error'), t('home.saveJobFailed'));
     }
   };
 
@@ -426,20 +412,22 @@ const HomeScreen: React.FC = () => {
   };
 
   const formatSalary = (min?: number, max?: number, type?: string) => {
-    if (!min && !max) return 'Not Specified';
+    if (!min && !max) return t('home.notSpecified');
 
     const formatAmount = (amount: number) => {
-      return `RM ${amount.toLocaleString()}`;
+      return `RM ${amount.toLocaleString(
+        currentLanguage === 'ms' ? 'ms-MY' : 'en-US'
+      )}`;
     };
+
+    const typeLabel = type ? t(`salaryTypes.${type.toLowerCase()}`) : '';
 
     if (min && max) {
       return `${formatAmount(min)} - ${formatAmount(max)}${
-        type ? `/${type.toLowerCase()}` : ''
+        type ? ` / ${typeLabel}` : ''
       }`;
     }
-    return `${formatAmount(min || max!)}${
-      type ? `/${type.toLowerCase()}` : ''
-    }`;
+    return `${formatAmount(min || max!)}${type ? ` / ${typeLabel}` : ''}`;
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -455,24 +443,6 @@ const HomeScreen: React.FC = () => {
     return t('home.monthsAgo', { count: Math.floor(days / 30) });
   };
 
-  const formatJobType = (type: string) => {
-    return type
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  const formatWorkingHours = (hours: string) => {
-    return hours
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
   const renderJobCard = ({ item }: { item: Job }) => (
     <View style={styles.jobCard}>
       <TouchableOpacity
@@ -483,14 +453,16 @@ const HomeScreen: React.FC = () => {
             params: { slug: item.slug },
           })
         }
-        activeOpacity={0.7}
+        activeOpacity={0.9}
       >
+        {/* Top Row: Company Logo + Title + Save Button */}
         <View style={styles.jobCardHeader}>
           <View style={styles.companyLogoContainer}>
             {item.company.logo ? (
               <Image
                 source={{ uri: item.company.logo }}
                 style={styles.companyLogo}
+                resizeMode="cover"
               />
             ) : (
               <View style={styles.companyLogoPlaceholder}>
@@ -500,66 +472,116 @@ const HomeScreen: React.FC = () => {
               </View>
             )}
           </View>
-          <View style={styles.jobHeaderInfo}>
-            <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                toggleSaveJob(item.id);
-              }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={styles.saveButton}
-            >
+
+          <View style={styles.headerTextContainer}>
+            <View style={styles.titleRow}>
+              <Text style={styles.jobTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleSaveJob(item.id);
+                }}
+                style={styles.saveButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
+                  size={24}
+                  color={PRIMARY_BLUE}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.companyName}>{item.company.name}</Text>
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={14} color={GRAY_TEXT} />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {item.city}, {item.state}
+              </Text>
+              <Text style={styles.timeAgo}>{getTimeAgo(item.createdAt)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Salary Row - Changed to blue theme */}
+        <View style={styles.salaryContainer}>
+          <Ionicons name="cash-outline" size={20} color={PRIMARY_BLUE} />
+          <Text style={styles.salaryText}>
+            {formatSalary(item.salaryMin, item.salaryMax, item.salaryType)}
+          </Text>
+        </View>
+
+        {/* Job Details Grid */}
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
+              <Ionicons name="time-outline" size={16} color={PRIMARY_BLUE} />
+            </View>
+            <Text style={styles.detailLabel}>{t('home.jobType')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.jobTypeLabel}
+            </Text>
+          </View>
+
+          <View style={styles.detailDivider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
               <Ionicons
-                name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
-                size={24}
-                color="#1E3A8A"
+                name="business-outline"
+                size={16}
+                color={PRIMARY_BLUE}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                showJobOptions(item);
-              }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={styles.moreButton}
-            >
-              <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
-            </TouchableOpacity>
+            </View>
+            <Text style={styles.detailLabel}>{t('home.workingHours')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.workingHoursLabel}
+            </Text>
+          </View>
+
+          <View style={styles.detailDivider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
+              <Ionicons
+                name="trending-up-outline"
+                size={16}
+                color={PRIMARY_BLUE}
+              />
+            </View>
+            <Text style={styles.detailLabel}>{t('home.experienceLevel')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.experienceLevelLabel}
+            </Text>
           </View>
         </View>
 
-        <Text style={styles.jobTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
+        {/* Bottom Action Row */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={styles.viewDetailsButton}
+            onPress={() =>
+              router.push({
+                pathname: '/JobDetailsScreen/[slug]',
+                params: { slug: item.slug },
+              })
+            }
+          >
+            <Text style={styles.viewDetailsText}>{t('home.viewDetails')}</Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
 
-        <View style={styles.jobMetaContainer}>
-          <View style={styles.jobMetaRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatJobType(item.jobType)}
-              </Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatWorkingHours(item.workingHours)}
-              </Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {item.experienceLevel.replace('_', ' ')}
-              </Text>
-            </View>
-          </View>
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              showJobOptions(item);
+            }}
+            style={styles.moreButton}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={GRAY_TEXT} />
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.companyName}>{item.company.name}</Text>
-        <Text style={styles.location}>
-          📍 {item.city}, {item.state}
-        </Text>
-        <Text style={styles.salary}>
-          💰 {formatSalary(item.salaryMin, item.salaryMax, item.salaryType)}
-        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -568,7 +590,7 @@ const HomeScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
           <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
@@ -577,6 +599,7 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>{t('home.title')}</Text>
@@ -589,7 +612,11 @@ const HomeScreen: React.FC = () => {
               setUnreadCount(0);
             }}
           >
-            <Ionicons name="notifications-outline" size={28} color="#1E3A8A" />
+            <Ionicons
+              name="notifications-outline"
+              size={26}
+              color={PRIMARY_BLUE}
+            />
             {unreadCount > 0 && (
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>
@@ -602,7 +629,7 @@ const HomeScreen: React.FC = () => {
             style={styles.menuButton}
             onPress={() => router.push('/ProfileScreen')}
           >
-            <Ionicons name="menu" size={28} color="#1E3A8A" />
+            <Ionicons name="menu" size={28} color={PRIMARY_BLUE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -610,40 +637,40 @@ const HomeScreen: React.FC = () => {
       <FlatList
         ListHeaderComponent={
           <>
+            {/* Job Preferences Section */}
             {userPreferences &&
               userPreferences.industries &&
               userPreferences.industries.length > 0 && (
                 <View style={styles.preferencesSection}>
-                  {/* Filter Status Badge */}
-                  <View style={styles.filterStatusBadge}>
-                    <Ionicons
-                      name={showAllJobs ? 'globe-outline' : 'funnel'}
-                      size={16}
-                      color="#1E3A8A"
-                    />
-                    <Text style={styles.filterStatusText}>
-                      {showAllJobs ? t('home.allJobs') : t('home.filtered')}
-                    </Text>
-                  </View>
-
                   <View style={styles.preferenceHeader}>
                     <View style={styles.preferenceTitleRow}>
                       <Ionicons
                         name="briefcase-outline"
-                        size={18}
-                        color="#F97316"
+                        size={20}
+                        color={ACCENT_ORANGE}
                       />
                       <Text style={styles.preferenceTitle}>
                         {t('home.jobPreferences')}
                       </Text>
+                      <View style={styles.filterStatusBadge}>
+                        <Ionicons
+                          name={showAllJobs ? 'globe-outline' : 'funnel'}
+                          size={14}
+                          color={PRIMARY_BLUE}
+                        />
+                        <Text style={styles.filterStatusText}>
+                          {showAllJobs ? t('home.allJobs') : t('home.filtered')}
+                        </Text>
+                      </View>
                     </View>
                     <TouchableOpacity
                       onPress={() => router.push('/PreferencesScreen')}
+                      style={styles.editButton}
                     >
                       <Ionicons
                         name="create-outline"
-                        size={20}
-                        color="#1E3A8A"
+                        size={22}
+                        color={PRIMARY_BLUE}
                       />
                     </TouchableOpacity>
                   </View>
@@ -652,44 +679,32 @@ const HomeScreen: React.FC = () => {
                     <Text style={styles.preferenceLabel}>
                       {t('home.industry')}:
                     </Text>
-                    {userPreferences.industries.slice(0, 3).map((industry) => (
-                      <View
-                        key={industry.id}
-                        style={[
-                          styles.preferenceTag,
-                          showAllJobs && styles.preferenceTagInactive,
-                        ]}
-                      >
-                        <Text
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.tagsScrollContent}
+                    >
+                      {userPreferences.industries.map((industry, index) => (
+                        <View
+                          key={industry.id}
                           style={[
-                            styles.preferenceTagText,
-                            showAllJobs && styles.preferenceTagTextInactive,
+                            styles.preferenceTag,
+                            showAllJobs && styles.preferenceTagInactive,
                           ]}
                         >
-                          {industry.name}
-                        </Text>
-                      </View>
-                    ))}
-                    {userPreferences.industries.length > 3 && (
-                      <View
-                        style={[
-                          styles.preferenceTag,
-                          showAllJobs && styles.preferenceTagInactive,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.preferenceTagText,
-                            showAllJobs && styles.preferenceTagTextInactive,
-                          ]}
-                        >
-                          +{userPreferences.industries.length - 3}
-                        </Text>
-                      </View>
-                    )}
+                          <Text
+                            style={[
+                              styles.preferenceTagText,
+                              showAllJobs && styles.preferenceTagTextInactive,
+                            ]}
+                          >
+                            {industry.name}
+                          </Text>
+                        </View>
+                      ))}
+                    </ScrollView>
                   </View>
 
-                  {/* View All Jobs Button */}
                   <TouchableOpacity
                     style={[
                       styles.viewAllJobsButton,
@@ -700,7 +715,7 @@ const HomeScreen: React.FC = () => {
                     <Ionicons
                       name={showAllJobs ? 'funnel' : 'globe-outline'}
                       size={20}
-                      color={showAllJobs ? '#1E3A8A' : '#FFFFFF'}
+                      color={showAllJobs ? PRIMARY_BLUE : '#FFFFFF'}
                     />
                     <Text
                       style={[
@@ -714,13 +729,12 @@ const HomeScreen: React.FC = () => {
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Info Text */}
                   {!showAllJobs && (
                     <View style={styles.infoTextContainer}>
                       <Ionicons
                         name="information-circle"
-                        size={16}
-                        color="#64748B"
+                        size={14}
+                        color={GRAY_TEXT}
                       />
                       <Text style={styles.infoText}>
                         {t('home.filterActive')}
@@ -730,104 +744,110 @@ const HomeScreen: React.FC = () => {
                 </View>
               )}
 
+            {/* Search & Filter Section */}
             <View style={styles.filterSection}>
+              {/* Search Bar */}
               <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#64748B" />
-                <TextInput
-                  style={styles.searchInput}
+                <Ionicons
+                  name="search"
+                  size={20}
+                  color={GRAY_TEXT}
+                  style={styles.searchIcon}
+                />
+                <VoiceTextInput
+                  style={styles.voiceInputContainer}
+                  inputStyle={styles.voiceInput}
                   placeholder={t('home.searchPlaceholder')}
-                  placeholderTextColor="#94A3B8"
                   value={searchKeyword}
                   onChangeText={setSearchKeyword}
+                  language={
+                    currentLanguage === 'zh'
+                      ? 'zh-CN'
+                      : currentLanguage === 'ms'
+                      ? 'ms-MY'
+                      : currentLanguage === 'ta'
+                      ? 'ta-IN'
+                      : 'en-US'
+                  }
                 />
                 {searchKeyword.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchKeyword('')}>
-                    <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                  <TouchableOpacity
+                    style={styles.clearSearchButton}
+                    onPress={() => setSearchKeyword('')}
+                  >
+                    <Ionicons
+                      name="close-circle"
+                      size={20}
+                      color={BORDER_COLOR}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
 
-              <View style={styles.filterRow}>
-                {userCoordinates && (
-                  <View style={styles.distanceFilterContainer}>
-                    <Text style={styles.filterLabel}>Distance:</Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.distanceChipsScroll}
-                    >
+              {/* Distance Filter Section */}
+              {userCoordinates && (
+                <View style={styles.distanceFilterSection}>
+                  <View style={styles.distanceFilterHeader}>
+                    <Ionicons name="map-outline" size={16} color={GRAY_TEXT} />
+                    <Text style={styles.filterLabel}>
+                      {t('home.distanceFilter')}
+                    </Text>
+                  </View>
+                  <View style={styles.distanceChipsContainer}>
+                    {[null, 5, 10, 20, 50].map((distance) => (
                       <TouchableOpacity
+                        key={distance === null ? 'all' : distance}
                         style={[
                           styles.distanceChip,
-                          distanceFilter === null && styles.distanceChipActive,
+                          distanceFilter === distance &&
+                            styles.distanceChipActive,
                         ]}
-                        onPress={() => {
-                          setDistanceFilter(null);
-                        }}
+                        onPress={() => setDistanceFilter(distance)}
                       >
                         <Text
                           style={[
                             styles.distanceChipText,
-                            distanceFilter === null &&
+                            distanceFilter === distance &&
                               styles.distanceChipTextActive,
                           ]}
                         >
-                          All
+                          {distance === null ? t('home.all') : `${distance}km`}
                         </Text>
                       </TouchableOpacity>
-                      {[5, 10, 20, 50].map((distance) => (
-                        <TouchableOpacity
-                          key={distance}
-                          style={[
-                            styles.distanceChip,
-                            distanceFilter === distance &&
-                              styles.distanceChipActive,
-                          ]}
-                          onPress={() => {
-                            setDistanceFilter(distance);
-                            console.log('Distance filter set to:', distance);
-                          }}
-                        >
-                          <Ionicons
-                            name="location"
-                            size={14}
-                            color={
-                              distanceFilter === distance
-                                ? '#FFFFFF'
-                                : '#1E3A8A'
-                            }
-                          />
-                          <Text
-                            style={[
-                              styles.distanceChipText,
-                              distanceFilter === distance &&
-                                styles.distanceChipTextActive,
-                            ]}
-                          >
-                            {distance}km
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
+                    ))}
                   </View>
-                )}
+                </View>
+              )}
 
-                {/* Change Location Button */}
-                <TouchableOpacity
-                  style={styles.changeLocationButton}
-                  onPress={() => router.push('/(user-hidden)/update-location')}
-                >
-                  <Ionicons name="location-outline" size={18} color="#1E3A8A" />
-                  <Text style={styles.changeLocationText}>Change Location</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Change Location Button - Moved below distance filter */}
+              <TouchableOpacity
+                style={styles.changeLocationButton}
+                onPress={() => router.push('/(user-hidden)/update-location')}
+              >
+                <Ionicons
+                  name="locate-outline"
+                  size={18}
+                  color={PRIMARY_BLUE}
+                />
+                <Text style={styles.changeLocationText}>
+                  {t('home.changeLocation')}
+                </Text>
+              </TouchableOpacity>
 
-              {(searchKeyword || locationFilter || showAllJobs) && (
+              {/* Clear Filters Button */}
+              {(searchKeyword ||
+                locationFilter ||
+                showAllJobs ||
+                distanceFilter !== null) && (
                 <TouchableOpacity
                   style={styles.clearFiltersButton}
                   onPress={clearFilters}
                 >
-                  <Ionicons name="refresh" size={16} color="#1E3A8A" />
+                  <Ionicons
+                    name="refresh-circle-outline"
+                    size={18}
+                    color={PRIMARY_BLUE}
+                  />
                   <Text style={styles.clearFiltersText}>
                     {t('home.clearFilters')}
                   </Text>
@@ -835,6 +855,7 @@ const HomeScreen: React.FC = () => {
               )}
             </View>
 
+            {/* Results Header */}
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsCount}>
                 {t('home.jobsFound', { count: filteredJobs.length })}
@@ -843,7 +864,7 @@ const HomeScreen: React.FC = () => {
                 userPreferences?.industries &&
                 userPreferences.industries.length > 0 && (
                   <Text style={styles.resultsSubtext}>
-                    {t('home.filteredResults')}
+                    {t('home.filteredResultsByPref')}
                   </Text>
                 )}
             </View>
@@ -855,11 +876,15 @@ const HomeScreen: React.FC = () => {
         contentContainerStyle={styles.jobList}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={PRIMARY_BLUE}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="briefcase-outline" size={64} color="#CBD5E1" />
+            <Ionicons name="briefcase-outline" size={64} color={BORDER_COLOR} />
             <Text style={styles.emptyText}>{t('home.noJobs')}</Text>
             <Text style={styles.emptySubtext}>{t('home.adjustFilters')}</Text>
             {!showAllJobs &&
@@ -885,7 +910,7 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
@@ -895,367 +920,34 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: SPACING,
+    paddingVertical: SPACING,
+    backgroundColor: CARD_BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   headerContent: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1E293B',
-  },
-  menuButton: {
-    padding: 8,
-  },
-  preferencesSection: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  filterStatusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-  },
-  filterStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1E3A8A',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  preferenceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  preferenceTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  preferenceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-  },
-  preferenceTags: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  preferenceLabel: {
-    fontSize: 13,
-    color: '#64748B',
-    marginRight: 8,
-    fontWeight: '500',
-  },
-  preferenceTag: {
-    backgroundColor: '#1E3A8A',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  preferenceTagInactive: {
-    backgroundColor: '#E2E8F0',
-  },
-  preferenceTagText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  preferenceTagTextInactive: {
-    color: '#64748B',
-  },
-  viewAllJobsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1E3A8A',
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  viewAllJobsButtonActive: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#1E3A8A',
-  },
-  viewAllJobsButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  viewAllJobsButtonTextActive: {
-    color: '#1E3A8A',
-  },
-  infoTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#64748B',
-    fontStyle: 'italic',
-  },
-  filterSection: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    minHeight: 48,
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: '#1E293B',
-    paddingVertical: 12,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  locationInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    minHeight: 48,
-    gap: 8,
-  },
-  locationInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1E293B',
-  },
-  clearFiltersButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  clearFiltersText: {
-    fontSize: 14,
-    color: '#1E3A8A',
-    fontWeight: '600',
-  },
-  resultsHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  resultsCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-  },
-  resultsSubtext: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  jobList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  jobCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardTouchable: {
-    padding: 16,
-  },
-  jobCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  companyLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    overflow: 'hidden', // ✅ Important for clipping
-  },
-
-  // ✅ NEW: Company logo image style
-  companyLogo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-
-  // ✅ UPDATED: Placeholder for no logo
-  companyLogoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  companyLogoText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  jobHeaderInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  timeAgo: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  saveButton: {
-    padding: 4,
-  },
-  moreButton: {
-    padding: 4,
-    marginLeft: 4,
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 12,
-    lineHeight: 24,
-  },
-  jobMetaContainer: {
-    marginBottom: 12,
-  },
-  jobMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  badge: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 11,
-    color: '#475569',
-    fontWeight: '500',
-  },
-  companyName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#475569',
-    marginBottom: 4,
-  },
-  location: {
-    fontSize: 13,
-    color: '#64748B',
-    marginBottom: 4,
-  },
-  salary: {
-    fontSize: 13,
-    color: '#64748B',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  emptyActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E3A8A',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 8,
-  },
-  emptyActionButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+    color: PRIMARY_BLUE,
+    letterSpacing: -0.5,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+  },
+  menuButton: {
+    padding: 8,
   },
   notificationButton: {
     position: 'relative',
@@ -1273,65 +965,516 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: CARD_BACKGROUND,
+    zIndex: 1,
   },
   notificationBadgeText: {
     fontSize: 10,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  distanceFilterContainer: {
+
+  // Job Preferences Section
+  preferencesSection: {
+    backgroundColor: CARD_BACKGROUND,
+    marginHorizontal: SPACING,
+    marginTop: SPACING,
+    padding: SPACING,
+    borderRadius: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: PRIMARY_BLUE,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  preferenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  preferenceTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  preferenceTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: PRIMARY_BLUE,
+    flex: 1,
+  },
+  filterStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  filterStatusText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
+  },
+  editButton: {
+    padding: 4,
+  },
+  preferenceTags: {
+    marginBottom: 16,
+  },
+  preferenceLabel: {
+    fontSize: 14,
+    color: GRAY_TEXT,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  tagsScrollContent: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: SPACING,
+  },
+  preferenceTag: {
+    backgroundColor: PRIMARY_BLUE,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  preferenceTagInactive: {
+    backgroundColor: BORDER_COLOR,
+  },
+  preferenceTagText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  preferenceTagTextInactive: {
+    color: GRAY_TEXT,
+  },
+  viewAllJobsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 8,
+  },
+  viewAllJobsButtonActive: {
+    backgroundColor: LIGHT_BACKGROUND,
+    borderWidth: 1.5,
+    borderColor: PRIMARY_BLUE,
+  },
+  viewAllJobsButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  viewAllJobsButtonTextActive: {
+    color: PRIMARY_BLUE,
+  },
+  infoTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: BORDER_COLOR,
+  },
+  infoText: {
+    fontSize: 12,
+    color: GRAY_TEXT,
+    fontStyle: 'italic',
+  },
+
+  // Filter & Search Section
+  filterSection: {
+    backgroundColor: CARD_BACKGROUND,
+    marginHorizontal: SPACING,
+    marginTop: SPACING,
+    padding: SPACING,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: LIGHT_BACKGROUND,
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  voiceInputContainer: {
+    flex: 1,
+  },
+  voiceInput: {
+    flex: 1,
+    fontSize: 16,
+    color: GRAY_TEXT,
+    backgroundColor: 'transparent',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
+  },
+  clearSearchButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+
+  // Distance Filter Section
+  distanceFilterSection: {
+    marginBottom: 16,
+  },
+  distanceFilterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 12,
   },
   filterLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#475569',
-    marginBottom: 8,
+    color: GRAY_TEXT,
   },
-  distanceChipsScroll: {
+  distanceChipsContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   distanceChip: {
-    flexDirection: 'row',
+    flex: 1,
+    backgroundColor: LIGHT_BACKGROUND,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: BORDER_COLOR,
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 4,
   },
   distanceChipActive: {
-    backgroundColor: '#1E3A8A',
-    borderColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
+    borderColor: PRIMARY_BLUE,
   },
   distanceChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E3A8A',
+    color: PRIMARY_BLUE,
   },
   distanceChipTextActive: {
     color: '#FFFFFF',
   },
+
+  // Change Location Button
   changeLocationButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    backgroundColor: LIGHT_BACKGROUND,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: PRIMARY_BLUE,
     gap: 8,
+    marginBottom: 8,
   },
   changeLocationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E3A8A',
+    color: PRIMARY_BLUE,
+  },
+
+  // Clear Filters Button
+  clearFiltersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: BORDER_COLOR,
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: PRIMARY_BLUE,
+    fontWeight: '600',
+  },
+
+  // Results Header
+  resultsHeader: {
+    paddingHorizontal: SPACING,
+    paddingVertical: SPACING,
+    paddingBottom: 8,
+  },
+  resultsCount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: PRIMARY_BLUE,
+  },
+  resultsSubtext: {
+    fontSize: 13,
+    color: GRAY_TEXT,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+
+  // Job List
+  jobList: {
+    paddingHorizontal: SPACING,
+    paddingBottom: 20,
+  },
+
+  // Job Card - Enhanced with better spacing
+  jobCard: {
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    marginBottom: SPACING,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  cardTouchable: {
+    padding: 0,
+  },
+  jobCardHeader: {
+    flexDirection: 'row',
+    padding: CARD_PADDING,
+    paddingBottom: 12,
+  },
+  companyLogoContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1.5,
+    borderColor: '#E8E8E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogo: {
+    width: '100%', // Changed from '85%' to fill container
+    height: '100%', // Changed from '85%' to fill container
+    borderRadius: 14, // Added borderRadius to match container
+  },
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogoText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  jobTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A202C',
+    flex: 1,
+    marginRight: 12,
+    lineHeight: 24,
+  },
+  saveButton: {
+    padding: 4,
+  },
+  companyName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
+    marginBottom: 6,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  locationText: {
+    fontSize: 13,
+    color: GRAY_TEXT,
+    fontWeight: '500',
+    flex: 1,
+  },
+  timeAgo: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '600',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+
+  // Salary Section - Changed to blue theme
+  salaryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F0FE', // Brighter blue background
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 14,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  salaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: PRIMARY_BLUE, // Changed from orange to primary blue
+    flex: 1,
+  },
+
+  // Details Grid
+  detailsContainer: {
+    flexDirection: 'row',
+    padding: CARD_PADDING,
+    paddingVertical: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  detailIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  detailDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#F0F0F0',
+  },
+
+  // Action Row
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    backgroundColor: '#FAFAFA',
+    alignItems: 'center',
+  },
+  viewDetailsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginRight: 12,
+  },
+  viewDetailsText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  moreButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Empty List
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: SPACING,
+  },
+  emptyText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: GRAY_TEXT,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 15,
+    color: GRAY_TEXT,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  emptyActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: PRIMARY_BLUE,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 10,
+    marginTop: 8,
+  },
+  emptyActionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
 

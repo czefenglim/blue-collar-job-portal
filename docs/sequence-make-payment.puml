@@ -1,0 +1,51 @@
+@startuml
+title Sequence: Make Payments
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Payment Controller" as API
+participant "Payment Gateway (Stripe)" as GW
+database "Database" as DB
+
+EMP -> UI: Proceed to Checkout
+activate UI
+UI -> API: Create Payment Intent
+activate API
+API -> GW: Initialize Transaction
+activate GW
+GW --> API: Payment URL
+deactivate GW
+API --> UI: Redirect to Stripe Checkout
+deactivate API
+
+EMP -> GW: Enter Payment Details
+activate GW
+EMP -> GW: Click Pay
+
+alt E2: Invalid Payment Details
+    GW --> EMP: Display Validation Error
+    EMP -> GW: Retry Payment
+else E1: Payment Failed (Network Error)
+    GW --> EMP: Display Connection Error
+else Payment Success
+    GW --> UI: Redirect to Payment Redirect Page
+    deactivate GW
+    activate UI
+    UI -> UI: Navigate to Payment Success Page
+    
+    UI -> API: Confirm Payment
+    activate API
+    API -> DB: Record Transaction & Generate Invoice
+    activate DB
+    DB --> API: Transaction Saved
+    deactivate DB
+    
+    API -> DB: Update Subscription Plan
+    activate DB
+    DB --> API: Subscription Updated
+    deactivate DB
+    
+    API --> UI: Payment Confirmed
+    deactivate API
+end
+deactivate UI
+@enduml

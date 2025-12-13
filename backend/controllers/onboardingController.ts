@@ -10,11 +10,13 @@ import {
   uploadResumeToS3,
   uploadProfilePicture,
   deleteOldFile,
+  uploadResumeBufferToS3,
 } from '../services/s3Service';
 import { getResumeSignedUrl } from '../services/s3Service';
 import { Request, Response } from 'express';
 import { geocodeAddress } from '../utils/geocoding';
 import multer from 'multer';
+import { translateText } from '../services/googleTranslation';
 
 const prisma = new PrismaClient();
 
@@ -73,12 +75,14 @@ export class OnboardingController {
         select: {
           id: true,
           name: true,
+          name_en: true,
           name_ms: true,
           name_zh: true,
           name_ta: true,
           slug: true,
           icon: true,
           description: true,
+          description_en: true,
           description_ms: true,
           description_zh: true,
           description_ta: true,
@@ -102,6 +106,10 @@ export class OnboardingController {
           translatedName = industry.name_ta;
           translatedDescription =
             industry.description_ta ?? translatedDescription;
+        } else if (lang === 'en' && industry.name_en) {
+          translatedName = industry.name_en;
+          translatedDescription =
+            industry.description_en ?? translatedDescription;
         }
 
         return {
@@ -423,26 +431,112 @@ export class OnboardingController {
   async getResumeQuestions(req: any, res: any) {
     try {
       const { lang = 'en' } = req.query; // default to English if no language specified
+      const targetLang: 'en' | 'ms' | 'zh' | 'ta' = [
+        'en',
+        'ms',
+        'zh',
+        'ta',
+      ].includes(lang)
+        ? (lang as any)
+        : 'en';
 
       const questions = await prisma.resumequestion.findMany({
         orderBy: { id: 'asc' },
       });
 
-      // Map questions based on selected language
-      const translatedQuestions = questions.map((q) => {
-        let translatedQuestion = q.question; // default English
-
-        if (lang === 'ms' && q.question_ms) translatedQuestion = q.question_ms;
-        else if (lang === 'zh' && q.question_zh)
-          translatedQuestion = q.question_zh;
-        else if (lang === 'ta' && q.question_ta)
-          translatedQuestion = q.question_ta;
-
-        return {
-          ...q,
-          question: translatedQuestion, // replace the default question text
+      // Helper: deterministic translations for common option sets
+      const mapKnownOption = (
+        opt: string,
+        langCode: 'en' | 'ms' | 'zh' | 'ta'
+      ) => {
+        const key = (opt || '').trim().toLowerCase();
+        const YES_NO: Record<
+          string,
+          Record<'en' | 'ms' | 'zh' | 'ta', string>
+        > = {
+          yes: { en: 'Yes', ms: 'Ya', zh: '是', ta: 'ஆம்' },
+          no: { en: 'No', ms: 'Tidak', zh: '否', ta: 'இல்லை' },
         };
-      });
+
+        const EDUCATION: Record<
+          string,
+          Record<'en' | 'ms' | 'zh' | 'ta', string>
+        > = {
+          primary: {
+            en: 'Primary',
+            ms: 'Sekolah Rendah',
+            zh: '小学',
+            ta: 'தொடக்கப் பள்ளி',
+          },
+          secondary: {
+            en: 'Secondary',
+            ms: 'Sekolah Menengah',
+            zh: '中学',
+            ta: 'மேல்நிலைப் பள்ளி',
+          },
+          diploma: { en: 'Diploma', ms: 'Diploma', zh: '文凭', ta: 'டிப்ளமா' },
+          degree: { en: 'Degree', ms: 'Ijazah', zh: '学士', ta: 'பட்டம்' },
+          other: { en: 'Other', ms: 'Lain-lain', zh: '其他', ta: 'பிற' },
+        };
+
+        if (YES_NO[key]) return YES_NO[key][langCode];
+        if (EDUCATION[key]) return EDUCATION[key][langCode];
+        return null;
+      };
+
+      // Map and translate questions and options based on selected language
+      const translatedQuestions = await Promise.all(
+        questions.map(async (q) => {
+          let translatedQuestion = q.question; // default English
+
+          if (targetLang === 'ms' && q.question_ms)
+            translatedQuestion = q.question_ms;
+          else if (targetLang === 'zh' && q.question_zh)
+            translatedQuestion = q.question_zh;
+          else if (targetLang === 'ta' && q.question_ta)
+            translatedQuestion = q.question_ta;
+
+          let translatedOptions = q.options as any;
+          // Translate option labels if present and target language is not English
+          if (targetLang !== 'en' && Array.isArray(translatedOptions)) {
+            translatedOptions = await Promise.all(
+              translatedOptions.map(async (opt: any) => {
+                try {
+                  if (typeof opt === 'string') {
+                    // First try deterministic mapping for common sets
+                    const mapped = mapKnownOption(opt, targetLang);
+                    if (mapped) return mapped;
+                    const t = await translateText(opt, targetLang);
+                    return t || opt;
+                  }
+                  if (opt && typeof opt === 'object' && 'label' in opt) {
+                    const mapped = mapKnownOption(
+                      (opt as any).label,
+                      targetLang
+                    );
+                    if (mapped) return { ...opt, label: mapped };
+                    const t = await translateText(
+                      (opt as any).label,
+                      targetLang
+                    );
+                    return { ...opt, label: t || (opt as any).label };
+                  }
+                } catch (e) {
+                  // Fallback: return original option on translation error
+                  return opt;
+                }
+                return opt;
+              })
+            );
+          }
+
+          return {
+            ...q,
+            question: translatedQuestion,
+            options: translatedOptions,
+          };
+        })
+      );
 
       res.json(translatedQuestions);
     } catch (err) {
@@ -559,6 +653,7 @@ export class OnboardingController {
         select: {
           id: true,
           name: true,
+          name_en: true,
           name_ms: true,
           name_zh: true,
           name_ta: true,
@@ -571,6 +666,8 @@ export class OnboardingController {
         if (lang === 'ms' && s.name_ms) translatedName = s.name_ms;
         else if (lang === 'zh' && s.name_zh) translatedName = s.name_zh;
         else if (lang === 'ta' && s.name_ta) translatedName = s.name_ta;
+        else if (lang === 'en' && s.name_en) translatedName = s.name_en;
+        else if (lang === 'en' && s.name_en) translatedName = s.name_en;
 
         return {
           id: s.id,
@@ -595,6 +692,7 @@ export class OnboardingController {
         select: {
           id: true,
           name: true,
+          name_en: true,
           name_ms: true,
           name_zh: true,
           name_ta: true,
@@ -607,7 +705,7 @@ export class OnboardingController {
         if (lang === 'ms' && l.name_ms) translatedName = l.name_ms;
         else if (lang === 'zh' && l.name_zh) translatedName = l.name_zh;
         else if (lang === 'ta' && l.name_ta) translatedName = l.name_ta;
-
+        else if (lang === 'en' && l.name_en) translatedName = l.name_en;
         return {
           id: l.id,
           name: translatedName,
@@ -673,23 +771,106 @@ export class OnboardingController {
       // 4. Refine answers
       const refinedAnswers = await refineAnswers(answers);
 
-      // 5. Generate PDF buffer
-      const pdfBuffer = await generateResumePDF(mappedProfile, refinedAnswers);
+      // 5. Generate English PDF
+      const pdf_en = await generateResumePDF(
+        mappedProfile,
+        refinedAnswers,
+        'en'
+      );
 
-      // 6. Upload to S3 → returns { key, resumeUrl }
-      const { key, resumeUrl } = await uploadResumeToS3(userId, pdfBuffer);
+      // 6. Translate answers for other languages
+      async function translateAnswers(
+        answers: { questionId: string; answer: string }[],
+        targetLang: 'ms' | 'zh' | 'ta'
+      ): Promise<{ questionId: string; answer: string }[]> {
+        const out: { questionId: string; answer: string }[] = [];
+        for (const a of answers) {
+          try {
+            const translated = await translateText(a.answer, targetLang);
+            out.push({ questionId: a.questionId, answer: translated });
+          } catch {
+            out.push({ questionId: a.questionId, answer: a.answer });
+          }
+        }
+        return out;
+      }
 
-      // 7. Save S3 key in DB (better than saving signed URL)
+      const refined_ms = await translateAnswers(refinedAnswers, 'ms');
+      const refined_zh = await translateAnswers(refinedAnswers, 'zh');
+      const refined_ta = await translateAnswers(refinedAnswers, 'ta');
+
+      // 7. Build language-specific profiles (translate skill names if available)
+      const mapSkills = (
+        lang: 'en' | 'ms' | 'zh' | 'ta'
+      ): { id: number; name: string }[] => {
+        return profile.skills.map((s) => {
+          const sk = s.skill as any;
+          let name = sk.name as string;
+          if (lang === 'ms' && sk.name_ms) name = sk.name_ms;
+          else if (lang === 'zh' && sk.name_zh) name = sk.name_zh;
+          else if (lang === 'ta' && sk.name_ta) name = sk.name_ta;
+          return { id: s.skill.id, name };
+        });
+      };
+
+      const profile_en = { ...mappedProfile, skills: mapSkills('en') };
+      const profile_ms = { ...mappedProfile, skills: mapSkills('ms') };
+      const profile_zh = { ...mappedProfile, skills: mapSkills('zh') };
+      const profile_ta = { ...mappedProfile, skills: mapSkills('ta') };
+
+      // 8. Generate PDFs for ms/zh/ta
+      const [pdf_ms, pdf_zh, pdf_ta] = await Promise.all([
+        generateResumePDF(profile_ms, refined_ms, 'ms'),
+        generateResumePDF(profile_zh, refined_zh, 'zh'),
+        generateResumePDF(profile_ta, refined_ta, 'ta'),
+      ]);
+
+      // 9. Upload all four to S3 (resumes_en, resumes_ms, resumes_zh, resumes_ta)
+      const [up_en, up_ms, up_zh, up_ta] = await Promise.all([
+        uploadResumeBufferToS3(userId, 'en', pdf_en),
+        uploadResumeBufferToS3(userId, 'ms', pdf_ms),
+        uploadResumeBufferToS3(userId, 'zh', pdf_zh),
+        uploadResumeBufferToS3(userId, 'ta', pdf_ta),
+      ]);
+
+      // Delete previously uploaded resume from S3 if present
+      if (profile.resumeUrl_uploaded) {
+        try {
+          await deleteOldFile(profile.resumeUrl_uploaded);
+        } catch (e) {
+          console.error(
+            'Failed to delete uploaded resume from S3:',
+            profile.resumeUrl_uploaded,
+            e
+          );
+        }
+      }
+
+      // 10. Persist keys and metadata
       await prisma.userProfile.update({
         where: { userId },
-        data: { resumeUrl: key }, // store only the key
+        data: {
+          resumeUrl_en: up_en.key,
+          resumeUrl_ms: up_ms.key,
+          resumeUrl_zh: up_zh.key,
+          resumeUrl_ta: up_ta.key,
+          // Clear uploaded resume reference when regenerating AI resumes
+          resumeUrl_uploaded: null,
+          resumeSource: 'AI_GENERATED',
+          resumeGeneratedAt: new Date(),
+          resumeVersion: (profile.resumeVersion ?? 0) + 1,
+        },
       });
 
-      // 8. Return both key and raw URL
+      // 11. Return keys for client
       res.json({
-        message: 'Resume generated',
-        key, // e.g. "resumes/123.pdf"
-        resumeUrl, // raw bucket URL (not signed)
+        message: 'Resume generated in all languages',
+        keys: {
+          en: up_en.key,
+          ms: up_ms.key,
+          zh: up_zh.key,
+          ta: up_ta.key,
+        },
       });
     } catch (err) {
       console.error('Error generating resume:', err);

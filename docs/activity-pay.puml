@@ -1,0 +1,26 @@
+@startuml UC_Pay
+skinparam conditionStyle diamond
+title Activity: Pay Subscription
+|Employer|
+start
+:Navigate to Pricing Page;
+:Initiate Payment (Subscription/Ad-hoc);
+:Select Payment Method;
+:Enter Payment Details;
+:Click Pay;
+|System|
+:Send Request to Payment Gateway;
+:Process Transaction;
+if (Success?) then (yes)
+  :Record Transaction in DB;
+  :Generate Invoice;
+  :Send Receipt Email;
+  :Show Success Screen;
+else (no)
+  :Receive Error from Gateway;
+  :Show Error Message;
+  :Offer Retry;
+endif
+stop
+@enduml
+

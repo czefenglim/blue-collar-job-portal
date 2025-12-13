@@ -2,9 +2,11 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function HiddenLayout() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <Stack
@@ -23,29 +25,29 @@ export default function HiddenLayout() {
         ),
       }}
     >
-      <Stack.Screen name="login" options={{ title: 'Login' }} />
+      <Stack.Screen name="login" options={{ title: t('adminHiddenLayout.login') }} />
       <Stack.Screen
         name="reports/job-review/[jobId]"
-        options={{ title: 'Job Post Review' }}
+        options={{ title: t('adminHiddenLayout.jobPostReview') }}
       />
-      <Stack.Screen name="jobs/[id]" options={{ title: 'Job Details' }} />
+      <Stack.Screen name="jobs/[id]" options={{ title: t('adminHiddenLayout.jobDetails') }} />
       <Stack.Screen
         name="appeals/index"
-        options={{ title: 'Appeals For Job Post' }}
+        options={{ title: t('adminHiddenLayout.appealsForJobPost') }}
       />
-      <Stack.Screen name="appeals/[id]" options={{ title: 'Appeal Details' }} />
+      <Stack.Screen name="appeals/[id]" options={{ title: t('adminHiddenLayout.appealDetails') }} />
       <Stack.Screen
         name="review-moderation"
-        options={{ title: 'Review Moderation' }}
+        options={{ title: t('adminHiddenLayout.reviewModeration') }}
       />
       <Stack.Screen
         name="company-approval/[id]"
-        options={{ title: 'Company Approval Details' }}
+        options={{ title: t('adminHiddenLayout.companyApprovalDetails') }}
       />
-      <Stack.Screen name="companies/page" options={{ title: 'Companies' }} />
+      <Stack.Screen name="companies/page" options={{ title: t('adminHiddenLayout.companies') }} />
       <Stack.Screen
         name="companies/[id]"
-        options={{ title: 'Company Details' }}
+        options={{ title: t('adminHiddenLayout.companyDetails') }}
       />
     </Stack>
   );

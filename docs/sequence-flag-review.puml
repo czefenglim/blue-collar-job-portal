@@ -1,0 +1,22 @@
+@startuml
+title Sequence: Flag Review
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Review Controller" as API
+database "Database" as DB
+
+EMP -> UI: Select Review
+activate UI
+EMP -> UI: Click Report/Flag
+EMP -> UI: Write Reason & Submit
+UI -> API: Flag Review
+activate API
+API -> DB: Update Flag Status
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Review Flagged for Admin
+deactivate API
+deactivate UI
+@enduml
+

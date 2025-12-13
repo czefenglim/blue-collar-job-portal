@@ -5,7 +5,9 @@ import {
   translateJobs,
   translateCompanies,
 } from '../workers/translationWorker';
+import { translateText } from '../services/googleTranslation';
 import { AIJobVerificationService } from '../services/aiJobVerification';
+import { labelEnum, SupportedLang } from '../utils/enumLabels';
 import {
   sendJobApprovedNotification,
   sendJobMatchNotification,
@@ -19,6 +21,23 @@ import {
 } from '../services/s3Service';
 
 const prisma = new PrismaClient();
+
+// Helper to resolve provided translations or auto-translate from base (any language)
+async function resolveTranslations(
+  base?: string | null,
+  ms?: string | null,
+  ta?: string | null,
+  zh?: string | null
+) {
+  const needsTranslate = (v?: string | null) => !v || v.trim() === '';
+  const [enVal, msVal, taVal, zhVal] = await Promise.all([
+    base ? translateText(base, 'en') : null,
+    needsTranslate(ms) && base ? translateText(base, 'ms') : ms || null,
+    needsTranslate(ta) && base ? translateText(base, 'ta') : ta || null,
+    needsTranslate(zh) && base ? translateText(base, 'zh') : zh || null,
+  ]);
+  return { en: enVal, ms: msVal, ta: taVal, zh: zhVal };
+}
 
 interface AuthRequest extends Request {
   user?: {
@@ -125,6 +144,9 @@ export const createCompany = async (req: Request, res: Response) => {
       userId,
       companyId,
       companyName,
+      companyName_ms,
+      companyName_ta,
+      companyName_zh,
       industry,
       companySize,
       address,
@@ -132,6 +154,9 @@ export const createCompany = async (req: Request, res: Response) => {
       state,
       postcode,
       description,
+      description_ms,
+      description_ta,
+      description_zh,
       phone,
       email,
       website,
@@ -194,10 +219,29 @@ export const createCompany = async (req: Request, res: Response) => {
     if (existingUser.company) {
       // ✅ Update existing company (preserve existing logo)
       console.log('Updating company with ID:', existingUser.company.id);
+
+      // Resolve translations (use provided if present, otherwise auto-translate)
+      const nameTr = await resolveTranslations(
+        companyName,
+        companyName_ms,
+        companyName_ta,
+        companyName_zh
+      );
+      const descTr = await resolveTranslations(
+        description,
+        description_ms,
+        description_ta,
+        description_zh
+      );
+
       company = await prisma.company.update({
         where: { id: existingUser.company.id },
         data: {
           name: companyName,
+          name_ms: nameTr.ms ?? undefined,
+          name_ta: nameTr.ta ?? undefined,
+          name_zh: nameTr.zh ?? undefined,
+          name_en: nameTr.en ?? undefined,
           industryId,
           companySize,
           address,
@@ -205,6 +249,10 @@ export const createCompany = async (req: Request, res: Response) => {
           state,
           postcode,
           description,
+          description_ms: descTr.ms ?? undefined,
+          description_ta: descTr.ta ?? undefined,
+          description_zh: descTr.zh ?? undefined,
+          description_en: descTr.en ?? undefined,
           phone,
           email,
           website,
@@ -216,10 +264,29 @@ export const createCompany = async (req: Request, res: Response) => {
     } else {
       // ✅ Create new company (without logo initially)
       console.log('Creating new company with slug:', slug);
+
+      // Resolve translations for new company
+      const nameTr = await resolveTranslations(
+        companyName,
+        companyName_ms,
+        companyName_ta,
+        companyName_zh
+      );
+      const descTr = await resolveTranslations(
+        description,
+        description_ms,
+        description_ta,
+        description_zh
+      );
+
       company = await prisma.company.create({
         data: {
           userId,
           name: companyName,
+          name_ms: nameTr.ms ?? undefined,
+          name_ta: nameTr.ta ?? undefined,
+          name_zh: nameTr.zh ?? undefined,
+          name_en: nameTr.en ?? undefined,
           slug,
           industryId,
           companySize,
@@ -228,6 +295,10 @@ export const createCompany = async (req: Request, res: Response) => {
           state,
           postcode,
           description,
+          description_ms: descTr.ms ?? undefined,
+          description_ta: descTr.ta ?? undefined,
+          description_zh: descTr.zh ?? undefined,
+          description_en: descTr.en ?? undefined,
           phone,
           email,
           website,
@@ -845,26 +916,42 @@ export const createFirstJob = async (req: Request, res: Response) => {
         `✅ First job approved and notifications sent to ${matchingUsers.length} matching users`
       );
     } else if (approvalStatus === 'REJECTED_AI' && company.userId) {
+      const notifMsg = `Your job post "${job.title}" was rejected by our automated review. You can appeal this decision if you believe this is a legitimate job posting.`;
+      const n_ms = await translateText(notifMsg, 'ms');
+      const n_ta = await translateText(notifMsg, 'ta');
+      const n_zh = await translateText(notifMsg, 'zh');
       await prisma.notification.create({
         data: {
           userId: company.userId,
           title: 'Job Post Rejected by AI',
-          message: `Your job post "${job.title}" was rejected by our automated review. You can appeal this decision if you believe this is a legitimate job posting.`,
+          message: notifMsg,
+          message_en: notifMsg,
+          message_ms: n_ms ?? undefined,
+          message_ta: n_ta ?? undefined,
+          message_zh: n_zh ?? undefined,
           type: 'SYSTEM_UPDATE',
-          actionUrl: `/employer/jobs/${job.id}`,
+          actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
       console.log(
         '❌ First job rejected by AI, employer notified with appeal option'
       );
     } else if (company.userId) {
+      const notifMsg = `Your job post "${job.title}" is being reviewed by our team. You'll be notified once it's approved.`;
+      const n_ms = await translateText(notifMsg, 'ms');
+      const n_ta = await translateText(notifMsg, 'ta');
+      const n_zh = await translateText(notifMsg, 'zh');
       await prisma.notification.create({
         data: {
           userId: company.userId,
           title: 'Job Post Under Review',
-          message: `Your job post "${job.title}" is being reviewed by our team. You'll be notified once it's approved.`,
+          message: notifMsg,
+          message_en: notifMsg,
+          message_ms: n_ms ?? undefined,
+          message_ta: n_ta ?? undefined,
+          message_zh: n_zh ?? undefined,
           type: 'SYSTEM_UPDATE',
-          actionUrl: `/employer/jobs/${job.id}`,
+          actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
       console.log('⚠️ First job pending review, employer notified');
@@ -981,6 +1068,50 @@ export const getEmployerProfile = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    const lang = (req.query.lang as SupportedLang) || 'en';
+
+    // Localize role using enum labels
+    const roleLabel = labelEnum('UserRole', user.role, lang) || user.role;
+
+    // Localize industry name
+    let industryName: string | null = user.company?.industry?.name || null;
+    if (user.company?.industry) {
+      if (lang === 'ms' && (user.company.industry as any).name_ms)
+        industryName = (user.company.industry as any).name_ms;
+      else if (lang === 'zh' && (user.company.industry as any).name_zh)
+        industryName = (user.company.industry as any).name_zh;
+      else if (lang === 'ta' && (user.company.industry as any).name_ta)
+        industryName = (user.company.industry as any).name_ta;
+      else if (lang === 'en' && (user.company.industry as any).name_en)
+        industryName = (user.company.industry as any).name_en;
+    }
+
+    // Localize company description
+    let companyDescription: string | null = user.company?.description || null;
+    if (user.company) {
+      if (lang === 'ms' && (user.company as any).description_ms)
+        companyDescription = (user.company as any).description_ms;
+      else if (lang === 'zh' && (user.company as any).description_zh)
+        companyDescription = (user.company as any).description_zh;
+      else if (lang === 'ta' && (user.company as any).description_ta)
+        companyDescription = (user.company as any).description_ta;
+      else if (lang === 'en' && (user.company as any).description_en)
+        companyDescription = (user.company as any).description_en;
+    }
+
+    const localizedCompany = user.company
+      ? {
+          ...user.company,
+          description: companyDescription || user.company.description || null,
+          industry: user.company.industry
+            ? {
+                ...(user.company.industry as any),
+                name: industryName || user.company.industry.name,
+              }
+            : null,
+        }
+      : null;
+
     return res.status(200).json({
       success: true,
       data: {
@@ -989,7 +1120,8 @@ export const getEmployerProfile = async (req: AuthRequest, res: Response) => {
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
         role: user.role,
-        company: user.company,
+        roleLabel,
+        company: localizedCompany,
       },
     });
   } catch (error: any) {
@@ -1013,12 +1145,14 @@ export const getIndustries = async (req: Request, res: Response) => {
         id: true,
         name: true,
         name_ms: true,
+        name_en: true,
         name_zh: true,
         name_ta: true,
         slug: true,
         icon: true,
         description: true,
         description_ms: true,
+        description_en: true,
         description_zh: true,
         description_ta: true,
       },
@@ -1034,16 +1168,19 @@ export const getIndustries = async (req: Request, res: Response) => {
 
       switch (lang) {
         case 'ms':
-          localizedName = ind.name_ms || ind.name;
-          localizedDescription = ind.description_ms || ind.description;
+          localizedName = ind.name_ms || ind.name_en || ind.name;
+          localizedDescription =
+            ind.description_ms || ind.description_en || ind.description;
           break;
         case 'zh':
-          localizedName = ind.name_zh || ind.name;
-          localizedDescription = ind.description_zh || ind.description;
+          localizedName = ind.name_zh || ind.name_en || ind.name;
+          localizedDescription =
+            ind.description_zh || ind.description_en || ind.description;
           break;
         case 'ta':
-          localizedName = ind.name_ta || ind.name;
-          localizedDescription = ind.description_ta || ind.description;
+          localizedName = ind.name_ta || ind.name_en || ind.name;
+          localizedDescription =
+            ind.description_ta || ind.description_en || ind.description;
           break;
       }
 
@@ -1314,6 +1451,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
+    const lang = (req.query.lang as string) || 'en';
 
     if (!userId) {
       return res.status(401).json({
@@ -1404,9 +1542,49 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
       })
     );
 
+    // Add localized enum labels for employer view (default to English if no lang)
+
+    const jobsWithLabels = await Promise.all(
+      jobsWithSignedLogos.map(async (job: any) => {
+        let rejectionReasonLocalized: string | null = null;
+        if (job.rejectionReason) {
+          if (lang === 'en') {
+            rejectionReasonLocalized = job.rejectionReason;
+          } else {
+            try {
+              const tr = await translateText(
+                job.rejectionReason,
+                lang as string
+              );
+              rejectionReasonLocalized = tr || job.rejectionReason;
+            } catch (e) {
+              rejectionReasonLocalized = job.rejectionReason;
+            }
+          }
+        }
+
+        return {
+          ...job,
+          jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+          // workingHours may not be selected here, but include if present in select/DB
+          workingHoursLabel: labelEnum(
+            'WorkingHours',
+            (job as any).workingHours as any,
+            lang as any
+          ),
+          experienceLevelLabel: labelEnum(
+            'ExperienceLevel',
+            (job as any).experienceLevel as any,
+            lang as any
+          ),
+          rejectionReasonLocalized,
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      data: jobsWithSignedLogos,
+      data: jobsWithLabels,
     });
   } catch (error: any) {
     console.error('Error fetching employer jobs:', error);
@@ -1649,6 +1827,11 @@ export const getApplicantDetail = async (req: AuthRequest, res: Response) => {
                 city: true,
                 state: true,
                 profilePicture: true,
+                resumeUrl_en: true,
+                resumeUrl_ms: true,
+                resumeUrl_zh: true,
+                resumeUrl_ta: true,
+                resumeUrl_uploaded: true,
               },
             },
           },
@@ -1657,6 +1840,9 @@ export const getApplicantDetail = async (req: AuthRequest, res: Response) => {
           select: {
             id: true,
             title: true,
+            title_ms: true,
+            title_ta: true,
+            title_zh: true,
             jobType: true,
             city: true,
             state: true,
@@ -1695,6 +1881,61 @@ export const getApplicantDetail = async (req: AuthRequest, res: Response) => {
         );
         application.user.profile.profilePicture = null;
       }
+    }
+
+    // Localize job title and job type label based on requested language
+    const lang = (req.query.lang as SupportedLang) || 'en';
+
+    // Resolve localized job title
+    const jobAny: any = application.job as any;
+    let localizedJobTitle = application.job.title;
+    if (lang === 'ms' && jobAny.title_ms) {
+      localizedJobTitle = jobAny.title_ms;
+    } else if (lang === 'zh' && jobAny.title_zh) {
+      localizedJobTitle = jobAny.title_zh;
+    } else if (lang === 'ta' && jobAny.title_ta) {
+      localizedJobTitle = jobAny.title_ta;
+    } else if (lang === 'en' && jobAny.title_en) {
+      localizedJobTitle = jobAny.title_en;
+    }
+
+    // Enum label for job type
+    const jobTypeLabel = labelEnum('JobType', application.job.jobType, lang);
+
+    // Attach localized fields to payload
+    application.job = {
+      ...application.job,
+      title: localizedJobTitle || application.job.title,
+      ...(jobTypeLabel ? { jobTypeLabel } : {}),
+    } as any;
+
+    // Resolve resume link by language preference and attach signed URL
+    try {
+      let resumeKey: string | null = null;
+      const appResume = (application as any).resumeUrl as string | undefined;
+      if (appResume) {
+        // If application stored a resume reference, use it (treat as key)
+        resumeKey = appResume.startsWith('http') ? null : appResume;
+      }
+      if (!resumeKey && application.user?.profile) {
+        const p: any = application.user.profile;
+        if (lang === 'ms' && p.resumeUrl_ms) resumeKey = p.resumeUrl_ms;
+        else if (lang === 'zh' && p.resumeUrl_zh) resumeKey = p.resumeUrl_zh;
+        else if (lang === 'ta' && p.resumeUrl_ta) resumeKey = p.resumeUrl_ta;
+        else if (p.resumeUrl_en) resumeKey = p.resumeUrl_en;
+        else if (p.resumeUrl_uploaded) resumeKey = p.resumeUrl_uploaded;
+      }
+
+      if (resumeKey) {
+        try {
+          const signed = await getSignedDownloadUrl(resumeKey, 300);
+          (application as any).resumeUrl = signed;
+        } catch (e) {
+          console.error('Failed to sign resume key:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Error resolving applicant resume:', e);
     }
 
     return res.status(200).json({

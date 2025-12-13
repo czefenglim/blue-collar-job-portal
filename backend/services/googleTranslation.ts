@@ -2,7 +2,7 @@ import { TranslationServiceClient } from '@google-cloud/translate';
 
 // Path to your service account JSON
 const client = new TranslationServiceClient({
-  keyFilename: './omega-terrain-457507-n1-82d073cfc7cf.json',
+  keyFilename: './omega-terrain-457507-n1-a662ff7ad9cc.json',
 });
 
 const projectId = 'omega-terrain-457507-n1';

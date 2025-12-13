@@ -1,0 +1,60 @@
+@startuml
+title Sequence: Onboarding
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Onboarding Controller" as API
+database "Database" as DB
+participant "AI Service" as AI
+
+JS -> UI: Complete Personal Profile
+activate UI
+UI -> API: Save Profile
+activate API
+API -> DB: Update User Record
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Next Step
+deactivate API
+deactivate UI
+
+JS -> UI: Select Industries/Prefs
+activate UI
+UI -> API: Save Preferences
+activate API
+API -> DB: Update Preferences
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Next Step
+deactivate API
+deactivate UI
+
+JS -> UI: Answer Questions for Resume
+activate UI
+UI -> API: Request Resume
+activate API
+API -> AI: Generate Resume
+activate AI
+AI --> API: Resume Content
+deactivate AI
+API -> DB: Save Resume
+activate DB
+DB --> API: Saved
+deactivate DB
+API --> UI: Display Summary
+deactivate API
+deactivate UI
+
+JS -> UI: Confirm & Continue
+activate UI
+UI -> API: Complete Onboarding
+activate API
+API -> DB: Set Status Completed
+activate DB
+DB --> API: Updated
+deactivate DB
+API --> UI: Redirect to Dashboard
+deactivate API
+deactivate UI
+@enduml

@@ -1,0 +1,23 @@
+@startuml UC_Notify
+skinparam conditionStyle diamond
+title Activity: View Notifications
+|System|
+start
+:Receive Notification Event (e.g. Job Match, Application Status);
+:Store Notification in Database;
+:Push Real-time Update;
+:Update Unread Count Badge;
+|User|
+:User Clicks Notification Icon;
+|System|
+:Fetch Notifications List;
+:Display Notifications;
+|User|
+if (Click Notification?) then (yes)
+  |System|
+  :Mark as Read;
+  :Navigate to Related Content;
+endif
+stop
+@enduml
+

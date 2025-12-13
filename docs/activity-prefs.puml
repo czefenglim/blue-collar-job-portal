@@ -1,0 +1,29 @@
+@startuml UC_Prefs
+skinparam conditionStyle diamond
+title Activity: Change Language / Preferences
+|User|
+start
+:Navigate to Settings / Profile;
+:Select Preferences;
+|System|
+:Display Preferences Options;
+|User|
+if (Change Language?) then (yes)
+  :Open Language Selector;
+  :Select New Language (en/ms/zh/ta);
+  |System|
+  :Update App Locale Context;
+  :Persist Selection to Local Storage/DB;
+  :Reload UI Strings;
+endif
+|User|
+if (Change Notification Settings?) then (yes)
+  :Toggle Email/Push Options;
+  :Click Save;
+  |System|
+  :Save Settings to Database;
+  :Update Push Token Config;
+endif
+stop
+@enduml
+

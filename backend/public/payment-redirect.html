@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Processing...</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      .icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+      }
+      .spinner {
+        width: 80px;
+        height: 80px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .success-icon {
+        display: none;
+        font-size: 80px;
+        color: #10b981;
+      }
+      h1 {
+        font-size: 24px;
+        color: #1e293b;
+        margin-bottom: 10px;
+      }
+      p {
+        color: #64748b;
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .button {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+      }
+      .button:hover {
+        background: #5568d3;
+      }
+      .debug-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #64748b;
+        text-align: left;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+      }
+      .link-display {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 10px 0;
+        word-break: break-all;
+        font-size: 11px;
+        font-family: monospace;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">
+        <div class="spinner" id="spinner"></div>
+        <div class="success-icon" id="successIcon">✓</div>
+      </div>
+      <h1 id="title">Processing Payment...</h1>
+      <p id="message">Please wait while we confirm your payment.</p>
+      <div id="actions"></div>
+      <div class="debug-info" id="debugInfo"></div>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      const success = urlParams.get('success');
+      const expoUrlParam = urlParams.get('expo_url');
+
+      function log(msg) {
+        const debugEl = document.getElementById('debugInfo');
+        const time = new Date().toLocaleTimeString();
+        debugEl.innerHTML += `[${time}] ${msg}<br>`;
+        console.log(msg);
+      }
+
+      log('=== PAYMENT REDIRECT DEBUG ===');
+      log(`Session ID: ${sessionId}`);
+      log(`Success: ${success}`);
+      log(`Expo URL: ${expoUrlParam}`);
+
+      function showSuccess() {
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('successIcon').style.display = 'block';
+        document.getElementById('title').textContent = 'Payment Successful! 🎉';
+        document.getElementById('message').textContent =
+          'Redirecting to app...';
+      }
+
+      function showManualButtons(links) {
+        const actionsDiv = document.getElementById('actions');
+        actionsDiv.innerHTML = `
+                <p style="margin: 20px 0 10px;">Click to open app:</p>
+                ${links
+                  .map(
+                    (link, i) => `
+                    <button class="button" onclick="window.location.href='${link.url}'">
+                        ${link.label}
+                    </button>
+                `
+                  )
+                  .join('')}
+                <div style="margin-top: 20px;">
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 10px;">Or copy and paste in browser:</p>
+                    ${links
+                      .map(
+                        (link) => `
+                        <div class="link-display">${link.url}</div>
+                    `
+                      )
+                      .join('')}
+                </div>
+            `;
+      }
+
+      function buildDeepLinks() {
+        const route =
+          success === 'false' ? 'payment-failed' : 'payment-success';
+        const queryParams = sessionId ? `?session_id=${sessionId}` : '';
+
+        // Try multiple deep link formats
+        const links = [];
+
+        if (expoUrlParam) {
+          // Format 1: Standard Expo Router path (NO --)
+          links.push({
+            label: 'Method 1 (Standard)',
+            url: `${expoUrlParam}/(employer-hidden)/payment/${route}${queryParams}`,
+          });
+
+          // Format 2: With -- prefix ✅ THIS ONE WORKS!
+          links.push({
+            label: 'Method 2 (With --)',
+            url: `${expoUrlParam}/--/(employer-hidden)/payment/${route}${queryParams}`,
+          });
+
+          // Format 3: Root path
+          links.push({
+            label: 'Method 3 (Root)',
+            url: `${expoUrlParam}/${route}${queryParams}`,
+          });
+        }
+
+        // Format 4: Custom scheme
+        links.push({
+          label: 'Method 4 (Custom Scheme)',
+          url: `bluecollarjobportal:///(employer-hidden)/payment/${route}${queryParams}`,
+        });
+
+        return links;
+      }
+
+      async function redirectToApp() {
+        showSuccess();
+
+        const links = buildDeepLinks();
+
+        log('--- Generated Deep Links ---');
+        links.forEach((link, i) => {
+          log(`${i + 1}. ${link.label}: ${link.url}`);
+        });
+
+        // ✅ Use Method 2 (with --) for auto-redirect since we know it works!
+        if (links.length > 1) {
+          log(`Attempting auto-redirect with: ${links[1].label}`);
+
+          setTimeout(() => {
+            window.location.href = links[1].url;
+
+            // Show manual options after 3 seconds if redirect didn't work
+            setTimeout(() => {
+              log('Auto-redirect may have failed. Showing manual options...');
+              showManualButtons(links);
+            }, 3000);
+          }, 1500);
+        } else {
+          log('ERROR: Could not generate deep links');
+          showManualButtons([
+            {
+              label: 'Open App',
+              url: 'exp://yag4j1y-czefenglim-8081.exp.direct',
+            },
+          ]);
+        }
+      }
+
+      // Start
+      window.onload = function () {
+        log('Page loaded');
+
+        if (success === 'false') {
+          log('Payment was cancelled');
+          document.getElementById('title').textContent = 'Payment Cancelled';
+          document.getElementById('message').textContent = 'Redirecting...';
+        }
+
+        redirectToApp();
+      };
+    </script>
+  </body>
+</html>

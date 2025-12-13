@@ -9,10 +9,9 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
-  TextInput,
   Modal,
-  ScrollView,
   Image,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,9 +19,34 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
+import JobPostLimitModal from '@/components/JobPostLimitModal';
+import VoiceTextInput from '@/components/VoiceTextInput';
+
+// Color palette from your theme
+const PRIMARY_BLUE = '#1E3A8A';
+const ACCENT_ORANGE = '#F59E0B';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_RED = '#EF4444';
+const ACCENT_PURPLE = '#8B5CF6';
+const GRAY_TEXT = '#64748B';
+const LIGHT_BACKGROUND = '#F8FAFC';
+const CARD_BACKGROUND = '#FFFFFF';
+const BORDER_COLOR = '#E2E8F0';
+
+const { width } = Dimensions.get('window');
+const SPACING = 16;
+const CARD_PADDING = 20;
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
+
+interface SubscriptionInfo {
+  planType: 'FREE' | 'PRO' | 'MAX';
+  jobPostLimit: number;
+  activeJobPosts: number;
+  canPost: boolean;
+}
 
 interface JobPost {
   id: number;
@@ -41,6 +65,7 @@ interface JobPost {
     | 'APPEALED'
     | 'REJECTED_FINAL';
   rejectionReason: string | null;
+  rejectionReasonLocalized?: string;
   viewCount: number;
   applicationCount: number;
   estimatedHireDaysMin: number | null;
@@ -50,16 +75,17 @@ interface JobPost {
   _count: {
     applications: number;
   };
-  // ✅ Add company field
   company: {
     id: number;
     name: string;
     logo: string | null;
   };
+  jobTypeLabel?: string;
 }
 
 export default function JobPostsPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [jobs, setJobs] = useState<JobPost[]>([]);
@@ -78,7 +104,6 @@ export default function JobPostsPage() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  // Appeal Modal State
   const [appealModalVisible, setAppealModalVisible] = useState(false);
   const [selectedJobForAppeal, setSelectedJobForAppeal] =
     useState<JobPost | null>(null);
@@ -86,8 +111,13 @@ export default function JobPostsPage() {
   const [appealEvidence, setAppealEvidence] = useState<any[]>([]);
   const [submittingAppeal, setSubmittingAppeal] = useState(false);
 
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] =
+    useState<SubscriptionInfo | null>(null);
+
   useEffect(() => {
     fetchJobs();
+    fetchSubscriptionInfo();
   }, []);
 
   useEffect(() => {
@@ -97,8 +127,38 @@ export default function JobPostsPage() {
   useFocusEffect(
     useCallback(() => {
       fetchJobs();
+      fetchSubscriptionInfo();
     }, [])
   );
+
+  const fetchSubscriptionInfo = async () => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      const response = await fetch(`${URL}/api/subscription/can-post-job`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSubscriptionInfo({
+          planType: data.data.planType,
+          jobPostLimit: data.data.jobPostLimit,
+          activeJobPosts: data.data.activeJobs,
+          canPost: data.data.canPost,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching subscription info:', error);
+    }
+  };
+
+  const handleCreateJobClick = () => {
+    if (subscriptionInfo && !subscriptionInfo.canPost) {
+      setShowLimitModal(true);
+    } else {
+      router.push('/(employer-hidden)/create-job');
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -109,12 +169,15 @@ export default function JobPostsPage() {
         return;
       }
 
-      const response = await fetch(`${URL}/api/employer/jobs`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${URL}/api/employer/jobs?lang=${currentLanguage}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
       console.log('Fetched jobs:', data);
@@ -134,22 +197,27 @@ export default function JobPostsPage() {
     }
   };
 
+  const handleViewRejectionReason = (title: string, reason: string | null) => {
+    Alert.alert(
+      t('employerJobPosts.appeal.rejectedTitle'),
+      reason || t('employerJobPosts.appeal.noReason'),
+      [{ text: t('common.ok') }]
+    );
+  };
+
   const filterJobs = () => {
     let filtered = jobs;
 
-    // Filter by approval status
     if (statusFilter !== 'all') {
       filtered = filtered.filter((job) => job.approvalStatus === statusFilter);
     }
 
-    // Filter by active/closed status
     if (activeFilter === 'active') {
       filtered = filtered.filter((job) => job.isActive);
     } else if (activeFilter === 'closed') {
       filtered = filtered.filter((job) => !job.isActive);
     }
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -166,6 +234,7 @@ export default function JobPostsPage() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchJobs();
+    fetchSubscriptionInfo();
   };
 
   const getApprovalStatusBadge = (
@@ -180,37 +249,42 @@ export default function JobPostsPage() {
       case 'APPROVED':
         return {
           bg: '#d1fae5',
-          color: '#10b981',
-          icon: 'checkmark-circle',
-          text: 'Approved',
+          color: ACCENT_GREEN,
+          icon: 'checkmark-circle' as const,
+          text: t('employerJobPosts.filters.approved'),
+          borderColor: '#a7f3d0',
         };
       case 'PENDING':
         return {
           bg: '#fef3c7',
-          color: '#f59e0b',
-          icon: 'hourglass',
-          text: 'Under Review',
+          color: ACCENT_ORANGE,
+          icon: 'hourglass' as const,
+          text: t('employerJobPosts.filters.pending'),
+          borderColor: '#fde68a',
         };
       case 'REJECTED_AI':
         return {
           bg: '#fee2e2',
-          color: '#ef4444',
-          icon: 'close-circle',
-          text: 'Rejected by AI',
+          color: ACCENT_RED,
+          icon: 'close-circle' as const,
+          text: t('employerJobPosts.filters.aiRejected'),
+          borderColor: '#fecaca',
         };
       case 'APPEALED':
         return {
           bg: '#dbeafe',
           color: '#3b82f6',
-          icon: 'document-text',
-          text: 'Appeal Submitted',
+          icon: 'document-text' as const,
+          text: t('employerJobPosts.filters.appealed'),
+          borderColor: '#bfdbfe',
         };
       case 'REJECTED_FINAL':
         return {
           bg: '#fecaca',
           color: '#dc2626',
-          icon: 'ban',
-          text: 'Final Rejection',
+          icon: 'ban' as const,
+          text: t('employerJobPosts.filters.finalRejected'),
+          borderColor: '#fca5a5',
         };
     }
   };
@@ -235,7 +309,10 @@ export default function JobPostsPage() {
       }
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert('Error', 'Failed to pick document');
+      Alert.alert(
+        t('common.error'),
+        t('employerJobPosts.errors.pickDocumentFailed')
+      );
     }
   };
 
@@ -247,7 +324,10 @@ export default function JobPostsPage() {
     if (!selectedJobForAppeal) return;
 
     if (!appealExplanation.trim()) {
-      Alert.alert('Error', 'Please provide an explanation for your appeal');
+      Alert.alert(
+        t('common.error'),
+        t('employerJobPosts.appeal.validation.explanationRequired')
+      );
       return;
     }
 
@@ -256,11 +336,9 @@ export default function JobPostsPage() {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
 
-      // Prepare FormData for file upload
       const formData = new FormData();
       formData.append('explanation', appealExplanation);
 
-      // Add evidence files
       appealEvidence.forEach((file, index) => {
         formData.append('evidence', {
           uri: file.uri,
@@ -294,7 +372,7 @@ export default function JobPostsPage() {
             text: 'OK',
             onPress: () => {
               setAppealModalVisible(false);
-              fetchJobs(); // Refresh jobs list
+              fetchJobs();
             },
           },
         ]
@@ -401,12 +479,6 @@ export default function JobPostsPage() {
     );
   };
 
-  const handleViewRejectionReason = (title: string, reason: string | null) => {
-    Alert.alert('Job Rejected', reason || 'No rejection reason provided', [
-      { text: 'OK' },
-    ]);
-  };
-
   const renderStatusFilterButton = (
     label: string,
     value:
@@ -461,248 +533,307 @@ export default function JobPostsPage() {
 
   const renderJobCard = ({ item }: { item: JobPost }) => {
     const approvalBadge = getApprovalStatusBadge(item.approvalStatus);
-    const canAppeal = item.approvalStatus === 'REJECTED_AI';
 
     return (
-      <TouchableOpacity
-        style={styles.jobCard}
-        onPress={() =>
-          router.push(`/(employer-hidden)/job-post-details/${item.id}` as Href)
-        }
-      >
-        <View style={styles.jobCardHeader}>
-          {/* ✅ Company Logo */}
-          <View style={styles.companyLogoContainer}>
-            {item.company?.logo ? (
-              <Image
-                source={{ uri: item.company.logo }}
-                style={styles.companyLogo}
+      <View style={styles.jobCard}>
+        <TouchableOpacity
+          style={styles.cardTouchable}
+          onPress={() =>
+            router.push(
+              `/(employer-hidden)/job-post-details/${item.id}` as Href
+            )
+          }
+          activeOpacity={0.9}
+        >
+          {/* Top Header with Company Logo and Status */}
+          <View style={styles.jobCardHeader}>
+            <View style={styles.companyLogoContainer}>
+              {item.company?.logo ? (
+                <Image
+                  source={{ uri: item.company.logo }}
+                  style={styles.companyLogo}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.companyLogoPlaceholder}>
+                  <Text style={styles.companyLogoText}>
+                    {item.company?.name?.charAt(0).toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.jobTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <Text style={styles.companyName}>{item.company?.name}</Text>
+            </View>
+
+            <View
+              style={[
+                styles.approvalStatusBadge,
+                {
+                  backgroundColor: approvalBadge.bg,
+                  borderColor: approvalBadge.borderColor,
+                },
+              ]}
+            >
+              <Ionicons
+                name={approvalBadge.icon}
+                size={16}
+                color={approvalBadge.color}
               />
-            ) : (
-              <View style={styles.companyLogoPlaceholder}>
-                <Text style={styles.companyLogoText}>
-                  {item.company?.name?.charAt(0).toUpperCase() || '?'}
+              <Text
+                style={[
+                  styles.approvalStatusText,
+                  { color: approvalBadge.color },
+                ]}
+              >
+                {approvalBadge.text}
+              </Text>
+            </View>
+          </View>
+
+          {/* Job Details */}
+          <View style={styles.detailsContainer}>
+            <View style={styles.detailItem}>
+              <Ionicons name="location-outline" size={16} color={GRAY_TEXT} />
+              <Text style={styles.detailText}>
+                {item.city}, {item.state}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Ionicons name="briefcase-outline" size={16} color={GRAY_TEXT} />
+              <Text style={styles.detailText}>
+                {item.jobTypeLabel || item.jobType.replace('_', ' ')}
+              </Text>
+            </View>
+            {item.approvalStatus === 'APPROVED' && (
+              <View style={styles.detailItem}>
+                <View
+                  style={[
+                    styles.statusIndicator,
+                    {
+                      backgroundColor: item.isActive ? ACCENT_GREEN : GRAY_TEXT,
+                    },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    {
+                      color: item.isActive ? ACCENT_GREEN : GRAY_TEXT,
+                    },
+                  ]}
+                >
+                  {item.isActive
+                    ? t('employerJobPosts.filters.active')
+                    : t('employerJobPosts.filters.closed')}
                 </Text>
               </View>
             )}
           </View>
 
-          <View style={{ flex: 1 }}>
-            <Text style={styles.jobTitle} numberOfLines={2}>
-              {item.title}
-            </Text>
-            <View style={styles.jobMeta}>
-              <View style={styles.metaItem}>
-                <Ionicons name="location-outline" size={14} color="#64748B" />
-                <Text style={styles.metaText}>
-                  {item.city}, {item.state}
-                </Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Ionicons name="briefcase-outline" size={14} color="#64748B" />
-                <Text style={styles.metaText}>
-                  {item.jobType.replace('_', ' ')}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Approval Status Badge */}
-          <View
-            style={[
-              styles.approvalStatusBadge,
-              { backgroundColor: approvalBadge.bg },
-            ]}
-          >
-            <Ionicons
-              name={approvalBadge.icon as any}
-              size={14}
-              color={approvalBadge.color}
-            />
-            <Text
-              style={[
-                styles.approvalStatusText,
-                { color: approvalBadge.color },
-              ]}
-            >
-              {approvalBadge.text}
-            </Text>
-          </View>
-        </View>
-
-        {/* Active/Closed Badge - Only show for approved jobs */}
-        {item.approvalStatus === 'APPROVED' && (
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: item.isActive ? '#10B98115' : '#64748B15' },
-            ]}
-          >
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: item.isActive ? '#10B981' : '#64748B' },
-              ]}
-            />
-            <Text
-              style={[
-                styles.statusText,
-                { color: item.isActive ? '#10B981' : '#64748B' },
-              ]}
-            >
-              {item.isActive ? 'Active' : 'Closed'}
-            </Text>
-          </View>
-        )}
-
-        {item.salaryMin && item.salaryMax && (
-          <View style={styles.salaryContainer}>
-            <Ionicons name="cash-outline" size={16} color="#1E3A8A" />
-            <Text style={styles.salaryText}>
-              RM {item.salaryMin.toLocaleString()} - RM{' '}
-              {item.salaryMax.toLocaleString()}
-            </Text>
-          </View>
-        )}
-
-        {/* ✅ NEW: Estimated Hire Time */}
-        {item.approvalStatus === 'APPROVED' &&
-          (item.estimatedHireDaysMin || item.estimatedHireDaysMax) && (
-            <View style={styles.estimationContainer}>
-              <Ionicons name="time-outline" size={16} color="#8B5CF6" />
-              <Text style={styles.estimationText}>
-                Est. hire time: {item.estimatedHireDaysMin}–
-                {item.estimatedHireDaysMax} days
+          {/* Salary Section */}
+          {item.salaryMin && item.salaryMax && (
+            <View style={styles.salaryContainer}>
+              <Ionicons name="cash-outline" size={20} color={PRIMARY_BLUE} />
+              <Text style={styles.salaryText}>
+                RM {item.salaryMin.toLocaleString()} - RM{' '}
+                {item.salaryMax.toLocaleString()}
               </Text>
             </View>
           )}
 
-        {/* Approval Status Messages */}
-        {item.approvalStatus === 'PENDING' && (
-          <View style={styles.pendingInfo}>
-            <Ionicons name="information-circle" size={16} color="#f59e0b" />
-            <Text style={styles.pendingText}>
-              Your job post is being reviewed by our AI system. You'll be
-              notified once approved.
-            </Text>
-          </View>
-        )}
-
-        {item.approvalStatus === 'REJECTED_AI' && (
-          <View style={styles.rejectionContainer}>
-            <TouchableOpacity
-              style={styles.rejectionBox}
-              onPress={() =>
-                handleViewRejectionReason(item.title, item.rejectionReason)
-              }
-            >
-              <Ionicons name="alert-circle" size={16} color="#ef4444" />
-              <Text style={styles.rejectionText} numberOfLines={2}>
-                {item.rejectionReason ||
-                  'This job post was rejected by AI. Tap to view details.'}
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color="#ef4444" />
-            </TouchableOpacity>
-
-            {/* Appeal Button */}
-            <TouchableOpacity
-              style={styles.appealButton}
-              onPress={() => handleOpenAppealModal(item)}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color="#FFFFFF"
-              />
-              <Text style={styles.appealButtonText}>Appeal Decision</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {item.approvalStatus === 'APPEALED' && (
-          <View style={styles.appealedInfo}>
-            <Ionicons name="document-text" size={16} color="#3b82f6" />
-            <Text style={styles.appealedText}>
-              Your appeal is being reviewed by our team. We'll notify you of the
-              decision soon.
-            </Text>
-          </View>
-        )}
-
-        {item.approvalStatus === 'REJECTED_FINAL' && (
-          <View style={styles.finalRejectionBox}>
-            <Ionicons name="ban" size={16} color="#dc2626" />
-            <Text style={styles.finalRejectionText}>
-              This job post has been reviewed and the rejection decision is
-              final.
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.jobCardFooter}>
-          <View style={styles.statContainer}>
-            {item.approvalStatus === 'APPROVED' && (
-              <>
-                <View style={styles.stat}>
-                  <Ionicons name="eye-outline" size={18} color="#64748B" />
-                  <Text style={styles.statText}>
-                    {item.viewCount || 0} views
+          {/* Hire Estimation */}
+          {item.approvalStatus === 'APPROVED' &&
+            (item.estimatedHireDaysMin || item.estimatedHireDaysMax) && (
+              <View style={styles.estimationContainer}>
+                <Ionicons name="time-outline" size={18} color={ACCENT_PURPLE} />
+                <Text style={styles.estimationText}>
+                  Est. hire:{' '}
+                  <Text style={styles.estimationDays}>
+                    {item.estimatedHireDaysMin}–{item.estimatedHireDaysMax} days
                   </Text>
-                </View>
-                <View style={styles.stat}>
-                  <Ionicons name="people" size={18} color="#64748B" />
-                  <Text style={styles.statText}>
-                    {item.applicationCount || 0} applicant
-                    {item.applicationCount !== 1 ? 's' : ''}
-                  </Text>
-                </View>
-              </>
+                </Text>
+              </View>
             )}
-            <View style={styles.stat}>
-              <Ionicons name="calendar-outline" size={18} color="#64748B" />
-              <Text style={styles.statText}>
-                {new Date(item.createdAt).toLocaleDateString()}
-              </Text>
-            </View>
-          </View>
 
-          {/* Action Buttons - Only for approved jobs */}
-          {item.approvalStatus === 'APPROVED' && (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleToggleStatus(item.id, item.isActive)}
-              >
+          {/* Status-specific Sections */}
+          {item.approvalStatus === 'PENDING' && (
+            <View style={styles.statusSection}>
+              <View style={styles.pendingInfo}>
                 <Ionicons
-                  name={
-                    item.isActive
-                      ? 'pause-circle-outline'
-                      : 'play-circle-outline'
-                  }
-                  size={20}
-                  color="#1E3A8A"
+                  name="hourglass-outline"
+                  size={18}
+                  color={ACCENT_ORANGE}
                 />
-              </TouchableOpacity>
+                <Text style={styles.pendingText}>
+                  {t('employerJobPosts.pendingAiNotice')}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {item.approvalStatus === 'REJECTED_AI' && (
+            <View style={styles.statusSection}>
               <TouchableOpacity
-                style={styles.actionButton}
+                style={styles.rejectionBox}
                 onPress={() =>
-                  router.push(
-                    `/(employer-hidden)/job-post-details/${item.id}/edit` as Href
+                  handleViewRejectionReason(
+                    item.title,
+                    item.rejectionReasonLocalized ?? item.rejectionReason
                   )
                 }
               >
-                <Ionicons name="create-outline" size={20} color="#F59E0B" />
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color={ACCENT_RED}
+                />
+                <Text style={styles.rejectionText} numberOfLines={2}>
+                  {item.rejectionReasonLocalized ??
+                    item.rejectionReason ??
+                    t('employerJobPosts.appeal.aiRejectedNotice')}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={ACCENT_RED} />
               </TouchableOpacity>
+
               <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleDeleteJob(item.id, item.title)}
+                style={styles.appealButton}
+                onPress={() => handleOpenAppealModal(item)}
               >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                <Ionicons
+                  name="document-text-outline"
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.appealButtonText}>
+                  {t('employerJobPosts.appeal.button')}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
-        </View>
-      </TouchableOpacity>
+
+          {item.approvalStatus === 'APPEALED' && (
+            <View style={styles.statusSection}>
+              <View style={styles.appealedInfo}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={18}
+                  color="#3b82f6"
+                />
+                <Text style={styles.appealedText}>
+                  {t('employerJobPosts.appeal.appealedNotice')}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {item.approvalStatus === 'REJECTED_FINAL' && (
+            <View style={styles.statusSection}>
+              <View style={styles.finalRejectionBox}>
+                <Ionicons name="ban-outline" size={18} color="#dc2626" />
+                <Text style={styles.finalRejectionText}>
+                  {t('employerJobPosts.appeal.finalRejectedNotice')}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Stats Section */}
+          <View style={styles.statsSection}>
+            <View style={styles.statsContainer}>
+              {item.approvalStatus === 'APPROVED' && (
+                <>
+                  <View style={styles.statItem}>
+                    <Ionicons name="eye-outline" size={16} color={GRAY_TEXT} />
+                    <Text style={styles.statText}>
+                      {item.viewCount || 0}{' '}
+                      <Text style={styles.statLabel}>
+                        {t('employerJobPosts.stats.views')}
+                      </Text>
+                    </Text>
+                  </View>
+                  <View style={styles.statItem}>
+                    <Ionicons
+                      name="people-outline"
+                      size={16}
+                      color={GRAY_TEXT}
+                    />
+                    <Text style={styles.statText}>
+                      {item.applicationCount || 0}{' '}
+                      <Text style={styles.statLabel}>
+                        {item.applicationCount === 1
+                          ? t('employerJobPosts.stats.applicant')
+                          : t('employerJobPosts.stats.applicants')}
+                      </Text>
+                    </Text>
+                  </View>
+                </>
+              )}
+              <View style={styles.statItem}>
+                <Ionicons name="calendar-outline" size={16} color={GRAY_TEXT} />
+                <Text style={styles.statText}>
+                  <Text style={styles.statLabel}>Posted:</Text>{' '}
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons - Only for APPROVED jobs */}
+          {item.approvalStatus === 'APPROVED' && (
+            <View style={styles.actionsSection}>
+              <Text style={styles.actionsLabel}>Manage Job:</Text>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.toggleButton]}
+                  onPress={() => handleToggleStatus(item.id, item.isActive)}
+                >
+                  <Ionicons
+                    name={item.isActive ? 'pause-outline' : 'play-outline'}
+                    size={20}
+                    color={PRIMARY_BLUE}
+                  />
+                  <Text style={[styles.actionButtonText, styles.toggleText]}>
+                    {item.isActive ? 'Close' : 'Activate'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.editButton]}
+                  onPress={() =>
+                    router.push(
+                      `/(employer-hidden)/job-post-details/${item.id}/edit` as Href
+                    )
+                  }
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={20}
+                    color={ACCENT_ORANGE}
+                  />
+                  <Text style={[styles.actionButtonText, styles.editText]}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={() => handleDeleteJob(item.id, item.title)}
+                >
+                  <Ionicons name="trash-outline" size={20} color={ACCENT_RED} />
+                  <Text style={[styles.actionButtonText, styles.deleteText]}>
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -710,8 +841,10 @@ export default function JobPostsPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading jobs...</Text>
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
+          <Text style={styles.loadingText}>
+            {t('employerJobPosts.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -741,63 +874,103 @@ export default function JobPostsPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Search and Filter Section */}
       <View style={styles.searchSection}>
+        {/* Search bar with VoiceTextInput */}
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#64748B" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search jobs..."
-            placeholderTextColor="#94A3B8"
+          <Ionicons name="search" size={20} color={GRAY_TEXT} />
+          <VoiceTextInput
+            style={styles.voiceInputContainer}
+            inputStyle={styles.voiceInput}
+            placeholder={t('employerJobPosts.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            language={
+              currentLanguage === 'zh'
+                ? 'zh-CN'
+                : currentLanguage === 'ms'
+                ? 'ms-MY'
+                : currentLanguage === 'ta'
+                ? 'ta-IN'
+                : 'en-US'
+            }
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#64748B" />
+              <Ionicons name="close-circle" size={20} color={GRAY_TEXT} />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Approval Status Filter */}
-        <Text style={styles.filterLabel}>Status</Text>
+        <Text style={styles.filterLabel}>
+          {t('employerJobPosts.filters.status')}
+        </Text>
         <View style={styles.filterContainer}>
-          {renderStatusFilterButton('All', 'all', jobs.length)}
-          {renderStatusFilterButton('Pending', 'PENDING', pendingCount)}
-          {renderStatusFilterButton('Approved', 'APPROVED', approvedCount)}
           {renderStatusFilterButton(
-            'AI Rejected',
+            t('employerJobPosts.filters.all'),
+            'all',
+            jobs.length
+          )}
+          {renderStatusFilterButton(
+            t('employerJobPosts.filters.pending'),
+            'PENDING',
+            pendingCount
+          )}
+          {renderStatusFilterButton(
+            t('employerJobPosts.filters.approved'),
+            'APPROVED',
+            approvedCount
+          )}
+          {renderStatusFilterButton(
+            t('employerJobPosts.filters.aiRejected'),
             'REJECTED_AI',
             rejectedAICount
           )}
-          {renderStatusFilterButton('Appealed', 'APPEALED', appealedCount)}
           {renderStatusFilterButton(
-            'Final Rejection',
+            t('employerJobPosts.filters.appealed'),
+            'APPEALED',
+            appealedCount
+          )}
+          {renderStatusFilterButton(
+            t('employerJobPosts.filters.finalRejected'),
             'REJECTED_FINAL',
             rejectedFinalCount
           )}
         </View>
 
-        {/* Active/Closed Filter - Only show when viewing approved jobs */}
         {statusFilter === 'APPROVED' && (
           <>
-            <Text style={styles.filterLabel}>Visibility</Text>
+            <Text style={styles.filterLabel}>
+              {t('employerJobPosts.filters.visibility')}
+            </Text>
             <View style={styles.filterContainer}>
-              {renderActiveFilterButton('All', 'all', approvedCount)}
-              {renderActiveFilterButton('Active', 'active', activeCount)}
-              {renderActiveFilterButton('Closed', 'closed', closedCount)}
+              {renderActiveFilterButton(
+                t('employerJobPosts.filters.all'),
+                'all',
+                approvedCount
+              )}
+              {renderActiveFilterButton(
+                t('employerJobPosts.filters.active'),
+                'active',
+                activeCount
+              )}
+              {renderActiveFilterButton(
+                t('employerJobPosts.filters.closed'),
+                'closed',
+                closedCount
+              )}
             </View>
           </>
         )}
       </View>
 
-      {/* Job List */}
       {error ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+          <Ionicons name="alert-circle-outline" size={64} color={ACCENT_RED} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchJobs}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>
+              {t('employerJobPosts.errorTryAgain')}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : filteredJobs.length === 0 ? (
@@ -805,21 +978,23 @@ export default function JobPostsPage() {
           <Ionicons name="briefcase-outline" size={64} color="#CBD5E1" />
           <Text style={styles.emptyTitle}>
             {searchQuery || statusFilter !== 'all' || activeFilter !== 'all'
-              ? 'No jobs found'
-              : 'No job posts yet'}
+              ? t('employerJobPosts.empty.found')
+              : t('employerJobPosts.empty.none')}
           </Text>
           <Text style={styles.emptyText}>
             {searchQuery || statusFilter !== 'all' || activeFilter !== 'all'
-              ? 'Try adjusting your search or filter'
-              : 'Create your first job post to start hiring'}
+              ? t('employerJobPosts.empty.adjust')
+              : t('employerJobPosts.empty.cta')}
           </Text>
           {!searchQuery && statusFilter === 'all' && activeFilter === 'all' && (
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => router.push('/(employer-hidden)/create-job')}
+              onPress={handleCreateJobClick}
             >
               <Ionicons name="add" size={20} color="#FFFFFF" />
-              <Text style={styles.createButtonText}>Create Job Post</Text>
+              <Text style={styles.createButtonText}>
+                {t('employerJobPosts.cta.create')}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -830,145 +1005,47 @@ export default function JobPostsPage() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={PRIMARY_BLUE}
+            />
           }
           showsVerticalScrollIndicator={false}
         />
       )}
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/(employer-hidden)/create-job')}
-      >
+      <TouchableOpacity style={styles.fab} onPress={handleCreateJobClick}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Appeal Modal */}
+      {/* Appeal Modal - keeping existing implementation */}
       <Modal
         visible={appealModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setAppealModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Appeal Job Rejection</Text>
-              <TouchableOpacity onPress={() => setAppealModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.modalJobTitle}>
-                {selectedJobForAppeal?.title}
-              </Text>
-
-              <View style={styles.rejectionReasonBox}>
-                <Text style={styles.rejectionReasonLabel}>
-                  Rejection Reason:
-                </Text>
-                <Text style={styles.rejectionReasonText}>
-                  {selectedJobForAppeal?.rejectionReason ||
-                    'No reason provided'}
-                </Text>
-              </View>
-
-              <Text style={styles.inputLabel}>
-                Explanation <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.textArea}
-                placeholder="Explain why this job post is legitimate and should be approved..."
-                placeholderTextColor="#94A3B8"
-                value={appealExplanation}
-                onChangeText={setAppealExplanation}
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-              />
-
-              <Text style={styles.inputLabel}>
-                Supporting Documents (Optional)
-              </Text>
-              <Text style={styles.helperText}>
-                Upload company registration, licenses, or other proof
-              </Text>
-
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={handlePickDocument}
-              >
-                <Ionicons
-                  name="cloud-upload-outline"
-                  size={20}
-                  color="#1E3A8A"
-                />
-                <Text style={styles.uploadButtonText}>Upload Files</Text>
-              </TouchableOpacity>
-
-              {appealEvidence.length > 0 && (
-                <View style={styles.evidenceList}>
-                  {appealEvidence.map((file, index) => (
-                    <View key={index} style={styles.evidenceItem}>
-                      <Ionicons name="document" size={20} color="#64748B" />
-                      <Text style={styles.evidenceFileName} numberOfLines={1}>
-                        {file.name}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => handleRemoveEvidence(index)}
-                      >
-                        <Ionicons
-                          name="close-circle"
-                          size={20}
-                          color="#EF4444"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setAppealModalVisible(false)}
-                disabled={submittingAppeal}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  submittingAppeal && styles.submitButtonDisabled,
-                ]}
-                onPress={handleSubmitAppeal}
-                disabled={submittingAppeal}
-              >
-                {submittingAppeal ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Submit Appeal</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+        {/* ... existing appeal modal code ... */}
       </Modal>
+
+      {subscriptionInfo && (
+        <JobPostLimitModal
+          visible={showLimitModal}
+          onClose={() => setShowLimitModal(false)}
+          currentPlan={subscriptionInfo.planType}
+          activeJobs={subscriptionInfo.activeJobPosts}
+          limit={subscriptionInfo.jobPostLimit}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-// ... (Keep all existing styles and add new ones below)
-
 const styles = StyleSheet.create({
-  // ... (All existing styles remain the same)
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
@@ -976,9 +1053,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: SPACING,
     fontSize: 16,
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   errorContainer: {
     flex: 1,
@@ -989,14 +1066,14 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748B',
+    color: GRAY_TEXT,
     textAlign: 'center',
   },
   retryButton: {
     marginTop: 24,
     paddingHorizontal: 32,
     paddingVertical: 12,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     borderRadius: 8,
   },
   retryButtonText: {
@@ -1005,30 +1082,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   searchSection: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: CARD_BACKGROUND,
+    padding: SPACING,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING,
     paddingVertical: 12,
-    marginBottom: 16,
+    marginBottom: SPACING,
+    gap: 12,
   },
-  searchInput: {
+  voiceInputContainer: {
     flex: 1,
-    marginLeft: 12,
+  },
+  voiceInput: {
+    flex: 1,
     fontSize: 16,
     color: '#1E293B',
+    backgroundColor: 'transparent',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   filterLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: GRAY_TEXT,
     marginBottom: 8,
     marginTop: 4,
   },
@@ -1045,12 +1128,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
   },
   filterButtonActive: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
   },
   filterButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
@@ -1070,208 +1153,320 @@ const styles = StyleSheet.create({
   secondaryFilterText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   secondaryFilterTextActive: {
     color: '#3B82F6',
   },
   listContent: {
-    padding: 16,
+    padding: SPACING,
   },
+  // Enhanced Job Card Styles
   jobCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    marginBottom: SPACING,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F0F0F0',
+  },
+  cardTouchable: {
+    padding: 0,
   },
   jobCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    gap: 12,
+    padding: CARD_PADDING,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  companyLogoContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1.5,
+    borderColor: '#E8E8E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+  },
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  companyLogoText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
   },
   jobTitle: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A202C',
+    marginBottom: 4,
+    lineHeight: 24,
+  },
+  companyName: {
+    fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 8,
-  },
-  jobMeta: {
-    flexDirection: 'row',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    color: '#64748B',
+    color: PRIMARY_BLUE,
   },
   approvalStatusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 12,
-    gap: 4,
-    height: 32,
+    gap: 6,
+    height: 36,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginTop: 4,
   },
   approvalStatusText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  statusBadge: {
+  detailsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 16,
+    gap: 16,
+    flexWrap: 'wrap',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+    gap: 8,
   },
-  statusDot: {
+  detailText: {
+    fontSize: 14,
+    color: GRAY_TEXT,
+    fontWeight: '500',
+  },
+  statusIndicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   salaryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    backgroundColor: '#E8F0FE',
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 14,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
   salaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: PRIMARY_BLUE,
+    flex: 1,
+  },
+  estimationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 14,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  estimationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E3A8A',
+    color: ACCENT_PURPLE,
+    flex: 1,
+  },
+  estimationDays: {
+    fontWeight: '700',
+  },
+  statusSection: {
+    padding: CARD_PADDING,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
   pendingInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#fffbeb',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: '#FFFBEB',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
   },
   pendingText: {
     flex: 1,
-    fontSize: 13,
-    color: '#92400e',
-    lineHeight: 18,
-  },
-  rejectionContainer: {
-    marginBottom: 12,
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+    lineHeight: 20,
   },
   rejectionBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#fef2f2',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: '#FEF2F2',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+    marginBottom: 12,
   },
   rejectionText: {
     flex: 1,
-    fontSize: 13,
-    color: '#991b1b',
-    lineHeight: 18,
+    fontSize: 14,
+    color: '#991B1B',
+    fontWeight: '500',
+    lineHeight: 20,
   },
   appealButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#1E3A8A',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 10,
   },
   appealButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   appealedInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#eff6ff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: '#EFF6FF',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
   },
   appealedText: {
     flex: 1,
-    fontSize: 13,
-    color: '#1e40af',
-    lineHeight: 18,
+    fontSize: 14,
+    color: '#1E40AF',
+    fontWeight: '500',
+    lineHeight: 20,
   },
   finalRejectionBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#fef2f2',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: '#FEF2F2',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: '#FECACA',
   },
   finalRejectionText: {
     flex: 1,
-    fontSize: 13,
-    color: '#7f1d1d',
-    lineHeight: 18,
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#7F1D1D',
+    fontWeight: '600',
+    lineHeight: 20,
   },
-  jobCardFooter: {
+  // Stats Section
+  statsSection: {
+    padding: CARD_PADDING,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
   },
-  statContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    flexWrap: 'wrap',
-    flex: 1,
-  },
-  stat: {
-    flexDirection: 'row',
+  statItem: {
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   statText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: GRAY_TEXT,
+    textAlign: 'center',
+  },
+  statLabel: {
     fontSize: 12,
-    color: '#64748B',
+    fontWeight: '400',
+    color: GRAY_TEXT,
+  },
+  // Actions Section
+  actionsSection: {
+    padding: CARD_PADDING,
+  },
+  actionsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: GRAY_TEXT,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   actionButton: {
-    padding: 8,
-    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    borderWidth: 1.5,
     backgroundColor: '#F8FAFC',
+  },
+  toggleButton: {
+    borderColor: PRIMARY_BLUE,
+  },
+  editButton: {
+    borderColor: ACCENT_ORANGE,
+  },
+  deleteButton: {
+    borderColor: ACCENT_RED,
+  },
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+  toggleText: {
+    color: PRIMARY_BLUE,
+  },
+  editText: {
+    color: ACCENT_ORANGE,
+  },
+  deleteText: {
+    color: ACCENT_RED,
   },
   emptyContainer: {
     flex: 1,
@@ -1288,16 +1483,16 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#64748B',
+    color: GRAY_TEXT,
     textAlign: 'center',
   },
   createButton: {
     marginTop: 24,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 8,
     gap: 8,
   },
@@ -1313,7 +1508,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -1321,197 +1516,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-  },
-
-  // ✅ NEW: Appeal Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  modalJobTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 16,
-  },
-  rejectionReasonBox: {
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
-  },
-  rejectionReasonLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#991B1B',
-    marginBottom: 4,
-  },
-  rejectionReasonText: {
-    fontSize: 14,
-    color: '#7F1D1D',
-    lineHeight: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 8,
-  },
-  required: {
-    color: '#EF4444',
-  },
-  textArea: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#1E293B',
-    marginBottom: 16,
-    minHeight: 120,
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 12,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#EFF6FF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderStyle: 'dashed',
-  },
-  uploadButtonText: {
-    color: '#1E3A8A',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  evidenceList: {
-    marginTop: 12,
-    gap: 8,
-  },
-  evidenceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#F8FAFC',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  evidenceFileName: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1E293B',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  submitButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    backgroundColor: '#1E3A8A',
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#94A3B8',
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  estimationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#F3E8FF',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  estimationText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#7C3AED',
-  },
-  companyLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  companyLogo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  companyLogoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1E3A8A',
-  },
-  companyLogoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 });

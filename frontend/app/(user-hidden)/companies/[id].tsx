@@ -17,6 +17,7 @@ import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import ReviewsList from '@/components/ReviewsList';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -41,6 +42,8 @@ interface Company {
 export default function CompanyProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  const { t, currentLanguage } = useLanguage();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,9 +64,12 @@ export default function CompanyProfileScreen() {
         return;
       }
 
-      const response = await fetch(`${URL}/api/companies/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/companies/${id}?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -111,12 +117,12 @@ export default function CompanyProfileScreen() {
 
   const handleDeleteReview = () => {
     Alert.alert(
-      'Delete Review',
-      'Are you sure you want to delete your review?',
+      t('companies.detail.deleteReviewTitle'),
+      t('companies.detail.deleteReviewConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -130,13 +136,19 @@ export default function CompanyProfileScreen() {
               );
 
               if (response.ok) {
-                Alert.alert('Success', 'Review deleted successfully');
+                Alert.alert(
+                  t('common.success'),
+                  t('companies.detail.successReviewDeleted')
+                );
                 setUserReview(null);
                 fetchCompanyData();
                 setReviewsKey((prev) => prev + 1);
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete review');
+              Alert.alert(
+                t('common.error'),
+                t('companies.detail.errorReviewDeleteFailed')
+              );
             }
           },
         },
@@ -180,7 +192,7 @@ export default function CompanyProfileScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Company not found</Text>
+          <Text style={styles.errorText}>{t('companies.detail.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -221,8 +233,9 @@ export default function CompanyProfileScreen() {
             </Text>
             {renderStars(company.averageRating)}
             <Text style={styles.totalReviews}>
-              Based on {company.totalReviews} review
-              {company.totalReviews !== 1 ? 's' : ''}
+              {t('companies.detail.basedOnReviews', {
+                count: company.totalReviews,
+              })}
             </Text>
           </View>
         </View>
@@ -232,7 +245,9 @@ export default function CompanyProfileScreen() {
           <View style={styles.userReviewCard}>
             <View style={styles.userReviewHeader}>
               <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-              <Text style={styles.userReviewTitle}>Your Review</Text>
+              <Text style={styles.userReviewTitle}>
+                {t('companies.detail.yourReview')}
+              </Text>
             </View>
             <View style={styles.userReviewContent}>
               <View style={styles.starsContainer}>
@@ -262,7 +277,9 @@ export default function CompanyProfileScreen() {
                 onPress={handleEditReview}
               >
                 <Ionicons name="create-outline" size={18} color="#1E3A8A" />
-                <Text style={styles.userReviewActionText}>Edit</Text>
+                <Text style={styles.userReviewActionText}>
+                  {t('common.edit')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.userReviewActionButton}
@@ -272,7 +289,7 @@ export default function CompanyProfileScreen() {
                 <Text
                   style={[styles.userReviewActionText, { color: '#EF4444' }]}
                 >
-                  Delete
+                  {t('common.delete')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -283,21 +300,27 @@ export default function CompanyProfileScreen() {
             onPress={() => setShowReviewModal(true)}
           >
             <Ionicons name="create-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.writeReviewButtonText}>Write a Review</Text>
+            <Text style={styles.writeReviewButtonText}>
+              {t('companies.detail.writeReview')}
+            </Text>
           </TouchableOpacity>
         )}
 
         {/* Company Details */}
         {company.description && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.sectionTitle}>
+              {t('companies.detail.about')}
+            </Text>
             <Text style={styles.companyDescription}>{company.description}</Text>
           </View>
         )}
 
         {/* Contact Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('companies.detail.contactInformation')}
+          </Text>
           {company.website && (
             <View style={styles.contactRow}>
               <Ionicons name="globe-outline" size={18} color="#64748B" />

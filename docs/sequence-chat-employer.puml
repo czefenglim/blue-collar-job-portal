@@ -1,0 +1,67 @@
+@startuml
+title Sequence: Chat with Job Seeker
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Chat Controller" as API
+database "Database" as DB
+actor "Job Seeker" as JS
+
+alt Standard Flow: Start from Applicants List
+    EMP -> UI: Navigate to View Applicants
+    activate UI
+    EMP -> UI: Click "Chat" on Applicant Card
+    UI -> API: Initiate Conversation
+    activate API
+    API -> DB: Get/Create Conversation
+    activate DB
+    DB --> API: Conversation Details
+    deactivate DB
+    API --> UI: Load Chat Interface
+    deactivate API
+else A3: Select Existing Conversation
+    EMP -> UI: Navigate to Conversation List
+    UI -> API: Get Conversations
+    activate API
+    API -> DB: Fetch Conversations
+    activate DB
+    DB --> API: List of Conversations
+    deactivate DB
+    API --> UI: Display List
+    deactivate API
+    EMP -> UI: Select Conversation
+    UI --> UI: Load Chat Interface
+end
+
+alt Standard: Type Message
+    EMP -> UI: Type Message
+else A1: Send Images/File
+    EMP -> UI: Click Plus Icon
+    EMP -> UI: Click "Choose From Gallery" / "Choose file"
+    EMP -> UI: Select Image/File
+else A2: Voice Input
+    EMP -> UI: Hold Voice Input Button
+    EMP -> UI: Speak
+    UI -> UI: Transcribe Voice to Text
+    EMP -> UI: Review Message
+end
+
+EMP -> UI: Click "Send"
+UI -> API: Send Message
+activate API
+
+alt E1: Message Failed
+    API --> UI: Error: Message Not Sent
+else Success
+    API -> DB: Save Message
+    activate DB
+    DB --> API: Message Saved
+    deactivate DB
+    API -> JS: Deliver Message
+    activate JS
+    JS --> API: Acknowledge
+    deactivate JS
+    API --> UI: Message Sent
+end
+deactivate API
+deactivate UI
+@enduml

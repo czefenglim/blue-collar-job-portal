@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -36,6 +37,7 @@ interface PaginationData {
 }
 
 const NotificationsScreen: React.FC = () => {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -56,12 +58,16 @@ const NotificationsScreen: React.FC = () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/'),
-          },
-        ]);
+        Alert.alert(
+          t('applications.authenticationRequired'),
+          t('applications.pleaseSignIn'),
+          [
+            {
+              text: t('common.ok'),
+              onPress: () => router.replace('/'),
+            },
+          ]
+        );
         return;
       }
 
@@ -77,11 +83,11 @@ const NotificationsScreen: React.FC = () => {
         setNotifications(data.data);
         setPagination(data.pagination);
       } else {
-        Alert.alert('Error', 'Failed to load notifications');
+        Alert.alert(t('common.error'), t('notifications.errors.loadFailed'));
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
-      Alert.alert('Error', 'Failed to load notifications');
+      Alert.alert(t('common.error'), t('notifications.errors.loadFailed'));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -124,11 +130,11 @@ const NotificationsScreen: React.FC = () => {
         setNotifications((prev) =>
           prev.map((notif) => ({ ...notif, isRead: true }))
         );
-        Alert.alert('Success', 'All notifications marked as read');
+        Alert.alert(t('common.success'), t('notifications.success.allRead'));
       }
     } catch (error) {
       console.error('Error marking all as read:', error);
-      Alert.alert('Error', 'Failed to mark all as read');
+      Alert.alert(t('common.error'), t('notifications.errors.markAllFailed'));
     }
   };
 
@@ -150,14 +156,14 @@ const NotificationsScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
-      Alert.alert('Error', 'Failed to delete notification');
+      Alert.alert(t('common.error'), t('notifications.errors.deleteFailed'));
     }
   };
 
   const deleteAllNotifications = async () => {
     Alert.alert(
-      'Delete All',
-      'Are you sure you want to delete all notifications?',
+      t('notifications.deleteAllTitle'),
+      t('notifications.deleteAllConfirm'),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -173,11 +179,17 @@ const NotificationsScreen: React.FC = () => {
 
               if (response.ok) {
                 setNotifications([]);
-                Alert.alert('Success', 'All notifications deleted');
+                Alert.alert(
+                  t('common.success'),
+                  t('notifications.success.allDeleted')
+                );
               }
             } catch (error) {
               console.error('Error deleting all notifications:', error);
-              Alert.alert('Error', 'Failed to delete all notifications');
+              Alert.alert(
+                t('common.error'),
+                t('notifications.errors.deleteAllFailed')
+              );
             }
           },
         },
@@ -192,6 +204,7 @@ const NotificationsScreen: React.FC = () => {
 
     if (notification.actionUrl) {
       router.push(notification.actionUrl as any);
+      console.log('Navigating to:', notification.actionUrl);
     }
   };
 
@@ -225,10 +238,11 @@ const NotificationsScreen: React.FC = () => {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 1) return t('notifications.time.now');
+    if (minutes < 60)
+      return t('notifications.time.minutesAgo', { count: minutes });
+    if (hours < 24) return t('notifications.time.hoursAgo', { count: hours });
+    if (days < 7) return t('notifications.time.daysAgo', { count: days });
     return date.toLocaleDateString();
   };
 
@@ -293,7 +307,7 @@ const NotificationsScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading notifications...</Text>
+          <Text style={styles.loadingText}>{t('notifications.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -312,9 +326,11 @@ const NotificationsScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
           {unreadCount > 0 && (
-            <Text style={styles.headerSubtitle}>{unreadCount} unread</Text>
+            <Text style={styles.headerSubtitle}>
+              {t('notifications.unreadCount', { count: unreadCount })}
+            </Text>
           )}
         </View>
       </View>
@@ -328,7 +344,9 @@ const NotificationsScreen: React.FC = () => {
               onPress={markAllAsRead}
             >
               <Ionicons name="checkmark-done" size={18} color="#1E3A8A" />
-              <Text style={styles.actionButtonText}>Mark all as read</Text>
+              <Text style={styles.actionButtonText}>
+                {t('notifications.markAllRead')}
+              </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -337,7 +355,7 @@ const NotificationsScreen: React.FC = () => {
           >
             <Ionicons name="trash-outline" size={18} color="#EF4444" />
             <Text style={[styles.actionButtonText, styles.deleteAllButtonText]}>
-              Delete all
+              {t('notifications.deleteAll')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -359,9 +377,11 @@ const NotificationsScreen: React.FC = () => {
               size={80}
               color="#CBD5E1"
             />
-            <Text style={styles.emptyText}>No notifications</Text>
+            <Text style={styles.emptyText}>
+              {t('notifications.emptyTitle')}
+            </Text>
             <Text style={styles.emptySubtext}>
-              You're all caught up! We'll notify you when something new happens.
+              {t('notifications.emptySubtitle')}
             </Text>
           </View>
         }
@@ -542,3 +562,4 @@ const styles = StyleSheet.create({
 });
 
 export default NotificationsScreen;
+

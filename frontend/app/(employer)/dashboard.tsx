@@ -15,9 +15,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '@/utils/pushNotifications';
-import { sendTestNotification } from '@/utils/pushNotifications';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -64,6 +64,7 @@ interface ReviewStats {
 }
 
 export default function EmployerDashboard() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -254,8 +255,11 @@ export default function EmployerDashboard() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading dashboard...</Text>
+          <ActivityIndicator size="large" color="#1E3A8A" />-{' '}
+          <Text style={styles.loadingText}>Loading dashboard...</Text>+{' '}
+          <Text style={styles.loadingText}>
+            {t('employerDashboard.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -266,12 +270,16 @@ export default function EmployerDashboard() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorText}>{error || 'Failed to load data'}</Text>
+          <Text style={styles.errorText}>
+            {error || t('employerDashboard.loadFailed')}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={fetchDashboardData}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>
+              {t('employerDashboard.tryAgain')}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -290,126 +298,133 @@ export default function EmployerDashboard() {
         {/* Welcome Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.welcomeText}>Welcome back!</Text>
+            <Text style={styles.welcomeText}>
+              {t('employerDashboard.welcomeBack')}
+            </Text>
             <Text style={styles.companyName}>{stats.companyName}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.notificationButton}
-            onPress={() => router.push('/(employer-hidden)/notifications')}
-          >
-            <Ionicons name="notifications-outline" size={24} color="#1E3A8A" />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>
-                {unreadCount > 99 ? '99+' : unreadCount}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.pricingButton}
+              onPress={() => router.push('/(employer-hidden)/pricing')}
+            >
+              <Text style={styles.pricingButtonText}>
+                {t('employerDashboard.pricing') || 'Pricing'}
               </Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={() => router.push('/(employer-hidden)/notifications')}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="#1E3A8A"
+              />
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Main Stats Grid */}
         <View style={styles.statsGrid}>
           {renderStatCard(
             'briefcase',
-            'Total Jobs',
+            t('employerDashboard.totalJobs'),
             stats.totalJobs,
             '#1E3A8A',
-            `${stats.activeJobs} active`
+            t('employerDashboard.activeCount', { count: stats.activeJobs })
           )}
           {renderStatCard(
             'checkmark-circle',
-            'Active Jobs',
+            t('employerDashboard.activeJobs'),
             stats.activeJobs,
             '#10B981',
-            'Currently hiring'
+            t('employerDashboard.currentlyHiring')
           )}
           {renderStatCard(
             'people',
-            'Total Applicants',
+            t('employerDashboard.totalApplicants'),
             stats.totalApplicants,
             '#F59E0B',
-            `${stats.pendingApplicants} pending`
+            t('employerDashboard.pendingCount', {
+              count: stats.pendingApplicants,
+            })
           )}
           {renderStatCard(
             'star',
-            'Shortlisted',
+            t('employerDashboard.shortlisted'),
             stats.shortlistedApplicants,
             '#8B5CF6',
-            'Top candidates'
+            t('employerDashboard.topCandidates')
           )}
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerDashboard.quickActions')}
+          </Text>
           <View style={styles.quickActionsGrid}>
             {renderQuickAction(
               'add-circle',
-              'Post New Job',
+              t('employerDashboard.postNewJob'),
               () => router.push('/(employer-hidden)/create-job'),
               '#1E3A8A'
             )}
             {renderQuickAction(
               'people-outline',
-              'View Applicants',
+              t('employerDashboard.viewApplicants'),
               () => router.push('/(employer)/applicants'),
               '#10B981'
             )}
             {renderQuickAction(
               'eye-outline',
-              'Preview Jobs',
+              t('employerDashboard.previewJobs'),
               () => router.push('/(employer)/job-posts'),
               '#F59E0B'
             )}
             {renderQuickAction(
               'settings-outline',
-              'Settings',
+              t('employerDashboard.settings'),
               () => router.push('/(employer)/profile'),
               '#64748B'
             )}
           </View>
         </View>
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#EF4444',
-            padding: 12,
-            borderRadius: 8,
-            margin: 20,
-          }}
-          onPress={async () => {
-            await sendTestNotification();
-            console.log('Test notification sent!');
-          }}
-        >
-          <Text
-            style={{ color: 'white', textAlign: 'center', fontWeight: '600' }}
-          >
-            Test Push Notification
-          </Text>
-        </TouchableOpacity>
-
         {/* Recent Job Posts */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Job Posts</Text>
+            <Text style={styles.sectionTitle}>
+              {t('employerDashboard.recentJobPosts')}
+            </Text>
             <TouchableOpacity
               onPress={() => router.push('/(employer)/job-posts')}
             >
-              <Text style={styles.viewAllText}>View All</Text>
+              <Text style={styles.viewAllText}>
+                {t('employerDashboard.viewAll')}
+              </Text>
             </TouchableOpacity>
           </View>
 
           {stats.recentJobs.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="briefcase-outline" size={48} color="#CBD5E1" />
-              <Text style={styles.emptyStateText}>No job posts yet</Text>
+              <Text style={styles.emptyStateText}>
+                {t('employerDashboard.noJobPostsYet')}
+              </Text>
               <TouchableOpacity
                 style={styles.createJobButton}
                 onPress={() => router.push('/(employer-hidden)/create-job')}
               >
                 <Ionicons name="add" size={20} color="#FFFFFF" />
                 <Text style={styles.createJobButtonText}>
-                  Create Your First Job
+                  {t('employerDashboard.createYourFirstJob')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -446,7 +461,9 @@ export default function EmployerDashboard() {
                         },
                       ]}
                     >
-                      {job.status === 'ACTIVE' ? 'Active' : 'Closed'}
+                      {job.status === 'ACTIVE'
+                        ? t('employerDashboard.active')
+                        : t('employerDashboard.closed')}
                     </Text>
                   </View>
                 </View>
@@ -454,8 +471,9 @@ export default function EmployerDashboard() {
                   <View style={styles.jobStat}>
                     <Ionicons name="people-outline" size={16} color="#64748B" />
                     <Text style={styles.jobStatText}>
-                      {job.applicants} applicant
-                      {job.applicants !== 1 ? 's' : ''}
+                      {t('employerDashboard.applicants', {
+                        count: job.applicants,
+                      })}
                     </Text>
                   </View>
                   <View style={styles.jobStat}>
@@ -478,11 +496,15 @@ export default function EmployerDashboard() {
         {reviewStats && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Company Reviews</Text>
+              <Text style={styles.sectionTitle}>
+                {t('employerDashboard.companyReviews')}
+              </Text>
               <TouchableOpacity
                 onPress={() => router.push('/(employer-hidden)/reviews')}
               >
-                <Text style={styles.viewAllText}>Manage Reviews</Text>
+                <Text style={styles.viewAllText}>
+                  {t('employerDashboard.manageReviews')}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -494,8 +516,9 @@ export default function EmployerDashboard() {
                 </Text>
                 {renderStars(reviewStats.averageRating)}
                 <Text style={styles.totalReviewsText}>
-                  {reviewStats.totalReviews} review
-                  {reviewStats.totalReviews !== 1 ? 's' : ''}
+                  {t('employerDashboard.totalReviews', {
+                    count: reviewStats.totalReviews,
+                  })}
                 </Text>
               </View>
 
@@ -531,7 +554,9 @@ export default function EmployerDashboard() {
             {/* Recent Reviews */}
             {reviewStats.recentReviews.length > 0 && (
               <>
-                <Text style={styles.recentReviewsTitle}>Recent Reviews</Text>
+                <Text style={styles.recentReviewsTitle}>
+                  {t('employerDashboard.recentReviews')}
+                </Text>
                 {reviewStats.recentReviews.map((review) => (
                   <View key={review.id} style={styles.reviewCard}>
                     <View style={styles.reviewHeader}>
@@ -570,9 +595,11 @@ export default function EmployerDashboard() {
             {reviewStats.totalReviews === 0 && (
               <View style={styles.noReviewsCard}>
                 <Ionicons name="star-outline" size={48} color="#CBD5E1" />
-                <Text style={styles.noReviewsText}>No reviews yet</Text>
+                <Text style={styles.noReviewsText}>
+                  {t('employerDashboard.noReviewsYet')}
+                </Text>
                 <Text style={styles.noReviewsSubtext}>
-                  Reviews from job seekers will appear here
+                  {t('employerDashboard.noReviewsMessage')}
                 </Text>
               </View>
             )}
@@ -582,22 +609,18 @@ export default function EmployerDashboard() {
         <View style={styles.tipsSection}>
           <View style={styles.tipsHeader}>
             <Ionicons name="bulb" size={24} color="#F59E0B" />
-            <Text style={styles.tipsTitle}>Tips for Better Hiring</Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              💡 Add clear job requirements to attract qualified candidates
+            <Text style={styles.tipsTitle}>
+              {t('employerDashboard.tipsTitle')}
             </Text>
           </View>
           <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              💡 Respond to applicants within 24 hours for better engagement
-            </Text>
+            <Text style={styles.tipText}>{t('employerDashboard.tip1')}</Text>
           </View>
           <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              💡 Keep your job posts updated to stay visible to job seekers
-            </Text>
+            <Text style={styles.tipText}>{t('employerDashboard.tip2')}</Text>
+          </View>
+          <View style={styles.tipCard}>
+            <Text style={styles.tipText}>{t('employerDashboard.tip3')}</Text>
           </View>
         </View>
 
@@ -630,6 +653,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pricingButton: {
+    marginRight: 12,
+    backgroundColor: '#1E3A8A',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pricingButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   errorText: {
     marginTop: 16,

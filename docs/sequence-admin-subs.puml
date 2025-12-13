@@ -1,0 +1,31 @@
+@startuml
+title Sequence: Manage Subscriptions
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+
+Admin -> UI: View Subscription Plans
+activate UI
+UI -> API: Get Plans
+activate API
+API -> DB: Fetch Plans
+activate DB
+DB --> API: Plans Data
+deactivate DB
+API --> UI: Display Plans
+deactivate API
+Admin -> UI: Edit Plan (Price/Features)
+UI -> API: Update Plan
+activate API
+API -> DB: Save Changes
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Success Message
+deactivate API
+deactivate UI
+
+
+@enduml
+

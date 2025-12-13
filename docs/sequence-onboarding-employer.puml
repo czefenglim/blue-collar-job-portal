@@ -1,0 +1,73 @@
+@startuml
+title Sequence: Employer Onboarding
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Onboarding Controller" as API
+participant "S3 Service" as S3
+database "Database" as DB
+
+activate UI
+UI -> API: Check Onboarding Status
+activate API
+API -> DB: Get User Status
+activate DB
+DB --> API: Status (Incomplete)
+deactivate DB
+API --> UI: Start Onboarding Flow
+deactivate API
+
+EMP -> UI: Enter Company Profile Details
+alt E1: Validation Error
+    UI -> UI: Validate Input
+    UI --> EMP: Show Error Message
+else Valid Input
+    EMP -> UI: Proceed to Documents
+end
+
+EMP -> UI: Upload Verification Documents
+UI -> API: Upload Request
+activate API
+API -> S3: Upload File
+activate S3
+alt E2: Upload Failed
+    S3 --> API: Error
+    API --> UI: Upload Failed, Retry
+else Upload Success
+    S3 --> API: File URL
+    deactivate S3
+    API -> DB: Save File URL
+    activate DB
+    DB --> API: Saved
+    deactivate DB
+    API --> UI: Upload Success
+end
+deactivate API
+
+UI --> EMP: Display Summary
+alt A1: Edit Information
+    EMP -> UI: Click Edit
+    UI --> EMP: Navigate to Relevant Step
+    EMP -> UI: Update Information
+    UI --> EMP: Display Updated Summary
+end
+
+EMP -> UI: Click "Continue"
+UI -> API: Submit Onboarding Data
+activate API
+API -> DB: Save Company Profile & Docs
+activate DB
+DB --> API: Saved
+deactivate DB
+
+API -> DB: Set Status to "Pending"
+activate DB
+DB --> API: Status Updated
+deactivate DB
+
+API -> API: Notify Admin for Review
+API --> UI: Success
+deactivate API
+
+UI --> EMP: Show "Pending Approval" Screen
+deactivate UI
+@enduml

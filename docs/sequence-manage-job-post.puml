@@ -1,0 +1,69 @@
+@startuml
+title Sequence: Edit / Manage Job Post
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Job Controller" as API
+database "Database" as DB
+
+EMP -> UI: View Job List
+activate UI
+EMP -> UI: Select Job
+UI --> EMP: Display Job Details
+
+alt Standard Flow: Edit Job
+    EMP -> UI: Click Edit
+    EMP -> UI: Update Details
+    EMP -> UI: Click Save
+    
+    UI -> API: Update Job Details
+    activate API
+    
+    alt E1: Validation Error
+        API --> UI: Validation Failed
+        UI --> EMP: Display Error Message
+    else Validation Success
+        API -> DB: Update Record
+        activate DB
+        DB --> API: Success
+        deactivate DB
+        API --> UI: Job Updated
+        UI --> EMP: Display Success Message
+    end
+    deactivate API
+
+else A1: Close Job
+    EMP -> UI: Click Close Job
+    UI -> API: Update Status (Closed)
+    activate API
+    API -> DB: Update Status
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Job Closed
+    deactivate API
+
+else A2: Delete Job
+    EMP -> UI: Click Delete Job
+    UI -> API: Delete Job
+    activate API
+    API -> DB: Remove Record
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Job Deleted
+    deactivate API
+
+else A3: Activate Job
+    EMP -> UI: Click Activate Job
+    UI -> API: Update Status (Active)
+    activate API
+    API -> DB: Update Status
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Job Activated
+    deactivate API
+end
+
+deactivate UI
+@enduml

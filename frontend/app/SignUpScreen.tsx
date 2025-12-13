@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -39,9 +40,23 @@ const SignUpScreen: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
+  const [didResetAgreement, setDidResetAgreement] = useState<boolean>(false);
+
+  // OTP State
+  const [otpSent, setOtpSent] = useState<boolean>(false);
+  const [otp, setOtp] = useState<string>('');
+  const [timer, setTimer] = useState<number>(0);
 
   const router = useRouter();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const handleInputChange = (field: keyof SignUpFormData, value: string) => {
     setFormData((prev) => ({
@@ -49,6 +64,41 @@ const SignUpScreen: React.FC = () => {
       [field]: value,
     }));
   };
+
+  // Initialize agreement to unchecked by default for this sign-up session
+  useEffect(() => {
+    let alive = true;
+    const resetAgreement = async () => {
+      try {
+        await AsyncStorage.setItem('agreedToTerms', 'false');
+      } finally {
+        if (alive) {
+          setAgreeToTerms(false);
+          setDidResetAgreement(true);
+        }
+      }
+    };
+    resetAgreement();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Ensure checkbox reflects latest agreement when returning from Terms screen
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!didResetAgreement) return;
+      let mounted = true;
+      const checkAgreement = async () => {
+        const agreed = await AsyncStorage.getItem('agreedToTerms');
+        if (mounted) setAgreeToTerms(agreed === 'true');
+      };
+      checkAgreement();
+      return () => {
+        mounted = false;
+      };
+    }, [didResetAgreement])
+  );
 
   const validateForm = (): boolean => {
     if (!formData.fullName.trim()) {
@@ -119,14 +169,24 @@ const SignUpScreen: React.FC = () => {
     return true;
   };
 
-  const handleSignUp = async () => {
+  const handleToggleTerms = async () => {
+    if (isLoading) return;
+    if (agreeToTerms) {
+      await AsyncStorage.setItem('agreedToTerms', 'false');
+      setAgreeToTerms(false);
+    } else {
+      router.push('/TermsAndConditionsScreen');
+    }
+  };
+
+  const handleInitiateSignup = async () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
 
-      const response = await fetch(`${URL}/api/auth/signup`, {
+      const response = await fetch(`${URL}/api/auth/signup/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,6 +195,77 @@ const SignUpScreen: React.FC = () => {
           phoneNumber: cleanPhoneNumber,
           password: formData.password,
           role: 'JOB_SEEKER',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw data;
+      }
+
+      setOtpSent(true);
+      setTimer(60);
+      Alert.alert(t('common.success'), 'OTP sent to your email.');
+    } catch (error: any) {
+      console.error('Initiate sign up error:', error);
+      let errorMessage = error.message || t('signUp.errors.signUpFailed');
+      if (errorMessage.includes('already exists')) {
+        errorMessage = t('signUp.errors.accountExists');
+      }
+      Alert.alert(t('common.signUpFailed'), errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (timer > 0) return;
+
+    setIsLoading(true);
+    try {
+      // Re-use initiate endpoint to resend
+      const cleanPhoneNumber = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
+      const response = await fetch(`${URL}/api/auth/signup/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName.trim(),
+          email: formData.email.toLowerCase().trim(),
+          phoneNumber: cleanPhoneNumber,
+          password: formData.password,
+          role: 'JOB_SEEKER',
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw data;
+      }
+
+      setTimer(60);
+      Alert.alert(t('common.success'), 'OTP resent successfully.');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to resend OTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${URL}/api/auth/signup/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          otp,
         }),
       });
 
@@ -180,19 +311,8 @@ const SignUpScreen: React.FC = () => {
         },
       ]);
     } catch (error: any) {
-      console.error('Sign up error:', error);
-
-      let errorMessage = t('signUp.errors.signUpFailed');
-
-      if (error.message?.includes('already exists')) {
-        errorMessage = t('signUp.errors.accountExists');
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (error.errors && error.errors.length > 0) {
-        errorMessage = error.errors[0].message;
-      }
-
-      Alert.alert(t('common.signUpFailed'), errorMessage);
+      console.error('Verification error:', error);
+      Alert.alert('Verification Failed', error.message || 'Invalid OTP');
     } finally {
       setIsLoading(false);
     }
@@ -249,163 +369,273 @@ const SignUpScreen: React.FC = () => {
 
           {/* Sign Up Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>{t('signUp.createAccount')}</Text>
-            <Text style={styles.subtitleText}>{t('signUp.joinThousands')}</Text>
-
-            {/* Full Name Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('signUp.fullName')}</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t('signUp.fullNamePlaceholder')}
-                placeholderTextColor="#94A3B8"
-                value={formData.fullName}
-                onChangeText={(value) => handleInputChange('fullName', value)}
-                autoCapitalize="words"
-                editable={!isLoading}
-                maxLength={100}
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('signUp.email')}</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t('signUp.emailPlaceholder')}
-                placeholderTextColor="#94A3B8"
-                value={formData.email}
-                onChangeText={(value) => handleInputChange('email', value)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-                maxLength={100}
-              />
-            </View>
-
-            {/* Phone Number Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('signUp.phoneNumber')}</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t('signUp.phonePlaceholder')}
-                placeholderTextColor="#94A3B8"
-                value={formData.phoneNumber}
-                onChangeText={handlePhoneChange}
-                keyboardType="phone-pad"
-                maxLength={16}
-                editable={!isLoading}
-              />
-              <Text style={styles.phoneHint}>{t('signUp.phoneHint')}</Text>
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('signUp.password')}</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('signUp.passwordPlaceholder')}
-                  placeholderTextColor="#94A3B8"
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange('password', value)}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                  maxLength={128}
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.eyeButtonText}>
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.passwordHint}>
-                {t('signUp.passwordHint')}
-              </Text>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
-                {t('signUp.confirmPassword')}
-              </Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('signUp.confirmPasswordPlaceholder')}
-                  placeholderTextColor="#94A3B8"
-                  value={formData.confirmPassword}
-                  onChangeText={(value) =>
-                    handleInputChange('confirmPassword', value)
-                  }
-                  secureTextEntry={!showConfirmPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!isLoading}
-                  maxLength={128}
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.eyeButtonText}>
-                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Terms and Conditions */}
-            <View style={styles.termsContainer}>
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => setAgreeToTerms(!agreeToTerms)}
-                disabled={isLoading}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    agreeToTerms && styles.checkboxChecked,
-                  ]}
-                >
-                  {agreeToTerms && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.termsText}>
-                  {t('signUp.agreeToTerms')}{' '}
-                  <Text style={styles.termsLink}>
-                    {t('signUp.termsOfService')}
-                  </Text>{' '}
-                  {t('signUp.and')}{' '}
-                  <Text style={styles.termsLink}>
-                    {t('signUp.privacyPolicy')}
-                  </Text>
+            {otpSent ? (
+              <View>
+                <Text style={styles.welcomeText}>Verify Email</Text>
+                <Text style={styles.subtitleText}>
+                  Enter the code sent to {formData.email}
                 </Text>
-              </TouchableOpacity>
-            </View>
 
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={[
-                styles.signUpButton,
-                isLoading && styles.signUpButtonDisabled,
-              ]}
-              onPress={handleSignUp}
-              disabled={isLoading}
-            >
-              <Text style={styles.signUpButtonText}>
-                {isLoading
-                  ? t('signUp.creatingAccount')
-                  : t('signUp.createAccountButton')}
-              </Text>
-            </TouchableOpacity>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      {
+                        textAlign: 'center',
+                        letterSpacing: 8,
+                        fontSize: 24,
+                        fontWeight: 'bold',
+                      },
+                    ]}
+                    placeholder="000000"
+                    placeholderTextColor="#CBD5E1"
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    editable={!isLoading}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.signUpButton,
+                    isLoading && styles.signUpButtonDisabled,
+                  ]}
+                  onPress={handleVerifyOtp}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.signUpButtonText}>
+                    {isLoading ? 'Verifying...' : 'Verify & Create Account'}
+                  </Text>
+                </TouchableOpacity>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 8,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setOtpSent(false)}
+                    disabled={isLoading}
+                    style={{ padding: 8 }}
+                  >
+                    <Text style={{ color: '#64748B', fontSize: 14 }}>
+                      Change Email
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleResendOtp}
+                    disabled={timer > 0 || isLoading}
+                    style={{ padding: 8 }}
+                  >
+                    <Text
+                      style={{
+                        color: timer > 0 ? '#94A3B8' : '#1E3A8A',
+                        fontWeight: 'bold',
+                        fontSize: 14,
+                      }}
+                    >
+                      {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.welcomeText}>
+                  {t('signUp.createAccount')}
+                </Text>
+                <Text style={styles.subtitleText}>
+                  {t('signUp.joinThousands')}
+                </Text>
+
+                {/* Full Name Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>{t('signUp.fullName')}</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder={t('signUp.fullNamePlaceholder')}
+                    placeholderTextColor="#94A3B8"
+                    value={formData.fullName}
+                    onChangeText={(value) =>
+                      handleInputChange('fullName', value)
+                    }
+                    autoCapitalize="words"
+                    editable={!isLoading}
+                    maxLength={100}
+                  />
+                </View>
+
+                {/* Email Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>{t('signUp.email')}</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder={t('signUp.emailPlaceholder')}
+                    placeholderTextColor="#94A3B8"
+                    value={formData.email}
+                    onChangeText={(value) => handleInputChange('email', value)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!isLoading}
+                    maxLength={100}
+                  />
+                </View>
+
+                {/* Phone Number Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>
+                    {t('signUp.phoneNumber')}
+                  </Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder={t('signUp.phonePlaceholder')}
+                    placeholderTextColor="#94A3B8"
+                    value={formData.phoneNumber}
+                    onChangeText={handlePhoneChange}
+                    keyboardType="phone-pad"
+                    maxLength={16}
+                    editable={!isLoading}
+                  />
+                  <Text style={styles.phoneHint}>{t('signUp.phoneHint')}</Text>
+                </View>
+
+                {/* Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>{t('signUp.password')}</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder={t('signUp.passwordPlaceholder')}
+                      placeholderTextColor="#94A3B8"
+                      value={formData.password}
+                      onChangeText={(value) =>
+                        handleInputChange('password', value)
+                      }
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!isLoading}
+                      maxLength={128}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      <Text style={styles.eyeButtonText}>
+                        {showPassword ? '👁️' : '👁️‍🗨️'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.passwordHint}>
+                    {t('signUp.passwordHint')}
+                  </Text>
+                </View>
+
+                {/* Confirm Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>
+                    {t('signUp.confirmPassword')}
+                  </Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder={t('signUp.confirmPasswordPlaceholder')}
+                      placeholderTextColor="#94A3B8"
+                      value={formData.confirmPassword}
+                      onChangeText={(value) =>
+                        handleInputChange('confirmPassword', value)
+                      }
+                      secureTextEntry={!showConfirmPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!isLoading}
+                      maxLength={128}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      disabled={isLoading}
+                    >
+                      <Text style={styles.eyeButtonText}>
+                        {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Terms and Conditions */}
+                <View style={styles.termsContainer}>
+                  <View style={styles.checkboxContainer}>
+                    <TouchableOpacity
+                      onPress={handleToggleTerms}
+                      disabled={isLoading}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: agreeToTerms }}
+                    >
+                      <View
+                        style={[
+                          styles.checkbox,
+                          agreeToTerms && styles.checkboxChecked,
+                        ]}
+                      >
+                        {agreeToTerms && (
+                          <Text style={styles.checkmark}>✓</Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    <Text style={styles.termsText}>
+                      {t('signUp.agreeToTerms')}{' '}
+                      <TouchableOpacity
+                        onPress={() => router.push('/TermsAndConditionsScreen')}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.termsLink}>
+                          {t('signUp.termsOfService')}
+                        </Text>
+                      </TouchableOpacity>{' '}
+                      {t('signUp.and')}{' '}
+                      <TouchableOpacity
+                        onPress={() => router.push('/TermsAndConditionsScreen')}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.termsLink}>
+                          {t('signUp.privacyPolicy')}
+                        </Text>
+                      </TouchableOpacity>
+                    </Text>
+                  </View>
+                  <Text style={styles.termsHint}>
+                    {t('signUp.termsClickHint')}
+                  </Text>
+                </View>
+
+                {/* Sign Up Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.signUpButton,
+                    isLoading && styles.signUpButtonDisabled,
+                  ]}
+                  onPress={handleInitiateSignup}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.signUpButtonText}>
+                    {isLoading
+                      ? t('signUp.creatingAccount')
+                      : t('signUp.createAccountButton')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
 
             {/* Divider */}
             <View style={styles.divider}>
@@ -613,6 +843,12 @@ const styles = StyleSheet.create({
   termsLink: {
     color: '#1E3A8A',
     fontWeight: '600',
+  },
+  termsHint: {
+    fontSize: 12,
+    color: '#1E3A8A',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   signUpButton: {
     backgroundColor: '#1E3A8A',

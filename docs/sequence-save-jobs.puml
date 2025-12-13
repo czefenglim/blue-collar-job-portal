@@ -1,0 +1,32 @@
+@startuml
+title Sequence: Save Jobs
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Job Controller" as API
+database "Database" as DB
+
+JS -> UI: Click Save Icon
+activate UI
+UI -> API: Save Job
+activate API
+API -> DB: Insert Saved Job Record
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Update Icon (Saved)
+deactivate API
+deactivate UI
+
+JS -> UI: Click Save Icon (on Saved Job)
+activate UI
+UI -> API: Unsave Job
+activate API
+API -> DB: Delete Saved Job Record
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Update Icon (Unsaved)
+deactivate API
+deactivate UI
+@enduml
+

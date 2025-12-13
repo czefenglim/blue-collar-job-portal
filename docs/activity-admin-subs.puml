@@ -1,0 +1,24 @@
+@startuml UC_AdminSubs
+skinparam conditionStyle diamond
+title Activity: Manage Subscriptions (Admin)
+|Admin|
+start
+:Access Subscription Settings;
+|System|
+:Fetch Subscription Plans;
+:Display Plans;
+|Admin|
+:Select Plan to Edit;
+|System|
+:Display Plan Details;
+|Admin|
+:Update Pricing / Features;
+:Click Save Changes;
+|System|
+:Validate Changes;
+:Update Plan in DB;
+:Apply Changes to Future/Current Subs;
+:Show Success Message;
+stop
+@enduml
+

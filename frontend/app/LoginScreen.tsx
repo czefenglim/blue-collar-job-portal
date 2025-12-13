@@ -77,8 +77,16 @@ const LoginScreen: React.FC = () => {
 
       if (response.ok) {
         const token = data.data.token;
+        const user = data.data.user;
+
+        // ✅ Enforce role: only JOB_SEEKER can login here
+        if (!user || user.role !== 'JOB_SEEKER') {
+          Alert.alert(t('common.error'), 'Invalid email or password');
+          return;
+        }
+
         await AsyncStorage.setItem('jwtToken', token);
-        await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
         console.log('user jwt token: ', token);
         const preferredLanguage = await AsyncStorage.getItem(
           'preferredLanguage'
@@ -109,6 +117,11 @@ const LoginScreen: React.FC = () => {
         Alert.alert(t('common.success'), t('login.success.loggedIn'));
         router.push('/HomeScreen');
       } else {
+        if (response.status === 403 && data.code === 'ACCOUNT_SUSPENDED') {
+          router.replace('/suspended');
+          return;
+        }
+
         Alert.alert(
           t('common.error'),
           data.message || t('login.errors.loginFailed')

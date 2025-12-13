@@ -42,39 +42,121 @@
       "pickImageFailed": "选择图片失败。请重试。",
       "pickDocumentFailed": "选择文件失败。请重试。",
       "submitFailed": "提交举报失败。请重试。"
+    },
+    "list": {
+      "errors": {
+        "authRequiredTitle": "需要验证",
+        "authRequiredMessage": "请登录以继续",
+        "title": "错误",
+        "loadFail": "无法加载举报"
+      },
+      "header": {
+        "title": "举报",
+        "subtitle": "您有 {count} 条举报"
+      },
+      "loading": "正在加载举报...",
+      "empty": {
+        "title": "暂无举报",
+        "text": "您的职位目前没有任何举报。"
+      },
+      "action": {
+        "jobSuspended": "职位已暂停",
+        "jobDeleted": "职位已删除",
+        "appealPending": "申诉处理中"
+      },
+      "reportedBy": "举报人：{name}"
+    },
+    "details": {
+      "errors": {
+        "authRequiredTitle": "需要验证",
+        "authRequiredMessage": "请登录以继续",
+        "title": "错误",
+        "loadFail": "无法加载举报详情"
+      },
+      "loading": "正在加载举报详情...",
+      "notFound": "未找到举报",
+      "header": {
+        "title": "举报详情",
+        "subtitle": "举报 #{id}"
+      },
+      "action": {
+        "title": "已采取的措施",
+        "jobSuspended": "您的职位已被暂停。{reason}",
+        "jobDeleted": "您的职位已被删除。",
+        "appealHint": "如果您认为此措施有误，您可以提交申诉。"
+      },
+      "sections": {
+        "status": "举报状态",
+        "job": "被举报的职位",
+        "type": "举报类型",
+        "reportedBy": "举报人",
+        "description": "举报说明",
+        "evidence": "证据文件",
+        "adminReview": "管理员审核",
+        "appeals": "申诉"
+      },
+      "admin": {
+        "reviewDate": "审核日期",
+        "notes": "管理员备注"
+      },
+      "appeal": {
+        "title": "申诉 #{id}",
+        "submittedOn": "提交于 {date}",
+        "explanation": "您的说明：",
+        "evidence": "已附证据：",
+        "adminResponse": "管理员回复",
+        "reviewedOn": "审核于 {date}",
+        "accepted": "您的申诉已被接受，措施已撤回。",
+        "rejected": "您的申诉被驳回，原有措施维持。"
+      },
+      "appealAction": {
+        "title": "不同意此决定？",
+        "text": "您可提交申诉，说明情况并附上任何支持证据。",
+        "submit": "提交申诉"
+      }
     }
   },
   "home": {
-    "title": "寻找工作",
-    "authRequired": "需要认证",
+    "title": "找工作",
+    "authRequired": "需要身份验证",
     "signInToContinue": "请登录以继续",
-    "loadError": "加载数据失败",
-    "jobsLoadError": "加载工作失败",
-    "jobPreferences": "您的工作偏好",
+    "loadError": "数据加载失败",
+    "jobsLoadError": "职位加载失败",
+    "jobPreferences": "你的职位偏好",
     "industry": "行业",
-    "searchPlaceholder": "搜索工作或公司...",
+    "searchPlaceholder": "搜索职位或公司...",
     "locationPlaceholder": "地点...",
-    "clearFilters": "清除所有筛选器",
-    "jobsFound": "{{count}} 个工作可用",
-    "noJobs": "未找到工作",
-    "adjustFilters": "尝试调整您的搜索筛选器",
+    "clearFilters": "清除所有筛选",
+    "jobsFound": "有{{count}}个职位",
+    "noJobs": "未找到职位",
+    "adjustFilters": "试着调整你的搜索筛选",
     "today": "今天",
     "yesterday": "昨天",
-    "daysAgo": "{{count}} 天前",
-    "weeksAgo": "{{count}} 周前",
-    "monthsAgo": "{{count}} 月前",
-    "allJobs": "所有工作",
+    "daysAgo": "{{count}}天前",
+    "weeksAgo": "{{count}}周前",
+    "monthsAgo": "{{count}}个月前",
+    "allJobs": "全部职位",
     "filtered": "已筛选",
-    "viewAllJobs": "查看所有工作",
-    "showFilteredJobs": "显示我的工作类型",
-    "filterActive": "根据您的偏好筛选的工作",
-    "filteredResults": "根据您的工作偏好筛选",
-    "options": "工作选项",
-    "selectAction": "您想要做什么？",
+    "viewAllJobs": "查看全部职位",
+    "showFilteredJobs": "显示我的职位类型",
+    "filterActive": "职位已按你的偏好筛选",
+    "filteredResults": "按你的职位偏好筛选",
+    "options": "职位选项",
+    "selectAction": "你想做什么？",
     "viewDetails": "查看详情",
-    "save": "保存工作",
-    "unsave": "取消保存工作",
-    "reportJob": "举报工作"
+    "save": "保存职位",
+    "unsave": "取消保存",
+    "reportJob": "举报职位",
+    "distance": "距离：",
+    "jobType": "职位类型",
+    "workingHours": "工作时间",
+    "experienceLevel": "经验水平",
+    "location": "地点",
+    "salary": "薪资",
+    "distanceFilter": "距离筛选",
+    "all": "全部",
+    "changeLocation": "更改地点",
+    "filteredResultsByPref": "按你的职位偏好筛选"
   },
   "selectRole": {
     "title": "选择您的角色",
@@ -91,6 +173,8 @@
   "employerLogin": {
     "title": "雇主登录",
     "subtitle": "访问您的雇主账户",
+    "appSubtitleLogin": "登录以管理您的职位发布",
+    "appSubtitleRegister": "创建雇主账户开始招聘",
     "email": "电子邮件",
     "password": "密码",
     "phoneNumber": "电话号码",
@@ -100,10 +184,30 @@
     "registerTitle": "创建雇主账户",
     "registerSubtitle": "开始招聘合格候选人",
     "fullName": "全名",
+    "fullNamePlaceholder": "输入您的全名",
+    "phoneNumberPlaceholder": "例如：0123456789",
+    "phoneHelp": "请包含国家代码（例如马来西亚 +60）",
     "confirmPassword": "确认密码",
     "createAccount": "创建账户",
     "haveAccount": "已有账户？",
-    "forgotPassword": "忘记密码？"
+    "forgotPassword": "忘记密码？",
+    "getStarted": "开始",
+    "success": {
+      "welcomeBack": "欢迎回来！",
+      "accountCreated": "账户创建成功！"
+    },
+    "errors": {
+      "loginFailedTitle": "登录失败",
+      "signupFailedTitle": "注册失败",
+      "authFailedTryAgain": "认证失败。请重试。",
+      "emailExistsLoginInstead": "该电子邮件已存在账户，请改为登录。",
+      "invalidEmailOrPassword": "电子邮件或密码不正确。请检查您的凭证。"
+    },
+    "validation": {
+      "fullNameMin2": "请输入您的全名（至少 2 个字符）",
+      "phoneRequired": "请输入您的电话号码",
+      "phoneLengthInvalidExamples": "电话号码必须介于 10 到 15 位数字之间\n\n示例：\n+60123456789\n0123456789"
+    }
   },
   "validation": {
     "error": "错误",
@@ -120,7 +224,31 @@
     "congratulations": "恭喜！🎉",
     "onboardingComplete": "您的雇主账户已准备就绪",
     "readyToStart": "您现在可以开始发布工作并为您的公司寻找完美候选人。",
-    "getStarted": "开始"
+    "getStarted": "开始",
+    "steps": {
+      "company": "公司",
+      "verification": "验证",
+      "review": "审核",
+      "complete": "完成"
+    },
+    "alerts": {
+      "permissionRequiredTitle": "需要权限",
+      "permissionRequiredMessage": "我们需要媒体库访问权限以上传标志。",
+      "stepLockedTitle": "步骤已锁定",
+      "stepLockedMessage": "请先完成当前步骤再进行此操作。"
+    },
+    "review": {
+      "title": "审核您的信息",
+      "subtitle": "最后一步。您可以返回编辑之前的步骤。",
+      "importantNote": "完成入职后，您的雇主资料将提交审核。审核通过后即可开始发布职位。"
+    },
+    "completeOnboarding": "完成入职",
+    "submittedForVerification": "您的公司资料已提交审核。审核通过后我们会通知您。",
+    "features": {
+      "pendingVerification": "待审核",
+      "emailNotification": "邮件通知",
+      "postJobsAfterApproval": "审核通过后可发布职位"
+    }
   },
   "employerCompanyForm": {
     "title": "公司信息",
@@ -128,6 +256,7 @@
     "companyName": "公司名称",
     "industry": "行业",
     "selectIndustry": "选择行业",
+    "selectCompanySize": "选择公司规模",
     "companySize": "公司规模",
     "startup": "初创公司（1-10名员工）",
     "small": "小型公司（11-50名员工）",
@@ -140,6 +269,7 @@
     "email": "电子邮件地址",
     "phone": "电话号码",
     "website": "网站",
+    "websitePlaceholder": "https://www.example.com",
     "addressInformation": "地址信息",
     "address": "街道地址",
     "addressPlaceholder": "输入街道地址",
@@ -151,8 +281,21 @@
     "postcodePlaceholder": "输入邮政编码",
     "description": "公司描述",
     "descriptionPlaceholder": "告诉我们关于您的公司、文化和价值观...",
+    "descriptionCount": "{count}/200 个字符",
     "error": "错误",
-    "companyCreationFailed": "创建公司失败。请重试。"
+    "companyCreationFailed": "创建公司失败。请重试。",
+    "success": {
+      "logoUploaded": "标志上传成功！"
+    },
+    "warnings": {
+      "logoUploadFailed": "上传标志失败，但您可以稍后添加。"
+    },
+    "errors": {
+      "allFieldsRequired": "请填写所有必填项",
+      "descriptionTooLong": "描述不得超过200个字符",
+      "pickImageFailed": "选择图片失败",
+      "createOrUpdateFailed": "创建/更新公司资料失败"
+    }
   },
   "employerProfileForm": {
     "profileDetails": "您的个人资料详情",
@@ -185,7 +328,327 @@
     "select": "选择",
     "search": "搜索",
     "ok": "确定",
-    "done": "完成"
+    "done": "完成",
+    "selectOption": "请选择一个选项"
+  },
+  "adminLogin": {
+    "headerTitle": "管理员登录",
+    "headerSubtitle": "仅限管理员访问",
+    "placeholders": {
+      "email": "输入管理员邮箱",
+      "password": "输入密码"
+    },
+    "actions": {
+      "signIn": "登录"
+    },
+    "success": {
+      "login": "登录成功"
+    },
+    "errors": {
+      "missingCredentials": "请输入邮箱和密码",
+      "loginFailedTitle": "登录失败",
+      "invalidCredentials": "邮箱或密码不正确",
+      "serverConnectionFailed": "无法连接服务器。请重试。"
+    },
+    "notice": {
+      "restricted": "此区域仅限授权管理员访问。"
+    }
+  },
+
+  "employerCreateJob": {
+    "validation": {
+      "titleRequired": "职位标题为必填项",
+      "descriptionRequired": "职位描述为必填项",
+      "industryRequired": "请选择行业",
+      "jobTypeRequired": "请选择职位类型",
+      "workingHoursRequired": "请选择工作时间",
+      "experienceRequired": "请选择经验等级",
+      "cityRequired": "城市为必填项",
+      "stateRequired": "请选择州/省",
+      "minExceedsMax": "最低薪资不能高于最高薪资"
+    },
+    "success": {
+      "created": "职位已成功创建！"
+    },
+    "errors": {
+      "createFailed": "创建职位失败。请重试。"
+    },
+    "modals": {
+      "selectSkills": "选择技能",
+      "selectJobType": "选择职位类型",
+      "selectWorkingHours": "选择工作时间",
+      "selectExperience": "选择经验等级",
+      "selectSalaryType": "选择薪资类型",
+      "selectState": "选择州/省"
+    },
+    "prediction": {
+      "loading": "正在生成招聘预测...",
+      "title": "招聘预测",
+      "message": "基于 {state} 职位数据的预计招聘时间",
+      "days": "预计招聘天数",
+      "confidence": "置信度",
+      "similarJobs": "分析了 {count} 个类似职位"
+    },
+    "salary": {
+      "title": "薪资分析",
+      "percentile": { "label": "百分位", "value": "前 {percentile}%" },
+      "comparison": {
+        "yourOffer": "你的薪资",
+        "median": "中位数",
+        "marketAverage": "市场平均"
+      },
+      "stats": {
+        "vsState": "与州平均水平比较",
+        "vsIndustry": "与行业平均水平比较"
+      },
+      "competitiveness": {
+        "EXCELLENT": "非常优秀",
+        "COMPETITIVE": "具有竞争力",
+        "BELOW_AVERAGE": "低于平均",
+        "LOW": "较低"
+      }
+    },
+    "tips": {
+      "title": "招聘提示"
+    },
+    "actions": {
+      "editDetails": "编辑详情"
+    },
+    "sections": {
+      "basicInfo": "基础信息",
+      "jobDetails": "职位详情",
+      "salary": "薪资",
+      "additional": "附加信息"
+    },
+    "fields": {
+      "title": "职位标题",
+      "experienceLevel": "经验等级",
+      "requiredSkills": "所需技能",
+      "skillsSelected": "已选择 {count} 项技能",
+      "remoteWork": "远程工作",
+      "salaryType": "薪资类型",
+      "minSalary": "最低薪资（RM）",
+      "maxSalary": "最高薪资（RM）",
+      "applicationDeadline": "申请截止日期",
+      "startDate": "开始日期"
+    },
+    "placeholders": {
+      "title": "例如 建筑工人",
+      "description": "描述此工作",
+      "requirements": "职位要求",
+      "benefits": "福利与津贴",
+      "selectSkills": "选择所需技能",
+      "remoteQuestion": "此工作是否可远程完成？",
+      "city": "例如 吉隆坡",
+      "fullAddress": "街道地址（可选）",
+      "minSalary": "例如 1500",
+      "maxSalary": "例如 2500",
+      "dateOptional": "YYYY-MM-DD（可选）"
+    }
+  },
+  "employerJobDetails": {
+    "errors": {
+      "title": "错误",
+      "loadFail": "加载职位详情失败",
+      "updateStatus": "更新职位状态失败",
+      "deleteFail": "删除职位失败"
+    },
+    "status": {
+      "toggleCloseMessage": "确定要关闭此职位吗？",
+      "toggleActivateMessage": "确定要启用此职位吗？",
+      "active": "启用",
+      "closed": "已关闭",
+      "rejectedAi": "该职位已被AI拒绝",
+      "pendingReview": "该职位正在审核中"
+    },
+    "actions": {
+      "closeTitle": "关闭职位",
+      "activateTitle": "启用职位",
+      "cancel": "取消",
+      "close": "关闭",
+      "activate": "启用",
+      "edit": "编辑",
+      "delete": "删除",
+      "copyAddress": "复制地址",
+      "openInMaps": "在地图中打开"
+    },
+    "success": {
+      "title": "成功",
+      "activated": "职位已启用",
+      "closed": "职位已关闭",
+      "deleted": "职位已删除"
+    },
+    "delete": {
+      "title": "删除职位",
+      "confirm": "此操作不可撤销。确定删除该职位？"
+    },
+    "copyAddress": {
+      "title": "地址已复制",
+      "success": "地址已复制到剪贴板",
+      "error": "复制地址失败"
+    },
+    "openMaps": {
+      "error": "打开地图失败"
+    },
+    "salary": {
+      "negotiable": "可协商",
+      "rm": "RM",
+      "from": "起",
+      "upTo": "最高"
+    },
+    "loading": "正在加载职位...",
+    "notFound": "未找到职位",
+    "stats": {
+      "views": "浏览",
+      "applications": "申请"
+    },
+    "sections": {
+      "details": "职位详情",
+      "description": "职位描述",
+      "requirements": "要求",
+      "benefits": "福利",
+      "location": "位置",
+      "dates": "重要日期"
+    },
+    "labels": {
+      "industry": "行业",
+      "workingHours": "工作时间",
+      "experienceLevel": "经验等级",
+      "salary": "薪资",
+      "remoteAvailable": "可远程工作",
+      "applicationDeadline": "申请截止日期",
+      "expectedStartDate": "预计开始日期"
+    },
+    "rejectionNotice": "该职位已被拒绝，不对求职者显示。"
+  },
+  "employerJobEdit": {
+    "errors": {
+      "title": "错误",
+      "loadFail": "加载职位详情失败",
+      "updateFail": "更新职位失败"
+    },
+    "validation": {
+      "title": "验证错误",
+      "titleRequired": "职位标题为必填项",
+      "descriptionRequired": "职位描述为必填项",
+      "industryRequired": "请选择行业",
+      "jobTypeRequired": "请选择职位类型",
+      "workingHoursRequired": "请选择工作时间",
+      "experienceRequired": "请选择经验等级",
+      "cityRequired": "城市为必填项",
+      "stateRequired": "请选择州/省",
+      "salaryMinMaxInvalid": "最低薪资不能高于最高薪资"
+    },
+    "submit": {
+      "title": "更新职位",
+      "confirm": "保存对此职位的更改？",
+      "save": "保存",
+      "saveChanges": "保存更改"
+    },
+    "success": {
+      "title": "成功",
+      "updated": "职位已成功更新！"
+    },
+    "loading": "加载中...",
+    "headerTitle": "编辑职位",
+    "sections": {
+      "basicInfo": "基础信息",
+      "jobDetails": "职位详情",
+      "location": "位置",
+      "salary": "薪资信息",
+      "additionalInfo": "附加信息"
+    },
+    "labels": {
+      "jobTitle": "职位标题",
+      "industry": "行业",
+      "description": "描述",
+      "requirements": "要求",
+      "benefits": "福利",
+      "jobType": "职位类型",
+      "workingHours": "工作时间",
+      "experienceLevel": "经验等级",
+      "requiredSkills": "所需技能",
+      "skillsSelected": "已选择 {count} 项技能",
+      "remoteWork": "远程工作",
+      "city": "城市",
+      "state": "州/省",
+      "postcode": "邮编",
+      "address": "详细地址",
+      "salaryType": "薪资类型",
+      "minSalary": "最低薪资（RM）",
+      "maxSalary": "最高薪资（RM）",
+      "applicationDeadline": "申请截止日期",
+      "startDate": "开始日期"
+    },
+    "placeholders": {
+      "jobTitle": "例如 建筑工人",
+      "selectIndustry": "选择行业",
+      "description": "描述此工作",
+      "requirements": "职位要求",
+      "benefits": "福利与津贴",
+      "selectJobType": "选择职位类型",
+      "selectWorkingHours": "选择工作时间",
+      "selectExperience": "选择经验等级",
+      "selectSkills": "选择所需技能",
+      "city": "例如 吉隆坡",
+      "selectState": "选择州/省",
+      "postcode": "例如 50000",
+      "address": "街道地址（可选）",
+      "selectSalaryType": "选择薪资类型",
+      "minSalary": "例如 1500",
+      "maxSalary": "例如 2500",
+      "dateOptional": "YYYY-MM-DD（可选）"
+    },
+    "jobType": {
+      "FULL_TIME": "全职",
+      "PART_TIME": "兼职",
+      "CONTRACT": "合约",
+      "TEMPORARY": "临时",
+      "FREELANCE": "自由职业"
+    },
+    "workingHours": {
+      "DAY_SHIFT": "日班",
+      "NIGHT_SHIFT": "夜班",
+      "ROTATING_SHIFT": "轮班",
+      "FLEXIBLE": "弹性",
+      "WEEKEND_ONLY": "仅周末"
+    },
+    "experience": {
+      "ENTRY_LEVEL": "入门",
+      "JUNIOR": "初级（1-2年）",
+      "MID_LEVEL": "中级（3-5年）",
+      "SENIOR": "高级（5年以上）",
+      "EXPERT": "专家（10年以上）"
+    },
+    "salaryType": {
+      "HOURLY": "小时",
+      "DAILY": "天",
+      "WEEKLY": "周",
+      "MONTHLY": "月",
+      "YEARLY": "年",
+      "PER_PROJECT": "按项目",
+      "hourly": "每小时",
+      "daily": "每天",
+      "weekly": "每周",
+      "monthly": "每月",
+      "yearly": "每年",
+      "per_project": "每项目",
+      "annual": "每年",
+      "piece_rate": "计件"
+    },
+    "hints": {
+      "remoteWork": "此工作是否可远程完成？"
+    },
+    "pickers": {
+      "selectIndustry": "选择行业",
+      "selectJobType": "选择职位类型",
+      "selectWorkingHours": "选择工作时间",
+      "selectExperience": "选择经验等级",
+      "selectSalaryType": "选择薪资类型",
+      "selectState": "选择州/省",
+      "selectSkills": "选择技能",
+      "done": "完成"
+    }
   },
   "jobDetails": {
     "title": "工作详情",
@@ -340,12 +803,19 @@
     "selectIndustries": "选择首选行业",
     "selectSkills": "选择您的技能",
     "selectLanguages": "选择您说的语言",
+    "viewResume": "查看简历",
+    "uploadPdf": "上传 PDF",
+    "regenerateAi": "使用 AI 重新生成",
+    "resumeUploaded": "简历上传成功",
+    "resumeRegenerated": "简历已重新生成",
     "sections": {
       "personalInfo": "个人信息",
       "personalInfoSubtitle": "您的基本详情",
       "addressSubtitle": "您当前的位置",
       "jobPreferencesSubtitle": "您的职业要求",
-      "skillsExperienceSubtitle": "您的资格"
+      "skillsExperienceSubtitle": "您的资格",
+      "resume": "简历",
+      "resumeSubtitle": "管理与查看您的简历"
     },
     "placeholders": {
       "fullName": "输入您的全名",
@@ -435,8 +905,10 @@
       "jobPreferences": "工作偏好",
       "skillsExperience": "技能与经验",
       "quickActions": "快速操作",
-      "language": "语言"
+      "language": "语言",
+      "reports": "举报"
     },
+
     "actions": {
       "savedJobs": "已保存工作",
       "myApplications": "我的申请",
@@ -541,6 +1013,39 @@
     "flexible": "灵活",
     "weekendOnly": "仅周末"
   },
+  "experienceLevels": {
+    "entryLevel": "入门级",
+    "junior": "初级（1-2年）",
+    "midLevel": "中级（3-5年）",
+    "senior": "高级（5年以上）",
+    "expert": "专家（10年以上）"
+  },
+  "salaryTypes": {
+    "hourly": "按小时",
+    "daily": "按天",
+    "weekly": "按周",
+    "monthly": "按月",
+    "yearly": "按年",
+    "perProject": "按项目"
+  },
+  "states": {
+    "Johor": "柔佛",
+    "Kedah": "吉打",
+    "Kelantan": "吉兰丹",
+    "Kuala Lumpur": "吉隆坡",
+    "Labuan": "纳闽",
+    "Melaka": "马六甲",
+    "Negeri Sembilan": "森美兰",
+    "Pahang": "彭亨",
+    "Penang": "槟城",
+    "Perak": "霹雳",
+    "Perlis": "玻璃市",
+    "Putrajaya": "布城",
+    "Sabah": "沙巴",
+    "Sarawak": "砂拉越",
+    "Selangor": "雪兰莪",
+    "Terengganu": "登嘉楼"
+  },
   "signUp": {
     "appTitle": "蓝领工作门户",
     "appSubtitle": "开始您的职业旅程",
@@ -562,6 +1067,7 @@
     "termsOfService": "服务条款",
     "and": "和",
     "privacyPolicy": "隐私政策",
+    "termsClickHint": "点击条款以查看并同意",
     "createAccountButton": "创建账户",
     "creatingAccount": "创建账户中...",
     "or": "或",
@@ -586,6 +1092,20 @@
       "title": "成功！",
       "message": "账户创建成功。欢迎来到蓝领工作！",
       "continue": "继续"
+    }
+  },
+  "terms": {
+    "title": "条款与条件",
+    "subtitle": "请阅读我们的服务条款和隐私政策。",
+    "lastUpdated": "最后更新：2025年1月1日",
+    "agreeButton": "我同意",
+    "section": {
+      "introduction": "简介",
+      "introductionText": "使用本应用即表示您同意遵守我们的条款与政策，以保障用户安全并确保公平使用。",
+      "privacy": "隐私",
+      "privacyText": "我们尊重您的隐私，并按照隐私政策处理数据。我们只收集提供服务所需的信息。",
+      "usage": "可接受使用",
+      "usageText": "请勿滥用平台。遵守当地法律，避免欺诈行为，并始终尊重其他用户。"
     }
   },
   "login": {
@@ -742,6 +1262,1160 @@
     "stepSelector": {
       "title": "转到步骤",
       "close": "关闭"
+    }
+  },
+  "chat": {
+    "noConversations": "暂无对话",
+    "startChatWithApplicants": "开始与申请者聊天以在此处查看对话",
+    "waitForEmployerMessage": "当雇主联系您时，对话将显示在此处",
+    "noMessages": "暂无消息",
+    "yesterday": "昨天",
+    "you": "你",
+    "image": "图片",
+    "file": "文件",
+    "connecting": "正在连接到聊天...",
+    "typeMessage": "输入消息...",
+    "messageDeleted": "此消息已被删除",
+    "edited": "已编辑",
+    "edit": "编辑",
+    "delete": "删除",
+    "messageOptions": "消息选项",
+    "editingMessage": "正在编辑消息",
+    "deleteMessage": "删除消息",
+    "deleteConfirm": "确定要删除这条消息吗？",
+    "attachment": "附件",
+    "chooseAttachmentType": "选择附件类型",
+    "takePhoto": "拍照",
+    "choosePhoto": "从相册选择",
+    "chooseFile": "选择文件",
+    "cameraPermission": "需要相机权限才能拍照",
+    "galleryPermission": "需要相册权限才能选择照片",
+    "sendError": "发送消息失败",
+    "editError": "编辑消息失败",
+    "deleteError": "删除消息失败",
+    "uploadError": "上传文件失败",
+    "startChat": "开始聊天",
+    "messageApplicant": "给申请者留言",
+    "continueChat": "继续聊天",
+    "active": "活跃",
+    "today": "今天",
+    "job": "工作",
+    "typing": "正在输入...",
+    "loadingMessages": "正在加载消息...",
+    "messages": "消息"
+  },
+  "companies": {
+    "title": "公司",
+    "featuredCompanies": "精选公司",
+    "loading": "正在加载公司...",
+    "searchPlaceholder": "搜索公司...",
+    "empty": "未找到公司",
+    "reviewsCount": "{count} 条评价",
+    "noReviews": "暂无评价",
+    "reviews": "评价",
+    "preview": {
+      "title": "公司预览",
+      "badge": "预览",
+      "infoBanner": "这是求职者看到您公司概况的方式。评价仅可读。"
+    },
+    "detail": {
+      "notFound": "未找到公司",
+      "basedOnReviews": "基于{count}条评价",
+      "yourReview": "你的评价",
+      "writeReview": "撰写评价",
+      "deleteReviewTitle": "删除评价",
+      "deleteReviewConfirm": "确定要删除你的评价吗？",
+      "successReviewDeleted": "评价已删除",
+      "errorReviewDeleteFailed": "删除评价失败",
+      "about": "关于",
+      "contactInformation": "联系信息",
+      "website": "网站",
+      "email": "邮箱",
+      "phone": "电话",
+      "address": "地址"
+    }
+  },
+  "employerDashboard": {
+    "loading": "正在加载仪表板...",
+    "loadFailed": "加载仪表板失败",
+    "tryAgain": "重试",
+    "welcomeBack": "欢迎回来",
+    "pricing": "定价",
+
+    "totalJobs": "职位总数",
+    "activeJobs": "在招职位",
+    "activeCount": "{count} 个在招",
+    "currentlyHiring": "正在招聘",
+
+    "totalApplicants": "申请者总数",
+    "pendingCount": "{count} 个待处理",
+    "shortlisted": "入选名单",
+    "topCandidates": "优秀候选人",
+
+    "quickActions": "快捷操作",
+    "postNewJob": "发布新职位",
+    "viewApplicants": "查看申请者",
+    "previewJobs": "预览职位",
+    "settings": "设置",
+
+    "recentJobPosts": "最新职位发布",
+    "viewAll": "查看全部",
+    "noJobPostsYet": "暂时还没有职位发布",
+    "createYourFirstJob": "创建你的第一条职位发布",
+
+    "companyReviews": "公司评价",
+    "manageReviews": "管理评价",
+    "totalReviews": "{count} 条评价",
+    "recentReviews": "最新评价",
+    "noReviewsYet": "暂无评价",
+    "noReviewsMessage": "求职者的评价将显示在这里",
+
+    "active": "开放",
+    "closed": "已关闭",
+    "applicants": "{count} 位申请者",
+
+    "tipsTitle": "更有效招聘的小贴士",
+    "tip1": "💡 添加清晰的职位要求以吸引合格候选人",
+    "tip2": "💡 24 小时内回复申请者以提升互动",
+    "tip3": "💡 经常更新职位发布以提高曝光率"
+  },
+  "employerReviews": {
+    "title": "评价管理",
+    "loading": "正在加载评价...",
+    "labels": {
+      "yourReply": "你的回复",
+      "replyAction": "回复",
+      "flagAction": "举报",
+      "average": "平均",
+      "totalReviews": "总评价数",
+      "all": "全部",
+      "newest": "最新",
+      "highest": "最高评分",
+      "lowest": "最低评分",
+      "noReviews": "未找到评价",
+      "replyModalTitle": "回复评价",
+      "replyPlaceholder": "写下你的回复...",
+      "postReply": "发布回复",
+      "posting": "正在发布..."
+    },
+    "success": {
+      "replyPosted": "回复已成功发布",
+      "reviewFlagged": "评价已被举报给管理员"
+    },
+    "errors": {
+      "loadFailed": "加载评价失败",
+      "missingReply": "请输入回复内容",
+      "postFailed": "发布回复失败",
+      "flagFailed": "举报失败",
+      "provideReason": "请提供原因"
+    },
+    "prompt": {
+      "flagTitle": "举报评价",
+      "flagMessage": "请提供举报此评价的原因：",
+      "submit": "提交"
+    }
+  },
+  "employerReports": {
+    "appeal": {
+      "headerTitle": "提交申诉",
+      "headerSubtitle": "举报 #{id}",
+      "instructionsTitle": "申诉指南",
+      "guideline1": "详细说明你认为管理员决定不正确的原因",
+      "guideline2": "提供支持你主张的证据（截图、文件等）",
+      "guideline3": "请在说明中保持尊重与专业",
+      "guideline4": "管理员会在 2–3 个工作日内审核并回复",
+      "explanationLabel": "说明",
+      "explanationHint": "解释为什么你认为该操作应该被撤销（至少 20 个字符）",
+      "explanationPlaceholder": "在此输入你的详细说明...",
+      "characterCount": "{count} 个字符（至少 20 个）",
+      "evidenceLabel": "支持证据（可选）",
+      "evidenceHint": "上传最多 5 个文件（图片或 PDF）以支持你的申诉",
+      "addImage": "添加图片",
+      "addDocument": "添加文件",
+      "maxFilesReached": "已达到最大文件数量（5）",
+      "noteTitle": "重要提示",
+      "noteText": "提交申诉并不保证该操作会被撤销。管理员会认真审核你的说明和证据后再做最终决定。",
+      "submitButton": "提交申诉",
+      "submitting": "提交中...",
+      "submitTitle": "提交申诉",
+      "submitConfirm": "确定要提交此申诉吗？管理员将审核你的说明和证据。",
+      "actions": {
+        "cancel": "取消",
+        "submit": "提交"
+      },
+      "auth": {
+        "requiredTitle": "需要登录",
+        "requiredMessage": "请先登录以继续"
+      },
+      "success": {
+        "title": "成功",
+        "message": "你的申诉已成功提交，管理员将尽快审核。",
+        "ok": "好的"
+      },
+      "errorTitle": "错误",
+      "errors": {
+        "pickImageFailed": "选择图片失败",
+        "pickDocumentFailed": "选择文件失败",
+        "missingExplanation": "请提供申诉说明",
+        "tooShortExplanation": "请提供更详细的说明（至少 20 个字符）",
+        "maxFiles": "最多允许 5 个文件",
+        "submitFailed": "提交申诉失败"
+      },
+      "permissions": {
+        "photosTitle": "需要权限",
+        "photosMessage": "请授予访问照片的权限"
+      }
+    }
+  },
+  "employerProfile": {
+    "loading": "正在加载资料...",
+    "errorNotFound": "未找到资料",
+    "tryAgain": "重试",
+    "editProfile": "编辑资料",
+    "companyInformation": "公司信息",
+    "industry": "行业",
+    "companySize": "公司规模",
+    "address": "地址",
+    "contactInformation": "联系信息",
+    "email": "邮箱",
+    "phone": "电话",
+    "website": "网站",
+    "accountInformation": "账户信息",
+    "fullName": "姓名",
+    "role": "角色",
+    "onboardingStatus": "入职状态",
+    "stepOfTotal": "第{step}/{total}步",
+    "onboardingCompleted": "入职已完成",
+    "onboardingInProgress": "入职进行中",
+    "settings": "设置",
+    "comingSoon": "敬请期待",
+    "notifications": "通知",
+    "privacySettings": "隐私设置",
+    "helpSupport": "帮助与支持",
+    "notProvided": "未提供",
+    "notSpecified": "未指定",
+    "sizeStartup": "1-10 名员工",
+    "sizeSmall": "11-50 名员工",
+    "sizeMedium": "51-200 名员工",
+    "sizeLarge": "201-500 名员工",
+    "sizeEnterprise": "500+ 名员工"
+  },
+  "pendingVerification": {
+    "title": "审核进行中",
+    "description": "感谢提交您的公司资料！我们的团队正在审核您的信息。",
+    "statusSubmitted": "资料已提交",
+    "statusUnderReview": "正在审核（当前）",
+    "statusApprovalPending": "等待批准",
+    "infoTitle": "预计审核时间",
+    "infoText": "通常为 1-3 个工作日。审核完成后我们会通过邮箱通知您。",
+    "detailsTitle": "已提交的公司详情",
+    "companyName": "公司名称：",
+    "industry": "行业：",
+    "location": "地点：",
+    "submitted": "提交时间：",
+    "logout": "退出登录"
+  },
+  "notifications": {
+    "title": "通知",
+    "loading": "正在加载通知...",
+    "unreadCount": "{count} 条未读",
+    "markAllRead": "标记全部为已读",
+    "deleteAll": "全部删除",
+    "deleteAllTitle": "全部删除",
+    "deleteAllConfirm": "确定要删除所有通知吗？",
+    "success": {
+      "allRead": "所有通知已标记为已读",
+      "allDeleted": "所有通知已删除"
+    },
+    "errors": {
+      "loadFailed": "加载通知失败",
+      "markAllFailed": "标记全部为已读失败",
+      "deleteFailed": "删除通知失败",
+      "deleteAllFailed": "删除所有通知失败"
+    },
+    "emptyTitle": "没有通知",
+    "emptySubtitle": "你已经全部处理完毕！有新动态时我们会通知你。",
+    "errorTitle": "错误",
+    "successTitle": "成功",
+    "filterAll": "全部（{count}）",
+    "filterUnread": "未读（{count}）",
+    "deleteTitle": "删除通知",
+    "deleteConfirm": "确定要删除这条通知吗？",
+    "actions": {
+      "cancel": "取消",
+      "delete": "删除"
+    },
+    "emptyCaughtUp": "你已经全部处理完毕！",
+    "emptyNoneYet": "你还没有任何通知",
+    "time": {
+      "now": "刚刚",
+      "minutesAgo": "{count} 分钟前",
+      "hoursAgo": "{count} 小时前",
+      "daysAgo": "{count} 天前"
+    }
+  },
+  "adminCompanies": {
+    "headerTitle": "公司管理",
+    "headerSubtitle": "已注册 {count} 家公司",
+    "loading": "正在加载公司...",
+    "searchPlaceholder": "按名称、邮箱或城市搜索...",
+    "filterAll": "全部",
+    "filterApproved": "已批准",
+    "filterPending": "待审核",
+    "filterRejected": "已拒绝",
+    "filterDisabled": "已禁用",
+    "noIndustry": "无行业",
+    "locationNA": "暂无",
+    "statsJobs": "职位",
+    "statsReviews": "评价",
+    "trustScore": "信任分数",
+    "trustScoreUnavailable": "信任分数不可用",
+    "userSuspended": "已暂停",
+    "joined": "加入于",
+    "tryAgain": "重试",
+    "emptyTitle": "未找到公司",
+    "emptyAdjust": "请调整你的搜索或筛选",
+    "emptyNoRegistered": "尚无公司注册",
+    "loadingMore": "加载更多..."
+  },
+
+  "employerApplicants": {
+    "searchPlaceholder": "按姓名、职位或电子邮件搜索...",
+    "filters": {
+      "all": "全部",
+      "pending": "待处理",
+      "shortlisted": "入围",
+      "interviewed": "已面试",
+      "rejected": "已拒绝"
+    },
+    "stats": {
+      "total": "总计",
+      "pending": "待处理",
+      "shortlisted": "入围"
+    },
+    "loading": "正在加载申请者...",
+    "loadingMore": "正在加载更多...",
+    "tryAgain": "重试",
+    "empty": {
+      "found": "未找到申请者",
+      "none": "暂无申请者",
+      "adjust": "尝试调整您的搜索或筛选条件",
+      "hint": "当求职者申请您的职位时,申请将显示在这里"
+    },
+    "status": {
+      "pending": "待处理",
+      "shortlisted": "入围",
+      "interviewed": "已面试",
+      "rejected": "已拒绝",
+      "hired": "已录用"
+    },
+    "actions": {
+      "chat": "聊天",
+      "view": "查看",
+      "shortlist": "入围"
+    },
+    "appliedFor": "申请职位",
+    "errors": {
+      "fetchFailed": "获取申请者失败",
+      "loadFailed": "加载申请者失败",
+      "startChatFailed": "无法开始聊天。请重试。"
+    }
+  },
+  "employerApplicantDetails": {
+    "loading": "正在加载申请者详情...",
+    "actions": {
+      "chat": "聊天",
+      "email": "邮件",
+      "call": "电话",
+      "resume": "简历",
+      "shortlist": "入围",
+      "reject": "拒绝",
+      "shortlisted": "已入围"
+    },
+    "alerts": {
+      "shortlistTitle": "入围申请者",
+      "rejectTitle": "拒绝申请者",
+      "confirmShortlist": "确定要将 {name} 加入入围名单吗？",
+      "confirmReject": "确定要拒绝 {name} 吗？",
+      "shortlistedSuccess": "成功将申请者加入入围名单",
+      "rejectedSuccess": "成功拒绝申请者"
+    },
+    "errors": {
+      "notFound": "未找到申请者",
+      "resumeOpenFailed": "无法打开简历链接",
+      "noResumeTitle": "没有简历",
+      "noResumeMessage": "该申请者尚未上传简历",
+      "noPhoneTitle": "没有电话号码",
+      "noPhoneMessage": "该申请者未提供电话号码",
+      "shortlistFailed": "入围申请者失败",
+      "rejectFailed": "拒绝申请者失败"
+    },
+    "sections": {
+      "qualityTitle": "质量评分分析",
+      "appliedPosition": "申请职位",
+      "contactInformation": "联系方式",
+      "experience": "工作经验",
+      "coverLetter": "求职信",
+      "timeline": "时间线",
+      "applied": "已申请",
+      "lastUpdated": "最后更新",
+      "contactInfo": "联系方式"
+    },
+    "quality": {
+      "profileCompleteness": "资料完整度",
+      "experienceMatch": "经验匹配度",
+      "skillsMatch": "技能匹配度",
+      "locationMatch": "位置匹配度",
+      "additionalFactors": "附加因素",
+      "analyzing": "正在分析申请者质量...",
+      "qualityCandidateLabel": "{quality} 质量候选人",
+      "strengthsTitle": "优势",
+      "improvementsTitle": "改进建议",
+      "label": "质量",
+      "level": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      }
+    },
+    "statuses": {
+      "PENDING": "待处理",
+      "REVIEWING": "审核中",
+      "SHORTLISTED": "已入围",
+      "INTERVIEW_SCHEDULED": "已安排面试",
+      "INTERVIEWED": "已面试",
+      "REJECTED": "已拒绝",
+      "HIRED": "已录用"
+    },
+    "experienceYears": "{years} 年工作经验"
+  },
+  "employerJobPosts": {
+    "loading": "正在加载职位…",
+    "searchPlaceholder": "搜索职位…",
+    "filters": {
+      "status": "状态",
+      "visibility": "可见性",
+      "all": "全部",
+      "pending": "待审核",
+      "approved": "已批准",
+      "aiRejected": "AI已拒绝",
+      "appealed": "已申诉",
+      "finalRejected": "最终拒绝",
+      "active": "进行中",
+      "closed": "已关闭"
+    },
+    "errorTryAgain": "再试一次",
+    "empty": {
+      "found": "未找到职位",
+      "none": "您还没有职位发布",
+      "adjust": "尝试调整您的搜索或筛选条件",
+      "cta": "发布您的第一个职位以开始招聘"
+    },
+    "cta": {
+      "create": "创建职位发布"
+    },
+    "appeal": {
+      "title": "申诉职位拒绝",
+      "button": "提交申诉",
+      "rejectionReason": "拒绝原因：",
+      "noReason": "未提供原因",
+      "explanation": "说明",
+      "explanationPlaceholder": "解释为什么此职位发布是合法的并应被批准…",
+      "supportingDocs": "支持文件（可选）",
+      "uploadHelper": "上传公司注册、执照或其他证明材料",
+      "uploadFiles": "上传文件",
+      "cancel": "取消",
+      "submit": "提交申诉",
+      "aiRejectedNotice": "此职位已被AI拒绝。点击查看详情。",
+      "appealedNotice": "您的申诉正在审核中，我们会尽快通知您结果。",
+      "finalRejectedNotice": "此职位已完成审核，拒绝决定为最终结果。",
+      "rejectedTitle": "职位被拒绝"
+    },
+    "stats": {
+      "views": "浏览",
+      "applicant": "申请者",
+      "applicants": "申请者"
+    },
+    "errors": {
+      "pickDocumentFailed": "选择文件失败"
+    },
+    "pendingAiNotice": "您的职位发布正在由我们的AI系统审核。批准后我们会通知您。"
+  },
+  "adminJobApproval": {
+    "flaggedAiNotice": "该职位发布已被我们的AI系统标记，需要人工审核后才能批准。"
+  },
+  "adminReports": {
+    "headerTitle": "举报管理",
+    "headerSubtitle": "共 {count} 条举报",
+    "appeals": "申诉",
+    "pendingAppeals": "待处理申诉",
+    "searchPlaceholder": "按举报人、邮箱或类型搜索…",
+    "filters": {
+      "all": "全部",
+      "pending": "待处理",
+      "underReview": "审核中",
+      "resolved": "已处理",
+      "dismissed": "已驳回"
+    },
+    "evidenceTitle": "证据文件",
+    "reportCard": {
+      "type": "类型",
+      "status": "状态",
+      "reporter": "举报人",
+      "description": "描述",
+      "submittedOn": "提交时间",
+      "viewJob": "查看职位"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "虚假职位",
+      "MISLEADING_INFO": "误导性信息",
+      "INAPPROPRIATE_CONTENT": "不当内容",
+      "SCAM_SUSPECTED": "涉嫌诈骗",
+      "DISCRIMINATION": "歧视",
+      "DUPLICATE_POSTING": "重复发布",
+      "OTHERS": "其他"
+    },
+    "detailModal": {
+      "viewJob": "查看职位并采取操作",
+      "sections": {
+        "type": "举报类型",
+        "status": "举报状态",
+        "reporter": "举报人",
+        "description": "举报描述",
+        "evidence": "证据",
+        "reviewInfo": "审核信息",
+        "submitted": "提交时间",
+        "updated": "更新时间"
+      }
+    },
+    "loading": "正在加载举报…",
+    "empty": {
+      "title": "未找到举报",
+      "adjust": "请调整您的搜索或筛选"
+    },
+    "errors": {
+      "authRequiredTitle": "需要认证",
+      "authRequiredMessage": "请登录以继续",
+      "loadFailed": "加载举报失败"
+    }
+  },
+  "adminCompanyApproval": {
+    "headerTitle": "公司审核",
+    "headerSubtitle": "{count} 个待验证",
+    "loading": "正在加载待审核公司…",
+    "actions": { "approve": "批准", "reject": "拒绝" },
+    "alerts": {
+      "authRequiredTitle": "需要认证",
+      "authRequiredMessage": "请登录以继续",
+      "approvalSuccess": "公司已成功批准",
+      "rejectionSuccess": "公司已成功拒绝",
+      "reasonRequiredTitle": "需要拒绝原因",
+      "reasonRequiredMessage": "请提供拒绝原因"
+    },
+    "errors": {
+      "loadFailed": "加载待审核公司失败",
+      "approveFailed": "批准公司失败",
+      "rejectFailed": "拒绝公司失败"
+    },
+    "prompt": {
+      "rejectTitle": "拒绝公司",
+      "rejectPlaceholder": "输入拒绝原因",
+      "approveTitle": "批准公司",
+      "confirmApprove": "确定要批准 {name} 吗？"
+    },
+    "empty": {
+      "title": "暂无待审核",
+      "subtitle": "你已经全部处理完毕！"
+    },
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "page": "第 {page} 页，共 {total} 页"
+    },
+    "labels": {
+      "submitted": "提交时间",
+      "documentAttached": "已附加文档"
+    }
+  },
+  "adminDashboard": {
+    "loading": "正在加载仪表板…",
+    "header": {
+      "title": "管理员仪表板",
+      "subtitle": "平台分析"
+    },
+    "quickAccess": {
+      "title": "快捷访问",
+      "users": "用户",
+      "jobs": "职位",
+      "companies": "公司"
+    },
+    "userStats": {
+      "title": "用户统计",
+      "jobSeekers": "求职者",
+      "employers": "雇主"
+    },
+    "company": {
+      "title": "公司管理",
+      "total": "总数",
+      "verified": "已验证",
+      "pending": "待处理",
+      "disabled": "已禁用",
+      "manageCta": "查看信任评分并管理"
+    },
+    "stats": {
+      "jobs": "职位统计",
+      "totalJobs": "职位总数",
+      "pending": "待审核",
+      "approved": "已批准",
+      "rejected": "已拒绝"
+    },
+    "recent": {
+      "title": "最近活动",
+      "newUsers": "新用户",
+      "newJobs": "新职位",
+      "newApplications": "新申请",
+      "registered": "已注册",
+      "posted": "已发布",
+      "submitted": "已提交"
+    },
+    "reviews": {
+      "title": "评价统计",
+      "total": "总评价数",
+      "average": "平均评分",
+      "flagged": "被标记的评价",
+      "manage": "管理评价"
+    }
+  },
+  "adminUsers": {
+    "headerTitle": "用户管理",
+    "loading": "正在加载用户…",
+    "searchPlaceholder": "按姓名、邮箱或城市搜索…",
+    "filters": { "all": "全部", "jobSeekers": "求职者", "employers": "雇主" },
+    "actions": { "suspend": "暂停", "activate": "启用", "delete": "删除" },
+    "status": { "suspended": "已暂停" },
+    "details": {
+      "joined": "加入于",
+      "applications": "申请",
+      "jobsPosted": "已发布职位"
+    },
+    "stats": {
+      "applications": "申请",
+      "jobsPosted": "职位",
+      "applicationsLabel": "申请",
+      "jobsLabel": "职位",
+      "profile": "个人资料"
+    },
+    "empty": { "title": "未找到用户", "adjust": "请调整您的搜索或筛选" },
+    "tryAgain": "再试一次",
+    "errors": {
+      "loadFailed": "加载用户失败"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "举报管理",
+    "headerSubtitle": "{count} 总举报",
+    "appeals": "申诉",
+    "searchPlaceholder": "搜索举报...",
+    "loading": "加载举报...",
+    "filters": {
+      "all": "全部",
+      "pending": "待处理",
+      "underReview": "审核中",
+      "resolved": "已解决",
+      "dismissed": "已驳回"
+    },
+    "reportTypes": {
+      "SCAM": "诈骗",
+      "INAPPROPRIATE": "不当内容",
+      "SPAM": "垃圾信息",
+      "OTHER": "其他"
+    },
+    "status": {
+      "PENDING": "待处理",
+      "UNDER_REVIEW": "审核中",
+      "RESOLVED": "已解决",
+      "DISMISSED": "已驳回"
+    },
+    "reportCard": {
+      "viewJob": "查看职位"
+    },
+    "empty": {
+      "title": "未找到举报",
+      "adjust": "请调整您的搜索或筛选"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "举报详情",
+        "type": "举报类型",
+        "status": "状态"
+      },
+      "reportedBy": "举报人",
+      "description": "描述",
+      "reviewedBy": "审核人",
+      "admin": "管理员",
+      "reviewNotes": "审核备注",
+      "submitted": "提交时间",
+      "viewJob": "查看职位发布"
+    }
+  },
+  "adminJobManagement": {
+    "title": "职位管理",
+    "loading": "正在加载职位...",
+    "searchPlaceholder": "按职位名称或公司搜索...",
+    "headerSubtitle": "管理和审核职位发布",
+    "salary": {
+      "notSpecified": "未指定"
+    },
+    "status": {
+      "approved": "已批准",
+      "pendingReview": "待审核",
+      "aiRejected": "AI拒绝",
+      "appealPending": "申诉待处理",
+      "finalRejection": "最终拒绝"
+    },
+    "tabs": {
+      "pending": "待审核",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "appeals": "申诉"
+    },
+    "rejectedFilters": {
+      "allRejected": "所有已拒绝",
+      "aiRejected": "AI已拒绝",
+      "finalRejected": "最终拒绝"
+    },
+    "prompts": {
+      "tapToReview": "点击以审核"
+    },
+    "jobCard": {
+      "verified": "已验证",
+      "views": "浏览量",
+      "applications": "申请",
+      "daysAgo": "天前",
+      "appeal": "申诉",
+      "appeals": "申诉",
+      "appealPrompt": "雇主已提交申诉 - 需要立即审核"
+    },
+    "empty": {
+      "appealsTitle": "未找到申诉",
+      "pendingTitle": "没有待审核职位",
+      "rejectedTitle": "没有已拒绝职位",
+      "approvedTitle": "没有已批准职位",
+      "appealsSubtitle": "所有申诉已处理",
+      "pendingSubtitle": "没有待审核的职位",
+      "rejectedSubtitle": "没有已拒绝的职位",
+      "approvedSubtitle": "暂无已批准的职位",
+      "adjust": "请调整您的搜索或筛选"
+    }
+  },
+  "pricing": {
+    "title": "选择您的计划",
+    "subtitle": "选择最适合您招聘需求的计划",
+    "popular": "最受欢迎",
+    "selectPlan": "选择计划",
+    "currentPlan": "当前计划",
+    "jobPost": "个职位",
+    "jobPosts": "个职位",
+    "success": "成功",
+    "freePlanActivated": "免费计划已成功激活！",
+    "footerText": "所有计划均包含访问求职者数据库和申请管理工具。",
+
+    "free": {
+      "name": "免费",
+      "period": "每月",
+      "feature1": "1个职位发布",
+      "feature2": "查看公司评价",
+      "feature3": "回复评价",
+      "feature4": "基础分析"
+    },
+
+    "pro": {
+      "name": "专业",
+      "period": "每月",
+      "feature1": "5个职位发布",
+      "feature2": "查看公司评价",
+      "feature3": "回复评价",
+      "feature4": "高级分析",
+      "feature5": "优先支持"
+    },
+
+    "max": {
+      "name": "最大",
+      "period": "每月",
+      "unlimited": "无限制",
+      "feature1": "无限职位发布",
+      "feature2": "查看公司评价",
+      "feature3": "回复评价",
+      "feature4": "高级分析",
+      "feature5": "优先支持",
+      "feature6": "特色职位列表"
+    },
+    "cancelSubscription": "取消订阅",
+    "cancel": {
+      "confirmTitle": "取消订阅",
+      "confirmMessage": "您确定要取消订阅吗？在计费周期结束时，您将降级为免费计划。",
+      "success": "订阅已成功取消。"
+    }
+  },
+  "reviewModeration": {
+    "search": { "placeholder": "按公司或用户搜索…" },
+    "filters": {
+      "allRatings": "全部评分",
+      "hidden": "已隐藏",
+      "flagged": "已标记"
+    },
+    "flags": {
+      "hidden": "已隐藏",
+      "flagged": "已标记",
+      "reasonLabel": "标记原因："
+    },
+    "actions": {
+      "hide": "隐藏",
+      "show": "显示"
+    },
+    "empty": { "title": "未找到评价" },
+    "success": {
+      "shown": "评价已成功显示",
+      "hidden": "评价已成功隐藏",
+      "deleted": "评价已成功删除"
+    },
+    "errors": {
+      "moderateFailed": "评价处理失败",
+      "deleteFailed": "删除评价失败"
+    },
+    "delete": {
+      "title": "删除评价",
+      "confirm": "确定要永久删除此评价吗？"
+    },
+    "modal": {
+      "titleHide": "隐藏评价",
+      "descriptionHide": "此评价将对公众隐藏。您可以添加备注以供记录。",
+      "notesLabelOptional": "管理员备注（可选）",
+      "notesPlaceholder": "为此次处理添加备注…",
+      "confirmHide": "隐藏评价"
+    }
+  },
+  "updateLocation": {
+    "heroTitle": "更新您的位置",
+    "heroSubtitle": "设置您的首选位置以获得更好的工作匹配",
+    "infoTitle": "为什么要更新位置？",
+    "privacyNote": "您的位置数据将保持私密和安全",
+    "infoText": "更新您的位置以寻找附近的工作。我们会为基于距离的筛选自动计算坐标。",
+    "labels": {
+      "address": "地址",
+      "city": "城市",
+      "state": "州/省",
+      "postcode": "邮政编码"
+    },
+    "placeholders": {
+      "address": "例如：123 Jalan Bukit Bintang",
+      "city": "例如：吉隆坡 (Kuala Lumpur)",
+      "state": "例如：联邦直辖区 (Wilayah Persekutuan)",
+      "postcode": "例如：55100"
+    },
+    "actions": {
+      "saveLocation": "保存位置"
+    },
+    "alerts": {
+      "validationMissingCityState": "请至少填写城市和州/省",
+      "successGeocoded": "位置已更新，坐标已计算！",
+      "successUpdated": "位置已成功更新",
+      "updateFailed": "更新位置失败"
+    },
+    "tipLabel": "提示：",
+    "tipText": "提供更精确的位置可帮助展示更匹配您所在区域的工作。"
+  },
+
+  "adminJobDetails": {
+    "loading": "正在加载职位详情…",
+    "status": {
+      "pending": "待审核",
+      "appealed": "申诉中",
+      "approved": "已批准",
+      "rejectedAI": "AI已拒绝",
+      "rejectedFinal": "最终拒绝"
+    },
+    "appeal": {
+      "title": "已提交申诉",
+      "submitted": "提交时间",
+      "explanationLabel": "雇主说明：",
+      "evidenceLabel": "证据文件：",
+      "filesAttached": "个文件已附加"
+    },
+    "company": { "verified": "已认证企业" },
+    "sections": {
+      "keyInfo": "关键信息",
+      "statistics": "统计",
+      "description": "职位描述",
+      "requirements": "要求",
+      "benefits": "福利",
+      "rejectionReason": "拒绝原因"
+    },
+    "info": {
+      "location": "地点",
+      "remoteTag": "可远程",
+      "jobType": "职位类型",
+      "salary": "薪资",
+      "workingHours": "工作时间",
+      "experience": "经验",
+      "startDate": "开始日期"
+    },
+    "stats": {
+      "views": "浏览",
+      "applications": "申请",
+      "posted": "发布"
+    },
+    "actions": {
+      "reject": "拒绝",
+      "approve": "批准",
+      "rejectAppeal": "拒绝申诉",
+      "approveAppeal": "批准申诉"
+    },
+    "prompts": {
+      "confirmApproveAppeal": "批准“{{title}}”的申诉？这将发布该职位。",
+      "confirmApproveJob": "批准“{{title}}”？"
+    },
+    "modal": {
+      "titleRejectAppeal": "拒绝申诉",
+      "titleRejectJob": "拒绝职位",
+      "subtitleRejectAppeal": "请提供拒绝此申诉的原因。这将成为最终决定。",
+      "subtitleRejectJob": "请提供拒绝此职位的原因",
+      "reasonPlaceholder": "请输入拒绝原因…",
+      "cancel": "取消"
+    },
+    "alerts": {
+      "success": {
+        "approveAppeal": "申诉已成功批准",
+        "approveJob": "职位已成功批准",
+        "rejectAppeal": "申诉已成功拒绝",
+        "rejectJob": "职位已成功拒绝"
+      }
+    },
+    "errors": {
+      "failApprove": "批准失败",
+      "failReject": "拒绝失败",
+      "loadFailed": "加载职位详情失败",
+      "missingReason": "请填写拒绝原因"
+    }
+  },
+  "adminCompanyDetails": {
+    "loading": "正在加载公司详情...",
+    "companyNotFound": "未找到公司",
+    "goBack": "返回",
+    "inactive": "未激活",
+    "employerTrustScore": "雇主信任分",
+    "verificationStatus": "验证状态",
+    "companyCompleteness": "公司完整度",
+    "jobPostingHistory": "职位发布历史",
+    "applicantEngagement": "申请者参与度",
+    "reviewScore": "评价分数",
+    "reportHistory": "举报历史",
+    "strengths": "优势",
+    "warnings": "警告",
+    "companyInformation": "公司信息",
+    "size": "规模",
+    "ownerInformation": "所有者信息",
+    "status": "状态",
+    "lastLogin": "上次登录",
+    "recentJobs": "最近职位（{{count}}）",
+    "applications": "申请",
+    "description": "描述",
+    "timeline": "时间线",
+    "registered": "注册时间",
+    "lastUpdated": "最后更新",
+    "accountAge": "账号年龄",
+    "days": "天",
+    "enableCompany": "启用公司",
+    "disableCompany": "禁用公司",
+    "thisWill": "这将禁用公司资料和职位发布。",
+    "disableEffect1": "公司将不会对求职者可见。",
+    "disableEffect2": "所有活跃职位将暂停。",
+    "disableEffect3": "我们会通过电子邮件通知雇主。",
+    "reasonOptional": "原因（可选）",
+    "cancel": "取消",
+    "disable": "禁用"
+  },
+  "employerVerification": {
+    "title": "验证与合法性",
+    "subtitle": "帮助我们验证您的企业以建立求职者信任",
+    "documentLabel": "营业注册文件",
+    "documentHint": "上传SSM注册或类似的企业文件",
+    "uploadDocument": "上传文件",
+    "contactPhone": "联系电话",
+    "businessEmail": "企业邮箱",
+    "autoFilled": "从您的登录邮箱自动填写",
+    "notUploaded": "未上传",
+    "success": {
+      "documentSelected": "文件已成功选择",
+      "documentUploaded": "文件上传成功！"
+    },
+    "warnings": {
+      "documentUploadFailed": "上传文件失败，但您可以稍后添加。"
+    },
+    "errors": {
+      "pickDocumentFailed": "选择文件失败",
+      "phoneRequired": "请提供联系电话",
+      "submitFailed": "提交验证详情失败"
+    }
+  },
+  "tabsLayout": {
+    "home": "首页",
+    "saved": "已保存",
+    "applied": "已申请",
+    "company": "公司",
+    "chat": "聊天",
+    "profile": "个人资料"
+  },
+  "employerLayout": {
+    "dashboard": "仪表板",
+    "jobPosts": "职位发布",
+    "applicants": "申请者",
+    "chat": "聊天",
+    "profile": "个人资料"
+  },
+  "userHiddenLayout": {
+    "reportJob": "举报职位",
+    "reportHistory": "举报历史",
+    "companyProfile": "公司资料",
+    "updateLocation": "更新位置"
+  },
+  "employerHiddenLayout": {
+    "editCompanyProfile": "编辑公司资料",
+    "applicantDetails": "申请者详情",
+    "jobPostDetails": "职位发布详情",
+    "editJobPost": "编辑职位发布",
+    "createJobPost": "创建职位发布",
+    "reportsForJobPost": "职位发布举报",
+    "reportDetails": "举报详情",
+    "appealsForJobPost": "职位发布申诉",
+    "approvalPending": "等待审批",
+    "reviewsManagement": "评论管理"
+  },
+  "adminLayout": {
+    "dashboard": "仪表板",
+    "jobs": "职位",
+    "users": "用户",
+    "reports": "报告",
+    "companies": "公司"
+  },
+  "adminHiddenLayout": {
+    "login": "登录",
+    "jobPostReview": "职位发布审核",
+    "jobDetails": "职位详情",
+    "appealsForJobPost": "职位发布申诉",
+    "appealDetails": "申诉详情",
+    "reviewModeration": "评论审核",
+    "companyApprovalDetails": "公司审批详情",
+    "companies": "公司",
+    "companyDetails": "公司详情"
+  },
+  "adminUsers": {
+    "title": "用户管理",
+    "subtitle": "管理用户及其帐户",
+    "searchPlaceholder": "搜索用户...",
+    "loading": "正在加载用户...",
+    "actions": {
+      "suspendUser": "暂停用户",
+      "activateUser": "激活用户",
+      "deleteUser": "删除用户",
+      "confirmSuspend": "您确定要暂停 {{name}} 吗？",
+      "confirmActivate": "您确定要激活 {{name}} 吗？",
+      "confirmDelete": "您确定要删除 {{name}} 吗？",
+      "cancel": "取消",
+      "confirm": "确认",
+      "success": "成功",
+      "error": "错误",
+      "updateFailed": "无法更新用户状态",
+      "suspend": "暂停",
+      "activate": "激活",
+      "delete": "删除"
+    },
+    "common": {
+      "joinedToday": "今天加入",
+      "joinedDaysAgo": "加入 {{days}} 天前"
+    },
+    "stats": {
+      "applications": "申请",
+      "jobsPosted": "发布职位",
+      "applicationsLabel": "申请",
+      "jobsLabel": "职位",
+      "profile": "个人资料"
+    },
+    "filters": {
+      "title": "按角色筛选",
+      "all": "全部",
+      "jobSeekers": "求职者",
+      "employers": "雇主"
+    },
+    "empty": {
+      "noJobSeekers": "未找到求职者",
+      "noEmployers": "未找到雇主",
+      "noCriteria": "没有用户符合您的标准"
+    }
+  },
+  "adminReports": {
+    "headerTitle": "举报与审核",
+    "headerSubtitle": "{{count}} 个举报等待审核",
+    "appeals": "申诉",
+    "searchPlaceholder": "搜索举报...",
+    "loading": "正在加载举报...",
+    "evidenceTitle": "证据",
+    "filters": {
+      "all": "全部",
+      "pending": "待处理",
+      "underReview": "审核中",
+      "resolved": "已解决",
+      "dismissed": "已驳回"
+    },
+    "status": {
+      "PENDING": "待处理",
+      "UNDER_REVIEW": "审核中",
+      "RESOLVED": "已解决",
+      "DISMISSED": "已驳回",
+      "PENDING_EMPLOYER_RESPONSE": "等待雇主回应"
+    },
+    "reportTypes": {
+      "FAKE_JOB": "虚假职位",
+      "MISLEADING_INFO": "误导性信息",
+      "INAPPROPRIATE_CONTENT": "不当内容",
+      "SCAM_SUSPECTED": "涉嫌诈骗",
+      "DISCRIMINATION": "歧视",
+      "DUPLICATE_POSTING": "重复发布",
+      "OTHERS": "其他"
+    },
+    "reportCard": {
+      "viewJob": "查看职位"
+    },
+    "empty": {
+      "title": "未找到举报",
+      "adjust": "尝试调整搜索筛选器"
+    },
+    "detailModal": {
+      "sections": {
+        "reviewInfo": "审核信息",
+        "type": "举报类型",
+        "status": "状态",
+        "reportedBy": "举报人",
+        "description": "描述",
+        "evidence": "证据",
+        "review": "审核"
+      },
+      "reportedBy": "举报人",
+      "description": "描述",
+      "reviewedBy": "审核人",
+      "admin": "管理员",
+      "reviewNotes": "审核备注",
+      "submitted": "已提交",
+      "viewJob": "查看职位公告"
+    },
+    "errors": {
+      "authRequiredTitle": "需要登录",
+      "authRequiredMessage": "请登录以查看举报",
+      "loadFailed": "无法加载举报"
+    },
+    "alerts": {
+      "error": "错误",
+      "ok": "确定"
     }
   }
 }

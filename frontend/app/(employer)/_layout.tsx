@@ -6,11 +6,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // ✅ Add this
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function EmployerLayout() {
   const insets = useSafeAreaInsets(); // ✅ Get safe area insets
   const URL = Constants.expoConfig?.extra?.API_BASE_URL;
   const [unreadCount, setUnreadCount] = useState(0);
+  const { t } = useLanguage();
 
   // Load unread count
   const loadUnreadCount = async () => {
@@ -52,8 +54,10 @@ export default function EmployerLayout() {
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
+          borderTopWidth: 1,
+          elevation: 8, // ✅ Shadow for Android
+          shadowColor: '#000', // Shadow for iOS
           // ✅ Height: Use safe area bottom inset
           height: Platform.select({
             ios: 85,
@@ -65,11 +69,6 @@ export default function EmployerLayout() {
             android: Math.max(insets.bottom, 10),
           }),
           paddingTop: 5,
-          elevation: 8, // ✅ Shadow for Android
-          shadowColor: '#000', // Shadow for iOS
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -92,7 +91,7 @@ export default function EmployerLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: t('employerLayout.dashboard'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -101,7 +100,7 @@ export default function EmployerLayout() {
       <Tabs.Screen
         name="job-posts"
         options={{
-          title: 'Job Posts',
+          title: t('employerLayout.jobPosts'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase" size={size} color={color} />
           ),
@@ -110,7 +109,7 @@ export default function EmployerLayout() {
       <Tabs.Screen
         name="applicants/index"
         options={{
-          title: 'Applicants',
+          title: t('employerLayout.applicants'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -119,7 +118,7 @@ export default function EmployerLayout() {
       <Tabs.Screen
         name="messages/index"
         options={{
-          title: 'Chat',
+          title: t('employerLayout.chat'),
           tabBarIcon: ({ color, focused, size }) => (
             <Ionicons
               name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
@@ -133,7 +132,7 @@ export default function EmployerLayout() {
       <Tabs.Screen
         name="profile/index"
         options={{
-          title: 'Profile',
+          title: t('employerLayout.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

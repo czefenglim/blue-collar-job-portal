@@ -1,0 +1,29 @@
+@startuml
+title Sequence: Edit Company Profile
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Company Controller" as API
+database "Database" as DB
+
+EMP -> UI: Navigate to Company Profile
+activate UI
+EMP -> UI: Click Edit Profile
+EMP -> UI: Update Name, Logo, Description
+
+alt Save Changes
+    EMP -> UI: Click Save
+    UI -> API: Update Company Details
+    activate API
+    API -> DB: Update Record
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Profile Updated
+    deactivate API
+else Discard Changes
+    EMP -> UI: Click Back Button
+    UI -> UI: Navigate back to Profile Screen
+end
+
+deactivate UI
+@enduml

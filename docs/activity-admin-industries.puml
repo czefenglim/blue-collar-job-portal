@@ -1,0 +1,38 @@
+@startuml UC_AdminIndustries
+skinparam conditionStyle diamond
+title Activity: Manage Industries
+|Admin|
+start
+:Access Industry Settings;
+|System|
+:Fetch Industry List;
+:Display Industry List;
+|Admin|
+if (Add New?) then (yes)
+  :Click Add New;
+  :Enter Industry Name;
+  :Click Save;
+  |System|
+  :Validate Name;
+  :Save to DB;
+  :Refresh List;
+elseif (Edit?)
+  :Select Industry;
+  :Click Edit;
+  :Update Name;
+  :Click Save;
+  |System|
+  :Validate Name;
+  :Update Record;
+  :Refresh List;
+elseif (Delete?)
+  :Select Industry;
+  :Click Delete;
+  :Confirm Delete;
+  |System|
+  :Delete Record;
+  :Refresh List;
+endif
+stop
+@enduml
+

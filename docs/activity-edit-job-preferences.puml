@@ -1,0 +1,48 @@
+@startuml UC_Edit_Job_Preferences
+title Activity: Edit Job Industry Preferences
+
+|Job Seeker|
+start
+:Navigate to Home Screen;
+:Click "Edit" in Job Preferences;
+
+|System|
+:Fetch Job Industries and User Preferred Industries;
+:Display Preferences Screen;
+
+|Job Seeker|
+repeat
+  :Update Preferred Industries;
+  
+  |System|
+  if (Selected > 3 Industries?) then (yes)
+    :Show "Limit Reached" Message;
+  else (no)
+    :Update Selection State;
+  endif
+  
+|Job Seeker|
+repeat while (Continue Editing?) is (yes)
+
+if (Save Changes?) then (yes)
+  :Click "Save Changes";
+  
+  |System|
+  if (Selection is Empty?) then (yes)
+    :Show "No Selection" Alert;
+  else (no)
+    :Save Preferences (PUT);
+    if (Update Successful?) then (yes)
+      :Show Success Message;
+      :Navigate back to Home Screen;
+    else (no)
+      :Show Error Message;
+    endif
+  endif
+else (no)
+  :Click "Cancel";
+  :Navigate back to Home Screen;
+endif
+
+stop
+@enduml

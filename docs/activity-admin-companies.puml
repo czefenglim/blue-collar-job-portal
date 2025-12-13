@@ -1,0 +1,36 @@
+@startuml UC_AdminCompanies
+skinparam conditionStyle diamond
+title Activity: Manage Companies
+|Admin|
+start
+:Access Company Management;
+|System|
+:Fetch Company List;
+:Display Company List;
+|Admin|
+:Filter by Verification Status;
+|System|
+:Update List;
+|Admin|
+:Select Company;
+|System|
+:Fetch Company Details;
+:Display Documents/Profile;
+|Admin|
+:Review Documents/Profile;
+if (Verify?) then (yes)
+  :Click Verify;
+  |System|
+  :Mark as Verified;
+  :Grant Verified Badge;
+  :Notify Company;
+else (Reject)
+  :Click Reject Verification;
+  :Enter Reason / Request Info;
+  |System|
+  :Update Status to Rejected;
+  :Notify Company;
+endif
+stop
+@enduml
+

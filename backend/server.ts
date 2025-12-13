@@ -18,12 +18,23 @@ import reviewRoutes from './routes/review';
 import companyRoutes from './routes/company';
 import jobAppealRoutes from './routes/jobAppeal';
 import chatRoutes from './routes/chat';
+import aiAssistantRoutes from './routes/aiAssistant';
+import subscriptionRoutes from './routes/subscription';
+import subscriptionPlanRoutes from './routes/subscriptionPlans';
 import './jobs/notificationJobs';
+import paymentRoutes from './routes/payment';
+import path from 'path';
 
 const app = express();
 
 // Tell Express to trust the reverse proxy (ngrok, Heroku, Nginx, etc.)
 app.set('trust proxy', 1);
+
+app.use(
+  '/api/subscription/webhook',
+  express.raw({ type: 'application/json' }),
+  subscriptionRoutes
+);
 
 // ⭐️ CRITICAL: Body parser MUST come first ⭐️
 app.use(express.json({ limit: '10mb' }));
@@ -41,7 +52,12 @@ app.use((req, res, next) => {
 });
 
 // Security middleware (AFTER body parser)
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // <- Allow inline JS
+  })
+);
+
 app.use(
   cors({
     origin: '*', // For development - restrict in production
@@ -74,11 +90,17 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/job-appeals', jobAppealRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/ai-assistant', aiAssistantRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/subscription-plans', subscriptionPlanRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 404 handler
 app.use((req, res) => {
@@ -105,3 +127,4 @@ app.use(
 );
 
 export default app;
+

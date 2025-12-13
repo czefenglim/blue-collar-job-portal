@@ -5,8 +5,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { AdminAuthRequest, AdminLoginRequest } from '../types/admin';
+import { SupportedLang, labelEnum } from '../utils/enumLabels';
 import { adminService } from '../services/adminService';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
 import { EmployerTrustScoreService } from '../services/employerTrustScoreService';
 import { getSignedDownloadUrl } from '../services/s3Service';
 
@@ -95,15 +97,25 @@ export class AdminController {
 
   async getUsers(req: AdminAuthRequest, res: Response) {
     try {
-      const { role, status, search, page = '1', limit = '20' } = req.query;
+      const {
+        role,
+        status,
+        search,
+        page = '1',
+        limit = '20',
+        lang = 'en',
+      } = req.query;
 
-      const result = await adminService.getUsers({
-        role: role as any,
-        status: status as any,
-        search: search as string,
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
-      });
+      const result = await adminService.getUsers(
+        {
+          role: role as any,
+          status: status as any,
+          search: search as string,
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+        },
+        (lang as any) || 'en'
+      );
 
       res.status(200).json({
         success: true,
@@ -121,7 +133,7 @@ export class AdminController {
 
   async updateUserStatus(req: AdminAuthRequest, res: Response) {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
       const { status, reason } = req.body;
 
       if (!status || !['ACTIVE', 'SUSPENDED', 'DELETED'].includes(status)) {
@@ -132,7 +144,7 @@ export class AdminController {
       }
 
       const user = await adminService.updateUserStatus(
-        parseInt(id),
+        parseInt(userId),
         status,
         reason
       );
@@ -153,9 +165,9 @@ export class AdminController {
 
   async deleteUser(req: AdminAuthRequest, res: Response) {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
 
-      const user = await adminService.deleteUser(parseInt(id));
+      const user = await adminService.deleteUser(parseInt(userId));
 
       res.status(200).json({
         success: true,
@@ -185,14 +197,23 @@ export class AdminController {
         limit = '20',
       } = req.query;
 
-      const result = await adminService.getJobs({
-        approvalStatus: approvalStatus as any,
-        isActive:
-          isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-        search: search as string,
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
-      });
+      const langParam = (req.query.lang as SupportedLang) || 'en';
+
+      const result = await adminService.getJobs(
+        {
+          approvalStatus: approvalStatus as any,
+          isActive:
+            isActive === 'true'
+              ? true
+              : isActive === 'false'
+              ? false
+              : undefined,
+          search: search as string,
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+        },
+        langParam
+      );
 
       res.status(200).json({
         success: true,
@@ -254,7 +275,9 @@ export class AdminController {
     try {
       const { id } = req.params;
 
-      const job = await adminService.getJobById(parseInt(id));
+      const langParam = (req.query.lang as SupportedLang) || 'en';
+
+      const job = await adminService.getJobById(parseInt(id), langParam);
 
       res.status(200).json({
         success: true,
@@ -355,7 +378,10 @@ export class AdminController {
         verificationStatus,
         sortBy = 'createdAt',
         sortOrder = 'desc',
+        lang = 'en',
       } = req.query;
+
+      const langParam = (lang as SupportedLang) || 'en';
 
       const pageNum = parseInt(page as string);
       const limitNum = parseInt(limit as string);
@@ -387,6 +413,11 @@ export class AdminController {
             select: {
               id: true,
               name: true,
+              slug: true,
+              name_en: true,
+              name_ms: true,
+              name_zh: true,
+              name_ta: true,
             },
           },
           user: {
@@ -411,22 +442,77 @@ export class AdminController {
         take: limitNum,
       });
 
-      // Calculate trust scores for all companies
+      // Localize industry name and verification status
+      const localizedCompanies = companies.map((company) => {
+        const c: any = { ...company };
+
+        if (c.industry) {
+          const nameLocalized =
+            langParam === 'ms'
+              ? c.industry.name_ms ?? c.industry.name
+              : langParam === 'zh'
+              ? c.industry.name_zh ?? c.industry.name
+              : langParam === 'ta'
+              ? c.industry.name_ta ?? c.industry.name
+              : c.industry.name_en ?? c.industry.name;
+          c.industry = {
+            id: c.industry.id,
+            slug: c.industry.slug,
+            name: nameLocalized,
+          };
+        }
+
+        c.verificationStatusLabel = labelEnum(
+          'CompanyVerificationStatus',
+          c.verificationStatus,
+          langParam
+        );
+
+        return c;
+      });
+
+      // Calculate trust scores for all companies and localize level label
       const companiesWithScores = await Promise.all(
-        companies.map(async (company) => {
+        localizedCompanies.map(async (company: any) => {
           try {
+            // Generate signed URL for logo if present
+            let signedLogo: string | null = null;
+            if (company.logo) {
+              try {
+                signedLogo = await getSignedDownloadUrl(company.logo, 3600);
+              } catch (err) {
+                signedLogo = null;
+              }
+            }
+
             const trustScore =
               await EmployerTrustScoreService.calculateTrustScore(company.id);
             return {
               ...company,
+              logo: signedLogo || null,
               trustScore: {
                 score: trustScore.score,
                 level: trustScore.level,
+                levelLabel: labelEnum(
+                  'TrustScoreLevel',
+                  trustScore.level,
+                  langParam
+                ),
               },
             };
           } catch (error) {
+            // Even if trust score fails, still return signed logo if any
+            let signedLogo: string | null = null;
+            if (company.logo) {
+              try {
+                signedLogo = await getSignedDownloadUrl(company.logo, 3600);
+              } catch (err) {
+                signedLogo = null;
+              }
+            }
             return {
               ...company,
+              logo: signedLogo || null,
               trustScore: null,
             };
           }
@@ -586,6 +672,7 @@ export class AdminController {
   async getCompanyDetails(req: AdminAuthRequest, res: Response) {
     try {
       const { companyId } = req.params;
+      const langParam = (req.query.lang as SupportedLang) || 'en';
 
       const company = await prisma.company.findUnique({
         where: { id: parseInt(companyId) },
@@ -596,6 +683,8 @@ export class AdminController {
               email: true,
               fullName: true,
               phoneNumber: true,
+              status: true,
+              lastLoginAt: true,
             },
           },
           industry: {
@@ -603,6 +692,10 @@ export class AdminController {
               id: true,
               name: true,
               slug: true,
+              name_en: true,
+              name_ms: true,
+              name_zh: true,
+              name_ta: true,
             },
           },
           verification: {
@@ -626,7 +719,7 @@ export class AdminController {
       }
 
       // ✅ Generate signed URLs
-      const companyData = { ...company };
+      const companyData: any = { ...company };
 
       if (companyData.logo) {
         try {
@@ -664,6 +757,65 @@ export class AdminController {
             error
           );
         }
+      }
+
+      // ✅ Localize industry name
+      if (companyData.industry) {
+        const localizedName =
+          langParam === 'ms'
+            ? companyData.industry.name_ms || companyData.industry.name
+            : langParam === 'zh'
+            ? companyData.industry.name_zh || companyData.industry.name
+            : langParam === 'ta'
+            ? companyData.industry.name_ta || companyData.industry.name
+            : companyData.industry.name;
+        companyData.industry = {
+          id: companyData.industry.id,
+          slug: companyData.industry.slug,
+          name: localizedName,
+        };
+      }
+
+      // ✅ Localize company description
+      if (
+        typeof companyData.description !== 'undefined' ||
+        typeof (companyData as any).description_ms !== 'undefined' ||
+        typeof (companyData as any).description_zh !== 'undefined' ||
+        typeof (companyData as any).description_ta !== 'undefined'
+      ) {
+        const localizedDescription =
+          langParam === 'ms'
+            ? (companyData as any).description_ms || companyData.description
+            : langParam === 'zh'
+            ? (companyData as any).description_zh || companyData.description
+            : langParam === 'ta'
+            ? (companyData as any).description_ta || companyData.description
+            : companyData.description;
+        companyData.description =
+          localizedDescription || companyData.description || null;
+      }
+
+      // ✅ Localize labels for verification status and company size
+      companyData.verificationStatusLabel = labelEnum(
+        'CompanyVerificationStatus',
+        companyData.verificationStatus,
+        langParam
+      );
+      if (companyData.companySize) {
+        companyData.companySizeLabel = labelEnum(
+          'CompanySize',
+          companyData.companySize,
+          langParam
+        );
+      }
+
+      // ✅ Add localized label for user status
+      if (companyData.user?.status) {
+        companyData.userStatusLabel = labelEnum(
+          'UserStatus',
+          companyData.user.status,
+          langParam
+        );
       }
 
       res.json({
@@ -754,6 +906,10 @@ export class AdminController {
           verifiedDate: new Date(),
           isVerified: true,
           verificationRemark: null,
+          verificationRemark_en: null,
+          verificationRemark_ms: null,
+          verificationRemark_ta: null,
+          verificationRemark_zh: null,
         },
       });
 
@@ -834,18 +990,34 @@ export class AdminController {
         data: {
           verificationStatus: 'REJECTED',
           verificationRemark: reason.trim(),
+          verificationRemark_en:
+            (await translateText(reason.trim(), 'en')) ?? undefined,
+          verificationRemark_ms:
+            (await translateText(reason.trim(), 'ms')) ?? undefined,
+          verificationRemark_ta:
+            (await translateText(reason.trim(), 'ta')) ?? undefined,
+          verificationRemark_zh:
+            (await translateText(reason.trim(), 'zh')) ?? undefined,
           isVerified: false,
         },
       });
 
       // Log admin action
+      const reasonText = reason.trim();
+      const r_ms = await translateText(reasonText, 'ms');
+      const r_ta = await translateText(reasonText, 'ta');
+      const r_zh = await translateText(reasonText, 'zh');
       await prisma.adminAction.create({
         data: {
           adminEmail,
           actionType: 'REJECT_COMPANY' as any,
           targetType: 'COMPANY',
           targetId: parseInt(companyId),
-          reason: reason.trim(),
+          reason: reasonText,
+          reason_en: (await translateText(reasonText, 'en')) ?? undefined,
+          reason_ms: r_ms ?? undefined,
+          reason_ta: r_ta ?? undefined,
+          reason_zh: r_zh ?? undefined,
           notes: `Rejected company: ${company.name}`,
         },
       });
@@ -929,10 +1101,33 @@ export class AdminController {
           suspendedAt: new Date(),
           suspendedBy: adminEmail,
           suspensionReason: reason || 'Company disabled by admin',
+          suspensionReason_en:
+            (await translateText(
+              reason || 'Company disabled by admin',
+              'en'
+            )) ?? undefined,
+          suspensionReason_ms:
+            (await translateText(
+              reason || 'Company disabled by admin',
+              'ms'
+            )) ?? undefined,
+          suspensionReason_ta:
+            (await translateText(
+              reason || 'Company disabled by admin',
+              'ta'
+            )) ?? undefined,
+          suspensionReason_zh:
+            (await translateText(
+              reason || 'Company disabled by admin',
+              'zh'
+            )) ?? undefined,
         },
       });
 
       // Log admin action
+      const r2_ms = await translateText(reason || 'Company disabled', 'ms');
+      const r2_ta = await translateText(reason || 'Company disabled', 'ta');
+      const r2_zh = await translateText(reason || 'Company disabled', 'zh');
       await prisma.adminAction.create({
         data: {
           adminEmail,
@@ -940,6 +1135,12 @@ export class AdminController {
           targetType: 'COMPANY',
           targetId: id,
           reason: reason || 'Company disabled',
+          reason_en:
+            (await translateText(reason || 'Company disabled', 'en')) ??
+            undefined,
+          reason_ms: r2_ms ?? undefined,
+          reason_ta: r2_ta ?? undefined,
+          reason_zh: r2_zh ?? undefined,
           notes: `Company verification status set to DISABLED. All jobs suspended.`,
         },
       });
@@ -953,6 +1154,26 @@ export class AdminController {
             suspendedAt: new Date(),
             suspendedBy: adminEmail,
             suspensionReason: reason || 'Company disabled by admin',
+            suspensionReason_en:
+              (await translateText(
+                reason || 'Company disabled by admin',
+                'en'
+              )) ?? undefined,
+            suspensionReason_ms:
+              (await translateText(
+                reason || 'Company disabled by admin',
+                'ms'
+              )) ?? undefined,
+            suspensionReason_ta:
+              (await translateText(
+                reason || 'Company disabled by admin',
+                'ta'
+              )) ?? undefined,
+            suspensionReason_zh:
+              (await translateText(
+                reason || 'Company disabled by admin',
+                'zh'
+              )) ?? undefined,
           },
         });
       }

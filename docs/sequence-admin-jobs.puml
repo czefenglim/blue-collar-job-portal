@@ -1,0 +1,78 @@
+@startuml
+title Sequence: Manage Job Posts
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+participant "Notification Service" as Notify
+
+Admin -> UI: Access Job Management
+activate UI
+UI -> API: Get Job List
+activate API
+API -> DB: Fetch Jobs
+activate DB
+DB --> API: Jobs Data
+deactivate DB
+API --> UI: Display Job List
+deactivate API
+
+Admin -> UI: Filter by Status (e.g., Pending)
+UI -> API: Get Job List (Filter: Pending)
+activate API
+API -> DB: Fetch Jobs (Pending)
+activate DB
+DB --> API: Pending Jobs
+deactivate DB
+API --> UI: Update Job List
+deactivate API
+
+Admin -> UI: Select Job
+UI -> API: Get Job Details
+activate API
+API -> DB: Fetch Job Details
+activate DB
+DB --> API: Job Details
+deactivate DB
+API --> UI: Display Job Details
+deactivate API
+
+alt Standard Flow: Approve Job
+    Admin -> UI: Click "Approve Job"
+    UI -> API: Update Job Status (Active)
+    activate API
+    API -> DB: Update Status to "Active"
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    
+    API -> Notify: Notify Employer (Job Approved)
+    activate Notify
+    Notify --> API: Notification Sent
+    deactivate Notify
+    
+    API --> UI: Job Published & Success Message
+    deactivate API
+
+else A1: Reject Job
+    Admin -> UI: Click "Reject Job"
+    UI --> Admin: Prompt for Rejection Reason
+    Admin -> UI: Enter Reason & Confirm
+    UI -> API: Update Job Status (Rejected, Reason)
+    activate API
+    API -> DB: Update Status to "Rejected" & Save Reason
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    
+    API -> Notify: Notify Employer (Job Rejected)
+    activate Notify
+    Notify --> API: Notification Sent
+    deactivate Notify
+    
+    API --> UI: Job Rejected & Success Message
+    deactivate API
+end
+
+deactivate UI
+@enduml

@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { geocodeAddress } from '../utils/geocoding';
-import { getSignedDownloadUrl } from '../services/s3Service';
+import {
+  getSignedDownloadUrl,
+  uploadResumeToS3,
+  deleteOldFile,
+} from '../services/s3Service';
+
+import multer from 'multer';
 
 const prisma = new PrismaClient();
 
@@ -78,6 +84,8 @@ export const getUserPreferences = async (req: AuthRequest, res: Response) => {
       if (lang === 'ms' && ind.name_ms) translatedName = ind.name_ms;
       else if (lang === 'zh' && ind.name_zh) translatedName = ind.name_zh;
       else if (lang === 'ta' && ind.name_ta) translatedName = ind.name_ta;
+      else if (lang === 'en' && (ind as any).name_en)
+        translatedName = (ind as any).name_en as string;
 
       return {
         id: ind.id,
@@ -238,6 +246,7 @@ export const markNotificationAsRead = async (
 
 export async function getUserProfile(req: AuthRequest, res: Response) {
   try {
+    const { lang = 'en' } = (req.query as any) || {}; // add language support
     const userId = req.user!.userId;
     const userProfile = await prisma.user.findUnique({
       where: { id: userId },
@@ -259,8 +268,8 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
             city: true,
             state: true,
             postcode: true,
-            latitude: true, // ADD THIS
-            longitude: true, // ADD THIS
+            latitude: true,
+            longitude: true,
             profilePicture: true,
             preferredSalaryMin: true,
             preferredSalaryMax: true,
@@ -270,7 +279,17 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
             maxTravelDistance: true,
             experienceYears: true,
             certifications: true,
-            resumeUrl: true,
+            resumeUrl_en: true,
+            resumeUrl_ms: true,
+            resumeUrl_zh: true,
+            resumeUrl_ta: true,
+            resumeUrl_uploaded: true,
+            uploadedLanguage: true,
+            uploadedFileName: true,
+            uploadedAt: true,
+            resumeSource: true,
+            resumeGeneratedAt: true,
+            resumeVersion: true,
             profileCompleted: true,
             industries: {
               select: {
@@ -278,6 +297,10 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
                   select: {
                     id: true,
                     name: true,
+                    name_en: true, // include translations
+                    name_ms: true, // include translations
+                    name_ta: true,
+                    name_zh: true,
                     slug: true,
                   },
                 },
@@ -289,6 +312,10 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
                   select: {
                     id: true,
                     name: true,
+                    name_en: true, // include translations
+                    name_ms: true, // include translations
+                    name_ta: true,
+                    name_zh: true,
                   },
                 },
               },
@@ -299,6 +326,10 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
                   select: {
                     id: true,
                     name: true,
+                    name_en: true, // include translations
+                    name_ms: true, // include translations
+                    name_ta: true,
+                    name_zh: true,
                   },
                 },
               },
@@ -329,6 +360,69 @@ export async function getUserProfile(req: AuthRequest, res: Response) {
           error
         );
       }
+    }
+
+    // ✅ Translate industries, skills, and languages names by requested lang
+    if (userProfile.profile) {
+      // Industries - Type assertion to fix TypeScript error
+      (userProfile.profile.industries as any) =
+        userProfile.profile.industries.map((ui: any) => {
+          const ind = ui.industry;
+          let translatedName = ind.name;
+          if (lang === 'ms' && ind.name_ms) translatedName = ind.name_ms;
+          else if (lang === 'zh' && ind.name_zh) translatedName = ind.name_zh;
+          else if (lang === 'ta' && ind.name_ta) translatedName = ind.name_ta;
+          else if (lang === 'en' && ind.name_en) translatedName = ind.name_en;
+          return {
+            industry: {
+              id: ind.id,
+              name: translatedName,
+              slug: ind.slug,
+            },
+          };
+        });
+
+      // Skills - Type assertion to fix TypeScript error
+      (userProfile.profile.skills as any) = userProfile.profile.skills.map(
+        (us: any) => {
+          const skill = us.skill;
+          let translatedName = skill.name;
+          if (lang === 'ms' && skill.name_ms) translatedName = skill.name_ms;
+          else if (lang === 'zh' && skill.name_zh)
+            translatedName = skill.name_zh;
+          else if (lang === 'ta' && skill.name_ta)
+            translatedName = skill.name_ta;
+          else if (lang === 'en' && skill.name_en)
+            translatedName = skill.name_en;
+          return {
+            skill: {
+              id: skill.id,
+              name: translatedName,
+            },
+          };
+        }
+      );
+
+      // Languages - Type assertion to fix TypeScript error
+      (userProfile.profile.languages as any) =
+        userProfile.profile.languages.map((ul: any) => {
+          const language = ul.language;
+          let translatedName = language.name;
+          if (lang === 'ms' && language.name_ms)
+            translatedName = language.name_ms;
+          else if (lang === 'zh' && language.name_zh)
+            translatedName = language.name_zh;
+          else if (lang === 'ta' && language.name_ta)
+            translatedName = language.name_ta;
+          else if (lang === 'en' && language.name_en)
+            translatedName = language.name_en;
+          return {
+            language: {
+              id: language.id,
+              name: translatedName,
+            },
+          };
+        });
     }
 
     res.json({
@@ -458,7 +552,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
         profileData.experienceYears = updateData.experienceYears;
       if (updateData.certifications)
         profileData.certifications = JSON.stringify(updateData.certifications);
-      if (updateData.resumeUrl) profileData.resumeUrl = updateData.resumeUrl;
+      // Resume URLs now managed by dedicated endpoints (AI and upload)
 
       // Update or create UserProfile
       const userProfile = await tx.userProfile.upsert({
@@ -545,6 +639,87 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Upload a user's resume PDF and store S3 key in profile
+export async function uploadResume(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const language = (req.body?.language as string) || 'en';
+
+    if (!file) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'No file uploaded' });
+    }
+
+    if (file.mimetype !== 'application/pdf') {
+      return res
+        .status(400)
+        .json({ success: false, error: 'Only PDF resumes are supported' });
+    }
+
+    const { key, resumeUrl } = await uploadResumeToS3(userId, file.buffer);
+
+    // Determine existing AI resumes and delete them if present
+    const existing = await prisma.userProfile.findUnique({ where: { userId } });
+    const aiKeys: string[] = [];
+    if (existing?.resumeUrl_en) aiKeys.push(existing.resumeUrl_en);
+    if (existing?.resumeUrl_ms) aiKeys.push(existing.resumeUrl_ms);
+    if (existing?.resumeUrl_zh) aiKeys.push(existing.resumeUrl_zh);
+    if (existing?.resumeUrl_ta) aiKeys.push(existing.resumeUrl_ta);
+
+    for (const aiKey of aiKeys) {
+      try {
+        await deleteOldFile(aiKey);
+      } catch (e) {
+        console.error('Failed to delete AI resume from S3:', aiKey, e);
+      }
+    }
+
+    // Save uploaded resume details
+    await prisma.userProfile.upsert({
+      where: { userId },
+      update: {
+        resumeUrl_uploaded: key,
+        uploadedFileName: file.originalname,
+        uploadedLanguage: language,
+        uploadedAt: new Date(),
+        // Clear any AI-generated resume references in DB
+        resumeUrl_en: null,
+        resumeUrl_ms: null,
+        resumeUrl_zh: null,
+        resumeUrl_ta: null,
+        resumeSource: 'USER_UPLOADED',
+      },
+      create: {
+        userId,
+        resumeUrl_uploaded: key,
+        uploadedFileName: file.originalname,
+        uploadedLanguage: language,
+        uploadedAt: new Date(),
+        // Ensure AI-generated resume references are not set on create
+        resumeUrl_en: null,
+        resumeUrl_ms: null,
+        resumeUrl_zh: null,
+        resumeUrl_ta: null,
+        resumeSource: 'USER_UPLOADED',
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Resume uploaded successfully',
+      data: { key, resumeUrl },
+    });
+  } catch (error) {
+    console.error('Upload resume error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to upload resume',
+    });
+  }
+}
+
 // Helper function to check profile completion
 async function checkProfileCompletion(
   userId: number,
@@ -573,7 +748,14 @@ async function checkProfileCompletion(
   if (profile.industries.length > 0) completedFields++;
   if (profile.skills.length > 0) completedFields++;
   if (profile.languages.length > 0) completedFields++;
-  if (profile.resumeUrl) completedFields++;
+  if (
+    profile.resumeUrl_en ||
+    profile.resumeUrl_ms ||
+    profile.resumeUrl_zh ||
+    profile.resumeUrl_ta ||
+    profile.resumeUrl_uploaded
+  )
+    completedFields++;
 
   return completedFields;
 }

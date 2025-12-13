@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams, Href } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -52,6 +53,12 @@ interface ApplicantDetail {
       city?: string;
       state?: string;
       profilePicture?: string;
+      // Language-specific resume keys and uploaded resume key
+      resumeUrl_en?: string | null;
+      resumeUrl_ms?: string | null;
+      resumeUrl_zh?: string | null;
+      resumeUrl_ta?: string | null;
+      resumeUrl_uploaded?: string | null;
     };
   };
   job: {
@@ -67,6 +74,7 @@ export default function ApplicantDetailPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const applicationId = params.id as string;
+  const { t, currentLanguage } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [applicant, setApplicant] = useState<ApplicantDetail | null>(null);
@@ -76,9 +84,10 @@ export default function ApplicantDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Re-fetch when application id or language changes
     fetchApplicantDetail();
     fetchQualityScore();
-  }, [applicationId]);
+  }, [applicationId, currentLanguage]);
 
   const fetchApplicantDetail = async () => {
     try {
@@ -91,7 +100,7 @@ export default function ApplicantDetailPage() {
       }
 
       const response = await fetch(
-        `${URL}/api/employer/applicants/${applicationId}`,
+        `${URL}/api/employer/applicants/${applicationId}?lang=${currentLanguage}`,
         {
           method: 'GET',
           headers: {
@@ -108,6 +117,60 @@ export default function ApplicantDetailPage() {
       }
 
       setApplicant(data.data);
+      // Resolve resume URL based on language and source
+      try {
+        const p = data.data?.user?.profile as any;
+        let resumeKey: string | null = null;
+        if (p) {
+          const hasLangKeys = Boolean(
+            p.resumeUrl_en || p.resumeUrl_ms || p.resumeUrl_zh || p.resumeUrl_ta
+          );
+          if (hasLangKeys) {
+            // Use the employer-selected language strictly
+            if (currentLanguage === 'ms' && p.resumeUrl_ms)
+              resumeKey = p.resumeUrl_ms;
+            else if (currentLanguage === 'zh' && p.resumeUrl_zh)
+              resumeKey = p.resumeUrl_zh;
+            else if (currentLanguage === 'ta' && p.resumeUrl_ta)
+              resumeKey = p.resumeUrl_ta;
+            else if (currentLanguage === 'en' && p.resumeUrl_en)
+              resumeKey = p.resumeUrl_en;
+            else resumeKey = null; // no fallback to other languages
+          } else if (p.resumeUrl_uploaded) {
+            resumeKey = p.resumeUrl_uploaded;
+          }
+        }
+
+        if (resumeKey) {
+          const signedResp = await fetch(
+            `${URL}/api/onboarding/resume/${encodeURIComponent(resumeKey)}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+          const signedData = await signedResp.json();
+          if (signedResp.ok && signedData?.resumeUrl) {
+            setApplicant((prev) =>
+              prev ? { ...prev, resumeUrl: signedData.resumeUrl } : prev
+            );
+          } else {
+            setApplicant((prev) =>
+              prev ? { ...prev, resumeUrl: undefined } : prev
+            );
+          }
+        } else {
+          setApplicant((prev) =>
+            prev ? { ...prev, resumeUrl: undefined } : prev
+          );
+        }
+      } catch (e) {
+        // If resolution fails, keep whatever backend provided
+        console.warn('Failed to resolve language-specific resume URL:', e);
+      }
       setError(null);
     } catch (error: any) {
       console.error('Error fetching applicant:', error);
@@ -125,7 +188,7 @@ export default function ApplicantDetailPage() {
       if (!token) return;
 
       const response = await fetch(
-        `${URL}/api/jobs/applicants/${applicationId}/quality-score`,
+        `${URL}/api/jobs/applicants/${applicationId}/quality-score?lang=${currentLanguage}`,
         {
           method: 'GET',
           headers: {
@@ -151,12 +214,20 @@ export default function ApplicantDetailPage() {
     if (!applicant) return;
 
     Alert.alert(
-      action === 'shortlist' ? 'Shortlist Applicant' : 'Reject Applicant',
-      `Are you sure you want to ${action} ${applicant.user.fullName}?`,
+      action === 'shortlist'
+        ? t('employerApplicantDetails.alerts.shortlistTitle')
+        : t('employerApplicantDetails.alerts.rejectTitle'),
+      action === 'shortlist'
+        ? t('employerApplicantDetails.alerts.confirmShortlist', {
+            name: applicant.user.fullName,
+          })
+        : t('employerApplicantDetails.alerts.confirmReject', {
+            name: applicant.user.fullName,
+          }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('common.confirm'),
           style: action === 'reject' ? 'destructive' : 'default',
           onPress: async () => {
             try {
@@ -183,13 +254,13 @@ export default function ApplicantDetailPage() {
               }
 
               Alert.alert(
-                'Success',
-                `Applicant ${
-                  action === 'shortlist' ? 'shortlisted' : 'rejected'
-                } successfully`,
+                t('common.success'),
+                action === 'shortlist'
+                  ? t('employerApplicantDetails.alerts.shortlistedSuccess')
+                  : t('employerApplicantDetails.alerts.rejectedSuccess'),
                 [
                   {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: () => {
                       fetchApplicantDetail();
                     },
@@ -199,8 +270,11 @@ export default function ApplicantDetailPage() {
             } catch (error: any) {
               console.error(`Error ${action}ing applicant:`, error);
               Alert.alert(
-                'Error',
-                error.message || `Failed to ${action} applicant`
+                t('common.error'),
+                error.message ||
+                  (action === 'shortlist'
+                    ? t('employerApplicantDetails.errors.shortlistFailed')
+                    : t('employerApplicantDetails.errors.rejectFailed'))
               );
             } finally {
               setActionLoading(false);
@@ -213,11 +287,17 @@ export default function ApplicantDetailPage() {
 
   const handleOpenResume = () => {
     if (applicant?.resumeUrl) {
-      Linking.openURL(applicant.resumeUrl).catch((err) =>
-        Alert.alert('Error', 'Could not open resume link')
+      Linking.openURL(applicant.resumeUrl).catch(() =>
+        Alert.alert(
+          t('common.error'),
+          t('employerApplicantDetails.errors.resumeOpenFailed')
+        )
       );
     } else {
-      Alert.alert('No Resume', 'This applicant has not uploaded a resume');
+      Alert.alert(
+        t('employerApplicantDetails.errors.noResumeTitle'),
+        t('employerApplicantDetails.errors.noResumeMessage')
+      );
     }
   };
 
@@ -230,8 +310,8 @@ export default function ApplicantDetailPage() {
       Linking.openURL(`tel:${applicant.user.phoneNumber}`);
     } else {
       Alert.alert(
-        'No Phone Number',
-        'This applicant has not provided a phone number'
+        t('employerApplicantDetails.errors.noPhoneTitle'),
+        t('employerApplicantDetails.errors.noPhoneMessage')
       );
     }
   };
@@ -272,6 +352,17 @@ export default function ApplicantDetailPage() {
         return 'star-half';
       case 'LOW':
         return 'star-outline';
+    }
+  };
+
+  const getQualityLevelLabel = (quality: 'HIGH' | 'MEDIUM' | 'LOW') => {
+    switch (quality) {
+      case 'HIGH':
+        return t('employerApplicantDetails.quality.level.high');
+      case 'MEDIUM':
+        return t('employerApplicantDetails.quality.level.medium');
+      case 'LOW':
+        return t('employerApplicantDetails.quality.level.low');
     }
   };
 
@@ -384,7 +475,9 @@ export default function ApplicantDetailPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading applicant details...</Text>
+          <Text style={styles.loadingText}>
+            {t('employerApplicantDetails.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -395,12 +488,14 @@ export default function ApplicantDetailPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorText}>{error || 'Applicant not found'}</Text>
+          <Text style={styles.errorText}>
+            {error || t('employerApplicantDetails.errors.notFound')}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.retryButtonText}>Go Back</Text>
+            <Text style={styles.retryButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -451,7 +546,7 @@ export default function ApplicantDetailPage() {
                   { color: getStatusColor(applicant.status) },
                 ]}
               >
-                {applicant.status}
+                {t(`employerApplicantDetails.statuses.${applicant.status}`)}
               </Text>
             </View>
 
@@ -477,49 +572,59 @@ export default function ApplicantDetailPage() {
                     { color: getQualityColor(qualityScore.quality) },
                   ]}
                 >
-                  {qualityScore.quality} QUALITY
+                  {getQualityLevelLabel(qualityScore.quality)}{' '}
+                  {t('employerApplicantDetails.quality.label')}
                 </Text>
               </View>
             )}
           </View>
 
-          {/* Quick Contact */}
+          {/* Quick Contact Row */}
           <View style={styles.quickContactRow}>
-            {/* ✅ NEW: Chat Button - First position */}
+            {/* Chat */}
             <TouchableOpacity
               style={[styles.quickContactButton, styles.chatContactButton]}
               onPress={handleStartChat}
             >
               <Ionicons name="chatbubble" size={20} color="#10B981" />
               <Text style={[styles.quickContactText, { color: '#10B981' }]}>
-                Chat
+                {t('employerApplicantDetails.actions.chat')}
               </Text>
             </TouchableOpacity>
 
+            {/* Email */}
             <TouchableOpacity
               style={styles.quickContactButton}
               onPress={() => handleContact('email')}
             >
               <Ionicons name="mail" size={20} color="#1E3A8A" />
-              <Text style={styles.quickContactText}>Email</Text>
+              <Text style={styles.quickContactText}>
+                {t('employerApplicantDetails.actions.email')}
+              </Text>
             </TouchableOpacity>
 
+            {/* Phone */}
             {applicant.user.phoneNumber && (
               <TouchableOpacity
                 style={styles.quickContactButton}
                 onPress={() => handleContact('phone')}
               >
                 <Ionicons name="call" size={20} color="#1E3A8A" />
-                <Text style={styles.quickContactText}>Call</Text>
+                <Text style={styles.quickContactText}>
+                  {t('employerApplicantDetails.actions.call')}
+                </Text>
               </TouchableOpacity>
             )}
 
+            {/* Resume */}
             <TouchableOpacity
               style={styles.quickContactButton}
               onPress={handleOpenResume}
             >
               <Ionicons name="document-text" size={20} color="#1E3A8A" />
-              <Text style={styles.quickContactText}>Resume</Text>
+              <Text style={styles.quickContactText}>
+                {t('employerApplicantDetails.actions.resume')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -530,7 +635,7 @@ export default function ApplicantDetailPage() {
             <View style={styles.qualitySectionHeader}>
               <Ionicons name="analytics" size={24} color="#1E3A8A" />
               <Text style={styles.qualitySectionTitle}>
-                Quality Score Analysis
+                {t('employerApplicantDetails.sections.qualityTitle')}
               </Text>
             </View>
 
@@ -548,34 +653,36 @@ export default function ApplicantDetailPage() {
                   { color: getQualityColor(qualityScore.quality) },
                 ]}
               >
-                {qualityScore.quality} QUALITY CANDIDATE
+                {t('employerApplicantDetails.quality.qualityCandidateLabel', {
+                  quality: getQualityLevelLabel(qualityScore.quality),
+                })}
               </Text>
             </View>
 
             {/* Score Breakdown */}
             <View style={styles.scoreBreakdown}>
               {renderScoreBar(
-                'Profile Completeness',
+                t('employerApplicantDetails.quality.profileCompleteness'),
                 qualityScore.breakdown.profileCompleteness,
                 25
               )}
               {renderScoreBar(
-                'Experience Match',
+                t('employerApplicantDetails.quality.experienceMatch'),
                 qualityScore.breakdown.experienceMatch,
                 25
               )}
               {renderScoreBar(
-                'Skills Match',
+                t('employerApplicantDetails.quality.skillsMatch'),
                 qualityScore.breakdown.skillsMatch,
                 25
               )}
               {renderScoreBar(
-                'Location Match',
+                t('employerApplicantDetails.quality.locationMatch'),
                 qualityScore.breakdown.locationMatch,
                 15
               )}
               {renderScoreBar(
-                'Additional Factors',
+                t('employerApplicantDetails.quality.additionalFactors'),
                 qualityScore.breakdown.availabilityScore,
                 10
               )}
@@ -584,7 +691,9 @@ export default function ApplicantDetailPage() {
             {/* Strengths */}
             {qualityScore.strengths.length > 0 && (
               <View style={styles.strengthsContainer}>
-                <Text style={styles.strengthsTitle}>✅ Strengths</Text>
+                <Text style={styles.strengthsTitle}>
+                  ✅ {t('employerApplicantDetails.quality.strengthsTitle')}
+                </Text>
                 {qualityScore.strengths.map((strength, index) => (
                   <View key={index} style={styles.strengthItem}>
                     <Ionicons
@@ -602,7 +711,7 @@ export default function ApplicantDetailPage() {
             {qualityScore.improvements.length > 0 && (
               <View style={styles.improvementsContainer}>
                 <Text style={styles.improvementsTitle}>
-                  💡 Areas for Improvement
+                  💡 {t('employerApplicantDetails.quality.improvementsTitle')}
                 </Text>
                 {qualityScore.improvements.map((improvement, index) => (
                   <View key={index} style={styles.improvementItem}>
@@ -623,20 +732,28 @@ export default function ApplicantDetailPage() {
           <View style={styles.qualityLoading}>
             <ActivityIndicator size="small" color="#1E3A8A" />
             <Text style={styles.qualityLoadingText}>
-              Analyzing applicant quality...
+              {t('employerApplicantDetails.quality.analyzing')}
             </Text>
           </View>
         )}
 
         {/* Applied Job */}
         {renderSection(
-          'Applied Position',
+          t('employerApplicantDetails.sections.appliedPosition'),
           <View>
-            <Text style={styles.jobTitle}>{applicant.job.title}</Text>
+            <Text style={styles.jobTitle}>
+              {(applicant.job as any)[`title_${currentLanguage}`] ||
+                applicant.job.title}
+            </Text>
+
             <View style={styles.jobMeta}>
               <Ionicons name="briefcase-outline" size={16} color="#64748B" />
-              <Text style={styles.jobMetaText}>{applicant.job.jobType}</Text>
+              <Text style={styles.jobMetaText}>
+                {(applicant.job as any).jobTypeLabel ||
+                  applicant.job.jobType.replace('_', ' ')}
+              </Text>
             </View>
+
             <View style={styles.jobMeta}>
               <Ionicons name="location-outline" size={16} color="#64748B" />
               <Text style={styles.jobMetaText}>
@@ -646,14 +763,15 @@ export default function ApplicantDetailPage() {
           </View>
         )}
 
-        {/* Contact Information */}
+        {/* Contact Info */}
         {renderSection(
-          'Contact Information',
+          t('employerApplicantDetails.sections.contactInformation'),
           <View>
             <View style={styles.infoRow}>
               <Ionicons name="mail-outline" size={20} color="#64748B" />
               <Text style={styles.infoText}>{applicant.user.email}</Text>
             </View>
+
             {applicant.user.phoneNumber && (
               <View style={styles.infoRow}>
                 <Ionicons name="call-outline" size={20} color="#64748B" />
@@ -662,6 +780,7 @@ export default function ApplicantDetailPage() {
                 </Text>
               </View>
             )}
+
             {applicant.user.profile && (
               <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={20} color="#64748B" />
@@ -677,11 +796,13 @@ export default function ApplicantDetailPage() {
         {/* Experience */}
         {applicant.user.profile &&
           renderSection(
-            'Experience',
+            t('employerApplicantDetails.sections.experience'),
             <View style={styles.infoRow}>
               <Ionicons name="briefcase-outline" size={20} color="#64748B" />
               <Text style={styles.infoText}>
-                {applicant.user.profile.experienceYears} years of experience
+                {t('employerApplicantDetails.experienceYears', {
+                  years: applicant.user.profile.experienceYears,
+                })}
               </Text>
             </View>
           )}
@@ -689,30 +810,35 @@ export default function ApplicantDetailPage() {
         {/* Cover Letter */}
         {applicant.coverLetter &&
           renderSection(
-            'Cover Letter',
+            t('employerApplicantDetails.sections.coverLetter'),
             <Text style={styles.coverLetterText}>{applicant.coverLetter}</Text>
           )}
 
         {/* Timeline */}
         {renderSection(
-          'Timeline',
+          t('employerApplicantDetails.sections.timeline'),
           <View>
             <View style={styles.timelineItem}>
               <View style={styles.timelineDot} />
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Applied</Text>
+                <Text style={styles.timelineTitle}>
+                  {t('employerApplicantDetails.sections.applied')}
+                </Text>
                 <Text style={styles.timelineDate}>
                   {new Date(applicant.appliedAt).toLocaleString()}
                 </Text>
               </View>
             </View>
+
             {applicant.updatedAt !== applicant.appliedAt && (
               <View style={styles.timelineItem}>
                 <View
                   style={[styles.timelineDot, { backgroundColor: '#8B5CF6' }]}
                 />
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Last Updated</Text>
+                  <Text style={styles.timelineTitle}>
+                    {t('employerApplicantDetails.sections.lastUpdated')}
+                  </Text>
                   <Text style={styles.timelineDate}>
                     {new Date(applicant.updatedAt).toLocaleString()}
                   </Text>
@@ -739,7 +865,9 @@ export default function ApplicantDetailPage() {
               ) : (
                 <>
                   <Ionicons name="star" size={20} color="#FFFFFF" />
-                  <Text style={styles.actionButtonText}>Shortlist</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t('employerApplicantDetails.actions.shortlist')}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -770,8 +898,8 @@ export default function ApplicantDetailPage() {
                 />
                 <Text style={styles.actionButtonText}>
                   {applicant.status === 'SHORTLISTED'
-                    ? 'Shortlisted'
-                    : 'Reject'}
+                    ? t('employerApplicantDetails.actions.shortlisted')
+                    : t('employerApplicantDetails.actions.reject')}
                 </Text>
               </>
             )}
@@ -1156,5 +1284,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     borderWidth: 1,
     borderColor: '#10B981',
+  },
+  scoreBreakDownContainer: {
+    marginBottom: 16,
   },
 });

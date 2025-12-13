@@ -57,6 +57,57 @@ export async function getResumeSignedUrl(key: string) {
 }
 
 // ==========================================
+// NEW HELPERS FOR MULTI-LANGUAGE RESUMES
+// ==========================================
+
+/**
+ * Upload a language-specific resume buffer to S3.
+ * Stores under folder like `resumes_en/`, `resumes_ms/`, etc.
+ */
+export async function uploadResumeBufferToS3(
+  userId: number,
+  lang: 'en' | 'ms' | 'zh' | 'ta',
+  pdfBuffer: Buffer
+): Promise<{ key: string; url: string }> {
+  const timestamp = Date.now();
+  const key = `resumes_${lang}/${userId}_${timestamp}.pdf`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+      Metadata: {
+        uploadedAt: new Date().toISOString(),
+        userId: String(userId),
+        lang,
+      },
+    })
+  );
+
+  return {
+    key,
+    url: `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`,
+  };
+}
+
+/**
+ * Retrieve an S3 object buffer by key.
+ */
+export async function getObjectBufferByKey(key: string): Promise<Buffer> {
+  const command = new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key });
+  const response = await s3.send(command);
+  // response.Body is a stream
+  const stream = response.Body as any;
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+// ==========================================
 // NEW REPORT EVIDENCE FUNCTIONS
 // ==========================================
 

@@ -5,7 +5,6 @@ import {
   View,
   Text,
   FlatList,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -15,17 +14,25 @@ import {
   Alert,
   ActionSheetIOS,
   Linking,
+  Animated,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { format } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import useChat from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useSafeAreaInsets,
+  SafeAreaView,
+} from 'react-native-safe-area-context';
+import VoiceTextInput from '@/components/VoiceTextInput';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -61,7 +68,7 @@ interface User {
 }
 
 const ChatScreen: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { id, name, jobTitle } = params;
@@ -80,9 +87,14 @@ const ChatScreen: React.FC = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const insets = useSafeAreaInsets();
 
   const flatListRef = useRef<FlatList>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const inputRef = useRef<any>(null);
+
+  const SCROLL_THRESHOLD = 100;
 
   useEffect(() => {
     if (!id || isNaN(conversationId)) {
@@ -127,7 +139,7 @@ const ChatScreen: React.FC = () => {
         });
 
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          scrollToBottom();
         }, 100);
 
         if (message.senderId !== user?.id && conversationId) {
@@ -210,11 +222,8 @@ const ChatScreen: React.FC = () => {
     console.error('Socket error:', error);
   }, []);
 
-  // Add this callback BEFORE the useChat hook
   const handleConversationUpdated = useCallback((data: any) => {
     console.log('📝 Conversation updated in ChatScreen:', data);
-    // This event is mainly for the conversation list, not the chat screen
-    // But we can use it to show a visual indicator if needed
   }, []);
 
   const {
@@ -232,7 +241,7 @@ const ChatScreen: React.FC = () => {
     onMessageDeleted: userLoaded ? handleMessageDeleted : undefined,
     onMessagesRead: userLoaded ? handleMessagesRead : undefined,
     onTypingChange: userLoaded ? handleTypingChange : undefined,
-    onConversationUpdated: userLoaded ? handleConversationUpdated : undefined, // ✅ ADD THIS
+    onConversationUpdated: userLoaded ? handleConversationUpdated : undefined,
     onError: handleSocketError,
   });
 
@@ -319,7 +328,6 @@ const ChatScreen: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      // Also emit over socket so the other participant updates immediately
       if (userLoaded) {
         try {
           markAsRead(conversationId);
@@ -338,13 +346,11 @@ const ChatScreen: React.FC = () => {
     const isEmployer = user?.role === 'EMPLOYER';
 
     if (isEmployer) {
-      // Employer sees job seeker's info
       return {
         name: conversation.jobSeeker.fullName,
         avatar: conversation.jobSeeker.profile?.profilePicture,
       };
     } else {
-      // Job seeker sees company info
       return {
         name:
           conversation.employer.company?.name || conversation.employer.fullName,
@@ -359,6 +365,23 @@ const ChatScreen: React.FC = () => {
       fetchMessages();
     }
   }, [conversationId, userLoaded, user, token]);
+
+  useEffect(() => {
+    const keyboardSubscription = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        if (messages.length > 0) {
+          setTimeout(() => {
+            scrollToBottom();
+          }, 100);
+        }
+      }
+    );
+
+    return () => {
+      keyboardSubscription.remove();
+    };
+  }, [messages]);
 
   const handleSend = async () => {
     if (!inputText.trim() && !editingMessage) return;
@@ -398,11 +421,8 @@ const ChatScreen: React.FC = () => {
       setSending(true);
       try {
         if (isConnected) {
-          // Prefer socket for real-time delivery and read propagation
           socketSendMessage(conversationId, text);
-          // Rely on 'new_message' event to update both participants
         } else {
-          // Fallback to API if socket unavailable
           const response = await fetch(
             `${URL}/api/chat/conversations/${conversationId}/messages`,
             {
@@ -419,7 +439,7 @@ const ChatScreen: React.FC = () => {
             const data = await response.json();
             if (data.success && data.data) {
               setMessages((prev) => [...prev, data.data]);
-              flatListRef.current?.scrollToEnd({ animated: true });
+              scrollToBottom();
             }
           }
         }
@@ -545,7 +565,7 @@ const ChatScreen: React.FC = () => {
         const data = await response.json();
         if (data.success && data.data) {
           setMessages((prev) => [...prev, data.data]);
-          flatListRef.current?.scrollToEnd({ animated: true });
+          scrollToBottom();
         }
       }
     } catch (error) {
@@ -612,6 +632,7 @@ const ChatScreen: React.FC = () => {
   const handleEditMessage = (message: Message) => {
     setEditingMessage(message);
     setInputText(message.content || '');
+    inputRef.current?.focus();
   };
 
   const cancelEditing = () => {
@@ -663,7 +684,18 @@ const ChatScreen: React.FC = () => {
   };
 
   const formatMessageTime = (dateString: string) => {
-    return format(new Date(dateString), 'HH:mm');
+    return format(new Date(dateString), 'h:mm a');
+  };
+
+  const formatDateSeparator = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) {
+      return t('chat.today');
+    } else if (isYesterday(date)) {
+      return t('chat.yesterday');
+    } else {
+      return format(date, 'MMMM d, yyyy');
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -676,6 +708,28 @@ const ChatScreen: React.FC = () => {
     Linking.openURL(url);
   };
 
+  const scrollToBottom = () => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      listener: (event) => {
+        const offsetY = (event as any).nativeEvent.contentOffset.y;
+        const contentHeight = (event as any).nativeEvent.contentSize.height;
+        const layoutHeight = (event as any).nativeEvent.layoutMeasurement
+          .height;
+
+        // Show scroll button if scrolled up more than threshold
+        setShowScrollButton(
+          offsetY < contentHeight - layoutHeight - SCROLL_THRESHOLD
+        );
+      },
+      useNativeDriver: false,
+    }
+  );
+
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwnMessage = item.senderId === user?.id;
     const showDate =
@@ -687,9 +741,14 @@ const ChatScreen: React.FC = () => {
       <View>
         {showDate && (
           <View style={styles.dateSeparator}>
-            <Text style={styles.dateText}>
-              {format(new Date(item.createdAt), 'MMMM d, yyyy')}
-            </Text>
+            <LinearGradient
+              colors={['#e0e7ff', '#c7d2fe']}
+              style={styles.dateSeparatorGradient}
+            >
+              <Text style={styles.dateText}>
+                {formatDateSeparator(item.createdAt)}
+              </Text>
+            </LinearGradient>
           </View>
         )}
 
@@ -701,6 +760,12 @@ const ChatScreen: React.FC = () => {
             isOwnMessage ? styles.ownMessage : styles.otherMessage,
           ]}
         >
+          {!isOwnMessage &&
+            index > 0 &&
+            messages[index - 1].senderId !== item.senderId && (
+              <Text style={styles.senderName}>{item.sender.fullName}</Text>
+            )}
+
           {item.isDeleted ? (
             <View style={[styles.messageBubble, styles.deletedBubble]}>
               <Ionicons name="ban-outline" size={14} color="#9ca3af" />
@@ -711,17 +776,23 @@ const ChatScreen: React.FC = () => {
               style={[
                 styles.messageBubble,
                 isOwnMessage ? styles.ownBubble : styles.otherBubble,
+                isOwnMessage && styles.ownBubbleShadow,
+                !isOwnMessage && styles.otherBubbleShadow,
               ]}
             >
               {item.messageType === 'IMAGE' && item.attachmentUrl && (
                 <TouchableOpacity
                   onPress={() => openAttachment(item.attachmentUrl!)}
+                  style={styles.imageContainer}
                 >
                   <Image
                     source={{ uri: item.attachmentUrl }}
                     style={styles.imageAttachment}
                     resizeMode="cover"
                   />
+                  <View style={styles.imageOverlay}>
+                    <Ionicons name="expand" size={20} color="#fff" />
+                  </View>
                 </TouchableOpacity>
               )}
 
@@ -730,7 +801,12 @@ const ChatScreen: React.FC = () => {
                   style={styles.fileAttachment}
                   onPress={() => openAttachment(item.attachmentUrl!)}
                 >
-                  <Ionicons name="document-outline" size={24} color="#2563eb" />
+                  <LinearGradient
+                    colors={['#6366f1', '#4f46e5']}
+                    style={styles.fileIconContainer}
+                  >
+                    <Ionicons name="document-outline" size={24} color="#fff" />
+                  </LinearGradient>
                   <View style={styles.fileInfo}>
                     <Text style={styles.fileName} numberOfLines={1}>
                       {item.attachmentName || 'File'}
@@ -741,6 +817,7 @@ const ChatScreen: React.FC = () => {
                       </Text>
                     )}
                   </View>
+                  <Ionicons name="download-outline" size={20} color="#9ca3af" />
                 </TouchableOpacity>
               )}
 
@@ -775,7 +852,7 @@ const ChatScreen: React.FC = () => {
                   <Ionicons
                     name={item.isRead ? 'checkmark-done' : 'checkmark'}
                     size={16}
-                    color={item.isRead ? '#EAB308' : '#9ca3af'}
+                    color={item.isRead ? '#10b981' : '#9ca3af'}
                     style={styles.readIcon}
                   />
                 )}
@@ -799,10 +876,11 @@ const ChatScreen: React.FC = () => {
             styles.typingBubble,
           ]}
         >
+          <Text style={styles.typingText}>{t('chat.typing')}</Text>
           <View style={styles.typingDots}>
-            <View style={[styles.dot, styles.dot1]} />
-            <View style={[styles.dot, styles.dot2]} />
-            <View style={[styles.dot, styles.dot3]} />
+            <Animated.View style={[styles.dot, styles.dot1]} />
+            <Animated.View style={[styles.dot, styles.dot2]} />
+            <Animated.View style={[styles.dot, styles.dot3]} />
           </View>
         </View>
       </View>
@@ -811,189 +889,331 @@ const ChatScreen: React.FC = () => {
 
   if (!userLoaded || loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
-      </View>
+      <SafeAreaView style={styles.loadingContainer}>
+        <LinearGradient
+          colors={['#f8fafc', '#f1f5f9']}
+          style={styles.loadingBackground}
+        >
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#6366f1" />
+            <Text style={styles.loadingText}>{t('chat.loadingMessages')}</Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
     );
   }
 
+  const scrollButtonOpacity = scrollY.interpolate({
+    inputRange: [0, SCROLL_THRESHOLD],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      {!isConnected && userLoaded && (
-        <View style={styles.connectionBanner}>
-          <Text style={styles.connectionText}>Connecting to chat...</Text>
-        </View>
-      )}
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <LinearGradient
+        colors={['#f8fafc', '#f1f5f9']}
+        style={styles.backgroundGradient}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+          {!isConnected && userLoaded && (
+            <Animated.View style={styles.connectionBanner}>
+              <LinearGradient
+                colors={['#fef3c7', '#fde68a']}
+                style={styles.connectionGradient}
+              >
+                <Ionicons name="wifi-outline" size={16} color="#92400e" />
+                <Text style={styles.connectionText}>
+                  {t('chat.connecting')}
+                </Text>
+              </LinearGradient>
+            </Animated.View>
+          )}
 
-      {/* ✅ Header already displays avatar correctly */}
-      {conversation && (
-        <View style={styles.chatHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-
-          <View style={styles.headerAvatarContainer}>
-            {getOtherUserInfo().avatar ? (
-              <Image
-                source={{ uri: getOtherUserInfo().avatar }}
-                style={styles.headerAvatar}
-                // ✅ Add these props for better image handling
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={[styles.headerAvatar, styles.defaultHeaderAvatar]}>
-                <Ionicons name="person" size={20} color="#fff" />
+          {/* Enhanced Header */}
+          <BlurView intensity={90} tint="light" style={styles.chatHeader}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <View style={styles.backButtonCircle}>
+                <Ionicons name="arrow-back" size={20} color="#4f46e5" />
               </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.headerUserInfo} activeOpacity={0.8}>
+              {getOtherUserInfo().avatar ? (
+                <Image
+                  source={{ uri: getOtherUserInfo().avatar }}
+                  style={styles.headerAvatar}
+                  resizeMode="cover"
+                />
+              ) : (
+                <LinearGradient
+                  colors={['#8b5cf6', '#6366f1']}
+                  style={styles.headerAvatar}
+                >
+                  <Text style={styles.headerAvatarText}>
+                    {getOtherUserInfo().name.charAt(0).toUpperCase()}
+                  </Text>
+                </LinearGradient>
+              )}
+
+              <View style={styles.headerInfo}>
+                <Text style={styles.headerName} numberOfLines={1}>
+                  {getOtherUserInfo().name}
+                </Text>
+                <Text style={styles.headerJobTitle} numberOfLines={1}>
+                  {conversation.job.title}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.headerActionButton}>
+              <Ionicons name="ellipsis-vertical" size={20} color="#4f46e5" />
+            </TouchableOpacity>
+          </BlurView>
+
+          {/* Job Info Banner */}
+          {conversation?.job && (
+            <LinearGradient
+              colors={['#e0e7ff', '#c7d2fe']}
+              style={styles.jobHeader}
+            >
+              <Text style={styles.jobHeaderText}>
+                {t('chat.job')}: {conversation.job.title} •{' '}
+                {conversation.job.company?.name}
+              </Text>
+            </LinearGradient>
+          )}
+
+          <View style={styles.messagesContainer}>
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id.toString()}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.1}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              inverted={false}
+              ListHeaderComponent={
+                loadingMore ? (
+                  <ActivityIndicator
+                    size="small"
+                    color="#6366f1"
+                    style={styles.loader}
+                  />
+                ) : null
+              }
+              ListFooterComponent={renderTypingIndicator}
+              contentContainerStyle={styles.messagesList}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => {
+                if (page === 1 && messages.length > 0) {
+                  setTimeout(() => {
+                    scrollToBottom();
+                  }, 100);
+                }
+              }}
+            />
+
+            {/* Scroll to Bottom Button */}
+            {showScrollButton && (
+              <Animated.View
+                style={[styles.scrollButton, { opacity: scrollButtonOpacity }]}
+              >
+                <TouchableOpacity
+                  style={styles.scrollButtonInner}
+                  onPress={scrollToBottom}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#6366f1', '#4f46e5']}
+                    style={styles.scrollButtonGradient}
+                  >
+                    <Ionicons name="arrow-down" size={20} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
             )}
           </View>
 
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerName} numberOfLines={1}>
-              {getOtherUserInfo().name}
-            </Text>
-            <Text style={styles.headerJobTitle} numberOfLines={1}>
-              {conversation.job.title}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id.toString()}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        inverted={false}
-        ListHeaderComponent={
-          loadingMore ? (
-            <ActivityIndicator
-              size="small"
-              color="#2563eb"
-              style={styles.loader}
-            />
-          ) : null
-        }
-        ListFooterComponent={renderTypingIndicator}
-        contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() => {
-          if (page === 1) {
-            flatListRef.current?.scrollToEnd({ animated: false });
-          }
-        }}
-      />
-
-      {editingMessage && (
-        <View style={styles.editingBar}>
-          <View style={styles.editingInfo}>
-            <Ionicons name="pencil" size={16} color="#2563eb" />
-            <Text style={styles.editingText}>{t('chat.editingMessage')}</Text>
-          </View>
-          <TouchableOpacity onPress={cancelEditing}>
-            <Ionicons name="close" size={20} color="#6b7280" />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View
-        style={[
-          styles.inputContainer,
-          {
-            paddingBottom:
-              Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : 8,
-            marginBottom: Platform.OS === 'android' ? 8 : 0,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.attachButton}
-          onPress={handleAttachment}
-          disabled={sending}
-        >
-          <Ionicons name="attach" size={24} color="#6b7280" />
-        </TouchableOpacity>
-
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={handleTextChange}
-          placeholder={t('chat.typeMessage')}
-          placeholderTextColor="#9ca3af"
-          multiline
-          maxLength={2000}
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!inputText.trim() || sending) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="send" size={20} color="#fff" />
+          {/* Editing Bar */}
+          {editingMessage && (
+            <LinearGradient
+              colors={['#e0e7ff', '#c7d2fe']}
+              style={styles.editingBar}
+            >
+              <View style={styles.editingInfo}>
+                <View style={styles.editingIcon}>
+                  <Ionicons name="pencil" size={14} color="#4f46e5" />
+                </View>
+                <Text style={styles.editingText}>
+                  {t('chat.editingMessage')}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={cancelEditing}
+                style={styles.cancelEditButton}
+              >
+                <Ionicons name="close" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            </LinearGradient>
           )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+
+          {/* Enhanced Input Container */}
+          <BlurView intensity={90} tint="light" style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.attachButton}
+              onPress={handleAttachment}
+              disabled={sending}
+            >
+              <LinearGradient
+                colors={['#f3f4f6', '#e5e7eb']}
+                style={styles.attachButtonCircle}
+              >
+                <Ionicons name="add" size={24} color="#4b5563" />
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={styles.inputWrapper}>
+              <VoiceTextInput
+                ref={inputRef}
+                style={styles.voiceInputContainer}
+                inputStyle={styles.voiceInput}
+                value={inputText}
+                onChangeText={handleTextChange}
+                placeholder={t('chat.typeMessage')}
+                placeholderTextColor="#9ca3af"
+                multiline
+                language={
+                  currentLanguage === 'zh'
+                    ? 'zh-CN'
+                    : currentLanguage === 'ms'
+                    ? 'ms-MY'
+                    : currentLanguage === 'ta'
+                    ? 'ta-IN'
+                    : 'en-US'
+                }
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || sending) && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSend}
+              disabled={!inputText.trim() || sending}
+            >
+              <LinearGradient
+                colors={
+                  !inputText.trim() || sending
+                    ? ['#9ca3af', '#6b7280']
+                    : ['#6366f1', '#4f46e5']
+                }
+                style={styles.sendButtonGradient}
+              >
+                {sending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons
+                    name={editingMessage ? 'checkmark' : 'send'}
+                    size={20}
+                    color="#fff"
+                  />
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </BlurView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
+  },
+  backgroundGradient: {
+    flex: 1,
   },
   loadingContainer: {
+    flex: 1,
+  },
+  loadingBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#6b7280',
+  },
   connectionBanner: {
-    backgroundColor: '#fef3c7',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  connectionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 8,
   },
   connectionText: {
     color: '#92400e',
-    fontSize: 12,
-    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '500',
   },
-
+  messagesContainer: {
+    flex: 1,
+    position: 'relative',
+  },
   messagesList: {
-    padding: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   loader: {
-    marginVertical: 16,
+    marginVertical: 20,
   },
   dateSeparator: {
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 20,
+  },
+  dateSeparatorGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   dateText: {
-    backgroundColor: '#e5e7eb',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 13,
+    color: '#4f46e5',
+    fontWeight: '600',
   },
   messageContainer: {
-    marginBottom: 8,
-    maxWidth: '80%',
+    marginBottom: 12,
+    maxWidth: '85%',
   },
   ownMessage: {
     alignSelf: 'flex-end',
@@ -1001,32 +1221,58 @@ const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
   },
+  senderName: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 4,
+    marginLeft: 12,
+    fontWeight: '500',
+  },
   messageBubble: {
-    padding: 12,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 20,
   },
   ownBubble: {
-    backgroundColor: '#2563eb',
-    borderBottomRightRadius: 4,
+    backgroundColor: '#4f46e5',
+    borderBottomRightRadius: 6,
+  },
+  ownBubbleShadow: {
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   otherBubble: {
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: 6,
+  },
+  otherBubbleShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   deletedBubble: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f8fafc',
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderStyle: 'dashed',
   },
   deletedText: {
     color: '#9ca3af',
     fontStyle: 'italic',
-    marginLeft: 6,
+    marginLeft: 8,
     fontSize: 14,
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   ownMessageText: {
     color: '#fff',
@@ -1037,20 +1283,20 @@ const styles = StyleSheet.create({
   messageMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
     justifyContent: 'flex-end',
   },
   editedLabel: {
-    fontSize: 10,
-    color: '#9ca3af',
-    marginRight: 4,
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginRight: 6,
     fontStyle: 'italic',
   },
   messageTime: {
-    fontSize: 10,
+    fontSize: 11,
   },
   ownMessageTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   otherMessageTime: {
     color: '#9ca3af',
@@ -1058,46 +1304,73 @@ const styles = StyleSheet.create({
   readIcon: {
     marginLeft: 4,
   },
+  imageContainer: {
+    position: 'relative',
+    marginBottom: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   imageAttachment: {
-    width: 200,
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 4,
+    width: 240,
+    height: 240,
+    borderRadius: 12,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 6,
   },
   fileAttachment: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 4,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  fileIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   fileInfo: {
     flex: 1,
-    marginLeft: 8,
   },
   fileName: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#1f2937',
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 2,
   },
   fileSize: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#6b7280',
-    marginTop: 2,
   },
   typingBubble: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  typingText: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 4,
   },
   typingDots: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#9ca3af',
     marginHorizontal: 2,
   },
@@ -1114,111 +1387,197 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#e0e7ff',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   editingInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  editingText: {
-    color: '#2563eb',
-    fontSize: 13,
-    marginLeft: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    padding: 8,
+  editingIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  attachButton: {
-    padding: 8,
-    marginRight: 4,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    maxHeight: 100,
-    fontSize: 15,
-    color: '#1f2937',
-  },
-  sendButton: {
-    backgroundColor: '#2563eb',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginRight: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  sendButtonDisabled: {
-    backgroundColor: '#9ca3af',
+  editingText: {
+    color: '#4f46e5',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  cancelEditButton: {
+    padding: 4,
   },
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2563eb',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'ios' ? 50 : 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: Platform.OS === 'ios' ? 50 : 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
   },
   backButton: {
-    marginRight: 8,
-    padding: 4,
+    zIndex: 10,
   },
-  headerAvatarContainer: {
-    marginRight: 12,
+  backButtonCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    overflow: 'hidden', // ✅ Important for circular clipping
-  },
-  headerAvatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  defaultHeaderAvatar: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    height: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerUserInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  headerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerAvatarText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   headerInfo: {
     flex: 1,
   },
   headerName: {
-    color: '#fff',
+    color: '#1f2937',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 2,
   },
   headerJobTitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    marginTop: 2,
+    color: '#6b7280',
+    fontSize: 13,
+    fontWeight: '500',
   },
-
-  // Update or remove old jobHeader styles if you want
+  headerActionButton: {
+    padding: 8,
+  },
   jobHeader: {
-    backgroundColor: '#e0e7ff',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   jobHeaderText: {
-    color: '#3730a3',
+    color: '#4f46e5',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  attachButton: {
+    marginRight: 8,
+  },
+  attachButtonCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  voiceInputContainer: {
+    flex: 1,
+  },
+  voiceInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#1f2937',
+    maxHeight: 100,
+    minHeight: 40,
+  },
+  sendButton: {
+    marginLeft: 8,
+  },
+  sendButtonDisabled: {
+    opacity: 0.7,
+  },
+  sendButtonGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  scrollButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 100,
+  },
+  scrollButtonInner: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  scrollButtonGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -26,11 +26,24 @@ export default function EmployerLoginScreen() {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [timer, setTimer] = useState(0);
 
   const router = useRouter();
   const { t } = useLanguage();
 
   const URL = Constants.expoConfig?.extra?.API_BASE_URL;
+
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   // Clean phone number - remove non-digits except + at start
   const cleanPhoneNumber = (phone: string) => {
@@ -95,12 +108,122 @@ export default function EmployerLoginScreen() {
     return true;
   };
 
+  const handleResendOtp = async () => {
+    if (timer > 0) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${URL}/api/auth/signup/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          fullName: fullName.trim(),
+          phoneNumber: cleanPhoneNumber(phoneNumber),
+          role: 'EMPLOYER',
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to resend OTP');
+      }
+
+      setTimer(60);
+      Alert.alert('Success', 'OTP resent successfully');
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid 6-digit OTP');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${URL}/api/auth/signup/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          otp,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Verification failed');
+      }
+
+      const token = data?.data?.token;
+      const user = data?.data?.user;
+
+      if (!token || !user) {
+        throw new Error('Missing token or user data in API response');
+      }
+
+      // Store data
+      await Promise.all([
+        AsyncStorage.setItem('jwtToken', token),
+        AsyncStorage.setItem('userToken', token),
+        AsyncStorage.setItem('userData', JSON.stringify(user)),
+      ]);
+
+      Alert.alert(
+        t('common.success'),
+        t('employerLogin.success.accountCreated'),
+        [
+          {
+            text: t('common.continue'),
+            onPress: () => router.replace('/EmployerOnboardingFlow'),
+          },
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert('Verification Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuthentication = async () => {
     if (!validateInputs()) return;
 
     setLoading(true);
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      if (!isLogin) {
+        // Signup flow - Initiate
+        const endpoint = '/api/auth/signup/initiate';
+        const body = {
+          email: email.trim().toLowerCase(),
+          password,
+          fullName: fullName.trim(),
+          phoneNumber: cleanPhoneNumber(phoneNumber),
+          role: 'EMPLOYER',
+        };
+
+        const response = await fetch(`${URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Signup initiation failed');
+        }
+
+        setOtpSent(true);
+        setTimer(60);
+        Alert.alert('Success', 'OTP sent to your email');
+        return;
+      }
+
+      const endpoint = '/api/auth/login';
 
       // Prepare request body
       const body: any = {
@@ -127,6 +250,11 @@ export default function EmployerLoginScreen() {
       console.log('Auth response:', data);
 
       if (!response.ok) {
+        if (response.status === 403 && data.code === 'ACCOUNT_SUSPENDED') {
+          router.replace('/suspended');
+          return;
+        }
+
         // Handle validation errors
         if (data.errors && Array.isArray(data.errors)) {
           const errorMessages = data.errors
@@ -142,6 +270,11 @@ export default function EmployerLoginScreen() {
 
       if (!token || !user) {
         throw new Error('Missing token or user data in API response');
+      }
+
+      // ✅ Enforce role: only EMPLOYER can login here
+      if (isLogin && user.role !== 'EMPLOYER') {
+        throw new Error('Invalid email or password');
       }
 
       // Store data
@@ -182,15 +315,15 @@ export default function EmployerLoginScreen() {
       }
 
       const successMessage = isLogin
-        ? 'Welcome back!'
-        : 'Account created successfully!';
+        ? t('employerLogin.success.welcomeBack')
+        : t('employerLogin.success.accountCreated');
 
-      Alert.alert('Success', successMessage, [
+      Alert.alert(t('common.success'), successMessage, [
         {
-          text: 'Continue',
+          text: t('common.continue'),
           onPress: async () => {
             if (isLogin) {
-              // ✅ CHECK VERIFICATION STATUS
+              // ✅ CHECK VERIFICATION STATUS FIRST
               try {
                 const verificationResponse = await fetch(
                   `${URL}/api/employer/verification/status`,
@@ -205,9 +338,32 @@ export default function EmployerLoginScreen() {
 
                   if (status === 'PENDING') {
                     router.replace('/(employer-hidden)/pending-verification');
+                    return;
                   } else if (status === 'REJECTED') {
                     router.replace('/(employer)/rejected-verification');
-                  } else if (status === 'APPROVED') {
+                    return;
+                  }
+
+                  // ✅ If APPROVED, check subscription status
+                  if (status === 'APPROVED') {
+                    const subscriptionResponse = await fetch(
+                      `${URL}/api/subscription/current`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      }
+                    );
+
+                    if (subscriptionResponse.ok) {
+                      const subData = await subscriptionResponse.json();
+
+                      // If hasn't completed initial subscription selection
+                      if (!subData.data.hasCompletedInitialSubscription) {
+                        router.replace('/(employer-hidden)/pricing');
+                        return;
+                      }
+                    }
+
+                    // Has subscription, go to dashboard
                     router.replace('/(employer)/dashboard');
                   }
                 } else {
@@ -215,7 +371,7 @@ export default function EmployerLoginScreen() {
                   router.replace('/EmployerOnboardingFlow');
                 }
               } catch (error) {
-                console.error('Error checking verification status:', error);
+                console.error('Error checking status:', error);
                 router.replace('/(employer)/dashboard');
               }
             } else {
@@ -248,6 +404,7 @@ export default function EmployerLoginScreen() {
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
+    setOtpSent(false);
     // Clear form when switching modes
     setEmail('');
     setPassword('');
@@ -289,175 +446,265 @@ export default function EmployerLoginScreen() {
             </Text>
             <Text style={styles.appSubtitle}>
               {isLogin
-                ? 'Sign in to manage your job postings'
-                : 'Create an employer account to start hiring'}
+                ? t('employerLogin.appSubtitleLogin')
+                : t('employerLogin.appSubtitleRegister')}
             </Text>
           </View>
 
           {/* Form Container */}
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeText}>
-              {isLogin ? 'Welcome Back' : 'Get Started'}
-            </Text>
-            <Text style={styles.subtitleText}>
-              {isLogin
-                ? 'Sign in to your employer account'
-                : 'Create your employer account'}
-            </Text>
+            {otpSent && !isLogin ? (
+              <View>
+                <Text style={styles.welcomeText}>Verify Email</Text>
+                <Text style={styles.subtitleText}>
+                  Enter the code sent to {email}
+                </Text>
 
-            {/* Signup-only fields */}
-            {!isLogin && (
-              <>
-                {/* Full Name Input */}
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    {t('employerLogin.fullName')}
-                  </Text>
                   <TextInput
-                    style={styles.textInput}
-                    placeholder="Enter your full name"
-                    placeholderTextColor="#94A3B8"
-                    value={fullName}
-                    onChangeText={setFullName}
-                    autoCapitalize="words"
+                    style={[
+                      styles.textInput,
+                      {
+                        textAlign: 'center',
+                        letterSpacing: 8,
+                        fontSize: 24,
+                        fontWeight: 'bold',
+                      },
+                    ]}
+                    placeholder="000000"
+                    placeholderTextColor="#CBD5E1"
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="number-pad"
+                    maxLength={6}
                     editable={!loading}
                   />
                 </View>
 
-                {/* Phone Number Input */}
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    {t('employerLogin.phoneNumber')}
-                  </Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="e.g., +60123456789"
-                    placeholderTextColor="#94A3B8"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    keyboardType="phone-pad"
-                    editable={!loading}
-                  />
-                  <Text style={styles.helpText}>
-                    📱 Include country code (e.g., +60 for Malaysia)
-                  </Text>
-                </View>
-              </>
-            )}
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('employerLogin.email')}</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t('login.emailPlaceholder')}
-                placeholderTextColor="#94A3B8"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
-                {t('employerLogin.password')}
-              </Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t('login.passwordPlaceholder')}
-                  placeholderTextColor="#94A3B8"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!loading}
-                />
                 <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
+                  style={[
+                    styles.submitButton,
+                    loading && styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleVerifyOtp}
                   disabled={loading}
                 >
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={24}
-                    color="#64748B"
-                  />
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>
+                      Verify & Register
+                    </Text>
+                  )}
                 </TouchableOpacity>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 8,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setOtpSent(false)}
+                    disabled={loading}
+                    style={{ padding: 8 }}
+                  >
+                    <Text style={{ color: '#64748B', fontSize: 14 }}>
+                      Change Email
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleResendOtp}
+                    disabled={timer > 0 || loading}
+                    style={{ padding: 8 }}
+                  >
+                    <Text
+                      style={{
+                        color: timer > 0 ? '#94A3B8' : '#1E3A8A',
+                        fontWeight: 'bold',
+                        fontSize: 14,
+                      }}
+                    >
+                      {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            ) : (
+              <>
+                <Text style={styles.welcomeText}>
+                  {isLogin
+                    ? t('login.welcomeBack')
+                    : t('employerLogin.getStarted')}
+                </Text>
+                <Text style={styles.subtitleText}>
+                  {isLogin
+                    ? t('employerLogin.subtitle')
+                    : t('employerLogin.registerSubtitle')}
+                </Text>
 
-            {/* Forgot Password (Login only) */}
-            {isLogin && (
-              <TouchableOpacity
-                style={styles.forgotPasswordContainer}
-                onPress={() => router.push('/ForgotPasswordScreen')}
-                disabled={loading}
-              >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
+                {/* Signup-only fields */}
+                {!isLogin && (
+                  <>
+                    {/* Full Name Input */}
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>
+                        {t('employerLogin.fullName')}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder={t('employerLogin.fullNamePlaceholder')}
+                        placeholderTextColor="#94A3B8"
+                        value={fullName}
+                        onChangeText={setFullName}
+                        autoCapitalize="words"
+                        editable={!loading}
+                      />
+                    </View>
+
+                    {/* Phone Number Input */}
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.inputLabel}>
+                        {t('employerLogin.phoneNumber')}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder={t('employerLogin.phoneNumberPlaceholder')}
+                        placeholderTextColor="#94A3B8"
+                        value={phoneNumber}
+                        onChangeText={setPhoneNumber}
+                        keyboardType="phone-pad"
+                        editable={!loading}
+                      />
+                      <Text style={styles.helpText}>
+                        📱 {t('employerLogin.phoneHelp')}
+                      </Text>
+                    </View>
+                  </>
+                )}
+
+                {/* Email Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>
+                    {t('employerLogin.email')}
+                  </Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder={t('login.emailPlaceholder')}
+                    placeholderTextColor="#94A3B8"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Password Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>
+                    {t('employerLogin.password')}
+                  </Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder={t('login.passwordPlaceholder')}
+                      placeholderTextColor="#94A3B8"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={24}
+                        color="#64748B"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Forgot Password (Login only) */}
+                {isLogin && (
+                  <TouchableOpacity
+                    style={styles.forgotPasswordContainer}
+                    onPress={() => router.push('/ForgotPasswordScreen')}
+                    disabled={loading}
+                  >
+                    <Text style={styles.forgotPasswordText}>
+                      {t('employerLogin.forgotPassword')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Submit Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    loading && styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleAuthentication}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>
+                      {isLogin
+                        ? t('employerLogin.login')
+                        : t('employerLogin.register')}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>{t('login.or')}</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Toggle Auth Mode */}
+                <TouchableOpacity
+                  style={styles.toggleButton}
+                  onPress={toggleAuthMode}
+                  disabled={loading}
+                >
+                  <Text style={styles.toggleText}>
+                    {isLogin
+                      ? t('employerLogin.noAccount')
+                      : t('employerLogin.haveAccount')}{' '}
+                    <Text style={styles.toggleLinkText}>
+                      {isLogin
+                        ? t('employerLogin.register')
+                        : t('employerLogin.login')}
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Change Language Button */}
+                <TouchableOpacity
+                  style={styles.changeLanguageButton}
+                  onPress={() => router.replace('/')}
+                  disabled={loading}
+                >
+                  <Text style={styles.changeLanguageText}>
+                    🌐 {t('common.changeLanguage') || 'Change Language'}
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
-
-            {/* Submit Button */}
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                loading && styles.submitButtonDisabled,
-              ]}
-              onPress={handleAuthentication}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.submitButtonText}>
-                  {isLogin
-                    ? t('employerLogin.login')
-                    : t('employerLogin.register')}
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('login.or')}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Toggle Auth Mode */}
-            <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={toggleAuthMode}
-              disabled={loading}
-            >
-              <Text style={styles.toggleText}>
-                {isLogin
-                  ? t('employerLogin.noAccount')
-                  : t('employerLogin.haveAccount')}{' '}
-                <Text style={styles.toggleLinkText}>
-                  {isLogin
-                    ? t('employerLogin.register')
-                    : t('employerLogin.login')}
-                </Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Change Language Button */}
-            <TouchableOpacity
-              style={styles.changeLanguageButton}
-              onPress={() => router.replace('/')}
-              disabled={loading}
-            >
-              <Text style={styles.changeLanguageText}>
-                🌐 {t('common.changeLanguage') || 'Change Language'}
-              </Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

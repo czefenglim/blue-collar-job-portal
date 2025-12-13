@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
 import { AdminAuthRequest } from '../types/admin';
 
 const prisma = new PrismaClient();
@@ -117,6 +118,10 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
     const adminEmail = req.adminEmail;
 
     // Suspend the job
+    const sr_en = await translateText(reason.trim(), 'en');
+    const sr_ms = await translateText(reason.trim(), 'ms');
+    const sr_ta = await translateText(reason.trim(), 'ta');
+    const sr_zh = await translateText(reason.trim(), 'zh');
     const job = await prisma.job.update({
       where: { id: parseInt(jobId) },
       data: {
@@ -124,6 +129,10 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
         suspendedAt: new Date(),
         suspendedBy: adminEmail,
         suspensionReason: reason.trim(),
+        suspensionReason_en: sr_en ?? undefined,
+        suspensionReason_ms: sr_ms ?? undefined,
+        suspensionReason_ta: sr_ta ?? undefined,
+        suspensionReason_zh: sr_zh ?? undefined,
         isActive: false,
       },
       include: {
@@ -135,14 +144,23 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
       },
     });
 
-    // Log admin action
+    // Log admin action with translations
+    const reasonText = reason.trim();
+    const r_en = await translateText(reasonText, 'en');
+    const r_ms = await translateText(reasonText, 'ms');
+    const r_ta = await translateText(reasonText, 'ta');
+    const r_zh = await translateText(reasonText, 'zh');
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
         actionType: 'SUSPEND_JOB',
         targetType: 'JOB',
         targetId: parseInt(jobId),
-        reason: reason.trim(),
+        reason: reasonText,
+        reason_en: r_en ?? undefined,
+        reason_ms: r_ms ?? undefined,
+        reason_ta: r_ta ?? undefined,
+        reason_zh: r_zh ?? undefined,
         notes: reportId ? `Related to report #${reportId}` : null,
       },
     });
@@ -171,11 +189,21 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
       });
 
       if (report) {
+        const notifMsg =
+          'Your report has been reviewed and action has been taken. The job post has been suspended. Thank you for helping keep our platform safe.';
+        const n_en = await translateText(notifMsg, 'en');
+        const n_ms = await translateText(notifMsg, 'ms');
+        const n_ta = await translateText(notifMsg, 'ta');
+        const n_zh = await translateText(notifMsg, 'zh');
         await prisma.notification.create({
           data: {
             userId: report.userId,
             title: 'Report Resolved',
-            message: `Your report has been reviewed and action has been taken. The job post has been suspended. Thank you for helping keep our platform safe.`,
+            message: notifMsg,
+            message_en: n_en ?? undefined,
+            message_ms: n_ms ?? undefined,
+            message_ta: n_ta ?? undefined,
+            message_zh: n_zh ?? undefined,
             type: 'SYSTEM_UPDATE',
           },
         });
@@ -184,13 +212,22 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
 
     // Create notification for employer
     if (job.company.user) {
+      const notifMsg = `Your job post "${job.title}" has been suspended. Reason: ${reason}. Please contact support if you believe this is a mistake.`;
+      const n_en = await translateText(notifMsg, 'en');
+      const n_ms = await translateText(notifMsg, 'ms');
+      const n_ta = await translateText(notifMsg, 'ta');
+      const n_zh = await translateText(notifMsg, 'zh');
       await prisma.notification.create({
         data: {
           userId: job.company.user.id,
           title: 'Job Post Suspended',
-          message: `Your job post "${job.title}" has been suspended. Reason: ${reason}. Please contact support if you believe this is a mistake.`,
+          message: notifMsg,
+          message_en: n_en ?? undefined,
+          message_ms: n_ms ?? undefined,
+          message_ta: n_ta ?? undefined,
+          message_zh: n_zh ?? undefined,
           type: 'SYSTEM_UPDATE',
-          actionUrl: `/jobs/${job.slug}`,
+          actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
     }
@@ -245,13 +282,22 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
     }
 
     // Log admin action before deletion
+    const reasonText = reason.trim();
+    const r_en = await translateText(reasonText, 'en');
+    const r_ms = await translateText(reasonText, 'ms');
+    const r_ta = await translateText(reasonText, 'ta');
+    const r_zh = await translateText(reasonText, 'zh');
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
         actionType: 'DELETE_JOB',
         targetType: 'JOB',
         targetId: parseInt(jobId),
-        reason: reason.trim(),
+        reason: reasonText,
+        reason_en: r_en ?? undefined,
+        reason_ms: r_ms ?? undefined,
+        reason_ta: r_ta ?? undefined,
+        reason_zh: r_zh ?? undefined,
         notes: `Deleted job: ${job.title} (${job.slug})`,
       },
     });
@@ -262,13 +308,21 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
         where: { email: adminEmail },
       });
 
+      const rn_en = await translateText(`Job deleted: ${reasonText}`, 'en');
+      const rn_ms = await translateText(`Job deleted: ${reasonText}`, 'ms');
+      const rn_ta = await translateText(`Job deleted: ${reasonText}`, 'ta');
+      const rn_zh = await translateText(`Job deleted: ${reasonText}`, 'zh');
       await prisma.report.update({
         where: { id: parseInt(reportId) },
         data: {
           status: 'RESOLVED',
           reviewedBy: adminUser?.id || null,
           reviewedAt: new Date(),
-          reviewNotes: `Job deleted: ${reason}`,
+          reviewNotes: `Job deleted: ${reasonText}`,
+          reviewNotes_en: rn_en ?? undefined,
+          reviewNotes_ms: rn_ms ?? undefined,
+          reviewNotes_ta: rn_ta ?? undefined,
+          reviewNotes_zh: rn_zh ?? undefined,
         },
       });
 
@@ -279,11 +333,21 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
       });
 
       if (report) {
+        const notifMsg =
+          'Your report has been reviewed and the job post has been removed. Thank you for helping keep our platform safe.';
+        const n_en = await translateText(notifMsg, 'en');
+        const n_ms = await translateText(notifMsg, 'ms');
+        const n_ta = await translateText(notifMsg, 'ta');
+        const n_zh = await translateText(notifMsg, 'zh');
         await prisma.notification.create({
           data: {
             userId: report.userId,
             title: 'Report Resolved',
-            message: `Your report has been reviewed and the job post has been removed. Thank you for helping keep our platform safe.`,
+            message: notifMsg,
+            message_en: n_en ?? undefined,
+            message_ms: n_ms ?? undefined,
+            message_ta: n_ta ?? undefined,
+            message_zh: n_zh ?? undefined,
             type: 'SYSTEM_UPDATE',
           },
         });
@@ -292,11 +356,20 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
 
     // Create notification for employer before deletion
     if (job.company.user) {
+      const notifMsg = `Your job post "${job.title}" has been permanently deleted. Reason: ${reason}. Please contact support if you have questions.`;
+      const n_en = await translateText(notifMsg, 'en');
+      const n_ms = await translateText(notifMsg, 'ms');
+      const n_ta = await translateText(notifMsg, 'ta');
+      const n_zh = await translateText(notifMsg, 'zh');
       await prisma.notification.create({
         data: {
           userId: job.company.user.id,
           title: 'Job Post Deleted',
-          message: `Your job post "${job.title}" has been permanently deleted. Reason: ${reason}. Please contact support if you have questions.`,
+          message: notifMsg,
+          message_en: n_en ?? undefined,
+          message_ms: n_ms ?? undefined,
+          message_ta: n_ta ?? undefined,
+          message_zh: n_zh ?? undefined,
           type: 'SYSTEM_UPDATE',
         },
       });
@@ -337,12 +410,21 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
     const adminEmail = req.adminEmail;
 
     // Suspend the employer
+    const reasonText = reason.trim();
+    const sr_en_user = await translateText(reasonText, 'en');
+    const sr_ms_user = await translateText(reasonText, 'ms');
+    const sr_ta_user = await translateText(reasonText, 'ta');
+    const sr_zh_user = await translateText(reasonText, 'zh');
     const user = await prisma.user.update({
       where: { id: parseInt(userId) },
       data: {
         status: 'SUSPENDED',
         suspendedAt: new Date(),
-        suspensionReason: reason.trim(),
+        suspensionReason: reasonText,
+        suspensionReason_en: sr_en_user ?? undefined,
+        suspensionReason_ms: sr_ms_user ?? undefined,
+        suspensionReason_ta: sr_ta_user ?? undefined,
+        suspensionReason_zh: sr_zh_user ?? undefined,
         isActive: false,
       },
       include: {
@@ -350,14 +432,23 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
       },
     });
 
-    // Log admin action
+    // Log admin action with translations
+
+    const r_en = await translateText(reasonText, 'en');
+    const r_ms = await translateText(reasonText, 'ms');
+    const r_ta = await translateText(reasonText, 'ta');
+    const r_zh = await translateText(reasonText, 'zh');
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
         actionType: 'SUSPEND_EMPLOYER',
         targetType: 'EMPLOYER',
         targetId: parseInt(userId),
-        reason: reason.trim(),
+        reason: reasonText,
+        reason_en: r_en ?? undefined,
+        reason_ms: r_ms ?? undefined,
+        reason_ta: r_ta ?? undefined,
+        reason_zh: r_zh ?? undefined,
         notes: duration
           ? `Suspended for ${duration} days`
           : 'Indefinite suspension',
@@ -370,29 +461,63 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
         where: { email: adminEmail },
       });
 
+      const rn_en = await translateText(
+        `Employer account suspended: ${reasonText}`,
+        'en'
+      );
+      const rn_ms = await translateText(
+        `Employer account suspended: ${reasonText}`,
+        'ms'
+      );
+      const rn_ta = await translateText(
+        `Employer account suspended: ${reasonText}`,
+        'ta'
+      );
+      const rn_zh = await translateText(
+        `Employer account suspended: ${reasonText}`,
+        'zh'
+      );
       await prisma.report.update({
         where: { id: parseInt(reportId) },
         data: {
           status: 'RESOLVED',
           reviewedBy: adminUser?.id || null,
           reviewedAt: new Date(),
-          reviewNotes: `Employer account suspended: ${reason}`,
+          reviewNotes: `Employer account suspended: ${reasonText}`,
+          reviewNotes_en: rn_en ?? undefined,
+          reviewNotes_ms: rn_ms ?? undefined,
+          reviewNotes_ta: rn_ta ?? undefined,
+          reviewNotes_zh: rn_zh ?? undefined,
         },
       });
     }
 
     // Create notification for employer
+    const notifMsg = `Your account has been suspended. Reason: ${reason}. Please contact support for assistance.`;
+    const n_en = await translateText(notifMsg, 'en');
+    const n_ms = await translateText(notifMsg, 'ms');
+    const n_ta = await translateText(notifMsg, 'ta');
+    const n_zh = await translateText(notifMsg, 'zh');
     await prisma.notification.create({
       data: {
         userId: parseInt(userId),
         title: 'Account Suspended',
-        message: `Your account has been suspended. Reason: ${reason}. Please contact support for assistance.`,
+        message: notifMsg,
+        message_en: n_en ?? undefined,
+        message_ms: n_ms ?? undefined,
+        message_ta: n_ta ?? undefined,
+        message_zh: n_zh ?? undefined,
         type: 'SYSTEM_UPDATE',
       },
     });
 
     // Deactivate all active jobs from this employer
     if (user.company) {
+      const jsr = `Employer account suspended: ${reasonText}`;
+      const jsr_en = await translateText(jsr, 'en');
+      const jsr_ms = await translateText(jsr, 'ms');
+      const jsr_ta = await translateText(jsr, 'ta');
+      const jsr_zh = await translateText(jsr, 'zh');
       await prisma.job.updateMany({
         where: {
           companyId: user.company.id,
@@ -403,7 +528,11 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
           isSuspended: true,
           suspendedAt: new Date(),
           suspendedBy: adminEmail!,
-          suspensionReason: `Employer account suspended: ${reason}`,
+          suspensionReason: jsr,
+          suspensionReason_en: jsr_en ?? undefined,
+          suspensionReason_ms: jsr_ms ?? undefined,
+          suspensionReason_ta: jsr_ta ?? undefined,
+          suspensionReason_zh: jsr_zh ?? undefined,
         },
       });
     }
@@ -441,36 +570,63 @@ export const dismissReport = async (req: AdminAuthRequest, res: Response) => {
       where: { email: adminEmail },
     });
 
+    const reasonText = reason.trim();
+    const rn_en = await translateText(reasonText, 'en');
+    const rn_ms = await translateText(reasonText, 'ms');
+    const rn_ta = await translateText(reasonText, 'ta');
+    const rn_zh = await translateText(reasonText, 'zh');
     const report = await prisma.report.update({
       where: { id: parseInt(reportId) },
       data: {
         status: 'DISMISSED',
         reviewedBy: adminUser?.id || null,
         reviewedAt: new Date(),
-        reviewNotes: reason.trim(),
+        reviewNotes: reasonText,
+        reviewNotes_en: rn_en ?? undefined,
+        reviewNotes_ms: rn_ms ?? undefined,
+        reviewNotes_ta: rn_ta ?? undefined,
+        reviewNotes_zh: rn_zh ?? undefined,
       },
       include: {
         user: true,
       },
     });
 
-    // Log admin action
+    // Log admin action with translations
+    const r_en2 = rn_en;
+    const r_ms2 = rn_ms;
+    const r_ta2 = rn_ta;
+    const r_zh2 = rn_zh;
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
         actionType: 'DISMISS_REPORT',
         targetType: 'REPORT',
         targetId: parseInt(reportId),
-        reason: reason.trim(),
+        reason: reasonText,
+        reason_en: r_en2 ?? undefined,
+        reason_ms: r_ms2 ?? undefined,
+        reason_ta: r_ta2 ?? undefined,
+        reason_zh: r_zh2 ?? undefined,
       },
     });
 
-    // Notify the reporter
+    // Notify the reporter with translations
+    const notifMsg =
+      'Your report has been reviewed. After investigation, we found no violation of our policies. Thank you for your vigilance.';
+    const n_en = await translateText(notifMsg, 'en');
+    const n_ms = await translateText(notifMsg, 'ms');
+    const n_ta = await translateText(notifMsg, 'ta');
+    const n_zh = await translateText(notifMsg, 'zh');
     await prisma.notification.create({
       data: {
         userId: report.userId,
         title: 'Report Reviewed',
-        message: `Your report has been reviewed. After investigation, we found no violation of our policies. Thank you for your vigilance.`,
+        message: notifMsg,
+        message_en: n_en ?? undefined,
+        message_ms: n_ms ?? undefined,
+        message_ta: n_ta ?? undefined,
+        message_zh: n_zh ?? undefined,
         type: 'SYSTEM_UPDATE',
       },
     });

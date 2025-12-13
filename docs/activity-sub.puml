@@ -1,0 +1,34 @@
+@startuml UC_Sub
+skinparam conditionStyle diamond
+title Activity: Manage Subscription
+|Employer|
+start
+:Go to Billing / Subscription;
+|System|
+:Fetch Current Plan Info;
+:Display Plan Details;
+|Employer|
+if (Upgrade/Renew?) then (yes)
+  :View Available Plans;
+  :Select Plan;
+  :Proceed to Payment;
+  |System|
+  :Redirect to Payment Gateway;
+  if (Payment Success?) then (yes)
+    :Update Subscription Status;
+    :Unlock Features;
+    :Show Success Message;
+  endif
+endif
+|Employer|
+if (Cancel?) then (yes)
+  :Click Cancel Subscription;
+  :Provide Feedback;
+  |System|
+  :Process Cancellation;
+  :Set Expiry Date at Period End;
+  :Show Confirmation;
+endif
+stop
+@enduml
+

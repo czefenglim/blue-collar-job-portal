@@ -32,7 +32,12 @@ export interface UserFilters {
 }
 
 export interface JobFilters {
-  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED_FINAL';
+  approvalStatus?:
+    | 'PENDING'
+    | 'APPROVED'
+    | 'REJECTED_FINAL'
+    | 'REJECTED_AI'
+    | 'APPEALED';
   isActive?: boolean;
   search?: string;
   page?: number;

@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,16 +16,16 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'react-native'; // ✅ Add Image import if not already there
+import { Ionicons, MaterialIcons, FontAwesome5, Feather } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 const LANGUAGES = [
-  { code: 'en', label: 'EN', name: 'English' },
-  { code: 'zh', label: '中文', name: 'Chinese' },
-  { code: 'ms', label: 'BM', name: 'Bahasa Melayu' },
-  { code: 'ta', label: 'தமிழ்', name: 'Tamil' },
+  { code: 'en', label: 'EN', name: 'English', flag: '🇺🇸' },
+  { code: 'zh', label: '中文', name: 'Chinese', flag: '🇨🇳' },
+  { code: 'ms', label: 'BM', name: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: 'ta', label: 'தமிழ்', name: 'Tamil', flag: '🇮🇳' },
 ];
 
 interface UserProfile {
@@ -53,7 +54,11 @@ interface UserProfile {
     maxTravelDistance: number | null;
     experienceYears: number;
     certifications: string | null;
-    resumeUrl: string | null;
+    resumeUrl_en?: string | null;
+    resumeUrl_ms?: string | null;
+    resumeUrl_zh?: string | null;
+    resumeUrl_ta?: string | null;
+    resumeUrl_uploaded?: string | null;
     profileCompleted: boolean;
     industries: Array<{
       industry: {
@@ -76,6 +81,18 @@ interface UserProfile {
     }>;
   } | null;
 }
+
+// Color palette
+const PRIMARY_BLUE = '#1E40AF';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_PURPLE = '#8B5CF6';
+const ACCENT_ORANGE = '#F59E0B';
+const LIGHT_BACKGROUND = '#F8FAFC';
+const CARD_BACKGROUND = '#FFFFFF';
+const TEXT_PRIMARY = '#1E293B';
+const TEXT_SECONDARY = '#64748B';
+const TEXT_TERTIARY = '#94A3B8';
+const BORDER_COLOR = '#E2E8F0';
 
 const ProfileScreen: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -118,13 +135,76 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  const openResume = async () => {
+    try {
+      const p: any = userProfile?.profile;
+      if (!p) return;
+
+      let keyOrUrl: string | null = null;
+      if (currentLanguage === 'ms')
+        keyOrUrl = p.resumeUrl_ms || p.resumeUrl_uploaded || null;
+      else if (currentLanguage === 'zh')
+        keyOrUrl = p.resumeUrl_zh || p.resumeUrl_uploaded || null;
+      else if (currentLanguage === 'ta')
+        keyOrUrl = p.resumeUrl_ta || p.resumeUrl_uploaded || null;
+      else keyOrUrl = p.resumeUrl_en || p.resumeUrl_uploaded || null;
+
+      if (!keyOrUrl) {
+        Alert.alert(t('common.error'), t('profile.errors.noResume'));
+        return;
+      }
+
+      let targetUrl = keyOrUrl as string;
+      const isHttp = /^https?:\/\//i.test(keyOrUrl as string);
+      if (!isHttp) {
+        const encodedKey = encodeURIComponent(keyOrUrl as string);
+        const resp = await fetch(`${URL}/api/onboarding/resume/${encodedKey}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await resp.json();
+        const signedUrl =
+          data?.resumeUrl ||
+          data?.data?.url ||
+          (typeof data === 'string' ? data : null);
+        if (!signedUrl) {
+          Alert.alert(t('common.error'), t('profile.errors.resumeOpenFailed'));
+          return;
+        }
+        targetUrl = signedUrl;
+      }
+
+      await WebBrowser.openBrowserAsync(targetUrl);
+    } catch (err) {
+      console.error('Open resume error:', err);
+      Alert.alert(t('common.error'), t('profile.errors.resumeOpenFailed'));
+    }
+  };
+
+  const getResumeKeyForCurrentLanguage = () => {
+    const p: any = userProfile?.profile;
+    if (!p) return null;
+    if (currentLanguage === 'ms')
+      return p.resumeUrl_ms || p.resumeUrl_uploaded || null;
+    if (currentLanguage === 'zh')
+      return p.resumeUrl_zh || p.resumeUrl_uploaded || null;
+    if (currentLanguage === 'ta')
+      return p.resumeUrl_ta || p.resumeUrl_uploaded || null;
+    return p.resumeUrl_en || p.resumeUrl_uploaded || null;
+  };
+
   const fetchProfile = async (userToken: string) => {
     try {
-      const response = await fetch(`${URL}/api/users/getProfile`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      const response = await fetch(
+        `${URL}/api/users/getProfile?lang=${currentLanguage}`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -185,15 +265,7 @@ const ProfileScreen: React.FC = () => {
       PREFER_NOT_TO_SAY: t('profile.gender.preferNotToSay'),
     };
 
-    return (
-      genderMap[gender] ||
-      gender
-        .replace(/_/g, ' ')
-        .toLowerCase()
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    );
+    return genderMap[gender] || gender;
   };
 
   const formatWorkingHours = (hours: string | null) => {
@@ -207,15 +279,7 @@ const ProfileScreen: React.FC = () => {
       WEEKEND_ONLY: t('workingHours.weekendOnly'),
     };
 
-    return (
-      hoursMap[hours] ||
-      hours
-        .replace(/_/g, ' ')
-        .toLowerCase()
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    );
+    return hoursMap[hours] || hours;
   };
 
   const formatTransportMode = (mode: string | null) => {
@@ -230,15 +294,7 @@ const ProfileScreen: React.FC = () => {
       WALKING: t('profile.transport.walking'),
     };
 
-    return (
-      transportMap[mode] ||
-      mode
-        .replace(/_/g, ' ')
-        .toLowerCase()
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    );
+    return transportMap[mode] || mode;
   };
 
   const formatDate = (dateString: string | null) => {
@@ -270,40 +326,19 @@ const ProfileScreen: React.FC = () => {
     let totalFields = 0;
 
     const profile = userProfile.profile;
-
-    // Basic info fields
-    const basicFields = [
-      profile.dateOfBirth,
-      profile.gender,
-      profile.nationality,
-    ];
+    const basicFields = [profile.dateOfBirth, profile.gender, profile.nationality];
     totalFields += basicFields.length;
     completedFields += basicFields.filter(Boolean).length;
 
-    // Address fields
-    const addressFields = [
-      profile.address,
-      profile.city,
-      profile.state,
-      profile.postcode,
-    ];
+    const addressFields = [profile.address, profile.city, profile.state, profile.postcode];
     totalFields += addressFields.length;
     completedFields += addressFields.filter(Boolean).length;
 
-    // Job preference fields
-    const jobFields = [
-      profile.preferredSalaryMin,
-      profile.workingHours,
-      profile.transportMode,
-    ];
+    const jobFields = [profile.preferredSalaryMin, profile.workingHours, profile.transportMode];
     totalFields += jobFields.length;
     completedFields += jobFields.filter(Boolean).length;
 
-    // Skills & experience
-    const skillFields = [
-      profile.experienceYears > 0,
-      profile.skills.length > 0,
-    ];
+    const skillFields = [profile.experienceYears > 0, profile.skills.length > 0];
     totalFields += skillFields.length;
     completedFields += skillFields.filter(Boolean).length;
 
@@ -314,7 +349,7 @@ const ProfileScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
           <Text style={styles.loadingText}>{t('profile.loading')}</Text>
         </View>
       </SafeAreaView>
@@ -339,41 +374,32 @@ const ProfileScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <LinearGradient
-        colors={['#1E3A8A', '#3730A3']}
-        style={styles.headerGradient}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => router.push('/EditProfileScreen')}
-          >
-            <LinearGradient
-              colors={['#FFFFFF', '#F8FAFC']}
-              style={styles.editButtonGradient}
-            >
-              <Text style={styles.editIcon}>✎</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={28} color={PRIMARY_BLUE} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => router.push('/EditProfileScreen')}
+        >
+          <Ionicons name="create-outline" size={24} color={PRIMARY_BLUE} />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Header Card */}
-        <View style={styles.profileCard}>
+        {/* Profile Hero Card */}
+        <View style={styles.heroCard}>
           <LinearGradient
             colors={['#4F46E5', '#3730A3']}
-            style={styles.profileGradient}
+            style={styles.heroGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <View style={styles.profileHeader}>
-              {/* ✅ UPDATED: Show profile picture or fallback to initial */}
+            <View style={styles.heroContent}>
               <View style={styles.avatarContainer}>
                 {userProfile.profile?.profilePicture ? (
                   <Image
@@ -381,166 +407,166 @@ const ProfileScreen: React.FC = () => {
                     style={styles.avatarImage}
                   />
                 ) : (
-                  <Text style={styles.avatarText}>
-                    {userProfile.fullName.charAt(0).toUpperCase()}
-                  </Text>
-                )}
-              </View>
-
-              <View style={styles.profileInfo}>
-                <Text style={styles.userName}>{userProfile.fullName}</Text>
-                <Text style={styles.userEmail}>{userProfile.email}</Text>
-
-                <View style={styles.verificationRow}>
-                  <View style={styles.verificationItem}>
-                    <View
-                      style={[
-                        styles.verificationDot,
-                        userProfile.isEmailVerified
-                          ? styles.verifiedDot
-                          : styles.unverifiedDot,
-                      ]}
-                    />
-                    <Text style={styles.verificationText}>
-                      {t('profile.email')}{' '}
-                      {userProfile.isEmailVerified
-                        ? t('profile.verified')
-                        : t('profile.unverified')}
+                  <View style={styles.avatarPlaceholder}>
+                    <Text style={styles.avatarText}>
+                      {userProfile.fullName.charAt(0).toUpperCase()}
                     </Text>
                   </View>
-                  {userProfile.phoneNumber && (
-                    <View style={styles.verificationItem}>
-                      <View
-                        style={[
-                          styles.verificationDot,
-                          userProfile.isPhoneVerified
-                            ? styles.verifiedDot
-                            : styles.unverifiedDot,
-                        ]}
-                      />
-                      <Text style={styles.verificationText}>
-                        {t('profile.phone')}{' '}
-                        {userProfile.isPhoneVerified
-                          ? t('profile.verified')
-                          : t('profile.unverified')}
-                      </Text>
-                    </View>
+                )}
+                <View style={styles.verificationBadge}>
+                  {userProfile.isEmailVerified ? (
+                    <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="alert-circle" size={16} color="#FEF3C7" />
                   )}
                 </View>
               </View>
-            </View>
 
-            <View style={styles.memberSinceContainer}>
-              <Text style={styles.memberSinceText}>
-                {t('profile.memberSince')}{' '}
-                {getMemberSince(userProfile.createdAt)}
-              </Text>
+              <View style={styles.heroInfo}>
+                <Text style={styles.userName}>{userProfile.fullName}</Text>
+                <Text style={styles.userEmail}>{userProfile.email}</Text>
+                
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <Ionicons name="calendar-outline" size={16} color="rgba(255,255,255,0.7)" />
+                    <Text style={styles.statText}>
+                      {t('profile.memberSince')} {getMemberSince(userProfile.createdAt)}
+                    </Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Ionicons name="briefcase-outline" size={16} color="rgba(255,255,255,0.7)" />
+                    <Text style={styles.statText}>
+                      {userProfile.profile?.experienceYears || 0} {t('profile.years')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* Profile Completion Progress */}
-        <View style={styles.section}>
-          <View style={styles.completionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t('profile.completion.title')}
-            </Text>
-            <Text style={styles.percentageText}>{completionPercentage}%</Text>
+        {/* Completion Progress Card */}
+        <View style={styles.progressCard}>
+          <View style={styles.progressHeader}>
+            <View style={styles.progressIconContainer}>
+              <Ionicons name="trophy-outline" size={20} color={ACCENT_ORANGE} />
+            </View>
+            <View style={styles.progressTextContainer}>
+              <Text style={styles.progressTitle}>{t('profile.completion.title')}</Text>
+              <Text style={styles.progressPercentage}>{completionPercentage}%</Text>
+            </View>
           </View>
+          
           <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${completionPercentage}%` },
-              ]}
+            <LinearGradient
+              colors={['#4F46E5', '#3730A3']}
+              style={[styles.progressFill, { width: `${completionPercentage}%` }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             />
           </View>
+          
           {completionPercentage < 100 && (
-            <Text style={styles.completionHint}>
-              {t('profile.completion.hint')}
-            </Text>
+            <TouchableOpacity 
+              style={styles.completeProfileButton}
+              onPress={() => router.push('/EditProfileScreen')}
+            >
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+              <Text style={styles.completeProfileText}>
+                {t('profile.completion.hint')}
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
 
-        {/* Personal Information */}
-        <View style={styles.section}>
+        {/* Personal Information Card */}
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>👤</Text>
+            <View style={[styles.sectionIconContainer, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="person-outline" size={20} color={PRIMARY_BLUE} />
+            </View>
             <Text style={styles.sectionTitle}>
               {t('profile.sections.personalInfo')}
             </Text>
           </View>
 
           <InfoRow
+            icon="call-outline"
             label={t('profile.phoneNumber')}
             value={userProfile.phoneNumber || t('profile.notProvided')}
+            isVerified={userProfile.isPhoneVerified}
           />
 
           {userProfile.profile && (
             <>
               <InfoRow
+                icon="calendar-outline"
                 label={t('profile.dateOfBirth')}
                 value={formatDate(userProfile.profile.dateOfBirth)}
               />
               <InfoRow
+                icon="male-female-outline"
                 label={t('profile.gender.title')}
                 value={formatGender(userProfile.profile.gender)}
               />
               <InfoRow
+                icon="globe-outline"
                 label={t('profile.nationality')}
-                value={
-                  userProfile.profile.nationality || t('profile.notSpecified')
-                }
+                value={userProfile.profile.nationality || t('profile.notSpecified')}
               />
             </>
           )}
         </View>
 
-        {/* Address */}
-        {userProfile.profile &&
-          (userProfile.profile.address || userProfile.profile.city) && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionIcon}>🏠</Text>
-                <Text style={styles.sectionTitle}>
-                  {t('profile.sections.address')}
-                </Text>
+        {/* Address Card */}
+        {userProfile.profile && (userProfile.profile.address || userProfile.profile.city) && (
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconContainer, { backgroundColor: '#F0FDF4' }]}>
+                <Ionicons name="home-outline" size={20} color={ACCENT_GREEN} />
               </View>
-              <View style={styles.addressContainer}>
+              <Text style={styles.sectionTitle}>
+                {t('profile.sections.address')}
+              </Text>
+            </View>
+            
+            <View style={styles.addressCard}>
+              <Ionicons name="location-outline" size={20} color={TEXT_SECONDARY} />
+              <View style={styles.addressContent}>
                 {userProfile.profile.address && (
                   <Text style={styles.addressLine}>
                     {userProfile.profile.address}
                   </Text>
                 )}
-                <Text style={styles.addressLine}>
-                  {[
-                    userProfile.profile.city,
-                    userProfile.profile.state,
-                    userProfile.profile.postcode,
-                  ]
+                <Text style={styles.addressDetails}>
+                  {[userProfile.profile.city, userProfile.profile.state, userProfile.profile.postcode]
                     .filter(Boolean)
                     .join(', ')}
                 </Text>
               </View>
             </View>
-          )}
+          </View>
+        )}
 
-        {/* Job Preferences */}
+        {/* Job Preferences Card */}
         {userProfile.profile && (
-          <View style={styles.section}>
+          <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionIcon}>💼</Text>
+              <View style={[styles.sectionIconContainer, { backgroundColor: '#FEF3C7' }]}>
+                <Ionicons name="briefcase-outline" size={20} color={ACCENT_ORANGE} />
+              </View>
               <Text style={styles.sectionTitle}>
                 {t('profile.sections.jobPreferences')}
               </Text>
             </View>
 
-            <View style={styles.preferenceItem}>
+            <View style={styles.preferenceSection}>
               <Text style={styles.preferenceLabel}>
                 {t('profile.preferredIndustries')}
               </Text>
               {userProfile.profile.industries.length > 0 ? (
-                <View style={styles.tagsContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsScroll}>
                   {userProfile.profile.industries.map((item) => (
                     <View key={item.industry.id} style={styles.industryTag}>
                       <Text style={styles.industryTagText}>
@@ -548,7 +574,7 @@ const ProfileScreen: React.FC = () => {
                       </Text>
                     </View>
                   ))}
-                </View>
+                </ScrollView>
               ) : (
                 <Text style={styles.emptyText}>
                   {t('profile.noIndustries')}
@@ -557,6 +583,7 @@ const ProfileScreen: React.FC = () => {
             </View>
 
             <InfoRow
+              icon="cash-outline"
               label={t('profile.expectedSalary')}
               value={formatSalary(
                 userProfile.profile.preferredSalaryMin,
@@ -565,46 +592,52 @@ const ProfileScreen: React.FC = () => {
             />
 
             <InfoRow
+              icon="time-outline"
               label={t('profile.workingHours')}
               value={formatWorkingHours(userProfile.profile.workingHours)}
             />
+            
             <InfoRow
+              icon="car-outline"
               label={t('profile.transportMode')}
               value={formatTransportMode(userProfile.profile.transportMode)}
             />
 
             {userProfile.profile.maxTravelDistance && (
               <InfoRow
+                icon="navigate-outline"
                 label={t('profile.maxTravelDistance')}
                 value={`${userProfile.profile.maxTravelDistance} km`}
               />
             )}
 
             <InfoRow
+              icon="calendar-check-outline"
               label={t('profile.availableFrom')}
               value={formatDate(userProfile.profile.availableFrom)}
             />
           </View>
         )}
 
-        {/* Skills & Experience */}
+        {/* Skills & Experience Card */}
         {userProfile.profile && (
-          <View style={styles.section}>
+          <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionIcon}>🚀</Text>
+              <View style={[styles.sectionIconContainer, { backgroundColor: '#F0F9FF' }]}>
+                <Ionicons name="rocket-outline" size={20} color="#0EA5E9" />
+              </View>
               <Text style={styles.sectionTitle}>
                 {t('profile.sections.skillsExperience')}
               </Text>
             </View>
 
             <InfoRow
+              icon="trending-up-outline"
               label={t('profile.yearsOfExperience')}
-              value={`${userProfile.profile.experienceYears} ${t(
-                'profile.years'
-              )}`}
+              value={`${userProfile.profile.experienceYears} ${t('profile.years')}`}
             />
 
-            <View style={styles.preferenceItem}>
+            <View style={styles.preferenceSection}>
               <Text style={styles.preferenceLabel}>{t('profile.skills')}</Text>
               {userProfile.profile.skills.length > 0 ? (
                 <View style={styles.tagsContainer}>
@@ -619,7 +652,7 @@ const ProfileScreen: React.FC = () => {
               )}
             </View>
 
-            <View style={styles.preferenceItem}>
+            <View style={styles.preferenceSection}>
               <Text style={styles.preferenceLabel}>
                 {t('profile.languages')}
               </Text>
@@ -638,9 +671,12 @@ const ProfileScreen: React.FC = () => {
               )}
             </View>
 
-            {userProfile.profile.resumeUrl && (
-              <TouchableOpacity style={styles.resumeButton}>
-                <Text style={styles.resumeIcon}>📄</Text>
+            {getResumeKeyForCurrentLanguage() && (
+              <TouchableOpacity
+                style={styles.resumeButton}
+                onPress={openResume}
+              >
+                <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
                 <Text style={styles.resumeButtonText}>
                   {t('profile.viewResume')}
                 </Text>
@@ -649,42 +685,49 @@ const ProfileScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
+        {/* Quick Actions Card */}
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>⚡</Text>
+            <View style={[styles.sectionIconContainer, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="flash-outline" size={20} color={PRIMARY_BLUE} />
+            </View>
             <Text style={styles.sectionTitle}>
               {t('profile.sections.quickActions')}
             </Text>
           </View>
 
           <ActionButton
-            icon="🔖"
+            icon="bookmark-outline"
             title={t('profile.actions.savedJobs')}
             onPress={() => router.push('/SavedJobsScreen')}
+            color={PRIMARY_BLUE}
           />
           <ActionButton
-            icon="📝"
+            icon="document-text-outline"
             title={t('profile.actions.myApplications')}
             onPress={() => router.push('/AppliedJobScreen')}
+            color={ACCENT_GREEN}
           />
           <ActionButton
-            icon="⚙️"
+            icon="settings-outline"
             title={t('profile.actions.preferences')}
             onPress={() => router.push('/PreferencesScreen')}
+            color={ACCENT_PURPLE}
           />
         </View>
 
-        {/* Language Selection Section - ADD THIS BEFORE REPORTS SECTION */}
-        <View style={styles.section}>
+        {/* Language Selection Card */}
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>🌐</Text>
+            <View style={[styles.sectionIconContainer, { backgroundColor: '#F0F9FF' }]}>
+              <Ionicons name="globe-outline" size={20} color="#0EA5E9" />
+            </View>
             <Text style={styles.sectionTitle}>
               {t('profile.sections.language') || 'Language'}
             </Text>
           </View>
 
-          <Text style={styles.languageSectionSubtitle}>
+          <Text style={styles.languageSubtitle}>
             {t('profile.selectLanguage') || 'Select your preferred language'}
           </Text>
 
@@ -693,64 +736,56 @@ const ProfileScreen: React.FC = () => {
               <TouchableOpacity
                 key={lang.code}
                 style={[
-                  styles.languageCard,
-                  currentLanguage === lang.code && styles.languageCardActive,
+                  styles.languageOption,
+                  currentLanguage === lang.code && styles.languageOptionActive,
                 ]}
                 onPress={() => handleLanguageChange(lang.code)}
               >
-                <View style={styles.languageCardContent}>
-                  <Text
-                    style={[
-                      styles.languageLabel,
-                      currentLanguage === lang.code &&
-                        styles.languageLabelActive,
-                    ]}
-                  >
+                <Text style={styles.languageFlag}>{lang.flag}</Text>
+                <View style={styles.languageInfo}>
+                  <Text style={[
+                    styles.languageLabel,
+                    currentLanguage === lang.code && styles.languageLabelActive
+                  ]}>
                     {lang.label}
                   </Text>
-                  <Text
-                    style={[
-                      styles.languageName,
-                      currentLanguage === lang.code &&
-                        styles.languageNameActive,
-                    ]}
-                  >
+                  <Text style={[
+                    styles.languageName,
+                    currentLanguage === lang.code && styles.languageNameActive
+                  ]}>
                     {lang.name}
                   </Text>
-                  {currentLanguage === lang.code && (
-                    <View style={styles.selectedBadge}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color="#10B981"
-                      />
-                    </View>
-                  )}
                 </View>
+                {currentLanguage === lang.code && (
+                  <Ionicons name="checkmark-circle" size={24} color={ACCENT_GREEN} />
+                )}
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Reports Section - NEW */}
-        <View style={styles.section}>
+        {/* Reports Card */}
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>🚨</Text>
+            <View style={[styles.sectionIconContainer, { backgroundColor: '#FEF2F2' }]}>
+              <Ionicons name="flag-outline" size={20} color="#EF4444" />
+            </View>
             <Text style={styles.sectionTitle}>
               {t('profile.sections.reports') || 'Reports'}
             </Text>
           </View>
 
           <ActionButton
-            icon="🚩"
+            icon="flag-outline"
             title={t('profile.actions.myReports') || 'My Reports'}
             onPress={() => router.push('/(user-hidden)/report-history')}
+            color="#EF4444"
           />
         </View>
 
-        {/* Logout */}
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutIcon}>🚪</Text>
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>{t('profile.logout.button')}</Text>
         </TouchableOpacity>
 
@@ -761,13 +796,30 @@ const ProfileScreen: React.FC = () => {
 };
 
 // Reusable Components
-const InfoRow: React.FC<{ label: string; value: string }> = ({
-  label,
-  value,
-}) => (
+const InfoRow: React.FC<{ 
+  icon: string; 
+  label: string; 
+  value: string;
+  isVerified?: boolean;
+}> = ({ icon, label, value, isVerified }) => (
   <View style={infoRowStyles.container}>
-    <Text style={infoRowStyles.label}>{label}</Text>
-    <Text style={infoRowStyles.value}>{value}</Text>
+    <View style={infoRowStyles.iconContainer}>
+      <Ionicons name={icon as any} size={18} color={TEXT_SECONDARY} />
+    </View>
+    <View style={infoRowStyles.content}>
+      <Text style={infoRowStyles.label}>{label}</Text>
+      <View style={infoRowStyles.valueContainer}>
+        <Text style={infoRowStyles.value}>{value}</Text>
+        {isVerified !== undefined && (
+          <Ionicons 
+            name={isVerified ? "checkmark-circle" : "alert-circle"} 
+            size={16} 
+            color={isVerified ? ACCENT_GREEN : TEXT_TERTIARY} 
+            style={infoRowStyles.verificationIcon}
+          />
+        )}
+      </View>
+    </View>
   </View>
 );
 
@@ -775,19 +827,21 @@ const ActionButton: React.FC<{
   icon: string;
   title: string;
   onPress: () => void;
-}> = ({ icon, title, onPress }) => (
+  color: string;
+}> = ({ icon, title, onPress, color }) => (
   <TouchableOpacity style={actionButtonStyles.container} onPress={onPress}>
-    <Text style={actionButtonStyles.icon}>{icon}</Text>
+    <View style={[actionButtonStyles.iconContainer, { backgroundColor: `${color}10` }]}>
+      <Ionicons name={icon as any} size={20} color={color} />
+    </View>
     <Text style={actionButtonStyles.title}>{title}</Text>
-    <Text style={actionButtonStyles.arrow}>›</Text>
+    <Ionicons name="chevron-forward" size={20} color={TEXT_TERTIARY} />
   </TouchableOpacity>
 );
 
-// Styles (keep all your existing styles exactly the same)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
@@ -795,227 +849,304 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 16,
-    color: '#64748B',
+    color: TEXT_SECONDARY,
+    fontWeight: '500',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 40,
   },
   errorText: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 16,
+    fontSize: 18,
+    color: TEXT_SECONDARY,
+    marginBottom: 24,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#1E3A8A',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: PRIMARY_BLUE,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 14,
+    shadowColor: PRIMARY_BLUE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   retryButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
-  headerGradient: {
-    paddingTop: 8,
-  },
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 16,
+    backgroundColor: CARD_BACKGROUND,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
   },
   backButton: {
     padding: 8,
   },
-  backIcon: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
   },
   editButton: {
+    padding: 8,
+    backgroundColor: '#F0F7FF',
     borderRadius: 12,
-    overflow: 'hidden',
-  },
-  editButtonGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editIcon: {
-    fontSize: 16,
-    color: '#1E3A8A',
-    fontWeight: 'bold',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
   },
   content: {
     flex: 1,
   },
-  profileCard: {
-    margin: 20,
-    borderRadius: 20,
+  // Hero Card
+  heroCard: {
+    margin: 24,
+    marginTop: 16,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 12,
   },
-  profileGradient: {
+  heroGradient: {
     padding: 24,
   },
-  profileHeader: {
+  heroContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatarContainer: {
+    position: 'relative',
+    marginRight: 20,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  avatarPlaceholder: {
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    overflow: 'hidden',
   },
-
-  profileInfo: {
+  avatarText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  verificationBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: PRIMARY_BLUE,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  heroInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 15,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 12,
+    marginBottom: 16,
+    fontWeight: '500',
   },
-  verificationRow: {
+  statsContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
   },
-  verificationItem: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  verificationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  verifiedDot: {
-    backgroundColor: '#10B981',
-  },
-  unverifiedDot: {
-    backgroundColor: '#EF4444',
-  },
-  verificationText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
-  },
-  memberSinceContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  memberSinceText: {
+  statText: {
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
+    fontWeight: '500',
   },
-  section: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
+  statDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  // Progress Card
+  progressCard: {
+    backgroundColor: CARD_BACKGROUND,
+    marginHorizontal: 24,
     marginBottom: 16,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 16,
+  },
+  progressIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressTextContainer: {
+    flex: 1,
+  },
+  progressTitle: {
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  progressPercentage: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: TEXT_PRIMARY,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  completeProfileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 10,
+  },
+  completeProfileText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Section Cards
+  sectionCard: {
+    backgroundColor: CARD_BACKGROUND,
+    marginHorizontal: 24,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    gap: 16,
   },
-  sectionIcon: {
-    fontSize: 20,
-    marginRight: 12,
+  sectionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontSize: 20,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
   },
-  completionHeader: {
+  // Address
+  addressCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  percentageText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E3A8A',
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#1E3A8A',
-    borderRadius: 3,
-  },
-  completionHint: {
-    fontSize: 13,
-    color: '#64748B',
-    fontStyle: 'italic',
-  },
-  addressContainer: {
     backgroundColor: '#F8FAFC',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    gap: 16,
+  },
+  addressContent: {
+    flex: 1,
   },
   addressLine: {
     fontSize: 15,
-    color: '#1E293B',
-    lineHeight: 22,
+    fontWeight: '600',
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
   },
-  preferenceItem: {
-    marginBottom: 16,
+  addressDetails: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+  },
+  // Preferences
+  preferenceSection: {
+    marginBottom: 20,
   },
   preferenceLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    color: TEXT_SECONDARY,
+    marginBottom: 12,
+  },
+  tagsScroll: {
+    flexDirection: 'row',
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -1024,87 +1155,141 @@ const styles = StyleSheet.create({
   },
   industryTag: {
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#DBEAFE',
+    marginRight: 8,
+    marginBottom: 8,
   },
   industryTagText: {
-    fontSize: 13,
-    color: '#1E3A8A',
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
   },
   skillTag: {
     backgroundColor: '#F0FDF4',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#BBF7D0',
+    marginRight: 8,
+    marginBottom: 8,
   },
   skillTagText: {
-    fontSize: 13,
-    color: '#059669',
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
+    color: ACCENT_GREEN,
   },
   languageTag: {
     backgroundColor: '#FEF3C7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#FDE68A',
+    marginRight: 8,
+    marginBottom: 8,
   },
   languageTagText: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#92400E',
-    fontWeight: '500',
   },
   emptyText: {
-    fontSize: 14,
-    color: '#94A3B8',
+    fontSize: 15,
+    color: TEXT_TERTIARY,
     fontStyle: 'italic',
+    paddingVertical: 8,
   },
+  // Resume Button
   resumeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E3A8A',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 12,
     marginTop: 8,
-  },
-  resumeIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    shadowColor: PRIMARY_BLUE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   resumeButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
+  // Language Selection
+  languageSubtitle: {
+    fontSize: 15,
+    color: TEXT_SECONDARY,
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  languageGrid: {
+    gap: 12,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
+    gap: 16,
+  },
+  languageOptionActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: PRIMARY_BLUE,
+  },
+  languageFlag: {
+    fontSize: 32,
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  languageLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  languageLabelActive: {
+    color: PRIMARY_BLUE,
+  },
+  languageName: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+  },
+  languageNameActive: {
+    color: PRIMARY_BLUE,
+    fontWeight: '600',
+  },
+  // Logout Button
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: '#FEF2F2',
+    marginHorizontal: 24,
+    marginBottom: 32,
+    paddingVertical: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#FECACA',
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-  },
-  logoutIcon: {
-    fontSize: 18,
-    marginRight: 8,
   },
   logoutText: {
     fontSize: 16,
@@ -1114,95 +1299,45 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 20,
   },
-  languageSectionSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 16,
-  },
-  languageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  languageCard: {
-    width: '48%',
-    minWidth: 140,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    position: 'relative',
-  },
-  languageCardActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#1E3A8A',
-    shadowColor: '#1E3A8A',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  languageCardContent: {
-    alignItems: 'center',
-  },
-  languageLabel: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#475569',
-    marginBottom: 4,
-  },
-  languageLabelActive: {
-    color: '#1E3A8A',
-  },
-  languageName: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  languageNameActive: {
-    color: '#1E3A8A',
-    fontWeight: '600',
-  },
-  selectedBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 2,
-  },
-  // ✅ ADD: New style for the avatar image
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
 });
 
 const infoRowStyles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  content: {
+    flex: 1,
   },
   label: {
     fontSize: 13,
-    color: '#64748B',
-    marginBottom: 4,
-    fontWeight: '500',
+    color: TEXT_TERTIARY,
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  valueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   value: {
-    fontSize: 15,
-    color: '#1E293B',
+    fontSize: 16,
     fontWeight: '600',
+    color: TEXT_PRIMARY,
+    flex: 1,
+  },
+  verificationIcon: {
+    marginLeft: 'auto',
   },
 });
 
@@ -1214,21 +1349,19 @@ const actionButtonStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
-  icon: {
-    fontSize: 20,
-    marginRight: 12,
-    width: 24,
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   title: {
     flex: 1,
     fontSize: 16,
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  arrow: {
-    fontSize: 20,
-    color: '#CBD5E1',
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: TEXT_PRIMARY,
   },
 });
 

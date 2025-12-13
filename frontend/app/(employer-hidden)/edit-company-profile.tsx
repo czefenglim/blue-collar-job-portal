@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -55,6 +56,7 @@ const MALAYSIAN_STATES = [
 
 export default function ProfileEditPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [industries, setIndustries] = useState<Industry[]>([]);
@@ -116,7 +118,7 @@ export default function ProfileEditPage() {
       setState(company.state || '');
       setPostcode(company.postcode || '');
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to load profile');
+      Alert.alert(t('common.error'), t('employerProfile.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,7 @@ export default function ProfileEditPage() {
   const fetchIndustries = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${URL}/api/industries`, {
+      const response = await fetch(`${URL}/api/industries?lang=${currentLanguage}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -139,8 +141,8 @@ export default function ProfileEditPage() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert(
-        'Permission Required',
-        'Please grant camera roll permissions'
+        t('employerProfile.permissions.cameraRollRequiredTitle'),
+        t('employerProfile.permissions.cameraRollRequiredMessage')
       );
       return;
     }
@@ -154,29 +156,44 @@ export default function ProfileEditPage() {
 
     if (!result.canceled && result.assets[0]) {
       setLogo(result.assets[0].uri);
-      Alert.alert('Note', 'In production, this would upload to your server');
+      Alert.alert(t('employerProfile.note'), t('employerProfile.uploadNote'));
     }
   };
 
   const validateForm = () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Company name is required');
+      Alert.alert(
+        t('common.error'),
+        t('employerProfile.validation.companyNameRequired')
+      );
       return false;
     }
     if (!industryId) {
-      Alert.alert('Error', 'Please select an industry');
+      Alert.alert(
+        t('common.error'),
+        t('employerProfile.validation.industryRequired')
+      );
       return false;
     }
     if (!companySize) {
-      Alert.alert('Error', 'Please select company size');
+      Alert.alert(
+        t('common.error'),
+        t('employerProfile.validation.sizeRequired')
+      );
       return false;
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      Alert.alert('Error', 'Invalid email format');
+      Alert.alert(
+        t('common.error'),
+        t('employerProfile.validation.invalidEmail')
+      );
       return false;
     }
     if (website && !/^https?:\/\/.+/.test(website)) {
-      Alert.alert('Error', 'Website must start with http:// or https://');
+      Alert.alert(
+        t('common.error'),
+        t('employerProfile.validation.invalidWebsite')
+      );
       return false;
     }
     return true;
@@ -185,54 +202,61 @@ export default function ProfileEditPage() {
   const handleSave = async () => {
     if (!validateForm()) return;
 
-    Alert.alert('Save Changes', 'Update your profile?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Save',
-        onPress: async () => {
-          try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem('jwtToken');
+    Alert.alert(
+      t('employerProfile.saveChanges'),
+      t('employerProfile.updateConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.save'),
+          onPress: async () => {
+            try {
+              setSaving(true);
+              const token = await AsyncStorage.getItem('jwtToken');
 
-            const response = await fetch(
-              `${URL}/api/employer/company/${companyId}`,
-              {
-                method: 'PATCH',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  name: name.trim(),
-                  industryId,
-                  companySize,
-                  description: description.trim(),
-                  logo,
-                  website: website.trim(),
-                  email: email.trim(),
-                  phone: phone.trim(),
-                  address: address.trim(),
-                  city: city.trim(),
-                  state,
-                  postcode: postcode.trim(),
-                }),
-              }
-            );
+              const response = await fetch(
+                `${URL}/api/employer/company/${companyId}`,
+                {
+                  method: 'PATCH',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    name: name.trim(),
+                    industryId,
+                    companySize,
+                    description: description.trim(),
+                    logo,
+                    website: website.trim(),
+                    email: email.trim(),
+                    phone: phone.trim(),
+                    address: address.trim(),
+                    city: city.trim(),
+                    state,
+                    postcode: postcode.trim(),
+                  }),
+                }
+              );
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
+              const data = await response.json();
+              if (!response.ok) throw new Error(data.message);
 
-            Alert.alert('Success', 'Profile updated!', [
-              { text: 'OK', onPress: () => router.back() },
-            ]);
-          } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to update');
-          } finally {
-            setSaving(false);
-          }
+              Alert.alert(t('common.success'), t('employerProfile.updated'), [
+                { text: t('common.ok'), onPress: () => router.back() },
+              ]);
+            } catch (error: any) {
+              Alert.alert(
+                t('common.error'),
+                error.message || t('employerProfile.updateFailed')
+              );
+            } finally {
+              setSaving(false);
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const renderInput = (
@@ -306,6 +330,7 @@ export default function ProfileEditPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
+          <Text style={styles.logoHint}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -336,21 +361,24 @@ export default function ProfileEditPage() {
               <Ionicons name="camera" size={16} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
-          <Text style={styles.logoHint}>Tap to change logo</Text>
+          <Text style={styles.logoHint}>{t('employerProfile.logoHint')}</Text>
         </View>
 
         {/* Basic Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerProfile.companyInformation')}
+          </Text>
 
-          {renderInput('Company Name', name, setName, {
-            placeholder: 'Enter company name',
+          {renderInput(t('employerProfile.companyName'), name, setName, {
+            placeholder: t('employerProfile.placeholders.companyName'),
             required: true,
           })}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Industry <Text style={styles.required}>*</Text>
+              {t('employerProfile.industry')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -363,7 +391,8 @@ export default function ProfileEditPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedIndustry?.name || 'Select industry'}
+                {selectedIndustry?.name ||
+                  t('employerCompanyForm.selectIndustry')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -371,7 +400,8 @@ export default function ProfileEditPage() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Company Size <Text style={styles.required}>*</Text>
+              {t('employerProfile.companySize')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -382,34 +412,41 @@ export default function ProfileEditPage() {
                   selectedSize ? styles.pickerText : styles.pickerPlaceholder
                 }
               >
-                {selectedSize?.label || 'Select company size'}
+                {selectedSize?.label || t('employerProfile.selectCompanySize')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Description', description, setDescription, {
-            placeholder: 'Brief description of your company',
-            multiline: true,
-            maxLength: 500,
-          })}
+          {renderInput(
+            t('employerProfile.description'),
+            description,
+            setDescription,
+            {
+              placeholder: t('employerProfile.placeholders.description'),
+              multiline: true,
+              maxLength: 500,
+            }
+          )}
         </View>
 
         {/* Contact Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerProfile.contactInformation')}
+          </Text>
 
-          {renderInput('Email', email, setEmail, {
+          {renderInput(t('employerProfile.email'), email, setEmail, {
             placeholder: 'company@example.com',
             keyboardType: 'email-address',
           })}
 
-          {renderInput('Phone', phone, setPhone, {
+          {renderInput(t('employerProfile.phone'), phone, setPhone, {
             placeholder: '+60123456789',
             keyboardType: 'phone-pad',
           })}
 
-          {renderInput('Website', website, setWebsite, {
+          {renderInput(t('employerProfile.website'), website, setWebsite, {
             placeholder: 'https://yourcompany.com',
             keyboardType: 'url',
           })}
@@ -417,18 +454,20 @@ export default function ProfileEditPage() {
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerProfile.location')}
+          </Text>
 
-          {renderInput('Address', address, setAddress, {
-            placeholder: 'Street address',
+          {renderInput(t('employerProfile.address'), address, setAddress, {
+            placeholder: t('employerProfile.placeholders.address'),
           })}
 
-          {renderInput('City', city, setCity, {
-            placeholder: 'City',
+          {renderInput(t('employerProfile.city'), city, setCity, {
+            placeholder: t('employerProfile.placeholders.city'),
           })}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>State</Text>
+            <Text style={styles.label}>{t('employerProfile.state')}</Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowStatePicker(true)}
@@ -436,13 +475,13 @@ export default function ProfileEditPage() {
               <Text
                 style={state ? styles.pickerText : styles.pickerPlaceholder}
               >
-                {state || 'Select state'}
+                {state || t('employerProfile.selectState')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Postcode', postcode, setPostcode, {
+          {renderInput(t('employerProfile.postcode'), postcode, setPostcode, {
             placeholder: '50000',
             keyboardType: 'number-pad',
             maxLength: 5,
@@ -464,7 +503,9 @@ export default function ProfileEditPage() {
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <Text style={styles.saveButtonText}>
+                {t('employerProfile.saveChanges')}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -474,7 +515,7 @@ export default function ProfileEditPage() {
       {renderPickerModal(
         showIndustryPicker,
         () => setShowIndustryPicker(false),
-        'Select Industry',
+        t('employerCompanyForm.selectIndustry'),
         industries,
         (id) => setIndustryId(id),
         (item) => item.name,
@@ -484,7 +525,7 @@ export default function ProfileEditPage() {
       {renderPickerModal(
         showSizePicker,
         () => setShowSizePicker(false),
-        'Select Company Size',
+        t('employerProfile.selectCompanySize'),
         COMPANY_SIZES,
         (value) => setCompanySize(value),
         (item) => item.label,
@@ -494,10 +535,10 @@ export default function ProfileEditPage() {
       {renderPickerModal(
         showStatePicker,
         () => setShowStatePicker(false),
-        'Select State',
+        t('employerProfile.selectState'),
         MALAYSIAN_STATES,
-        (value) => setState(value),
-        (item) => item,
+        (value) => setCompanyArea(value),
+        (item) => t(`states.${item}`),
         (item) => item
       )}
     </SafeAreaView>

@@ -1,0 +1,22 @@
+@startuml
+title Sequence: Write Company Reviews
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Review Controller" as API
+database "Database" as DB
+
+JS -> UI: Select Company & Click Write Review
+activate UI
+JS -> UI: Enter Rating & Content
+JS -> UI: Click Submit
+UI -> API: Create Review
+activate API
+API -> DB: Insert Review
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Success Message
+deactivate API
+deactivate UI
+@enduml
+

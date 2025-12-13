@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
 import {
   uploadToS3,
   deleteFromS3,
@@ -407,11 +408,19 @@ export const submitAppeal = async (req: AuthRequest, res: Response) => {
     }
 
     // Create appeal
+    const e_en = await translateText(explanation.trim(), 'en');
+    const e_ms = await translateText(explanation.trim(), 'ms');
+    const e_ta = await translateText(explanation.trim(), 'ta');
+    const e_zh = await translateText(explanation.trim(), 'zh');
     const appeal = await prisma.appeal.create({
       data: {
         reportId: parseInt(reportId),
         employerId: userId,
         explanation: explanation.trim(),
+        explanation_en: e_en ?? undefined,
+        explanation_ms: e_ms ?? undefined,
+        explanation_ta: e_ta ?? undefined,
+        explanation_zh: e_zh ?? undefined,
         evidence: evidenceUrls.length > 0 ? JSON.stringify(evidenceUrls) : null,
       },
       include: {
@@ -584,11 +593,20 @@ export const reviewAppeal = async (req: AdminAuthRequest, res: Response) => {
     });
 
     // Update appeal
+    const rnText = reviewNotes || null;
+    const rn_en = rnText ? await translateText(rnText, 'en') : null;
+    const rn_ms = rnText ? await translateText(rnText, 'ms') : null;
+    const rn_ta = rnText ? await translateText(rnText, 'ta') : null;
+    const rn_zh = rnText ? await translateText(rnText, 'zh') : null;
     const updatedAppeal = await prisma.appeal.update({
       where: { id: parseInt(id) },
       data: {
         status,
         reviewNotes,
+        reviewNotes_en: rn_en ?? undefined,
+        reviewNotes_ms: rn_ms ?? undefined,
+        reviewNotes_ta: rn_ta ?? undefined,
+        reviewNotes_zh: rn_zh ?? undefined,
         reviewedBy: adminUser?.id || null,
         reviewedAt: new Date(),
       },
@@ -651,6 +669,7 @@ export const reviewAppeal = async (req: AdminAuthRequest, res: Response) => {
       });
 
       // Log admin action
+      const r_en = await translateText(reviewNotes || 'Appeal accepted', 'en');
       await prisma.adminAction.create({
         data: {
           adminEmail: req.adminEmail!,
@@ -658,6 +677,7 @@ export const reviewAppeal = async (req: AdminAuthRequest, res: Response) => {
           targetType: 'JOB',
           targetId: appeal.report.jobId,
           reason: reviewNotes || 'Appeal accepted',
+          reason_en: r_en ?? undefined,
           notes: `Appeal #${appeal.id} accepted`,
         },
       });

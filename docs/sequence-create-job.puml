@@ -1,0 +1,53 @@
+@startuml
+title Sequence: Create Job Post
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Job Controller" as API
+database "Database" as DB
+
+EMP -> UI: Click Plus Icon
+activate UI
+UI -> API: Check Subscription/Quota
+activate API
+API -> DB: Get Subscription Status
+activate DB
+DB --> API: Quota Details
+deactivate DB
+
+alt Insufficient Quota
+  API --> UI: Quota Limit Reached
+  deactivate API
+  UI -> EMP: Prompt to Upgrade
+  EMP -> UI: Redirect to Pricing Page
+else Quota Available
+  API --> UI: Access Granted
+  deactivate API
+  UI --> EMP: Display Create Job Form
+  
+  alt Discard Creation
+    EMP -> UI: Click Back Button
+    UI --> EMP: Navigate back to Job Post Page
+  else Submit Job
+    EMP -> UI: Enter Job Details
+    EMP -> UI: Click "Create Job Post"
+    UI -> API: Create Job
+    activate API
+    
+    alt Validation Error
+      API --> UI: Error: Invalid Input
+    else Validation Success
+      API -> DB: Save Job
+      activate DB
+      DB --> API: Job Saved
+      deactivate DB
+      API -> DB: Deduct Quota
+      activate DB
+      DB --> API: Quota Updated
+      deactivate DB
+      API --> UI: Success Message
+    end
+    deactivate API
+  end
+end
+deactivate UI
+@enduml

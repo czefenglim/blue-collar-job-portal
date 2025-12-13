@@ -1,0 +1,73 @@
+@startuml UC_Auth_Employer
+skinparam conditionStyle diamond
+title Activity: Employer Sign Up / Login
+|Employer|
+start
+:Open Application;
+if (Has Account?) then (yes)
+  :Select Login;
+  :Enter Credentials (Email/Phone, Password);
+  :Submit;
+  |System|
+  if (Valid Credentials?) then (yes)
+    :Check Account Status;
+    if (Status?) then (Active)
+      :Authenticate User;
+      :Generate Session/Token;
+      :Redirect to Dashboard;
+      stop
+    elseif (Rejected)
+      :Show Rejected Page;
+      stop
+    else (Pending)
+      :Show Pending Approval Page;
+      stop
+    endif
+  else (no)
+    :Show Error Message;
+    stop
+  endif
+else (no)
+  |Employer|
+  :Select Language;
+  :Select Role (Employer);
+  :Select Sign Up;
+  :Enter Details (Name, Contact, Password);
+  :Submit Registration;
+  |System|
+  if (Validation Passed?) then (yes)
+    :Create Account Record;
+    :Send Verification Email/OTP;
+    |Employer|
+    :Enter Verification Code;
+    |System|
+    if (Verified?) then (yes)
+      :Mark Account Verified;
+      |Employer|
+      #pink:call Employer Onboarding Flow>
+      |Admin|
+      :Review Registration;
+      if (Approve?) then (yes)
+        :Approve Account;
+        |System|
+        :Update Status to Active;
+        :Notify Employer;
+      else (no)
+        |Admin|
+        :Reject Account;
+        |System|
+        :Update Status to Rejected;
+        :Notify Employer;
+      endif
+    else (no)
+      :Show Verification Error;
+      stop
+    endif
+  else (no)
+    :Show Validation Errors;
+    stop
+  endif
+endif
+stop
+@enduml
+

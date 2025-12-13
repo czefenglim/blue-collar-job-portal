@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { translateText } from '../services/googleTranslation';
 import { AdminAuthRequest } from '../types/admin';
 
 const prisma = new PrismaClient();
@@ -16,7 +17,16 @@ interface AuthRequest extends Request {
 export const createReview = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.userId;
-    const { companyId, rating, title, comment, isAnonymous } = req.body;
+    const {
+      companyId,
+      rating,
+      title,
+      comment,
+      isAnonymous,
+      comment_ms,
+      comment_ta,
+      comment_zh,
+    } = req.body;
 
     // Validation
     if (!companyId || !rating) {
@@ -77,6 +87,13 @@ export const createReview = async (req: AuthRequest, res: Response) => {
     }
 
     // Create review
+    const c_ms =
+      comment_ms ?? (comment ? await translateText(comment, 'ms') : null);
+    const c_ta =
+      comment_ta ?? (comment ? await translateText(comment, 'ta') : null);
+    const c_zh =
+      comment_zh ?? (comment ? await translateText(comment, 'zh') : null);
+    const c_en = comment ? await translateText(comment, 'en') : null;
     const review = await prisma.review.create({
       data: {
         userId,
@@ -84,6 +101,10 @@ export const createReview = async (req: AuthRequest, res: Response) => {
         rating,
         title: title?.trim() || null,
         comment: comment?.trim() || null,
+        comment_ms: c_ms ?? undefined,
+        comment_ta: c_ta ?? undefined,
+        comment_zh: c_zh ?? undefined,
+        comment_en: c_en ?? undefined,
         isAnonymous: isAnonymous || false,
         isVisible: true,
         isApproved: true,
@@ -467,7 +488,7 @@ export const getEmployerCompanyReviews = async (
     // Build where clause
     const where: any = {
       companyId: company.id,
-      isVisible: true,
+      // isVisible: true, // Allow employers to see all reviews, including hidden ones
     };
 
     if (rating) {
@@ -601,7 +622,25 @@ export const replyToReview = async (req: AuthRequest, res: Response) => {
     // Get employer's company
     const company = await prisma.company.findUnique({
       where: { userId },
+      include: { subscription: true }, // ✅ ADD THIS
     });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found',
+      });
+    }
+
+    // ✅ ADD THIS PERMISSION CHECK BEFORE CHECKING REVIEW
+    if (!company.subscription?.canReplyToReviews) {
+      return res.status(403).json({
+        success: false,
+        message: 'Upgrade to Pro or Max plan to reply to reviews',
+        code: 'FEATURE_RESTRICTED',
+        planType: company.subscription?.planType || 'FREE',
+      });
+    }
 
     if (!company) {
       return res.status(404).json({
@@ -631,10 +670,18 @@ export const replyToReview = async (req: AuthRequest, res: Response) => {
     }
 
     // Update review with reply
+    const r_ms = await translateText(reply.trim(), 'ms');
+    const r_ta = await translateText(reply.trim(), 'ta');
+    const r_zh = await translateText(reply.trim(), 'zh');
+    const r_en = await translateText(reply.trim(), 'en');
     const updatedReview = await prisma.review.update({
       where: { id: parseInt(reviewId) },
       data: {
         employerReply: reply.trim(),
+        employerReply_ms: r_ms ?? undefined,
+        employerReply_ta: r_ta ?? undefined,
+        employerReply_zh: r_zh ?? undefined,
+        employerReply_en: r_en ?? undefined,
         repliedAt: new Date(),
       },
       include: {
@@ -710,12 +757,20 @@ export const flagReview = async (req: AuthRequest, res: Response) => {
     }
 
     // Flag review
+    const f_ms = await translateText(reason.trim(), 'ms');
+    const f_ta = await translateText(reason.trim(), 'ta');
+    const f_zh = await translateText(reason.trim(), 'zh');
+    const f_en = await translateText(reason.trim(), 'en');
     const flaggedReview = await prisma.review.update({
       where: { id: parseInt(reviewId) },
       data: {
         isFlagged: true,
         flaggedAt: new Date(),
         flagReason: reason.trim(),
+        flagReason_ms: f_ms ?? undefined,
+        flagReason_ta: f_ta ?? undefined,
+        flagReason_zh: f_zh ?? undefined,
+        flagReason_en: f_en ?? undefined,
       },
     });
 
@@ -1023,13 +1078,20 @@ export const deleteReviewAdmin = async (
     });
 
     // Log admin action
+    const reasonText = reason || 'Inappropriate content';
+    const r_ms = await translateText(reasonText, 'ms');
+    const r_ta = await translateText(reasonText, 'ta');
+    const r_zh = await translateText(reasonText, 'zh');
     await prisma.adminAction.create({
       data: {
         adminEmail: req.adminEmail!, // UPDATED
         actionType: 'DELETE_JOB', // Reuse enum or add DELETE_REVIEW
         targetType: 'REVIEW',
         targetId: parseInt(reviewId),
-        reason: reason || 'Inappropriate content',
+        reason: reasonText,
+        reason_ms: r_ms ?? undefined,
+        reason_ta: r_ta ?? undefined,
+        reason_zh: r_zh ?? undefined,
         notes: 'Review permanently deleted',
       },
     });

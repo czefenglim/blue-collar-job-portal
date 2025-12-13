@@ -20,6 +20,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
+// --- Theme/Style Constants (aligned with HomeScreen) ---
+const PRIMARY_BLUE = '#0D47A1';
+const ACCENT_ORANGE = '#FF9800';
+const GRAY_TEXT = '#455A64';
+const LIGHT_BACKGROUND = '#F8FAFC';
+const CARD_BACKGROUND = '#FFFFFF';
+const BORDER_COLOR = '#E2E8F0';
+const SPACING = 16;
+const CARD_PADDING = 20;
+
 interface Job {
   id: number;
   title: string;
@@ -54,7 +64,7 @@ const SavedJobsScreen: React.FC = () => {
   const [token, setToken] = useState<string>('');
 
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
 
   useEffect(() => {
     loadSavedJobs();
@@ -248,6 +258,23 @@ const SavedJobsScreen: React.FC = () => {
     return translationMap[formatted] || formatted;
   };
 
+  const formatExperienceLevel = (level: string) => {
+    const formatted = level
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    const translationMap: { [key: string]: string } = {
+      'Entry Level': t('experienceLevels.entry'),
+      'Mid Level': t('experienceLevels.midLevel'),
+      Senior: t('experienceLevels.senior'),
+    };
+
+    return translationMap[formatted] || formatted;
+  };
+
   const formatSavedAt = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -265,6 +292,25 @@ const SavedJobsScreen: React.FC = () => {
     });
   };
 
+  const formatSalary = (min?: number, max?: number, type?: string) => {
+    if (!min && !max) return t('home.notSpecified');
+
+    const formatAmount = (amount: number) => {
+      return `RM ${amount.toLocaleString(
+        currentLanguage === 'ms' ? 'ms-MY' : 'en-US'
+      )}`;
+    };
+
+    const typeLabel = type ? t(`salaryTypes.${type.toLowerCase()}`) : '';
+
+    if (min && max) {
+      return `${formatAmount(min)} - ${formatAmount(max)}${
+        type ? ` / ${typeLabel}` : ''
+      }`;
+    }
+    return `${formatAmount(min || max!)}${type ? ` / ${typeLabel}` : ''}`;
+  };
+
   const renderJobCard = ({ item }: { item: Job }) => (
     <View style={styles.jobCard}>
       <TouchableOpacity
@@ -275,14 +321,16 @@ const SavedJobsScreen: React.FC = () => {
             params: { slug: item.slug },
           })
         }
-        activeOpacity={0.7}
+        activeOpacity={0.9}
       >
+        {/* Top Row: Company Logo + Title + Save Button */}
         <View style={styles.jobCardHeader}>
           <View style={styles.companyLogoContainer}>
             {item.company.logo ? (
               <Image
                 source={{ uri: item.company.logo }}
                 style={styles.companyLogo}
+                resizeMode="cover"
               />
             ) : (
               <View style={styles.companyLogoPlaceholder}>
@@ -292,53 +340,111 @@ const SavedJobsScreen: React.FC = () => {
               </View>
             )}
           </View>
-          <View style={styles.jobHeaderInfo}>
-            <Text style={styles.savedAtText}>
-              {formatSavedAt(item.savedAt)}
-            </Text>
-            <TouchableOpacity
-              onPress={() => showOptionsMenu(item)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={styles.moreButton}
-            >
-              <Ionicons name="ellipsis-vertical" size={20} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        <Text style={styles.jobTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-
-        <View style={styles.jobMetaContainer}>
-          <View style={styles.jobMetaRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.industry.name}</Text>
-            </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatJobType(item.jobType)}
+          <View style={styles.headerTextContainer}>
+            <View style={styles.titleRow}>
+              <Text style={styles.jobTitle} numberOfLines={2}>
+                {item.title}
               </Text>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  confirmUnsave(item.id, item.title);
+                }}
+                style={styles.saveButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="bookmark" size={24} color={PRIMARY_BLUE} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {formatWorkingHours(item.workingHours)}
+            <Text style={styles.companyName}>{item.company.name}</Text>
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={14} color={GRAY_TEXT} />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {item.city}, {item.state}
               </Text>
+              <Text style={styles.timeAgo}>{formatSavedAt(item.savedAt)}</Text>
             </View>
           </View>
         </View>
 
-        <Text style={styles.companyName} numberOfLines={1}>
-          {item.company.name}
-        </Text>
-        <Text style={styles.location} numberOfLines={1}>
-          {item.city}, {item.state}
-        </Text>
-
-        <View style={styles.jobFooter}>
-          <Text style={styles.postedText}>
-            {t('savedJobs.posted')} {getTimeAgo(item.createdAt)}
+        {/* Salary Row - Changed to blue theme */}
+        <View style={styles.salaryContainer}>
+          <Ionicons name="cash-outline" size={20} color={PRIMARY_BLUE} />
+          <Text style={styles.salaryText}>
+            {formatSalary(item.salaryMin, item.salaryMax, item.salaryType)}
           </Text>
+        </View>
+
+        {/* Job Details Grid */}
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
+              <Ionicons name="time-outline" size={16} color={PRIMARY_BLUE} />
+            </View>
+            <Text style={styles.detailLabel}>{t('home.jobType')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {formatJobType(item.jobType)}
+            </Text>
+          </View>
+
+          <View style={styles.detailDivider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
+              <Ionicons
+                name="business-outline"
+                size={16}
+                color={PRIMARY_BLUE}
+              />
+            </View>
+            <Text style={styles.detailLabel}>{t('home.workingHours')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {formatWorkingHours(item.workingHours)}
+            </Text>
+          </View>
+
+          <View style={styles.detailDivider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.detailIconContainer}>
+              <Ionicons
+                name="trending-up-outline"
+                size={16}
+                color={PRIMARY_BLUE}
+              />
+            </View>
+            <Text style={styles.detailLabel}>{t('home.experienceLevel')}</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {formatExperienceLevel(item.experienceLevel)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Bottom Action Row */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={styles.viewDetailsButton}
+            onPress={() =>
+              router.push({
+                pathname: '/JobDetailsScreen/[slug]',
+                params: { slug: item.slug },
+              })
+            }
+          >
+            <Text style={styles.viewDetailsText}>{t('home.viewDetails')}</Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              showOptionsMenu(item);
+            }}
+            style={styles.moreButton}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={GRAY_TEXT} />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </View>
@@ -390,7 +496,7 @@ const SavedJobsScreen: React.FC = () => {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
+          <Ionicons name="arrow-back" size={24} color={PRIMARY_BLUE} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('savedJobs.title')}</Text>
         <View style={styles.headerPlaceholder} />
@@ -435,7 +541,7 @@ const SavedJobsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
@@ -453,9 +559,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: CARD_BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   backButton: {
     padding: 8,
@@ -471,9 +577,9 @@ const styles = StyleSheet.create({
   statsContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: CARD_BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   statsText: {
     fontSize: 14,
@@ -481,119 +587,210 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   jobList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING,
     paddingTop: 16,
     paddingBottom: 20,
   },
   jobListEmpty: {
     flexGrow: 1,
   },
+  // Job Card - Enhanced with better spacing
   jobCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    marginBottom: SPACING,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   cardTouchable: {
-    padding: 16,
+    padding: 0,
   },
   jobCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    padding: CARD_PADDING,
+    paddingBottom: 12,
   },
   companyLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    overflow: 'hidden', // ✅ Important for clipping
-  },
-
-  // ✅ NEW: Company logo image style
-  companyLogo: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-
-  // ✅ UPDATED: Placeholder for no logo
-  companyLogoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-    backgroundColor: '#8B5CF6',
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1.5,
+    borderColor: '#E8E8E8',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
+  companyLogo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+  },
+  companyLogoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+    backgroundColor: PRIMARY_BLUE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   companyLogoText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-
-  jobHeaderInfo: {
+  headerTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+  },
+  titleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  savedAtText: {
-    fontSize: 11,
-    color: '#64748B',
-  },
-  moreButton: {
-    padding: 4,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
   },
   jobTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 12,
+    fontWeight: '800',
+    color: '#1A202C',
+    flex: 1,
+    marginRight: 12,
     lineHeight: 24,
   },
-  jobMetaContainer: {
-    marginBottom: 12,
-  },
-  jobMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  badge: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 11,
-    color: '#475569',
-    fontWeight: '500',
+  saveButton: {
+    padding: 4,
   },
   companyName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#475569',
-    marginBottom: 4,
+    color: PRIMARY_BLUE,
+    marginBottom: 6,
   },
-  location: {
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  locationText: {
     fontSize: 13,
-    color: '#64748B',
-    marginBottom: 8,
+    color: GRAY_TEXT,
+    fontWeight: '500',
+    flex: 1,
   },
-  jobFooter: {
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  postedText: {
+  timeAgo: {
     fontSize: 12,
     color: '#94A3B8',
+    fontWeight: '600',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  // Salary Section - Changed to blue theme
+  salaryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F0FE', // Brighter blue background
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 14,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  salaryText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: PRIMARY_BLUE, // Changed from orange to primary blue
+    flex: 1,
+  },
+  // Details Grid
+  detailsContainer: {
+    flexDirection: 'row',
+    padding: CARD_PADDING,
+    paddingVertical: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  detailIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  detailDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#F0F0F0',
+  },
+  // Action Row
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    backgroundColor: '#FAFAFA',
+    alignItems: 'center',
+  },
+  viewDetailsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: PRIMARY_BLUE,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginRight: 12,
+  },
+  viewDetailsText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  moreButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
@@ -616,11 +813,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   browseButton: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
-    shadowColor: '#1E3A8A',
+    shadowColor: PRIMARY_BLUE,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

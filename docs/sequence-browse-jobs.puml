@@ -1,0 +1,44 @@
+@startuml
+title Sequence: Browse & Search Jobs
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Job Controller" as API
+database "Database" as DB
+
+JS -> UI: Access Jobs Tab
+activate UI
+UI -> API: Fetch Jobs (Recent/Recommended)
+activate API
+API -> DB: Query Jobs
+activate DB
+DB --> API: Job List
+deactivate DB
+API --> UI: Display Job Cards
+deactivate API
+deactivate UI
+
+JS -> UI: Enter Keywords / Apply Filters
+activate UI
+UI -> API: Search Jobs (Criteria)
+activate API
+API -> DB: Query Jobs with Filters
+activate DB
+DB --> API: Filtered List
+deactivate DB
+API --> UI: Update Display
+deactivate API
+deactivate UI
+
+JS -> UI: Click Job Card
+activate UI
+UI -> API: Get Job Details
+activate API
+API -> DB: Fetch Job ID
+activate DB
+DB --> API: Job Details
+deactivate DB
+API --> UI: Show Details Screen
+deactivate API
+deactivate UI
+@enduml
+

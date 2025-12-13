@@ -8,15 +8,32 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  TextInput,
   Alert,
   Image,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, useRouter } from 'expo-router';
+import VoiceTextInput from '@/components/VoiceTextInput';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+// Color palette
+const PRIMARY_BLUE = '#1E3A8A';
+const ACCENT_ORANGE = '#F59E0B';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_RED = '#EF4444';
+const ACCENT_PURPLE = '#8B5CF6';
+const GRAY_TEXT = '#64748B';
+const LIGHT_BACKGROUND = '#F8FAFC';
+const CARD_BACKGROUND = '#FFFFFF';
+const BORDER_COLOR = '#E2E8F0';
+
+const { width } = Dimensions.get('window');
+const SPACING = 16;
+const CARD_PADDING = 20;
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -57,6 +74,7 @@ interface PaginationMeta {
 
 export default function ApplicantsPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -130,7 +148,6 @@ export default function ApplicantsPage() {
       setPagination(data.pagination);
       setError(null);
 
-      // Fetch quality scores for all applicants
       fetchQualityScores(applicantData);
     } catch (error: any) {
       console.error('Error fetching applicants:', error);
@@ -148,7 +165,6 @@ export default function ApplicantsPage() {
 
     const scores: Record<number, QualityScore> = {};
 
-    // Fetch scores in parallel (batch of 5)
     const batchSize = 5;
     for (let i = 0; i < applicantList.length; i += batchSize) {
       const batch = applicantList.slice(i, i + batchSize);
@@ -187,12 +203,10 @@ export default function ApplicantsPage() {
   const filterApplicants = () => {
     let filtered = applicants;
 
-    // Apply status filter first
     if (filter !== 'all') {
       filtered = filtered.filter((app) => app.status === filter);
     }
 
-    // Then apply search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -203,7 +217,6 @@ export default function ApplicantsPage() {
       );
     }
 
-    // Add quality scores to filtered applicants
     filtered = filtered.map((app) => ({
       ...app,
       qualityScore: qualityScores[app.id],
@@ -211,9 +224,6 @@ export default function ApplicantsPage() {
 
     setFilteredApplicants(filtered);
   };
-
-  // ✅ NEW: Handle starting chat
-  // Updated handleStartChat function only
 
   const handleStartChat = async (applicant: Applicant, e: any) => {
     e.stopPropagation();
@@ -224,7 +234,6 @@ export default function ApplicantsPage() {
 
       let conversationId: number | null = null;
 
-      // First, check if conversation exists
       const checkResponse = await fetch(
         `${URL}/api/chat/conversations/application/${applicant.id}`,
         {
@@ -260,7 +269,6 @@ export default function ApplicantsPage() {
         throw new Error(errorData.message || 'Failed to check conversation');
       }
 
-      // If no conversation found, create one
       if (!conversationId) {
         console.log('Creating conversation for application:', applicant.id);
 
@@ -301,7 +309,6 @@ export default function ApplicantsPage() {
 
       console.log('Navigating to conversation:', conversationId);
 
-      // ✅ Use absolute path
       router.push({
         pathname: '/(shared)/chat/[id]',
         params: {
@@ -313,13 +320,14 @@ export default function ApplicantsPage() {
     } catch (error) {
       console.error('Error starting chat:', error);
       Alert.alert(
-        'Error',
+        t('common.error'),
         error instanceof Error
           ? error.message
-          : 'Failed to start chat. Please try again.'
+          : t('employerApplicants.errors.startChatFailed')
       );
     }
   };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchApplicants(1);
@@ -334,32 +342,32 @@ export default function ApplicantsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return '#F59E0B';
+        return ACCENT_ORANGE;
       case 'SHORTLISTED':
-        return '#8B5CF6';
+        return ACCENT_PURPLE;
       case 'INTERVIEWED':
         return '#3B82F6';
       case 'REJECTED':
-        return '#EF4444';
+        return ACCENT_RED;
       case 'HIRED':
-        return '#10B981';
+        return ACCENT_GREEN;
       default:
-        return '#64748B';
+        return GRAY_TEXT;
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'Pending';
+        return t('employerApplicants.status.pending');
       case 'SHORTLISTED':
-        return 'Shortlisted';
+        return t('employerApplicants.status.shortlisted');
       case 'INTERVIEWED':
-        return 'Interviewed';
+        return t('employerApplicants.status.interviewed');
       case 'REJECTED':
-        return 'Rejected';
+        return t('employerApplicants.status.rejected');
       case 'HIRED':
-        return 'Hired';
+        return t('employerApplicants.status.hired');
       default:
         return status;
     }
@@ -368,11 +376,11 @@ export default function ApplicantsPage() {
   const getQualityColor = (quality: 'HIGH' | 'MEDIUM' | 'LOW') => {
     switch (quality) {
       case 'HIGH':
-        return '#10B981';
+        return ACCENT_GREEN;
       case 'MEDIUM':
-        return '#F59E0B';
+        return ACCENT_ORANGE;
       case 'LOW':
-        return '#EF4444';
+        return ACCENT_RED;
     }
   };
 
@@ -411,150 +419,196 @@ export default function ApplicantsPage() {
   );
 
   const renderApplicantCard = ({ item }: { item: Applicant }) => (
-    <TouchableOpacity
-      style={styles.applicantCard}
-      onPress={() =>
-        router.push(`/(employer-hidden)/applicant-details/${item.id}` as Href)
-      }
-    >
-      <View style={styles.applicantHeader}>
-        <View style={styles.applicantAvatar}>
-          {item.user?.profile?.profilePicture ? (
-            <Image
-              source={{ uri: item.user?.profile?.profilePicture }}
-              style={styles.avatarImage}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {item.user.fullName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.applicantInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.applicantName} numberOfLines={1}>
-              {item.user.fullName}
-            </Text>
-            {/* Quality Score Badge */}
-            {item.qualityScore && (
-              <View
-                style={[
-                  styles.qualityBadge,
-                  {
-                    backgroundColor:
-                      getQualityColor(item.qualityScore.quality) + '20',
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={getQualityIcon(item.qualityScore.quality)}
-                  size={12}
-                  color={getQualityColor(item.qualityScore.quality)}
+    <View style={styles.applicantCard}>
+      <TouchableOpacity
+        style={styles.cardTouchable}
+        onPress={() =>
+          router.push(`/(employer-hidden)/applicant-details/${item.id}` as Href)
+        }
+        activeOpacity={0.9}
+      >
+        {/* Top Header Section */}
+        <View style={styles.applicantHeader}>
+          <View style={styles.profileSection}>
+            <View style={styles.avatarContainer}>
+              {item.user?.profile?.profilePicture ? (
+                <Image
+                  source={{ uri: item.user?.profile?.profilePicture }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
                 />
-                <Text
-                  style={[
-                    styles.qualityText,
-                    { color: getQualityColor(item.qualityScore.quality) },
-                  ]}
-                >
-                  {item.qualityScore.quality}
-                </Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.applicantJob} numberOfLines={1}>
-            Applied for: {item.job.title}
-          </Text>
-          <View style={styles.applicantMeta}>
-            <Ionicons name="mail-outline" size={14} color="#64748B" />
-            <Text style={styles.metaText} numberOfLines={1}>
-              {item.user.email}
-            </Text>
-          </View>
-        </View>
-      </View>
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarText}>
+                    {item.user.fullName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
 
-      <View style={styles.applicantFooter}>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: getStatusColor(item.status) + '15' },
-          ]}
-        >
+            <View style={styles.profileInfo}>
+              <View style={styles.nameRow}>
+                <Text style={styles.applicantName} numberOfLines={1}>
+                  {item.user.fullName}
+                </Text>
+                {item.qualityScore && (
+                  <View
+                    style={[
+                      styles.qualityBadge,
+                      {
+                        backgroundColor:
+                          getQualityColor(item.qualityScore.quality) + '20',
+                        borderColor:
+                          getQualityColor(item.qualityScore.quality) + '40',
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getQualityIcon(item.qualityScore.quality)}
+                      size={14}
+                      color={getQualityColor(item.qualityScore.quality)}
+                    />
+                    <Text
+                      style={[
+                        styles.qualityText,
+                        { color: getQualityColor(item.qualityScore.quality) },
+                      ]}
+                    >
+                      {item.qualityScore.quality}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.applicantEmail}>{item.user.email}</Text>
+              {item.user.phoneNumber && (
+                <View style={styles.contactRow}>
+                  <Ionicons name="call-outline" size={14} color={GRAY_TEXT} />
+                  <Text style={styles.contactText}>
+                    {item.user.phoneNumber}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Status Badge */}
           <View
             style={[
-              styles.statusDot,
-              { backgroundColor: getStatusColor(item.status) },
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(item.status) + '15' },
             ]}
-          />
-          <Text
-            style={[styles.statusText, { color: getStatusColor(item.status) }]}
           >
-            {getStatusLabel(item.status)}
-          </Text>
-        </View>
-
-        <View style={styles.dateContainer}>
-          <Ionicons name="calendar-outline" size={14} color="#64748B" />
-          <Text style={styles.dateText}>
-            {new Date(item.appliedAt).toLocaleDateString()}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.quickActions}>
-        {/* ✅ NEW: Chat Button */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.chatButton]}
-          onPress={(e) => handleStartChat(item, e)}
-        >
-          <Ionicons name="chatbubble-outline" size={18} color="#10B981" />
-          <Text style={[styles.actionButtonText, { color: '#10B981' }]}>
-            Chat
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={(e) => {
-            e.stopPropagation();
-            router.push(
-              `/(employer-hidden)/applicant-details/${item.id}` as Href
-            );
-          }}
-        >
-          <Ionicons name="eye-outline" size={18} color="#1E3A8A" />
-          <Text style={styles.actionButtonText}>View</Text>
-        </TouchableOpacity>
-
-        {item.status === 'PENDING' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonPrimary]}
-            onPress={(e) => {
-              e.stopPropagation();
-              router.push(
-                `/(employer-hidden)/applicant-details/${item.id}?action=shortlist` as Href
-              );
-            }}
-          >
-            <Ionicons name="star-outline" size={18} color="#FFFFFF" />
-            <Text style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
-              Shortlist
+            <View
+              style={[
+                styles.statusIndicator,
+                { backgroundColor: getStatusColor(item.status) },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: getStatusColor(item.status) },
+              ]}
+            >
+              {getStatusLabel(item.status)}
             </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Job Details Section */}
+        <View style={styles.jobSection}>
+          <View style={styles.jobInfo}>
+            <Ionicons name="briefcase-outline" size={18} color={PRIMARY_BLUE} />
+            <View style={styles.jobTextContainer}>
+              <Text style={styles.jobTitleLabel}>
+                {t('employerApplicants.appliedFor')}
+              </Text>
+              <Text style={styles.jobTitle} numberOfLines={2}>
+                {item.job.title}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.dateInfo}>
+            <Ionicons name="calendar-outline" size={16} color={GRAY_TEXT} />
+            <Text style={styles.dateText}>
+              {new Date(item.appliedAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Quick Actions Section */}
+        <View style={styles.actionsSection}>
+          <Text style={styles.actionsLabel}>Quick Actions:</Text>
+          <View style={styles.quickActions}>
+            {/* Chat Button */}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.chatButton]}
+              onPress={(e) => handleStartChat(item, e)}
+            >
+              <View style={styles.actionIconContainer}>
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={20}
+                  color={ACCENT_GREEN}
+                />
+              </View>
+              <Text style={styles.actionButtonText}>
+                {t('employerApplicants.actions.chat')}
+              </Text>
+            </TouchableOpacity>
+
+            {/* View Details Button */}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.viewButton]}
+              onPress={(e) => {
+                e.stopPropagation();
+                router.push(
+                  `/(employer-hidden)/applicant-details/${item.id}` as Href
+                );
+              }}
+            >
+              <View style={styles.actionIconContainer}>
+                <Ionicons name="eye-outline" size={20} color={PRIMARY_BLUE} />
+              </View>
+              <Text style={styles.actionButtonText}>
+                {t('employerApplicants.actions.view')}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Shortlist Button - Only for PENDING status */}
+            {item.status === 'PENDING' && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.shortlistButton]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push(
+                    `/(employer-hidden)/applicant-details/${item.id}?action=shortlist` as Href
+                  );
+                }}
+              >
+                <View style={styles.actionIconContainer}>
+                  <Ionicons name="star-outline" size={20} color="#FFFFFF" />
+                </View>
+                <Text style={[styles.actionButtonText, styles.shortlistText]}>
+                  {t('employerApplicants.actions.shortlist')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading applicants...</Text>
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
+          <Text style={styles.loadingText}>
+            {t('employerApplicants.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -573,63 +627,97 @@ export default function ApplicantsPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Search and Filter Section */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#64748B" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name, job, or email..."
-            placeholderTextColor="#94A3B8"
+          <Ionicons name="search" size={20} color={GRAY_TEXT} />
+          <VoiceTextInput
+            style={styles.voiceInputContainer}
+            inputStyle={styles.voiceInput}
+            placeholder={t('employerApplicants.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            language={
+              currentLanguage === 'zh'
+                ? 'zh-CN'
+                : currentLanguage === 'ms'
+                ? 'ms-MY'
+                : currentLanguage === 'ta'
+                ? 'ta-IN'
+                : 'en-US'
+            }
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#64748B" />
+              <Ionicons name="close-circle" size={20} color={GRAY_TEXT} />
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.filterContainer}>
-          {renderFilterButton('All', 'all', applicants.length)}
-          {renderFilterButton('Pending', 'PENDING', pendingCount)}
-          {renderFilterButton('Shortlisted', 'SHORTLISTED', shortlistedCount)}
-          {renderFilterButton('Interviewed', 'INTERVIEWED', interviewedCount)}
-          {renderFilterButton('Rejected', 'REJECTED', rejectedCount)}
+          {renderFilterButton(
+            t('employerApplicants.filters.all'),
+            'all',
+            applicants.length
+          )}
+          {renderFilterButton(
+            t('employerApplicants.filters.pending'),
+            'PENDING',
+            pendingCount
+          )}
+          {renderFilterButton(
+            t('employerApplicants.filters.shortlisted'),
+            'SHORTLISTED',
+            shortlistedCount
+          )}
+          {renderFilterButton(
+            t('employerApplicants.filters.interviewed'),
+            'INTERVIEWED',
+            interviewedCount
+          )}
+          {renderFilterButton(
+            t('employerApplicants.filters.rejected'),
+            'REJECTED',
+            rejectedCount
+          )}
         </View>
       </View>
 
-      {/* Stats Summary */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{pagination.total}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+          <Text style={styles.statLabel}>
+            {t('employerApplicants.stats.total')}
+          </Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: '#F59E0B' }]}>
+          <Text style={[styles.statValue, { color: ACCENT_ORANGE }]}>
             {pendingCount}
           </Text>
-          <Text style={styles.statLabel}>Pending</Text>
+          <Text style={styles.statLabel}>
+            {t('employerApplicants.stats.pending')}
+          </Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: '#8B5CF6' }]}>
+          <Text style={[styles.statValue, { color: ACCENT_PURPLE }]}>
             {shortlistedCount}
           </Text>
-          <Text style={styles.statLabel}>Shortlisted</Text>
+          <Text style={styles.statLabel}>
+            {t('employerApplicants.stats.shortlisted')}
+          </Text>
         </View>
       </View>
 
-      {/* Applicants List */}
       {error ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+          <Ionicons name="alert-circle-outline" size={64} color={ACCENT_RED} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => fetchApplicants(1)}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>
+              {t('employerApplicants.tryAgain')}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : filteredApplicants.length === 0 ? (
@@ -637,13 +725,13 @@ export default function ApplicantsPage() {
           <Ionicons name="people-outline" size={64} color="#CBD5E1" />
           <Text style={styles.emptyTitle}>
             {searchQuery || filter !== 'all'
-              ? 'No applicants found'
-              : 'No applicants yet'}
+              ? t('employerApplicants.empty.found')
+              : t('employerApplicants.empty.none')}
           </Text>
           <Text style={styles.emptyText}>
             {searchQuery || filter !== 'all'
-              ? 'Try adjusting your search or filter'
-              : 'Applications will appear here when job seekers apply for your jobs'}
+              ? t('employerApplicants.empty.adjust')
+              : t('employerApplicants.empty.hint')}
           </Text>
         </View>
       ) : (
@@ -653,15 +741,21 @@ export default function ApplicantsPage() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={PRIMARY_BLUE}
+            />
           }
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore ? (
               <View style={styles.loadMoreContainer}>
-                <ActivityIndicator size="small" color="#1E3A8A" />
-                <Text style={styles.loadMoreText}>Loading more...</Text>
+                <ActivityIndicator size="small" color={PRIMARY_BLUE} />
+                <Text style={styles.loadMoreText}>
+                  {t('employerApplicants.loadingMore')}
+                </Text>
               </View>
             ) : null
           }
@@ -675,7 +769,7 @@ export default function ApplicantsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: LIGHT_BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
@@ -683,30 +777,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: SPACING,
     fontSize: 16,
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   searchSection: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: CARD_BACKGROUND,
+    padding: SPACING,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING,
     paddingVertical: 12,
     marginBottom: 12,
+    gap: 12,
   },
-  searchInput: {
+  voiceInputContainer: {
     flex: 1,
-    marginLeft: 12,
+  },
+  voiceInput: {
+    flex: 1,
     fontSize: 16,
     color: '#1E293B',
+    backgroundColor: 'transparent',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -720,12 +820,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
   },
   filterButtonActive: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
   },
   filterButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
@@ -733,10 +833,10 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: CARD_BACKGROUND,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: BORDER_COLOR,
   },
   statItem: {
     alignItems: 'center',
@@ -749,166 +849,229 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
   listContent: {
-    padding: 16,
+    padding: SPACING,
   },
+  // Enhanced Applicant Card Styles
   applicantCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    marginBottom: SPACING,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F0F0F0',
+  },
+  cardTouchable: {
+    padding: 0,
   },
   applicantHeader: {
-    flexDirection: 'row',
-    marginBottom: 12,
+    padding: CARD_PADDING,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
-  applicantAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#1E3A8A',
+  profileSection: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#F8F9FA',
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
+    marginRight: 16,
   },
-
   avatarImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
-
   avatarPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   avatarText: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  applicantAvatarText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  applicantInfo: {
+  profileInfo: {
     flex: 1,
+    justifyContent: 'center',
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   applicantName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A202C',
     flex: 1,
   },
   qualityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 6,
     marginLeft: 8,
+    borderWidth: 1,
   },
   qualityText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
-  applicantJob: {
+  applicantEmail: {
     fontSize: 14,
-    color: '#64748B',
-    marginBottom: 6,
+    color: GRAY_TEXT,
+    marginBottom: 8,
   },
-  applicantMeta: {
+  contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
-  metaText: {
-    fontSize: 12,
-    color: '#64748B',
-    flex: 1,
+  contactText: {
+    fontSize: 13,
+    color: GRAY_TEXT,
+    fontWeight: '500',
   },
-  applicantFooter: {
+  statusBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  statusIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  jobSection: {
+    paddingHorizontal: CARD_PADDING,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    marginBottom: 12,
   },
-  statusBadge: {
+  jobInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
+    gap: 12,
+    flex: 1,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  jobTextContainer: {
+    flex: 1,
   },
-  statusText: {
+  jobTitleLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    color: GRAY_TEXT,
+    fontWeight: '500',
+    marginBottom: 2,
   },
-  dateContainer: {
+  jobTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
+    lineHeight: 20,
+  },
+  dateInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
   dateText: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 13,
+    color: GRAY_TEXT,
+    fontWeight: '500',
+  },
+  actionsSection: {
+    padding: CARD_PADDING,
+  },
+  actionsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: GRAY_TEXT,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   quickActions: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 8,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
     backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 6,
+    borderWidth: 1.5,
   },
-  // ✅ NEW: Chat button style
   chatButton: {
-    borderColor: '#10B981',
+    borderColor: ACCENT_GREEN,
     backgroundColor: '#F0FDF4',
   },
-  actionButtonPrimary: {
-    backgroundColor: '#1E3A8A',
-    borderColor: '#1E3A8A',
+  viewButton: {
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: '#EFF6FF',
+  },
+  shortlistButton: {
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: PRIMARY_BLUE,
+  },
+  actionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#1E3A8A',
+    color: GRAY_TEXT,
+  },
+  shortlistText: {
+    color: '#FFFFFF',
   },
   emptyContainer: {
     flex: 1,
@@ -925,7 +1088,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#64748B',
+    color: GRAY_TEXT,
     textAlign: 'center',
   },
   errorContainer: {
@@ -937,14 +1100,14 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748B',
+    color: GRAY_TEXT,
     textAlign: 'center',
   },
   retryButton: {
     marginTop: 24,
     paddingHorizontal: 32,
     paddingVertical: 12,
-    backgroundColor: '#1E3A8A',
+    backgroundColor: PRIMARY_BLUE,
     borderRadius: 8,
   },
   retryButtonText: {
@@ -961,6 +1124,6 @@ const styles = StyleSheet.create({
   },
   loadMoreText: {
     fontSize: 14,
-    color: '#64748B',
+    color: GRAY_TEXT,
   },
 });

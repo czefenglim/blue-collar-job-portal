@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -123,6 +124,7 @@ const MALAYSIAN_STATES = [
 
 export default function CreateJobPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -175,7 +177,7 @@ export default function CreateJobPage() {
   const fetchIndustries = async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/industries`, {
+      const response = await fetch(`${URL}/api/industries?lang=${currentLanguage}` , {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -188,11 +190,11 @@ export default function CreateJobPage() {
   const fetchSkills = async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/users/getSkills`, {
+      const response = await fetch(`${URL}/api/onboarding/getSkills?lang=${currentLanguage}` , {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (response.ok) setSkills(data.data || []);
+      if (response.ok) setSkills(Array.isArray(data) ? data : (data.data || []));
     } catch (error) {
       console.error('Error fetching skills:', error);
     }
@@ -208,41 +210,65 @@ export default function CreateJobPage() {
 
   const validateForm = () => {
     if (!title.trim()) {
-      Alert.alert('Validation Error', 'Job title is required');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.titleRequired')
+      );
       return false;
     }
     if (!description.trim()) {
-      Alert.alert('Validation Error', 'Job description is required');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.descriptionRequired')
+      );
       return false;
     }
     if (!industryId) {
-      Alert.alert('Validation Error', 'Please select an industry');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.industryRequired')
+      );
       return false;
     }
     if (!jobType) {
-      Alert.alert('Validation Error', 'Please select job type');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.jobTypeRequired')
+      );
       return false;
     }
     if (!workingHours) {
-      Alert.alert('Validation Error', 'Please select working hours');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.workingHoursRequired')
+      );
       return false;
     }
     if (!experienceLevel) {
-      Alert.alert('Validation Error', 'Please select experience level');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.experienceRequired')
+      );
       return false;
     }
     if (!city.trim()) {
-      Alert.alert('Validation Error', 'City is required');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.cityRequired')
+      );
       return false;
     }
     if (!state) {
-      Alert.alert('Validation Error', 'Please select state');
+      Alert.alert(
+        t('validation.error'),
+        t('employerCreateJob.validation.stateRequired')
+      );
       return false;
     }
     if (salaryMin && salaryMax && parseInt(salaryMin) > parseInt(salaryMax)) {
       Alert.alert(
-        'Validation Error',
-        'Minimum salary cannot exceed maximum salary'
+        t('validation.error'),
+        t('employerCreateJob.validation.minExceedsMax')
       );
       return false;
     }
@@ -395,15 +421,18 @@ export default function CreateJobPage() {
         throw new Error(data.message || 'Failed to create job post');
       }
 
-      Alert.alert('Success', 'Job post created successfully!', [
+      Alert.alert(t('common.success'), t('employerCreateJob.success.created'), [
         {
-          text: 'OK',
+          text: t('common.ok'),
           onPress: () => router.back(),
         },
       ]);
     } catch (error: any) {
       console.error('Error creating job:', error);
-      Alert.alert('Error', error.message || 'Failed to create job post');
+      Alert.alert(
+        t('common.error'),
+        error.message || t('employerCreateJob.errors.createFailed')
+      );
     } finally {
       setLoading(false);
     }
@@ -526,7 +555,9 @@ export default function CreateJobPage() {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Skills</Text>
+            <Text style={styles.modalTitle}>
+              {t('employerCreateJob.modals.selectSkills')}
+            </Text>
             <TouchableOpacity onPress={() => setShowSkillsPicker(false)}>
               <Ionicons name="close" size={24} color="#64748B" />
             </TouchableOpacity>
@@ -549,7 +580,7 @@ export default function CreateJobPage() {
             style={styles.doneButton}
             onPress={() => setShowSkillsPicker(false)}
           >
-            <Text style={styles.doneButtonText}>Done</Text>
+            <Text style={styles.doneButtonText}>{t('common.done')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -571,7 +602,7 @@ export default function CreateJobPage() {
               <View style={styles.predictionLoading}>
                 <ActivityIndicator size="large" color="#1E3A8A" />
                 <Text style={styles.predictionLoadingText}>
-                  Analyzing job market data...
+                  {t('employerCreateJob.prediction.loading')}
                 </Text>
               </View>
             ) : (
@@ -584,22 +615,22 @@ export default function CreateJobPage() {
                         <Ionicons name="time" size={32} color="#1E3A8A" />
                       </View>
                       <Text style={styles.predictionTitle}>
-                        Recruitment Time Prediction
+                        {t('employerCreateJob.prediction.title')}
                       </Text>
                     </View>
 
                     <View style={styles.predictionCard}>
                       <Text style={styles.predictionMessage}>
-                        Based on similar jobs in{' '}
-                        <Text style={styles.predictionHighlight}>{state}</Text>,
-                        expected time to hire is
+                        {t('employerCreateJob.prediction.message', { state })}
                       </Text>
                       <View style={styles.predictionDays}>
                         <Text style={styles.predictionDaysText}>
                           {prediction.estimatedDaysMin}–
                           {prediction.estimatedDaysMax}
                         </Text>
-                        <Text style={styles.predictionDaysLabel}>days</Text>
+                        <Text style={styles.predictionDaysLabel}>
+                          {t('employerCreateJob.prediction.days')}
+                        </Text>
                       </View>
 
                       <View style={styles.confidenceBadge}>
@@ -614,9 +645,12 @@ export default function CreateJobPage() {
                           ]}
                         />
                         <Text style={styles.confidenceText}>
-                          {prediction.confidence} confidence
+                          {prediction.confidence}{' '}
+                          {t('employerCreateJob.prediction.confidence')}
                           {prediction.similarJobsCount > 0 &&
-                            ` (${prediction.similarJobsCount} similar jobs)`}
+                            ` (${t('employerCreateJob.prediction.similarJobs', {
+                              count: prediction.similarJobsCount,
+                            })})`}
                         </Text>
                       </View>
                     </View>
@@ -638,7 +672,7 @@ export default function CreateJobPage() {
                         <Ionicons name="cash" size={32} color="#F59E0B" />
                       </View>
                       <Text style={styles.predictionTitle}>
-                        Salary Competitiveness
+                        {t('employerCreateJob.salary.title')}
                       </Text>
                     </View>
 
@@ -676,24 +710,30 @@ export default function CreateJobPage() {
                             },
                           ]}
                         >
-                          {salaryAnalysis.competitiveness.replace('_', ' ')}
+                          {t(
+                            `employerCreateJob.salary.competitiveness.${salaryAnalysis.competitiveness}`
+                          )}
                         </Text>
                       </View>
 
                       {/* Percentile */}
                       <View style={styles.percentileContainer}>
                         <Text style={styles.percentileLabel}>
-                          Your salary is in the
+                          {t('employerCreateJob.salary.percentile.label')}
                         </Text>
                         <Text style={styles.percentileValue}>
-                          {salaryAnalysis.percentile}th percentile
+                          {t('employerCreateJob.salary.percentile.value', {
+                            percentile: salaryAnalysis.percentile,
+                          })}
                         </Text>
                       </View>
 
                       {/* Market Comparison */}
                       <View style={styles.comparisonContainer}>
                         <View style={styles.comparisonItem}>
-                          <Text style={styles.comparisonLabel}>Your Offer</Text>
+                          <Text style={styles.comparisonLabel}>
+                            {t('employerCreateJob.salary.comparison.yourOffer')}
+                          </Text>
                           <Text style={styles.comparisonValue}>
                             RM {parseInt(salaryMin || '0').toLocaleString()} -
                             RM{' '}
@@ -704,7 +744,9 @@ export default function CreateJobPage() {
                         </View>
                         <View style={styles.comparisonItem}>
                           <Text style={styles.comparisonLabel}>
-                            Market Average
+                            {t(
+                              'employerCreateJob.salary.comparison.marketAverage'
+                            )}
                           </Text>
                           <Text style={styles.comparisonValue}>
                             RM{' '}
@@ -714,7 +756,9 @@ export default function CreateJobPage() {
                           </Text>
                         </View>
                         <View style={styles.comparisonItem}>
-                          <Text style={styles.comparisonLabel}>Median</Text>
+                          <Text style={styles.comparisonLabel}>
+                            {t('employerCreateJob.salary.comparison.median')}
+                          </Text>
                           <Text style={styles.comparisonValue}>
                             RM{' '}
                             {salaryAnalysis.stateAverage.median.toLocaleString()}
@@ -739,7 +783,9 @@ export default function CreateJobPage() {
                             {salaryAnalysis.comparison.vsState >= 0 ? '+' : ''}
                             {salaryAnalysis.comparison.vsState}%
                           </Text>
-                          <Text style={styles.statLabel}>vs State Avg</Text>
+                          <Text style={styles.statLabel}>
+                            {t('employerCreateJob.salary.stats.vsState')}
+                          </Text>
                         </View>
                         <View style={styles.statBox}>
                           <Text
@@ -758,7 +804,9 @@ export default function CreateJobPage() {
                               : ''}
                             {salaryAnalysis.comparison.vsIndustry}%
                           </Text>
-                          <Text style={styles.statLabel}>vs Industry</Text>
+                          <Text style={styles.statLabel}>
+                            {t('employerCreateJob.salary.stats.vsIndustry')}
+                          </Text>
                         </View>
                       </View>
 
@@ -793,7 +841,7 @@ export default function CreateJobPage() {
                   (salaryAnalysis && salaryAnalysis.tips.length > 0)) && (
                   <View style={styles.tipsContainer}>
                     <Text style={styles.tipsTitle}>
-                      💡 Tips to hire faster:
+                      {t('employerCreateJob.tips.title')}
                     </Text>
                     {prediction?.tips.map((tip, index) => (
                       <View key={`pred-${index}`} style={styles.tipItem}>
@@ -824,7 +872,9 @@ export default function CreateJobPage() {
                     style={styles.editButton}
                     onPress={() => setShowPredictionModal(false)}
                   >
-                    <Text style={styles.editButtonText}>Edit Details</Text>
+                    <Text style={styles.editButtonText}>
+                      {t('employerCreateJob.actions.editDetails')}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -842,7 +892,7 @@ export default function CreateJobPage() {
                           color="#FFFFFF"
                         />
                         <Text style={styles.proceedButtonText}>
-                          Create Job Post
+                          {t('employerJobPosts.cta.create')}
                         </Text>
                       </>
                     )}
@@ -878,17 +928,20 @@ export default function CreateJobPage() {
       >
         {/* Basic Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerCreateJob.sections.basicInfo')}
+          </Text>
 
-          {renderInput('Job Title', title, setTitle, {
-            placeholder: 'e.g. Construction Worker, Electrician',
+          {renderInput(t('employerCreateJob.fields.title'), title, setTitle, {
+            placeholder: t('employerCreateJob.placeholders.title'),
             required: true,
             maxLength: 100,
           })}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Industry <Text style={styles.required}>*</Text>
+              {t('employerCompanyForm.industry')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -901,27 +954,38 @@ export default function CreateJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedIndustry?.name || 'Select industry'}
+                {selectedIndustry?.name ||
+                  t('employerCompanyForm.selectIndustry')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Description', description, setDescription, {
-            placeholder: 'Describe the job responsibilities and duties',
-            required: true,
-            multiline: true,
-            maxLength: 2000,
-          })}
+          {renderInput(
+            t('jobDetails.description.title'),
+            description,
+            setDescription,
+            {
+              placeholder: t('employerCreateJob.placeholders.description'),
+              required: true,
+              multiline: true,
+              maxLength: 2000,
+            }
+          )}
 
-          {renderInput('Requirements', requirements, setRequirements, {
-            placeholder: 'List the job requirements and qualifications',
-            multiline: true,
-            maxLength: 1000,
-          })}
+          {renderInput(
+            t('jobDetails.requirements.title'),
+            requirements,
+            setRequirements,
+            {
+              placeholder: t('employerCreateJob.placeholders.requirements'),
+              multiline: true,
+              maxLength: 1000,
+            }
+          )}
 
-          {renderInput('Benefits', benefits, setBenefits, {
-            placeholder: 'List benefits and perks (e.g., EPF, SOCSO, medical)',
+          {renderInput(t('jobDetails.benefits.title'), benefits, setBenefits, {
+            placeholder: t('employerCreateJob.placeholders.benefits'),
             multiline: true,
             maxLength: 1000,
           })}
@@ -929,11 +993,14 @@ export default function CreateJobPage() {
 
         {/* Job Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Details</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerCreateJob.sections.jobDetails')}
+          </Text>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Job Type <Text style={styles.required}>*</Text>
+              {t('jobDetails.quickInfo.jobType')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -944,7 +1011,9 @@ export default function CreateJobPage() {
                   selectedJobType ? styles.pickerText : styles.pickerPlaceholder
                 }
               >
-                {selectedJobType?.label || 'Select job type'}
+                {selectedJobType
+                  ? getJobTypeLabel(selectedJobType.value)
+                  : t('employerCreateJob.modals.selectJobType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -952,7 +1021,8 @@ export default function CreateJobPage() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Working Hours <Text style={styles.required}>*</Text>
+              {t('jobDetails.quickInfo.workingHours')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -965,7 +1035,9 @@ export default function CreateJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedWorkingHours?.label || 'Select working hours'}
+                {selectedWorkingHours
+                  ? getWorkingHoursLabel(selectedWorkingHours.value)
+                  : t('employerCreateJob.modals.selectWorkingHours')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -973,7 +1045,8 @@ export default function CreateJobPage() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              Experience Level <Text style={styles.required}>*</Text>
+              {t('employerCreateJob.fields.experienceLevel')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -986,14 +1059,18 @@ export default function CreateJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedExperience?.label || 'Select experience level'}
+                {selectedExperience
+                  ? getExperienceLabel(selectedExperience.value)
+                  : t('employerCreateJob.modals.selectExperience')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Required Skills</Text>
+            <Text style={styles.label}>
+              {t('employerCreateJob.fields.requiredSkills')}
+            </Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowSkillsPicker(true)}
@@ -1006,13 +1083,16 @@ export default function CreateJobPage() {
                 }
                 numberOfLines={2}
               >
-                {selectedSkillsText || 'Select required skills'}
+                {selectedSkillsText ||
+                  t('employerCreateJob.placeholders.selectSkills')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
             {selectedSkills.length > 0 && (
               <Text style={styles.helperText}>
-                {selectedSkills.length} skill(s) selected
+                {t('employerCreateJob.fields.skillsSelected', {
+                  count: selectedSkills.length,
+                })}
               </Text>
             )}
           </View>
@@ -1020,13 +1100,17 @@ export default function CreateJobPage() {
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location</Text>
+          <Text style={styles.sectionTitle}>
+            {t('jobDetails.company.location')}
+          </Text>
 
           <View style={styles.remoteToggle}>
             <View>
-              <Text style={styles.label}>Remote Work</Text>
+              <Text style={styles.label}>
+                {t('employerCreateJob.fields.remoteWork')}
+              </Text>
               <Text style={styles.helperText}>
-                Can this job be done remotely?
+                {t('employerCreateJob.placeholders.remoteQuestion')}
               </Text>
             </View>
             <Switch
@@ -1037,14 +1121,14 @@ export default function CreateJobPage() {
             />
           </View>
 
-          {renderInput('City', city, setCity, {
-            placeholder: 'e.g. Kuala Lumpur',
+          {renderInput(t('profile.city'), city, setCity, {
+            placeholder: t('employerCreateJob.placeholders.city'),
             required: true,
           })}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
-              State <Text style={styles.required}>*</Text>
+              {t('profile.state')} <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity
               style={styles.pickerButton}
@@ -1053,30 +1137,34 @@ export default function CreateJobPage() {
               <Text
                 style={state ? styles.pickerText : styles.pickerPlaceholder}
               >
-                {state || 'Select state'}
+                {state || t('employerCreateJob.modals.selectState')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          {renderInput('Postcode', postcode, setPostcode, {
+          {renderInput(t('profile.postcode'), postcode, setPostcode, {
             placeholder: '50000',
             keyboardType: 'number-pad',
             maxLength: 5,
           })}
 
-          {renderInput('Full Address', address, setAddress, {
-            placeholder: 'Street address (optional)',
+          {renderInput(t('profile.address'), address, setAddress, {
+            placeholder: t('employerCreateJob.placeholders.fullAddress'),
             multiline: true,
           })}
         </View>
 
         {/* Salary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Salary Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerCreateJob.sections.salary')}
+          </Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Salary Type</Text>
+            <Text style={styles.label}>
+              {t('employerCreateJob.fields.salaryType')}
+            </Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowSalaryTypePicker(true)}
@@ -1088,7 +1176,9 @@ export default function CreateJobPage() {
                     : styles.pickerPlaceholder
                 }
               >
-                {selectedSalaryType?.label || 'Select salary type'}
+                {selectedSalaryType
+                  ? getSalaryTypeLabel(selectedSalaryType.value)
+                  : t('employerCreateJob.modals.selectSalaryType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
             </TouchableOpacity>
@@ -1096,23 +1186,27 @@ export default function CreateJobPage() {
 
           <View style={styles.row}>
             <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>Min Salary (RM)</Text>
+              <Text style={styles.label}>
+                {t('employerCreateJob.fields.minSalary')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={salaryMin}
                 onChangeText={setSalaryMin}
-                placeholder="e.g. 1500"
+                placeholder={t('employerCreateJob.placeholders.minSalary')}
                 placeholderTextColor="#94A3B8"
                 keyboardType="number-pad"
               />
             </View>
             <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-              <Text style={styles.label}>Max Salary (RM)</Text>
+              <Text style={styles.label}>
+                {t('employerCreateJob.fields.maxSalary')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={salaryMax}
                 onChangeText={setSalaryMax}
-                placeholder="e.g. 2500"
+                placeholder={t('employerCreateJob.placeholders.maxSalary')}
                 placeholderTextColor="#94A3B8"
                 keyboardType="number-pad"
               />
@@ -1122,20 +1216,27 @@ export default function CreateJobPage() {
 
         {/* Additional Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Additional Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerCreateJob.sections.additional')}
+          </Text>
 
           {renderInput(
-            'Application Deadline',
+            t('employerCreateJob.fields.applicationDeadline'),
             applicationDeadline,
             setApplicationDeadline,
             {
-              placeholder: 'YYYY-MM-DD (optional)',
+              placeholder: t('employerCreateJob.placeholders.dateOptional'),
             }
           )}
 
-          {renderInput('Start Date', startDate, setStartDate, {
-            placeholder: 'YYYY-MM-DD (optional)',
-          })}
+          {renderInput(
+            t('employerCreateJob.fields.startDate'),
+            startDate,
+            setStartDate,
+            {
+              placeholder: t('employerCreateJob.placeholders.dateOptional'),
+            }
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -1153,7 +1254,9 @@ export default function CreateJobPage() {
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Create Job Post</Text>
+              <Text style={styles.submitButtonText}>
+                {t('employerJobPosts.cta.create')}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -1163,7 +1266,7 @@ export default function CreateJobPage() {
       {renderPickerModal(
         showIndustryPicker,
         () => setShowIndustryPicker(false),
-        'Select Industry',
+        t('employerCompanyForm.selectIndustry'),
         industries,
         (id) => setIndustryId(id),
         (item) => item.name,
@@ -1173,50 +1276,50 @@ export default function CreateJobPage() {
       {renderPickerModal(
         showJobTypePicker,
         () => setShowJobTypePicker(false),
-        'Select Job Type',
+        t('employerCreateJob.modals.selectJobType'),
         JOB_TYPES,
         (value) => setJobType(value),
-        (item) => item.label,
+        (item) => getJobTypeLabel(item.value),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showWorkingHoursPicker,
         () => setShowWorkingHoursPicker(false),
-        'Select Working Hours',
+        t('employerCreateJob.modals.selectWorkingHours'),
         WORKING_HOURS,
         (value) => setWorkingHours(value),
-        (item) => item.label,
+        (item) => getWorkingHoursLabel(item.value),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showExperiencePicker,
         () => setShowExperiencePicker(false),
-        'Select Experience Level',
+        t('employerCreateJob.modals.selectExperience'),
         EXPERIENCE_LEVELS,
         (value) => setExperienceLevel(value),
-        (item) => item.label,
+        (item) => getExperienceLabel(item.value),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showSalaryTypePicker,
         () => setShowSalaryTypePicker(false),
-        'Select Salary Type',
+        t('employerCreateJob.modals.selectSalaryType'),
         SALARY_TYPES,
         (value) => setSalaryType(value),
-        (item) => item.label,
+        (item) => getSalaryTypeLabel(item.value),
         (item) => item.value
       )}
 
       {renderPickerModal(
         showStatePicker,
         () => setShowStatePicker(false),
-        'Select State',
+        t('employerCreateJob.modals.selectState'),
         MALAYSIAN_STATES,
         (value) => setState(value),
-        (item) => item,
+        (item) => t(`states.${item}`),
         (item) => item
       )}
 
@@ -1224,6 +1327,81 @@ export default function CreateJobPage() {
       {renderPredictionModal()}
     </SafeAreaView>
   );
+}
+
+// Helper label resolvers
+function getJobTypeLabel(value: string) {
+  const { t } = useLanguage();
+  switch (value) {
+    case 'FULL_TIME':
+      return t('jobTypes.fullTime');
+    case 'PART_TIME':
+      return t('jobTypes.partTime');
+    case 'CONTRACT':
+      return t('jobTypes.contract');
+    case 'TEMPORARY':
+      return t('jobTypes.temporary');
+    case 'FREELANCE':
+      return t('jobTypes.freelance');
+    default:
+      return value;
+  }
+}
+
+function getWorkingHoursLabel(value: string) {
+  const { t } = useLanguage();
+  switch (value) {
+    case 'DAY_SHIFT':
+      return t('workingHours.dayShift');
+    case 'NIGHT_SHIFT':
+      return t('workingHours.nightShift');
+    case 'ROTATING_SHIFT':
+      return t('workingHours.rotatingShift');
+    case 'FLEXIBLE':
+      return t('workingHours.flexible');
+    case 'WEEKEND_ONLY':
+      return t('workingHours.weekendOnly');
+    default:
+      return value;
+  }
+}
+
+function getExperienceLabel(value: string) {
+  const { t } = useLanguage();
+  switch (value) {
+    case 'ENTRY_LEVEL':
+      return t('experienceLevels.entryLevel');
+    case 'JUNIOR':
+      return t('experienceLevels.junior');
+    case 'MID_LEVEL':
+      return t('experienceLevels.midLevel');
+    case 'SENIOR':
+      return t('experienceLevels.senior');
+    case 'EXPERT':
+      return t('experienceLevels.expert');
+    default:
+      return value;
+  }
+}
+
+function getSalaryTypeLabel(value: string) {
+  const { t } = useLanguage();
+  switch (value) {
+    case 'HOURLY':
+      return t('salaryTypes.hourly');
+    case 'DAILY':
+      return t('salaryTypes.daily');
+    case 'WEEKLY':
+      return t('salaryTypes.weekly');
+    case 'MONTHLY':
+      return t('salaryTypes.monthly');
+    case 'YEARLY':
+      return t('salaryTypes.yearly');
+    case 'PER_PROJECT':
+      return t('salaryTypes.perProject');
+    default:
+      return value;
+  }
 }
 
 const styles = StyleSheet.create({

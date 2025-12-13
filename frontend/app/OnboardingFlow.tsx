@@ -27,6 +27,7 @@ import { WebView } from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 const { width } = Dimensions.get('window');
 
@@ -72,6 +73,8 @@ interface UserProfile {
 }
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
+const GOOGLE_MAPS_AUTOCOMPLETE_KEY =
+  Constants.expoConfig?.extra?.GOOGLE_MAPS_AUTOCOMPLETE_KEY || '';
 
 interface ResumeQuestion {
   id: number;
@@ -132,6 +135,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [resumeKey, setResumeKey] = useState<string | null>(null);
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  // Autocomplete: track auto-filled state to default fields as read-only
+  const [cityAutoFilled, setCityAutoFilled] = useState(false);
+  const [stateAutoFilled, setStateAutoFilled] = useState(false);
+  const [postcodeAutoFilled, setPostcodeAutoFilled] = useState(false);
 
   const router = useRouter();
   const { t } = useLanguage();
@@ -509,11 +516,85 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       }
 
       console.log('✅ Resume generated successfully:', data);
-      return data; // { message, resumeUrl }
+
+      // Pick language-specific key, defaulting to English
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+      const keys = (data && data.keys) || {};
+      const selectedKey = keys[lang as keyof typeof keys] || keys['en'];
+
+      if (!selectedKey) {
+        throw new Error('No resume key returned');
+      }
+
+      // Persist selected key in state and fetch signed URL
+      setResumeKey(selectedKey);
+      const resume = await fetchResumeUrl(selectedKey);
+      setResumeUrl(resume.resumeUrl);
+
+      return { ...data, selectedKey, resumeUrl: resume.resumeUrl };
     } catch (error) {
       console.error('❌ Error generating resume:', error);
       throw error;
     }
+  };
+
+  // Helper: parse Google Place details into address fields
+  type AddressComponent = {
+    long_name: string;
+    short_name: string;
+    types: string[];
+  };
+  type PlaceDetails = {
+    formatted_address?: string;
+    address_components?: AddressComponent[];
+  };
+
+  // Normalize Malaysian state names to simple, commonly used forms
+  const normalizeMYStateName = (name: string) => {
+    const n = (name || '').toLowerCase();
+    if (!n) return '';
+    if (n.includes('johor')) return 'Johor';
+    if (n.includes('kedah')) return 'Kedah';
+    if (n.includes('kelantan')) return 'Kelantan';
+    if (n.includes('melaka') || n.includes('malacca')) return 'Melaka';
+    if (n.includes('negeri sembilan')) return 'Negeri Sembilan';
+    if (n.includes('pahang')) return 'Pahang';
+    if (n.includes('perak')) return 'Perak';
+    if (n.includes('perlis')) return 'Perlis';
+    if (n.includes('pulau pinang') || n.includes('penang'))
+      return 'Pulau Pinang';
+    if (n.includes('sabah')) return 'Sabah';
+    if (n.includes('sarawak')) return 'Sarawak';
+    if (n.includes('selangor')) return 'Selangor';
+    if (n.includes('terengganu')) return 'Terengganu';
+    if (
+      n.includes('wilayah persekutuan kuala lumpur') ||
+      n.includes('kuala lumpur')
+    )
+      return 'Kuala Lumpur';
+    if (n.includes('wilayah persekutuan labuan') || n.includes('labuan'))
+      return 'Labuan';
+    if (n.includes('putrajaya')) return 'Putrajaya';
+    return name; // fallback to original if no match
+  };
+
+  const parsePlaceDetails = (details?: PlaceDetails) => {
+    const comps = details?.address_components || [];
+    const getComp = (type: string) =>
+      comps.find((c) => c.types.includes(type))?.long_name || '';
+
+    const locality = getComp('locality');
+    const sublocality = getComp('sublocality');
+    const admin1 = getComp('administrative_area_level_1');
+    const postal = getComp('postal_code');
+
+    return {
+      formatted: details?.formatted_address || '',
+      city: locality || sublocality || '',
+      stateName: normalizeMYStateName(admin1 || ''),
+      postcode: postal || '',
+    };
   };
 
   const handlePickImage = async () => {
@@ -774,11 +855,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           await saveResumeAnswers(resumeAnswers);
           setIsGeneratingResume(true);
 
-          const result = await generateResume();
-          setResumeKey(result.key);
-
-          const resume = await fetchResumeUrl(result.key);
-          setResumeUrl(resume.resumeUrl);
+          await generateResume();
 
           console.log('Signed URL:', resumeUrl);
 
@@ -1148,15 +1225,111 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           <Text style={styles.inputLabel}>
             {t('onboarding.profileForm.address')}
           </Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={userProfile.address || ''}
-            onChangeText={(text) => handleProfileInputChange('address', text)}
+          <GooglePlacesAutocomplete
             placeholder={t('onboarding.profileForm.streetAddress')}
-            multiline
-            numberOfLines={3}
-            returnKeyType="done"
-            blurOnSubmit={true}
+            fetchDetails
+            enablePoweredByContainer={false}
+            debounce={300}
+            onFail={(error) => {
+              console.error('Places API error:', error);
+              Alert.alert(
+                t('common.error'),
+                'Failed to fetch address suggestions. You can type manually.'
+              );
+            }}
+            onPress={(data, details) => {
+              const parsed = parsePlaceDetails(details as PlaceDetails);
+              // Fill address
+              handleProfileInputChange('address', parsed.formatted);
+
+              // Auto-fill city/state/postcode and mark read-only by default
+              if (parsed.city) {
+                handleProfileInputChange('city', parsed.city);
+                setCityAutoFilled(true);
+              } else {
+                setCityAutoFilled(false);
+              }
+              if (parsed.stateName) {
+                handleProfileInputChange('state', parsed.stateName);
+                setStateAutoFilled(true);
+              } else {
+                setStateAutoFilled(false);
+              }
+              if (parsed.postcode) {
+                handleProfileInputChange('postcode', parsed.postcode);
+                setPostcodeAutoFilled(true);
+              } else {
+                setPostcodeAutoFilled(false);
+              }
+            }}
+            query={{
+              key: GOOGLE_MAPS_AUTOCOMPLETE_KEY,
+              language: 'en',
+              components: 'country:my',
+              types: 'address',
+            }}
+            textInputProps={{
+              style: styles.textInput,
+              placeholderTextColor: '#94A3B8',
+              value: userProfile.address || '',
+              multiline: false,
+              numberOfLines: 1,
+              onChangeText: (text: string) => {
+                handleProfileInputChange('address', text);
+                if (!text || text.trim() === '') {
+                  // Clear dependent fields when address is cleared manually
+                  handleProfileInputChange('city', '');
+                  handleProfileInputChange('state', '');
+                  handleProfileInputChange('postcode', '');
+                  setCityAutoFilled(false);
+                  setStateAutoFilled(false);
+                  setPostcodeAutoFilled(false);
+                }
+              },
+            }}
+            styles={{
+              container: {
+                flex: 0,
+                width: '100%',
+                alignSelf: 'stretch',
+              },
+              textInputContainer: {
+                paddingHorizontal: 0,
+                width: '100%',
+                backgroundColor: 'transparent',
+              },
+              textInput: {
+                height: 50,
+                width: '100%',
+                borderWidth: 1,
+                borderColor: '#D1D5DB',
+                borderRadius: 8,
+                paddingHorizontal: 16,
+                fontSize: 16,
+                color: '#1F2937',
+                backgroundColor: '#FFFFFF',
+                marginBottom: 0,
+                textAlign: 'left',
+              },
+              listView: {
+                backgroundColor: '#FFFFFF',
+                borderRadius: 8,
+                maxHeight: 160,
+                shadowColor: '#000',
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 3,
+                marginTop: 4,
+                marginBottom: 36,
+              },
+              row: {
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+              },
+              separator: { height: 1, backgroundColor: '#E2E8F0' },
+              description: { color: '#0F172A' },
+            }}
           />
         </View>
 
@@ -1168,9 +1341,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <TextInput
               style={styles.textInput}
               value={userProfile.city || ''}
-              onChangeText={(text) => handleProfileInputChange('city', text)}
+              onChangeText={(text) => {
+                handleProfileInputChange('city', text);
+                setCityAutoFilled(false);
+              }}
               placeholder={t('onboarding.profileForm.cityPlaceholder')}
               returnKeyType="next"
+              editable={!cityAutoFilled}
+              onPressIn={() => setCityAutoFilled(false)}
             />
           </View>
           <View style={styles.halfInput}>
@@ -1180,9 +1358,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             <TextInput
               style={styles.textInput}
               value={userProfile.state || ''}
-              onChangeText={(text) => handleProfileInputChange('state', text)}
+              onChangeText={(text) => {
+                handleProfileInputChange('state', text);
+                setStateAutoFilled(false);
+              }}
               placeholder={t('onboarding.profileForm.statePlaceholder')}
               returnKeyType="next"
+              editable={!stateAutoFilled}
+              onPressIn={() => setStateAutoFilled(false)}
             />
           </View>
         </View>
@@ -1194,10 +1377,15 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           <TextInput
             style={styles.textInput}
             value={userProfile.postcode || ''}
-            onChangeText={(text) => handleProfileInputChange('postcode', text)}
+            onChangeText={(text) => {
+              handleProfileInputChange('postcode', text);
+              setPostcodeAutoFilled(false);
+            }}
             placeholder={t('onboarding.profileForm.postcodePlaceholder')}
             keyboardType="numeric"
             returnKeyType="next"
+            editable={!postcodeAutoFilled}
+            onPressIn={() => setPostcodeAutoFilled(false)}
           />
         </View>
       </View>
@@ -1541,7 +1729,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 style={styles.picker}
                 itemStyle={styles.pickerItem}
               >
-                <Picker.Item label="Select an option" value="" />
+                <Picker.Item label={t('common.selectOption')} value="" />
                 {question.options?.map((option, idx) => (
                   <Picker.Item key={idx} label={option} value={option} />
                 ))}
@@ -1557,6 +1745,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   );
 
   const currentStepData = onboardingSteps[currentStep];
+
+  const handleRegenerateResume = async () => {
+    try {
+      setIsGeneratingResume(true);
+      await generateResume();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to regenerate resume. Please try again.');
+    } finally {
+      setIsGeneratingResume(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1596,6 +1795,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         extraScrollHeight={60}
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
       >
         {currentStepData.isProfileForm ? (
           // ✅ ScrollView now directly inside KeyboardAvoidingView
@@ -1666,7 +1866,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         <View style={styles.previewButtonsContainer}>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={generateResume}
+            onPress={handleRegenerateResume}
           >
             <Text style={styles.buttonText}>
               {currentStepData.secondaryButtonText}

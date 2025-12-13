@@ -1,0 +1,20 @@
+@startuml
+title Sequence: Manage Preferences
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "User Controller" as API
+database "Database" as DB
+
+JS -> UI: Access Settings/Preferences
+activate UI
+JS -> UI: Change Settings (Lang, Ind, Loc)
+UI -> API: Update Preferences
+activate API
+API -> DB: Save Preferences
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Confirmation
+deactivate API
+deactivate UI
+@enduml

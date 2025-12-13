@@ -11,10 +11,12 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Href, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:3000';
@@ -55,6 +57,7 @@ interface PaginationInfo {
 
 export default function CompanyApprovalScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,7 +79,10 @@ export default function CompanyApprovalScreen() {
       setLoading(true);
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
-        Alert.alert('Error', 'Admin token not found');
+        Alert.alert(
+          t('adminCompanyApproval.alerts.authRequiredTitle'),
+          t('adminCompanyApproval.alerts.authRequiredMessage')
+        );
         return;
       }
 
@@ -98,8 +104,9 @@ export default function CompanyApprovalScreen() {
     } catch (error: any) {
       console.error('Error fetching pending companies:', error);
       Alert.alert(
-        'Error',
-        error.response?.data?.message || 'Failed to fetch pending companies'
+        t('common.error'),
+        error.response?.data?.message ||
+          t('adminCompanyApproval.errors.loadFailed')
       );
     } finally {
       setLoading(false);
@@ -114,21 +121,24 @@ export default function CompanyApprovalScreen() {
 
   const handleApprove = async (companyId: number, companyName: string) => {
     Alert.alert(
-      'Approve Company',
-      `Are you sure you want to approve "${companyName}"?`,
+      t('adminCompanyApproval.prompt.approveTitle'),
+      t('adminCompanyApproval.prompt.confirmApprove', { name: companyName }),
       [
         {
-          text: 'Cancel',
+          text: t('common.actions.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Approve',
+          text: t('adminCompanyApproval.actions.approve'),
           onPress: async () => {
             try {
               setProcessing(companyId);
               const token = await AsyncStorage.getItem('adminToken');
               if (!token) {
-                Alert.alert('Error', 'Admin token not found');
+                Alert.alert(
+                  t('adminCompanyApproval.alerts.authRequiredTitle'),
+                  t('adminCompanyApproval.alerts.authRequiredMessage')
+                );
                 return;
               }
 
@@ -144,14 +154,18 @@ export default function CompanyApprovalScreen() {
               const data = await response.json();
 
               if (data.success) {
-                Alert.alert('Success', 'Company approved successfully');
+                Alert.alert(
+                  t('common.success'),
+                  t('adminCompanyApproval.alerts.approvalSuccess')
+                );
                 fetchPendingCompanies(); // Refresh list
               }
             } catch (error: any) {
               console.error('Error approving company:', error);
               Alert.alert(
-                'Error',
-                error.response?.data?.message || 'Failed to approve company'
+                t('common.error'),
+                error.response?.data?.message ||
+                  t('adminCompanyApproval.errors.approveFailed')
               );
             } finally {
               setProcessing(null);
@@ -164,19 +178,22 @@ export default function CompanyApprovalScreen() {
 
   const handleReject = async (companyId: number, companyName: string) => {
     Alert.prompt(
-      'Reject Company',
-      `Please provide a reason for rejecting "${companyName}":`,
+      t('adminCompanyApproval.prompt.rejectTitle'),
+      t('adminCompanyApproval.prompt.rejectPlaceholder'),
       [
         {
-          text: 'Cancel',
+          text: t('common.actions.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Reject',
+          text: t('adminCompanyApproval.actions.reject'),
           style: 'destructive',
           onPress: async (reason) => {
             if (!reason || reason.trim().length === 0) {
-              Alert.alert('Error', 'Rejection reason is required');
+              Alert.alert(
+                t('adminCompanyApproval.alerts.reasonRequiredTitle'),
+                t('adminCompanyApproval.alerts.reasonRequiredMessage')
+              );
               return;
             }
 
@@ -184,7 +201,10 @@ export default function CompanyApprovalScreen() {
               setProcessing(companyId);
               const token = await AsyncStorage.getItem('adminToken');
               if (!token) {
-                Alert.alert('Error', 'Admin token not found');
+                Alert.alert(
+                  t('adminCompanyApproval.alerts.authRequiredTitle'),
+                  t('adminCompanyApproval.alerts.authRequiredMessage')
+                );
                 return;
               }
 
@@ -202,14 +222,18 @@ export default function CompanyApprovalScreen() {
               const data = await response.json();
 
               if (data.success) {
-                Alert.alert('Success', 'Company rejected');
+                Alert.alert(
+                  t('common.success'),
+                  t('adminCompanyApproval.alerts.rejectionSuccess')
+                );
                 fetchPendingCompanies(); // Refresh list
               }
             } catch (error: any) {
               console.error('Error rejecting company:', error);
               Alert.alert(
-                'Error',
-                error.response?.data?.message || 'Failed to reject company'
+                t('common.error'),
+                error.response?.data?.message ||
+                  t('adminCompanyApproval.errors.rejectFailed')
               );
             } finally {
               setProcessing(null);
@@ -267,7 +291,8 @@ export default function CompanyApprovalScreen() {
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={16} color="#64748b" />
             <Text style={styles.infoText}>
-              Submitted: {new Date(item.createdAt).toLocaleDateString()}
+              {t('adminCompanyApproval.labels.submitted')}:{' '}
+              {new Date(item.createdAt).toLocaleDateString()}
             </Text>
           </View>
           {item.verification?.businessDocument && (
@@ -277,7 +302,9 @@ export default function CompanyApprovalScreen() {
                 size={16}
                 color="#3b82f6"
               />
-              <Text style={styles.documentText}>Document attached</Text>
+              <Text style={styles.documentText}>
+                {t('adminCompanyApproval.labels.documentAttached')}
+              </Text>
             </View>
           )}
         </View>
@@ -293,7 +320,9 @@ export default function CompanyApprovalScreen() {
             ) : (
               <>
                 <Ionicons name="close-circle-outline" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>Reject</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('adminCompanyApproval.actions.reject')}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -312,7 +341,9 @@ export default function CompanyApprovalScreen() {
                   size={20}
                   color="#fff"
                 />
-                <Text style={styles.actionButtonText}>Approve</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('adminCompanyApproval.actions.approve')}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -328,9 +359,11 @@ export default function CompanyApprovalScreen() {
         size={64}
         color="#94a3b8"
       />
-      <Text style={styles.emptyTitle}>No Pending Approvals</Text>
+      <Text style={styles.emptyTitle}>
+        {t('adminCompanyApproval.empty.title')}
+      </Text>
       <Text style={styles.emptyText}>
-        All companies have been reviewed. Great job!
+        {t('adminCompanyApproval.empty.subtitle')}
       </Text>
     </View>
   );
@@ -339,7 +372,9 @@ export default function CompanyApprovalScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={styles.loadingText}>Loading pending companies...</Text>
+        <Text style={styles.loadingText}>
+          {t('adminCompanyApproval.loading')}
+        </Text>
       </View>
     );
   }
@@ -347,10 +382,19 @@ export default function CompanyApprovalScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>
-          {pagination.total} pending verification
-          {pagination.total !== 1 ? 's' : ''}
-        </Text>
+        <LinearGradient
+          colors={['#2563eb', '#1e40af']}
+          style={styles.headerGradient}
+        >
+          <Text style={styles.headerTitle}>
+            {t('adminCompanyApproval.headerTitle') || 'Company Approvals'}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {t('adminCompanyApproval.headerSubtitle', {
+              count: pagination.total,
+            })}
+          </Text>
+        </LinearGradient>
       </View>
 
       <FlatList
@@ -386,7 +430,10 @@ export default function CompanyApprovalScreen() {
           </TouchableOpacity>
 
           <Text style={styles.paginationText}>
-            Page {pagination.page} of {pagination.pages}
+            {t('adminCompanyApproval.pagination.page', {
+              page: pagination.page,
+              total: pagination.pages,
+            })}
           </Text>
 
           <TouchableOpacity
@@ -419,22 +466,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -443,12 +475,43 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
+    fontSize: 16,
+    color: '#64748B',
+  },
+  header: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
     fontSize: 14,
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   listContent: {
-    padding: 16,
-    flexGrow: 1,
+    padding: 20,
+    paddingTop: 0,
   },
   card: {
     backgroundColor: '#fff',

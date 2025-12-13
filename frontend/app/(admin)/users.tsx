@@ -8,15 +8,19 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput,
   Alert,
   RefreshControl,
   Image,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
+import VoiceTextInput from '@/components/VoiceTextInput';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -26,23 +30,25 @@ interface User {
   fullName: string;
   role: string;
   status: string;
+  statusLabel?: string;
   isActive: boolean;
   createdAt: string;
   company?: {
     name: string;
-    logo?: string; // ✅ Add logo field
+    logo?: string;
     isVerified: boolean;
   };
   profile?: {
     id: number;
     profileCompleted: boolean;
-    profilePicture?: string; // ✅ Add profile picture field
+    profilePicture?: string;
   };
   _count: {
     applications: number;
     createdJobs: number;
   };
 }
+
 export default function AdminUsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,10 +60,12 @@ export default function AdminUsersScreen() {
   const [totalPages, setTotalPages] = useState(1);
 
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
+  const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     fetchUsers();
-  }, [roleFilter, statusFilter, page]);
+  }, [roleFilter, statusFilter, page, currentLanguage]);
 
   const fetchUsers = async () => {
     try {
@@ -71,6 +79,7 @@ export default function AdminUsersScreen() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20',
+        lang: currentLanguage,
       });
 
       if (roleFilter) params.append('role', roleFilter);
@@ -91,6 +100,13 @@ export default function AdminUsersScreen() {
       if (response.ok && data.success) {
         setUsers(data.data.users);
         setTotalPages(data.data.pagination.totalPages);
+
+        // Animate in
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }).start();
       } else {
         if (response.status === 401 || response.status === 403) {
           await AsyncStorage.removeItem('adminToken');
@@ -111,18 +127,20 @@ export default function AdminUsersScreen() {
     userName: string
   ) => {
     Alert.alert(
-      `${
-        newStatus === 'SUSPENDED'
-          ? 'Suspend'
-          : newStatus === 'ACTIVE'
-          ? 'Activate'
-          : 'Delete'
-      } User`,
-      `Are you sure you want to ${newStatus.toLowerCase()} ${userName}?`,
+      newStatus === 'SUSPENDED'
+        ? t('adminUsers.actions.suspendUser')
+        : newStatus === 'ACTIVE'
+        ? t('adminUsers.actions.activateUser')
+        : t('adminUsers.actions.deleteUser'),
+      newStatus === 'SUSPENDED'
+        ? t('adminUsers.actions.confirmSuspend', { name: userName })
+        : newStatus === 'ACTIVE'
+        ? t('adminUsers.actions.confirmActivate', { name: userName })
+        : t('adminUsers.actions.confirmDelete', { name: userName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('adminUsers.actions.cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('adminUsers.actions.confirm'),
           style: newStatus === 'DELETED' ? 'destructive' : 'default',
           onPress: async () => {
             try {
@@ -146,14 +164,17 @@ export default function AdminUsersScreen() {
               const data = await response.json();
 
               if (response.ok && data.success) {
-                Alert.alert('Success', data.message);
+                Alert.alert(t('adminUsers.actions.success'), data.message);
                 fetchUsers();
               } else {
-                Alert.alert('Error', data.message);
+                Alert.alert(t('adminUsers.actions.error'), data.message);
               }
             } catch (error) {
               console.error('Update status error:', error);
-              Alert.alert('Error', 'Failed to update user status');
+              Alert.alert(
+                t('adminUsers.actions.error'),
+                t('adminUsers.actions.updateFailed')
+              );
             }
           },
         },
@@ -167,247 +188,454 @@ export default function AdminUsersScreen() {
     fetchUsers();
   };
 
-  const renderUser = ({ item }: { item: User }) => (
-    <View style={styles.userCard}>
-      {/* User Header */}
-      <View style={styles.userHeader}>
-        {/* ✅ UPDATED: Show avatar based on role */}
-        <View style={styles.userAvatarContainer}>
-          {item.role === 'EMPLOYER' && item.company?.logo ? (
-            <Image
-              source={{ uri: item.company.logo }}
-              style={styles.userAvatarImage}
-            />
-          ) : item.role === 'JOB_SEEKER' && item.profile?.profilePicture ? (
-            <Image
-              source={{ uri: item.profile.profilePicture }}
-              style={styles.userAvatarImage}
-            />
-          ) : (
-            <View style={styles.userAvatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {item.fullName.charAt(0).toUpperCase()}
+  const getRoleGradient = (role: string) => {
+    switch (role) {
+      case 'EMPLOYER':
+        return ['#1E3A8A', '#2563EB']; // Primary/Secondary Blue
+      case 'JOB_SEEKER':
+        return ['#1E3A8A', '#2563EB']; // Primary/Secondary Blue
+      default:
+        return ['#1E3A8A', '#2563EB']; // Primary/Secondary Blue
+    }
+  };
+
+  const getStatusColors = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return {
+          gradient: ['#10B981', '#059669'], // Green
+          text: '#FFFFFF',
+          icon: 'checkmark-circle',
+        };
+      case 'SUSPENDED':
+        return {
+          gradient: ['#F59E0B', '#D97706'], // Orange
+          text: '#FFFFFF',
+          icon: 'pause-circle',
+        };
+      case 'DELETED':
+        return {
+          gradient: ['#EF4444', '#DC2626'], // Red
+          text: '#FFFFFF',
+          icon: 'trash',
+        };
+      default:
+        return {
+          gradient: ['#6B7280', '#4B5563'], // Gray
+          text: '#FFFFFF',
+          icon: 'help-circle',
+        };
+    }
+  };
+
+  const renderUser = ({ item, index }: { item: User; index: number }) => {
+    const statusColors = getStatusColors(item.status);
+    const roleGradient = getRoleGradient(item.role);
+    const daysAgo = Math.floor(
+      (new Date().getTime() - new Date(item.createdAt).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    return (
+      <Animated.View
+        style={[
+          styles.userCard,
+          {
+            opacity: fadeAnim,
+            transform: [
+              {
+                translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [30, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        {/* User Header with Gradient */}
+        <LinearGradient colors={roleGradient} style={styles.userHeaderGradient}>
+          <View style={styles.userHeader}>
+            <View style={styles.userAvatarContainer}>
+              {item.role === 'EMPLOYER' && item.company?.logo ? (
+                <Image
+                  source={{ uri: item.company.logo }}
+                  style={styles.userAvatarImage}
+                />
+              ) : item.role === 'JOB_SEEKER' && item.profile?.profilePicture ? (
+                <Image
+                  source={{ uri: item.profile.profilePicture }}
+                  style={styles.userAvatarImage}
+                />
+              ) : (
+                <LinearGradient
+                  colors={roleGradient}
+                  style={styles.userAvatarPlaceholder}
+                >
+                  <Text style={styles.avatarText}>
+                    {item.fullName.charAt(0).toUpperCase()}
+                  </Text>
+                </LinearGradient>
+              )}
+            </View>
+
+            <View style={styles.userInfo}>
+              <Text style={styles.userName} numberOfLines={1}>
+                {item.fullName}
+              </Text>
+              <Text style={styles.userEmail} numberOfLines={1}>
+                {item.email}
               </Text>
             </View>
+
+            <LinearGradient
+              colors={statusColors.gradient}
+              style={styles.statusBadge}
+            >
+              <Ionicons
+                name={statusColors.icon as any}
+                size={14}
+                color={statusColors.text}
+              />
+              <Text style={styles.statusText}>
+                {item.statusLabel || item.status}
+              </Text>
+            </LinearGradient>
+          </View>
+        </LinearGradient>
+
+        {/* User Details */}
+        <View style={styles.userContent}>
+          <View style={styles.userMeta}>
+            <View style={styles.metaRow}>
+              <LinearGradient
+                colors={['#F3F4F6', '#E5E7EB']}
+                style={styles.metaIconContainer}
+              >
+                <Ionicons name="briefcase-outline" size={16} color="#4B5563" />
+              </LinearGradient>
+              <Text style={styles.metaText}>
+                {item.role === 'JOB_SEEKER'
+                  ? t('adminUsers.filters.jobSeekers')
+                  : t('adminUsers.filters.employers')}
+              </Text>
+            </View>
+
+            {item.company && (
+              <View style={styles.metaRow}>
+                <LinearGradient
+                  colors={['#F3F4F6', '#E5E7EB']}
+                  style={styles.metaIconContainer}
+                >
+                  <Ionicons name="business-outline" size={16} color="#4B5563" />
+                </LinearGradient>
+                <View style={styles.companyInfo}>
+                  <Text style={styles.metaText} numberOfLines={1}>
+                    {item.company.name}
+                  </Text>
+                  {item.company.isVerified && (
+                    <LinearGradient
+                      colors={['#10B981', '#059669']}
+                      style={styles.verifiedBadge}
+                    >
+                      <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                    </LinearGradient>
+                  )}
+                </View>
+              </View>
+            )}
+
+            <View style={styles.metaRow}>
+              <LinearGradient
+                colors={['#F3F4F6', '#E5E7EB']}
+                style={styles.metaIconContainer}
+              >
+                <Ionicons name="calendar-outline" size={16} color="#4B5563" />
+              </LinearGradient>
+              <Text style={styles.metaText}>
+                {daysAgo === 0
+                  ? t('adminUsers.common.joinedToday')
+                  : t('adminUsers.common.joinedDaysAgo', { days: daysAgo })}
+              </Text>
+            </View>
+
+            <View style={styles.metaRow}>
+              <LinearGradient
+                colors={['#F3F4F6', '#E5E7EB']}
+                style={styles.metaIconContainer}
+              >
+                <Ionicons
+                  name="stats-chart-outline"
+                  size={16}
+                  color="#4B5563"
+                />
+              </LinearGradient>
+              <Text style={styles.metaText}>
+                {item.role === 'JOB_SEEKER'
+                  ? `${item._count.applications} ${t(
+                      'adminUsers.stats.applications'
+                    )}`
+                  : `${item._count.createdJobs} ${t(
+                      'adminUsers.stats.jobsPosted'
+                    )}`}
+              </Text>
+            </View>
+          </View>
+
+          {/* Stats Bar */}
+          <View style={styles.statsBar}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {item.role === 'JOB_SEEKER'
+                  ? item._count.applications
+                  : item._count.createdJobs}
+              </Text>
+              <Text style={styles.statLabel}>
+                {item.role === 'JOB_SEEKER'
+                  ? t('adminUsers.stats.applicationsLabel')
+                  : t('adminUsers.stats.jobsLabel')}
+              </Text>
+            </View>
+
+            <View style={styles.statDivider} />
+
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {item.profile?.profileCompleted ? '100%' : '0%'}
+              </Text>
+              <Text style={styles.statLabel}>
+                {t('adminUsers.stats.profile')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.actionsContainer}>
+          {item.status === 'ACTIVE' && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() =>
+                handleUpdateStatus(item.id, 'SUSPENDED', item.fullName)
+              }
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#FEF3C7', '#FDE68A']}
+                style={styles.actionButtonGradient}
+              >
+                <Ionicons name="ban-outline" size={18} color="#D97706" />
+                <Text style={styles.suspendButtonText}>
+                  {t('adminUsers.actions.suspend')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {item.status === 'SUSPENDED' && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() =>
+                handleUpdateStatus(item.id, 'ACTIVE', item.fullName)
+              }
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#D1FAE5', '#A7F3D0']}
+                style={styles.actionButtonGradient}
+              >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={18}
+                  color="#059669"
+                />
+                <Text style={styles.activateButtonText}>
+                  {t('adminUsers.actions.activate')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {item.status !== 'DELETED' && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() =>
+                handleUpdateStatus(item.id, 'DELETED', item.fullName)
+              }
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={['#FEE2E2', '#FECACA']}
+                style={styles.actionButtonGradient}
+              >
+                <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                <Text style={styles.deleteButtonText}>
+                  {t('adminUsers.actions.delete')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
           )}
         </View>
-
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.fullName}</Text>
-          <Text style={styles.userEmail}>{item.email}</Text>
-        </View>
-
-        <View
-          style={[
-            styles.statusBadge,
-            item.status === 'ACTIVE'
-              ? styles.statusActive
-              : item.status === 'SUSPENDED'
-              ? styles.statusSuspended
-              : styles.statusDeleted,
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusText,
-              item.status === 'ACTIVE'
-                ? styles.statusTextActive
-                : item.status === 'SUSPENDED'
-                ? styles.statusTextSuspended
-                : styles.statusTextDeleted,
-            ]}
-          >
-            {item.status}
-          </Text>
-        </View>
-      </View>
-
-      {/* User Details */}
-      <View style={styles.userDetails}>
-        <View style={styles.detailRow}>
-          <Ionicons name="briefcase-outline" size={16} color="#64748B" />
-          <Text style={styles.detailText}>
-            {item.role === 'JOB_SEEKER' ? 'Job Seeker' : 'Employer'}
-          </Text>
-        </View>
-
-        {item.company && (
-          <View style={styles.detailRow}>
-            <Ionicons name="business-outline" size={16} color="#64748B" />
-            <Text style={styles.detailText}>{item.company.name}</Text>
-            {item.company.isVerified && (
-              <Ionicons name="checkmark-circle" size={16} color="#15803D" />
-            )}
-          </View>
-        )}
-
-        <View style={styles.detailRow}>
-          <Ionicons name="calendar-outline" size={16} color="#64748B" />
-          <Text style={styles.detailText}>
-            Joined {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Ionicons name="stats-chart-outline" size={16} color="#64748B" />
-          <Text style={styles.detailText}>
-            {item.role === 'JOB_SEEKER'
-              ? `${item._count.applications} applications`
-              : `${item._count.createdJobs} jobs posted`}
-          </Text>
-        </View>
-      </View>
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        {item.status === 'ACTIVE' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.suspendButton]}
-            onPress={() =>
-              handleUpdateStatus(item.id, 'SUSPENDED', item.fullName)
-            }
-          >
-            <Ionicons name="ban-outline" size={18} color="#F97316" />
-            <Text style={styles.suspendButtonText}>Suspend</Text>
-          </TouchableOpacity>
-        )}
-
-        {item.status === 'SUSPENDED' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.activateButton]}
-            onPress={() => handleUpdateStatus(item.id, 'ACTIVE', item.fullName)}
-          >
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={18}
-              color="#15803D"
-            />
-            <Text style={styles.activateButtonText}>Activate</Text>
-          </TouchableOpacity>
-        )}
-
-        {item.status !== 'DELETED' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
-            onPress={() =>
-              handleUpdateStatus(item.id, 'DELETED', item.fullName)
-            }
-          >
-            <Ionicons name="trash-outline" size={18} color="#EF4444" />
-            <Text style={styles.deleteButtonText}>Delete</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
+      </Animated.View>
+    );
+  };
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1E3A8A" />
-        <Text style={styles.loadingText}>Loading Users...</Text>
+        <LinearGradient
+          colors={['#F8FAFC', '#F1F5F9']}
+          style={styles.loadingBackground}
+        >
+          <ActivityIndicator size="large" color="#6366F1" />
+          <Text style={styles.loadingText}>{t('adminUsers.loading')}</Text>
+        </LinearGradient>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Users</Text>
-        <View style={styles.headerPlaceholder} />
-      </View>
-
-      {/* Search and Filters */}
-      <View style={styles.filtersSection}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#64748B" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name or email..."
-            placeholderTextColor="#94A3B8"
-            value={search}
-            onChangeText={setSearch}
-            onSubmitEditing={fetchUsers}
-          />
+      <LinearGradient colors={['#F8FAFC', '#F1F5F9']} style={styles.background}>
+        {/* Header */}
+        <View style={styles.header}>
+          <LinearGradient
+            colors={['#2563eb', '#1e40af']}
+            style={styles.headerGradient}
+          >
+            <Text style={styles.headerTitle}>
+              {t('adminUsers.title') || 'User Management'}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {t('adminUsers.subtitle')}
+            </Text>
+          </LinearGradient>
         </View>
 
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              !roleFilter && styles.filterButtonActive,
-            ]}
-            onPress={() => setRoleFilter('')}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                !roleFilter && styles.filterButtonTextActive,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
+        {/* Search Section */}
+        <View style={styles.filtersSection}>
+          <BlurView intensity={80} tint="light" style={styles.searchBlur}>
+            <View style={styles.searchContainer}>
+              <LinearGradient
+                colors={['#F3F4F6', '#E5E7EB']}
+                style={styles.searchIconContainer}
+              >
+                <Ionicons name="search" size={18} color="#4B5563" />
+              </LinearGradient>
 
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              roleFilter === 'JOB_SEEKER' && styles.filterButtonActive,
-            ]}
-            onPress={() => setRoleFilter('JOB_SEEKER')}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                roleFilter === 'JOB_SEEKER' && styles.filterButtonTextActive,
-              ]}
-            >
-              Job Seekers
-            </Text>
-          </TouchableOpacity>
+              <VoiceTextInput
+                style={styles.voiceInputContainer}
+                inputStyle={styles.voiceInput}
+                placeholder={t('adminUsers.searchPlaceholder')}
+                value={search}
+                onChangeText={setSearch}
+                onSubmitEditing={fetchUsers}
+                language={
+                  currentLanguage === 'zh'
+                    ? 'zh-CN'
+                    : currentLanguage === 'ms'
+                    ? 'ms-MY'
+                    : currentLanguage === 'ta'
+                    ? 'ta-IN'
+                    : 'en-US'
+                }
+              />
 
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              roleFilter === 'EMPLOYER' && styles.filterButtonActive,
-            ]}
-            onPress={() => setRoleFilter('EMPLOYER')}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                roleFilter === 'EMPLOYER' && styles.filterButtonTextActive,
-              ]}
-            >
-              Employers
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+              {search.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearch('')}
+                  style={styles.clearButton}
+                >
+                  <LinearGradient
+                    colors={['#F3F4F6', '#E5E7EB']}
+                    style={styles.clearIconContainer}
+                  >
+                    <Ionicons name="close-circle" size={18} color="#4B5563" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+            </View>
+          </BlurView>
 
-      {/* Users List */}
-      <FlatList
-        data={users}
-        renderItem={renderUser}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={64} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No users found</Text>
+          {/* Role Filter */}
+          <View style={styles.filterContainer}>
+            <Text style={styles.filterLabel}>
+              {t('adminUsers.filters.title')}
+            </Text>
+            <View style={styles.filterRow}>
+              {['', 'JOB_SEEKER', 'EMPLOYER'].map((role) => {
+                const isActive = roleFilter === role;
+                return (
+                  <TouchableOpacity
+                    key={role || 'all'}
+                    style={styles.filterButton}
+                    onPress={() => setRoleFilter(role)}
+                    activeOpacity={0.7}
+                  >
+                    <LinearGradient
+                      colors={
+                        isActive
+                          ? ['#1E3A8A', '#2563EB']
+                          : ['#F3F4F6', '#E5E7EB']
+                      }
+                      style={styles.filterButtonGradient}
+                    >
+                      <Text
+                        style={[
+                          styles.filterButtonText,
+                          isActive && styles.filterButtonTextActive,
+                        ]}
+                      >
+                        {role === 'JOB_SEEKER'
+                          ? t('adminUsers.filters.jobSeekers')
+                          : role === 'EMPLOYER'
+                          ? t('adminUsers.filters.employers')
+                          : t('adminUsers.filters.all')}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-        }
-      />
+        </View>
+
+        <FlatList
+          data={users}
+          renderItem={renderUser}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={['#6366F1']}
+              tintColor="#6366F1"
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <LinearGradient
+                colors={['#F3F4F6', '#E5E7EB']}
+                style={styles.emptyIconContainer}
+              >
+                <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+              </LinearGradient>
+              <Text style={styles.emptyTitle}>
+                {t('adminUsers.empty.title') || 'No Users Found'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {roleFilter
+                  ? roleFilter === 'JOB_SEEKER'
+                    ? t('adminUsers.empty.noJobSeekers')
+                    : t('adminUsers.empty.noEmployers')
+                  : t('adminUsers.empty.noCriteria')}
+              </Text>
+            </View>
+          }
+        />
+      </LinearGradient>
     </View>
   );
 }
@@ -417,236 +645,348 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  background: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+  },
+  loadingBackground: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 16,
     color: '#64748B',
+    fontWeight: '500',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  backButton: {
-    padding: 8,
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  headerPlaceholder: {
-    width: 40,
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   filtersSection: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  searchBlur: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 12,
-    marginBottom: 12,
-    height: 48,
-    gap: 8,
+    height: 52,
+    gap: 12,
   },
-  searchInput: {
+  searchIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voiceInputContainer: {
+    flex: 1,
+  },
+  voiceInput: {
     flex: 1,
     fontSize: 15,
     color: '#1E293B',
+    backgroundColor: 'transparent',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  clearButton: {
+    padding: 4,
+  },
+  clearIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterContainer: {
+    marginTop: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
   filterRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  filterButtonActive: {
-    backgroundColor: '#1E3A8A',
+  filterButtonGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    alignItems: 'center',
   },
   filterButtonText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#64748B',
+    fontWeight: '600',
+    color: '#6B7280',
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
   },
   list: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   userCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderRadius: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  userHeaderGradient: {
+    padding: 20,
   },
   userHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#8B5CF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
   },
   userAvatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     overflow: 'hidden',
-    marginRight: 12,
+    marginRight: 16,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-
-  // ✅ NEW: Avatar image
   userAvatarImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-
-  // ✅ UPDATED: Avatar placeholder
   userAvatarPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#8B5CF6',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   avatarText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 2,
   },
   userEmail: {
     fontSize: 14,
-    color: '#64748B',
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusActive: {
-    backgroundColor: '#DCFCE7',
-  },
-  statusSuspended: {
-    backgroundColor: '#FEF2F2',
-  },
-  statusDeleted: {
-    backgroundColor: '#F1F5F9',
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
-  statusTextActive: {
-    color: '#15803D',
+  userContent: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  statusTextSuspended: {
-    color: '#DC2626',
+  userMeta: {
+    gap: 12,
+    marginBottom: 20,
   },
-  statusTextDeleted: {
-    color: '#64748B',
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  userDetails: {
-    gap: 8,
-    marginBottom: 12,
+  metaIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  detailRow: {
+  metaText: {
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
+  },
+  companyInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
   },
-  detailText: {
-    fontSize: 14,
-    color: '#64748B',
+  verifiedBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  actions: {
+  statsBar: {
     flexDirection: 'row',
-    gap: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2E8F0',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
   },
   actionButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  actionButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  suspendButton: {
-    backgroundColor: '#FFF7ED',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   suspendButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F97316',
-  },
-  activateButton: {
-    backgroundColor: '#F0FDF4',
+    color: '#D97706',
   },
   activateButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#15803D',
-  },
-  deleteButton: {
-    backgroundColor: '#FEF2F2',
+    color: '#059669',
   },
   deleteButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#EF4444',
+    color: '#DC2626',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
-  emptyText: {
-    fontSize: 16,
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 14,
     color: '#64748B',
-    marginTop: 16,
+    textAlign: 'center',
+    maxWidth: 300,
+    lineHeight: 20,
   },
 });

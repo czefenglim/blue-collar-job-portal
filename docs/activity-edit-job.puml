@@ -1,0 +1,49 @@
+@startuml UC_EditJob
+skinparam conditionStyle diamond
+title Activity: Edit / Manage Job Post
+
+|Employer|
+start
+:Go to Job Dashboard;
+:Select Existing Job;
+
+if (Current Job Status?) then (Active)
+else (Closed)
+endif
+
+:Select Action;
+
+split
+  -> Edit Details;
+  :Edit Job Information;
+  :Click Save Changes;
+  |System|
+  :Validate Data;
+  :Update Job Record;
+  :Show Success Message;
+  :Return to Job Page;
+split again
+  -> Toggle Status;
+  if (Action Type?) then (Close Job)
+    :Click Close Job;
+    |System|
+    :Update Status to Closed;
+    :Archive Job (Not Viewable);
+    :Show Success Message;
+  else (Activate Job)
+    :Click Activate Job;
+    |System|
+    :Update Status to Active;
+    :Make Job Viewable;
+    :Show Success Message;
+  endif
+split again
+  -> Delete Job;
+  :Click Delete Job;
+  |System|
+  :Remove Job from Database;
+  :Show Success Message;
+end split
+
+stop
+@enduml

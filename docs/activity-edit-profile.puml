@@ -1,0 +1,29 @@
+@startuml UC_EditProfile
+skinparam conditionStyle diamond
+title Activity: Edit Profile
+|Job Seeker|
+start
+:Click Edit Profile;
+fork
+  :Update Personal Info;
+fork again
+  :Update Address;
+fork again
+  :Update Job Preferences;
+fork again
+  :Upload / Update Resume;
+fork again
+  :Update Skills;
+end fork
+:Click Save Changes;
+|System|
+:Validate Data;
+if (Valid?) then (yes)
+  :Update Database;
+  :Show Success Message;
+else (no)
+  :Show Validation Errors;
+endif
+stop
+@enduml
+

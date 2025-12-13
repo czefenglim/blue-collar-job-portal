@@ -1,0 +1,20 @@
+@startuml
+title Sequence: View Profile
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "User Controller" as API
+database "Database" as DB
+
+JS -> UI: Access Profile Tab
+activate UI
+UI -> API: Get User Profile
+activate API
+API -> DB: Fetch User Details (Skills, Exp, Edu)
+activate DB
+DB --> API: Profile Data
+deactivate DB
+API --> UI: Display Profile
+deactivate API
+deactivate UI
+@enduml
+

@@ -1,0 +1,22 @@
+@startuml
+title Sequence: Respond to Reviews
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Review Controller" as API
+database "Database" as DB
+
+EMP -> UI: View Reviews
+activate UI
+EMP -> UI: Select Review & Enter Response
+EMP -> UI: Click Submit
+UI -> API: Add Response
+activate API
+API -> DB: Save Response
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Response Posted
+deactivate API
+deactivate UI
+@enduml
+

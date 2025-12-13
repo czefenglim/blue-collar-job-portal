@@ -20,6 +20,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
       limit = '20',
       search,
       industryId,
+      lang = 'en',
     } = req.query;
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
@@ -29,6 +30,9 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 
     if (verificationStatus && verificationStatus !== 'ALL') {
       where.verificationStatus = verificationStatus;
+    } else if (!verificationStatus) {
+      // Default to APPROVED if not specified (public view)
+      where.verificationStatus = 'APPROVED';
     }
 
     if (search && typeof search === 'string') {
@@ -44,7 +48,15 @@ export const getAllCompanies = async (req: Request, res: Response) => {
         where,
         include: {
           industry: {
-            select: { id: true, name: true, slug: true },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              name_en: true,
+              name_ms: true,
+              name_ta: true,
+              name_zh: true,
+            },
           },
         },
         skip,
@@ -80,8 +92,22 @@ export const getAllCompanies = async (req: Request, res: Response) => {
           }
         }
 
+        const translatedName = (company as any)[`name_${lang}`] || company.name;
+        const translatedDescription =
+          (company as any)[`description_${lang}`] || company.description;
+        const translatedIndustryName =
+          (company.industry as any)[`name_${lang}`] || company.industry?.name;
+
         return {
           ...company,
+          ...company,
+          name: translatedName,
+          description: translatedDescription,
+          industry: {
+            id: company.industry?.id,
+            slug: company.industry?.slug,
+            name: translatedIndustryName,
+          },
           logo: logoUrl, // ✅ Replace with signed URL
           averageRating: reviewStats._avg.rating
             ? parseFloat(reviewStats._avg.rating.toFixed(1))
@@ -115,14 +141,25 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 export const getCompanyById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { lang = 'en' } = req.query as any;
 
     const [company, reviewStats] = await Promise.all([
       prisma.company.findUnique({
         where: { id: parseInt(id) },
         include: {
           industry: {
-            select: { id: true, name: true, slug: true },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              name_en: true,
+              name_ms: true,
+              name_ta: true,
+              name_zh: true,
+            },
           },
+          // include translated company fields for direct access
+          // Prisma returns full company so we can index translated columns
         },
       }),
       prisma.review.aggregate({
@@ -153,10 +190,24 @@ export const getCompanyById = async (req: Request, res: Response) => {
       }
     }
 
+    const translatedName = (company as any)[`name_${lang}`] || company.name;
+    const translatedDescription =
+      (company as any)[`description_${lang}`] || company.description;
+    const translatedIndustryName =
+      (company.industry as any)[`name_${lang}`] || company.industry?.name;
+
     return res.status(200).json({
       success: true,
       data: {
         ...company,
+        ...company,
+        name: translatedName,
+        description: translatedDescription,
+        industry: {
+          id: company.industry?.id,
+          slug: company.industry?.slug,
+          name: translatedIndustryName,
+        },
         logo: logoUrl, // ✅ Replace with signed URL
         averageRating: reviewStats._avg.rating
           ? parseFloat(reviewStats._avg.rating.toFixed(1))

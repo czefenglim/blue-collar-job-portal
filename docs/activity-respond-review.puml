@@ -1,0 +1,21 @@
+@startuml UC_RespondReview
+skinparam conditionStyle diamond
+title Activity: Reply to Reviews
+|Employer|
+start
+:View Company Reviews;
+|System|
+:Fetch All Reviews;
+:Display Reviews List;
+|Employer|
+:Locate Specific Review;
+:Click "Reply" Button under Review;
+:Write Response Content;
+:Click Submit;
+|System|
+:Save Response to DB;
+:Publish Response;
+:Notify Reviewer (Email/Push);
+:Show Success Message;
+stop
+@enduml

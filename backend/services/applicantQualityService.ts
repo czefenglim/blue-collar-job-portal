@@ -75,7 +75,13 @@ export class ApplicantQualityService {
         profileCompleteness += 3;
       if (profile.languages && profile.languages.length > 0)
         profileCompleteness += 3;
-      if (profile.resumeUrl) profileCompleteness += 4;
+      const hasAnyResume =
+        (profile as any).resumeUrl_en ||
+        (profile as any).resumeUrl_ms ||
+        (profile as any).resumeUrl_zh ||
+        (profile as any).resumeUrl_ta ||
+        (profile as any).resumeUrl_uploaded;
+      if (hasAnyResume) profileCompleteness += 4;
 
       if (profileCompleteness >= 20) {
         strengths.push('Complete profile with all key information');
@@ -195,7 +201,14 @@ export class ApplicantQualityService {
     let availabilityScore = 0;
 
     // Has resume
-    if (profile?.resumeUrl || application.resumeUrl) {
+    const hasResume =
+      (profile as any)?.resumeUrl_en ||
+      (profile as any)?.resumeUrl_ms ||
+      (profile as any)?.resumeUrl_zh ||
+      (profile as any)?.resumeUrl_ta ||
+      (profile as any)?.resumeUrl_uploaded ||
+      application.resumeUrl;
+    if (hasResume) {
       availabilityScore += 4;
       strengths.push('Resume uploaded');
     } else {

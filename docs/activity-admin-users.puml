@@ -1,0 +1,47 @@
+@startuml UC_AdminUsers
+skinparam conditionStyle diamond
+skinparam activityDiamondShape true
+title Activity: Manage Users
+
+|Admin|
+start
+:Access User Management;
+|System|
+:Fetch User List;
+:Display User List;
+|Admin|
+if (Search/Filter?) then (yes)
+  :Enter Search Criteria;
+  :Apply Filters;
+  |System|
+  :Filter Data;
+  :Update List Display;
+endif
+|Admin|
+:Select User;
+|System|
+:Fetch User Details;
+:Display User Details;
+|Admin|
+if (Action?) then (Suspend)
+  :Click Suspend;
+  :Enter Reason;
+  :Confirm;
+  |System|
+  :Update Status to Suspended;
+  :Notify User;
+elseif (Activate)
+  :Click Activate;
+  :Confirm;
+  |System|
+  :Update Status to Active;
+else (Delete)
+  :Click Delete;
+  :Confirm Warning;
+  |System|
+  :Soft Delete User;
+endif
+stop
+@enduml
+
+

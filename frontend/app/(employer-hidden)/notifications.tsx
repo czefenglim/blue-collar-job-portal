@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -37,6 +38,7 @@ type NotificationType =
 
 export default function EmployerNotifications() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,7 +73,10 @@ export default function EmployerNotifications() {
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      Alert.alert('Error', 'Failed to load notifications');
+      Alert.alert(
+        t('notifications.errorTitle'),
+        t('notifications.errors.loadFailed')
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -118,22 +123,28 @@ export default function EmployerNotifications() {
         setNotifications((prev) =>
           prev.map((notif) => ({ ...notif, isRead: true }))
         );
-        Alert.alert('Success', 'All notifications marked as read');
+        Alert.alert(
+          t('notifications.successTitle'),
+          t('notifications.success.allRead')
+        );
       }
     } catch (error) {
       console.error('Error marking all as read:', error);
-      Alert.alert('Error', 'Failed to mark all as read');
+      Alert.alert(
+        t('notifications.errorTitle'),
+        t('notifications.errors.markAllFailed')
+      );
     }
   };
 
   const deleteNotification = async (notificationId: number) => {
     Alert.alert(
-      'Delete Notification',
-      'Are you sure you want to delete this notification?',
+      t('notifications.deleteTitle'),
+      t('notifications.deleteConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('notifications.actions.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('notifications.actions.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -153,7 +164,10 @@ export default function EmployerNotifications() {
               }
             } catch (error) {
               console.error('Error deleting notification:', error);
-              Alert.alert('Error', 'Failed to delete notification');
+              Alert.alert(
+                t('notifications.errorTitle'),
+                t('notifications.errors.deleteFailed')
+              );
             }
           },
         },
@@ -196,10 +210,13 @@ export default function EmployerNotifications() {
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInMinutes < 1) return t('notifications.time.now');
+    if (diffInMinutes < 60)
+      return t('notifications.time.minutesAgo', { count: diffInMinutes });
+    if (diffInHours < 24)
+      return t('notifications.time.hoursAgo', { count: diffInHours });
+    if (diffInDays < 7)
+      return t('notifications.time.daysAgo', { count: diffInDays });
     return date.toLocaleDateString();
   };
 
@@ -264,7 +281,7 @@ export default function EmployerNotifications() {
           >
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
@@ -283,7 +300,7 @@ export default function EmployerNotifications() {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
         {unreadCount > 0 && (
           <TouchableOpacity
             onPress={markAllAsRead}
@@ -306,7 +323,7 @@ export default function EmployerNotifications() {
               filter === 'all' && styles.activeFilterTabText,
             ]}
           >
-            All ({notifications.length})
+            {t('notifications.filterAll', { count: notifications.length })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -322,7 +339,7 @@ export default function EmployerNotifications() {
               filter === 'unread' && styles.activeFilterTabText,
             ]}
           >
-            Unread ({unreadCount})
+            {t('notifications.filterUnread', { count: unreadCount })}
           </Text>
         </TouchableOpacity>
       </View>
@@ -342,11 +359,13 @@ export default function EmployerNotifications() {
               size={64}
               color="#CBD5E1"
             />
-            <Text style={styles.emptyTitle}>No Notifications</Text>
+            <Text style={styles.emptyTitle}>
+              {t('notifications.emptyTitle')}
+            </Text>
             <Text style={styles.emptyText}>
               {filter === 'unread'
-                ? "You're all caught up!"
-                : "You don't have any notifications yet"}
+                ? t('notifications.emptyCaughtUp')
+                : t('notifications.emptyNoneYet')}
             </Text>
           </View>
         }

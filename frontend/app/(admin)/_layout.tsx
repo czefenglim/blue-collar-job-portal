@@ -2,13 +2,16 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // ✅ Add this
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function AdminLayout() {
   const insets = useSafeAreaInsets(); // ✅ Get safe area insets
+  const { t } = useLanguage();
 
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: '#1E3A8A',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
@@ -53,7 +56,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: t('adminLayout.dashboard'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -62,7 +65,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="job-management"
         options={{
-          title: 'Jobs',
+          title: t('adminLayout.jobs'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase" size={size} color={color} />
           ),
@@ -71,7 +74,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="users"
         options={{
-          title: 'Users',
+          title: t('adminLayout.users'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -80,7 +83,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="report"
         options={{
-          title: 'Reports',
+          title: t('adminLayout.reports'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="alert-circle" size={size} color={color} />
           ),
@@ -89,7 +92,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="company-approval/page"
         options={{
-          title: 'Companies',
+          title: t('adminLayout.companies'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="checkmark-circle" size={size} color={color} />
           ),

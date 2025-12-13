@@ -35,7 +35,7 @@ export const sendNewApplicationNotification = async (
     'New Application Received 📋',
     `${applicantName} applied for ${jobTitle}`,
     NotificationType.APPLICATION_UPDATE,
-    `/(employer)/applicants/index`,
+    `/(employer-hidden)/applicant-details/${applicationId}`,
     { applicationId, applicantName, jobTitle }
   );
 };
@@ -90,7 +90,7 @@ export const sendApplicationStatusNotification = async (
     title,
     message,
     NotificationType.APPLICATION_UPDATE,
-    `/(user-hidden)/applications/${applicationId}`,
+    `/(tabs)/AppliedJobScreen`,
     { applicationId, jobTitle, status }
   );
 };
@@ -122,7 +122,7 @@ export const sendNewMessageNotification = async (
     `New Message from ${senderName} 💬`,
     messagePreview,
     NotificationType.NEW_MESSAGE,
-    `/messages/${conversationId}`,
+    `/(shared)/chat/${conversationId}`,
     { conversationId, senderName }
   );
 };
@@ -138,7 +138,7 @@ export const sendJobApprovedNotification = async (
     'Job Post Approved ✅',
     `Your job post "${jobTitle}" has been approved and is now live!`,
     NotificationType.SYSTEM_UPDATE,
-    `/jobs/${jobId}`,
+    `/(employer-hidden)/job-post-details/${jobId}`,
     { jobId, jobTitle }
   );
 };
@@ -155,7 +155,7 @@ export const sendJobRejectedNotification = async (
     'Job Post Needs Attention ⚠️',
     `Your job post "${jobTitle}" needs revision: ${reason}`,
     NotificationType.SYSTEM_UPDATE,
-    `/jobs/${jobId}`,
+    `/(employer-hidden)/job-post-details/${jobId}`,
     { jobId, jobTitle, reason }
   );
 };
@@ -172,7 +172,7 @@ export const sendJobExpirationWarning = async (
     'Job Post Expiring Soon ⏰',
     `Your job post "${jobTitle}" expires in ${daysLeft} days`,
     NotificationType.SYSTEM_UPDATE,
-    `/jobs/${jobId}`,
+    `/(employer-hidden)/job-post-details/${jobId}`,
     { jobId, jobTitle, daysLeft }
   );
 };
@@ -189,7 +189,7 @@ export const sendReportResolvedNotification = async (
     'Report Resolved ✅',
     `Your ${reportType} report has been resolved: ${resolution}`,
     NotificationType.SYSTEM_UPDATE,
-    `/(user-hidden)/reports/${reportId}`,
+    `/(user-hidden)/report-history`,
     { reportId, reportType, resolution }
   );
 };
@@ -220,7 +220,7 @@ export const sendAppealAcceptedNotification = async (
     'Appeal Accepted ✅',
     `Your appeal has been accepted. ${jobTitle} has been restored.`,
     NotificationType.SYSTEM_UPDATE,
-    `/(employer)/reports/${reportId}`,
+    `/(employer-hidden)/reports/${reportId}/page`,
     { reportId, jobTitle }
   );
 };
@@ -236,7 +236,7 @@ export const sendAppealRejectedNotification = async (
     'Appeal Decision ❌',
     `Your appeal has been rejected. ${reason}`,
     NotificationType.SYSTEM_UPDATE,
-    `/(employer)/reports/${reportId}`,
+    `/(employer-hidden)/reports/${reportId}/page`,
     { reportId, reason }
   );
 };

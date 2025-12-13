@@ -1,4 +1,6 @@
 import puppeteer from 'puppeteer';
+import { getSignedDownloadUrl } from './s3Service';
+import { SupportedLang, labelEnum } from '../utils/enumLabels';
 
 interface Skill {
   id: number;
@@ -33,9 +35,69 @@ function calculateAge(dateOfBirth?: string): number | null {
 
 export async function generateResumePDF(
   profile: Profile,
-  refinedAnswers: RefinedAnswer[]
+  refinedAnswers: RefinedAnswer[],
+  lang: SupportedLang = 'en'
 ): Promise<Buffer> {
   const age = calculateAge(profile.dateOfBirth);
+
+  // Translations for section labels
+  const LABELS: Record<SupportedLang, Record<string, string>> = {
+    en: {
+      contact: 'Contact',
+      skills: 'Skills',
+      profileSummary: 'Profile Summary',
+      experience: 'Experience',
+      workExperience: 'Work Experience',
+      educationLevel: 'Education Level',
+      achievements: 'Achievements',
+      references: 'References',
+      age: 'Age',
+    },
+    ms: {
+      contact: 'Hubungi',
+      skills: 'Kemahiran',
+      profileSummary: 'Ringkasan Profil',
+      experience: 'Pengalaman',
+      workExperience: 'Pengalaman Kerja',
+      educationLevel: 'Tahap Pendidikan',
+      achievements: 'Pencapaian',
+      references: 'Rujukan',
+      age: 'Umur',
+    },
+    zh: {
+      contact: '联系方式',
+      skills: '技能',
+      profileSummary: '个人简介',
+      experience: '经历',
+      workExperience: '工作经历',
+      educationLevel: '教育程度',
+      achievements: '成就',
+      references: '推荐人',
+      age: '年龄',
+    },
+    ta: {
+      contact: 'தொடர்பு',
+      skills: 'திறன்கள்',
+      profileSummary: 'சுயவிவர சுருக்கம்',
+      experience: 'அனுபவம்',
+      workExperience: 'வேலை அனுபவம்',
+      educationLevel: 'கல்வி நிலை',
+      achievements: 'சாதனைகள்',
+      references: 'குறிப்புகள்',
+      age: 'வயது',
+    },
+  };
+
+  // Translate gender label if present
+  const genderLabel = labelEnum('Gender', profile.gender, lang);
+
+  // Sign profile picture if it's an S3 key
+  let profileImageUrl: string | undefined = undefined;
+  if (profile.profilePicture) {
+    profileImageUrl = profile.profilePicture.startsWith('http')
+      ? profile.profilePicture
+      : await getSignedDownloadUrl(profile.profilePicture, 600);
+  }
 
   const html = `
 <!DOCTYPE html>
@@ -199,19 +261,19 @@ export async function generateResumePDF(
     <div class="sidebar">
       <div class="header">
         ${
-          profile.profilePicture
-            ? `<img src="${profile.profilePicture}" class="profile-photo" />`
+          profileImageUrl
+            ? `<img src="${profileImageUrl}" class="profile-photo" />`
             : ''
         }
         <h1 class="name">${profile.fullName}</h1>
         <p class="personal-info">
-          ${profile.gender ? `${profile.gender}<br>` : ''}
-          ${age ? `Age: ${age}` : ''}
+          ${genderLabel ? `${genderLabel}<br>` : ''}
+          ${age ? `${LABELS[lang].age}: ${age}` : ''}
         </p>
       </div>
 
       <div class="contact-section">
-        <h3 class="contact-title">Contact</h3>
+        <h3 class="contact-title">${LABELS[lang].contact}</h3>
         <div class="contact-item">
           <span class="icon-email"></span>
           <span>${profile.email}</span>
@@ -226,7 +288,7 @@ export async function generateResumePDF(
         profile.skills.length > 0
           ? `
       <div class="skills-section">
-        <h3 class="skills-title">Skills</h3>
+        <h3 class="skills-title">${LABELS[lang].skills}</h3>
         ${profile.skills
           .map((s) => `<div class="skill-item">${s.name}</div>`)
           .join('')}
@@ -241,7 +303,7 @@ export async function generateResumePDF(
             refinedAnswers.find((a) => a.questionId === 'summary')?.answer
               ? `
           <div class="section">
-            <h2 class="section-title">Profile Summary</h2>
+            <h2 class="section-title">${LABELS[lang].profileSummary}</h2>
             <div class="profile-summary">
               ${refinedAnswers.find((a) => a.questionId === 'summary')?.answer}
             </div>
@@ -256,7 +318,7 @@ export async function generateResumePDF(
             refinedAnswers.find((a) => a.questionId === 'experience')?.answer
               ? `
           <div class="section">
-            <h2 class="section-title">Experience</h2>
+            <h2 class="section-title">${LABELS[lang].experience}</h2>
             <div class="section-content experience-content">
               ${
                 refinedAnswers.find((a) => a.questionId === 'experience')
@@ -284,10 +346,10 @@ export async function generateResumePDF(
            .map((answer) => {
              // ✅ Map question IDs to friendly section titles
              const titleMap: Record<string, string> = {
-               workExperience: 'Work Experience',
-               educationLevel: 'Education Level',
-               achievements: 'Achievements', // we show if user actually wrote content
-               references: 'References',
+               workExperience: LABELS[lang].workExperience,
+               educationLevel: LABELS[lang].educationLevel,
+               achievements: LABELS[lang].achievements,
+               references: LABELS[lang].references,
              };
 
              const sectionTitle =

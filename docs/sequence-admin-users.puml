@@ -1,0 +1,110 @@
+@startuml
+title Manage Users
+actor Admin
+participant "Admin Dashboard" as UI
+participant "Admin Controller" as API
+database "Database" as DB
+participant "Notification Service" as Notify
+
+== Access User Management ==
+Admin -> UI: Access User Management
+activate UI
+UI -> API: Get User List
+activate API
+API -> DB: Fetch Users
+activate DB
+DB --> API: Users Data
+deactivate DB
+API --> UI: Display Users List
+deactivate API
+deactivate UI
+
+alt A1: Search / Filter Users
+    Admin -> UI: Enter Search Criteria / Apply Filters
+    activate UI
+    UI -> API: Search Users(criteria)
+    activate API
+    API -> DB: Query Users
+    activate DB
+    DB --> API: Filtered Users Data
+    deactivate DB
+    API --> UI: Update Users List
+    deactivate API
+    deactivate UI
+end
+
+== Manage Specific User ==
+Admin -> UI: Select User
+activate UI
+UI -> API: Get User Details
+activate API
+API -> DB: Fetch User Details
+activate DB
+DB --> API: User Details
+deactivate DB
+API --> UI: Display User Details
+deactivate API
+deactivate UI
+
+Admin -> Admin: Review User Details
+
+alt Standard Flow: Activate User
+    Admin -> UI: Click "Activate"
+    activate UI
+    UI --> Admin: Request Confirmation
+    deactivate UI
+    Admin -> UI: Confirm Action
+    activate UI
+    UI -> API: Update User Status(Active)
+    activate API
+    API -> DB: Update Status to "Active"
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Success Message
+    deactivate API
+    UI --> Admin: Show Success Message
+    deactivate UI
+
+else A2: Suspend User
+    Admin -> UI: Click "Suspend"
+    activate UI
+    UI --> Admin: Prompt for Reason
+    deactivate UI
+    Admin -> UI: Enter Reason & Confirm
+    activate UI
+    UI -> API: Update User Status(Suspended, Reason)
+    activate API
+    API -> DB: Update Status to "Suspended"
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API -> Notify: Send Suspension Notification(User, Reason)
+    activate Notify
+    Notify --> API: Notification Sent
+    deactivate Notify
+    API --> UI: Success Message
+    deactivate API
+    UI --> Admin: Show Success Message
+    deactivate UI
+
+else A3: Delete User
+    Admin -> UI: Click "Delete"
+    activate UI
+    UI --> Admin: Show Warning Confirmation
+    deactivate UI
+    Admin -> UI: Confirm Deletion
+    activate UI
+    UI -> API: Delete User
+    activate API
+    API -> DB: Soft Delete User Record
+    activate DB
+    DB --> API: Success
+    deactivate DB
+    API --> UI: Success Message
+    deactivate API
+    UI --> Admin: Show Success Message
+    deactivate UI
+end
+
+@enduml

@@ -14,11 +14,14 @@ import {
   View,
   Linking,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@/contexts/LanguageContext';
+import VoiceTextInput from '@/components/VoiceTextInput';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -31,6 +34,7 @@ interface Report {
   evidence: string | null;
   evidenceUrls?: string[];
   status: string;
+  statusLabel?: string;
   reviewedBy: number | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
@@ -73,13 +77,30 @@ const AdminReportsScreen: React.FC = () => {
   const [pendingAppealsCount, setPendingAppealsCount] = useState(0);
 
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
 
   const statusFilters = [
-    { key: 'ALL', label: 'All', color: '#64748B' },
-    { key: 'PENDING', label: 'Pending', color: '#F59E0B' },
-    { key: 'UNDER_REVIEW', label: 'Under Review', color: '#3B82F6' },
-    { key: 'RESOLVED', label: 'Resolved', color: '#10B981' },
-    { key: 'DISMISSED', label: 'Dismissed', color: '#EF4444' },
+    { key: 'ALL', label: t('adminReports.filters.all'), color: '#64748B' },
+    {
+      key: 'PENDING',
+      label: t('adminReports.filters.pending'),
+      color: '#F59E0B',
+    },
+    {
+      key: 'UNDER_REVIEW',
+      label: t('adminReports.filters.underReview'),
+      color: '#3B82F6',
+    },
+    {
+      key: 'RESOLVED',
+      label: t('adminReports.filters.resolved'),
+      color: '#10B981',
+    },
+    {
+      key: 'DISMISSED',
+      label: t('adminReports.filters.dismissed'),
+      color: '#EF4444',
+    },
   ];
 
   useEffect(() => {
@@ -95,19 +116,23 @@ const AdminReportsScreen: React.FC = () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
-        Alert.alert('Authentication Required', 'Please sign in to continue', [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(admin-hidden)/login'),
-          },
-        ]);
+        Alert.alert(
+          t('adminReports.errors.authRequiredTitle'),
+          t('adminReports.errors.authRequiredMessage'),
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(admin-hidden)/login'),
+            },
+          ]
+        );
         return;
       }
 
       const statusParam =
         selectedFilter !== 'ALL' ? `&status=${selectedFilter}` : '';
       const response = await fetch(
-        `${URL}/api/reports?page=${pagination.page}&limit=${pagination.limit}${statusParam}`,
+        `${URL}/api/reports?page=${pagination.page}&limit=${pagination.limit}${statusParam}&lang=${currentLanguage}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -118,11 +143,14 @@ const AdminReportsScreen: React.FC = () => {
         setReports(data.data);
         setPagination(data.pagination);
       } else {
-        Alert.alert('Error', 'Failed to load reports');
+        Alert.alert('Error', t('adminReports.errors.loadFailed'));
       }
     } catch (error) {
       console.error('Error loading reports:', error);
-      Alert.alert('Error', 'Failed to load reports');
+      Alert.alert(
+        t('adminReports.alerts.error'),
+        t('adminReports.errors.loadFailed')
+      );
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -224,13 +252,22 @@ const AdminReportsScreen: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return date.toLocaleDateString(
+      currentLanguage === 'ms'
+        ? 'ms-MY'
+        : currentLanguage === 'zh'
+        ? 'zh-CN'
+        : currentLanguage === 'ta'
+        ? 'ta-IN'
+        : 'en-US',
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }
+    );
   };
 
   const renderEvidence = (report: Report) => {
@@ -246,7 +283,9 @@ const AdminReportsScreen: React.FC = () => {
 
     return (
       <View style={styles.evidenceContainer}>
-        <Text style={styles.evidenceTitle}>Evidence Files:</Text>
+        <Text style={styles.evidenceTitle}>
+          {t('adminReports.evidenceTitle')}:
+        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {evidenceUrls.map((url, index) => (
             <TouchableOpacity
@@ -292,7 +331,8 @@ const AdminReportsScreen: React.FC = () => {
             color="#EF4444"
           />
           <Text style={styles.reportType}>
-            {formatReportType(item.reportType)}
+            {t(`adminReports.reportTypes.${item.reportType}`) ||
+              formatReportType(item.reportType)}
           </Text>
         </View>
         <View
@@ -304,7 +344,9 @@ const AdminReportsScreen: React.FC = () => {
           <Text
             style={[styles.statusText, { color: getStatusColor(item.status) }]}
           >
-            {item.status.replace(/_/g, ' ')}
+            {item.statusLabel ||
+              t(`adminReports.status.${item.status}`) ||
+              item.status.replace(/_/g, ' ')}
           </Text>
         </View>
       </View>
@@ -330,7 +372,9 @@ const AdminReportsScreen: React.FC = () => {
           onPress={() => handleViewJobPost(item)}
         >
           <Ionicons name="briefcase-outline" size={16} color="#1E3A8A" />
-          <Text style={styles.viewJobButtonText}>View Job Post</Text>
+          <Text style={styles.viewJobButtonText}>
+            {t('adminReports.reportCard.viewJob')}
+          </Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -341,7 +385,7 @@ const AdminReportsScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading reports...</Text>
+          <Text style={styles.loadingText}>{t('adminReports.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -351,46 +395,66 @@ const AdminReportsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
+        <LinearGradient
+          colors={['#2563eb', '#1e40af']}
+          style={styles.headerGradient}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Report Management</Text>
-          <Text style={styles.headerSubtitle}>
-            {pagination.total} total reports
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.appealsButton}
-          onPress={() => router.push('/(admin-hidden)/appeals')}
-        >
-          <View style={styles.appealsIconContainer}>
-            <Ionicons name="chatbox-ellipses" size={24} color="#8B5CF6" />
-            {pendingAppealsCount > 0 && (
-              <View style={styles.appealsBadge}>
-                <Text style={styles.appealsBadgeText}>
-                  {pendingAppealsCount > 99 ? '99+' : pendingAppealsCount}
-                </Text>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>
+                {t('adminReports.headerTitle')}
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                {t('adminReports.headerSubtitle', { count: pagination.total })}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.appealsButton}
+              onPress={() => router.push('/(admin-hidden)/appeals')}
+            >
+              <View style={styles.appealsIconContainer}>
+                <Ionicons name="chatbox-ellipses" size={24} color="#FFFFFF" />
+                {pendingAppealsCount > 0 && (
+                  <View style={styles.appealsBadge}>
+                    <Text style={styles.appealsBadgeText}>
+                      {pendingAppealsCount > 99 ? '99+' : pendingAppealsCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
+              <Text style={styles.appealsButtonText}>
+                {t('adminReports.appeals')}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.appealsButtonText}>Appeals</Text>
-        </TouchableOpacity>
+        </LinearGradient>
       </View>
 
-      {/* Search Bar */}
+      {/* Search & Filter */}
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#64748B" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by user or report type..."
-            placeholderTextColor="#94A3B8"
+          <VoiceTextInput
+            style={styles.voiceInputContainer}
+            inputStyle={styles.voiceInput}
+            placeholder={t('adminReports.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            language={
+              currentLanguage === 'zh'
+                ? 'zh-CN'
+                : currentLanguage === 'ms'
+                ? 'ms-MY'
+                : currentLanguage === 'ta'
+                ? 'ta-IN'
+                : 'en-US'
+            }
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -454,11 +518,11 @@ const AdminReportsScreen: React.FC = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="folder-open-outline" size={64} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No reports found</Text>
+            <Text style={styles.emptyText}>
+              {t('adminReports.empty.title')}
+            </Text>
             <Text style={styles.emptySubtext}>
-              {searchQuery
-                ? 'Try adjusting your search'
-                : 'All reports will appear here'}
+              {t('adminReports.empty.adjust')}
             </Text>
           </View>
         }
@@ -474,7 +538,9 @@ const AdminReportsScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Report Details</Text>
+              <Text style={styles.modalTitle}>
+                {t('adminReports.detailModal.sections.reviewInfo')}
+              </Text>
               <TouchableOpacity onPress={() => setShowDetailModal(false)}>
                 <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
@@ -485,7 +551,9 @@ const AdminReportsScreen: React.FC = () => {
                 <>
                   {/* Report Type */}
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Report Type</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('adminReports.detailModal.sections.type')}
+                    </Text>
                     <View style={styles.reportTypeRow}>
                       <Ionicons
                         name={
@@ -495,14 +563,18 @@ const AdminReportsScreen: React.FC = () => {
                         color="#EF4444"
                       />
                       <Text style={styles.detailValue}>
-                        {formatReportType(selectedReport.reportType)}
+                        {t(
+                          `adminReports.reportTypes.${selectedReport.reportType}`
+                        ) || formatReportType(selectedReport.reportType)}
                       </Text>
                     </View>
                   </View>
 
                   {/* Status */}
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Status</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('adminReports.detailModal.sections.status')}
+                    </Text>
                     <View
                       style={[
                         styles.statusBadge,
@@ -518,14 +590,18 @@ const AdminReportsScreen: React.FC = () => {
                           { color: getStatusColor(selectedReport.status) },
                         ]}
                       >
-                        {selectedReport.status.replace(/_/g, ' ')}
+                        {selectedReport.statusLabel ||
+                          t(`adminReports.status.${selectedReport.status}`) ||
+                          selectedReport.status.replace(/_/g, ' ')}
                       </Text>
                     </View>
                   </View>
 
                   {/* Reporter Info */}
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Reported By</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('adminReports.detailModal.reportedBy')}
+                    </Text>
                     <Text style={styles.detailValue}>
                       {selectedReport.user.fullName}
                     </Text>
@@ -536,7 +612,9 @@ const AdminReportsScreen: React.FC = () => {
 
                   {/* Description */}
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Description</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('adminReports.detailModal.description')}
+                    </Text>
                     <Text style={styles.detailValueText}>
                       {selectedReport.description}
                     </Text>
@@ -548,9 +626,12 @@ const AdminReportsScreen: React.FC = () => {
                   {/* Review Info */}
                   {selectedReport.reviewedBy && (
                     <View style={styles.detailSection}>
-                      <Text style={styles.detailLabel}>Reviewed By</Text>
+                      <Text style={styles.detailLabel}>
+                        {t('adminReports.detailModal.reviewedBy')}
+                      </Text>
                       <Text style={styles.detailValue}>
-                        {selectedReport.reviewer?.fullName || 'Admin'}
+                        {selectedReport.reviewer?.fullName ||
+                          t('adminReports.detailModal.admin')}
                       </Text>
                       <Text style={styles.detailSubvalue}>
                         {formatDate(selectedReport.reviewedAt!)}
@@ -558,7 +639,7 @@ const AdminReportsScreen: React.FC = () => {
                       {selectedReport.reviewNotes && (
                         <>
                           <Text style={[styles.detailLabel, { marginTop: 12 }]}>
-                            Review Notes
+                            {t('adminReports.detailModal.reviewNotes')}
                           </Text>
                           <Text style={styles.detailValueText}>
                             {selectedReport.reviewNotes}
@@ -570,7 +651,9 @@ const AdminReportsScreen: React.FC = () => {
 
                   {/* Timestamps */}
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailLabel}>Submitted</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('adminReports.detailModal.submitted')}
+                    </Text>
                     <Text style={styles.detailSubvalue}>
                       {formatDate(selectedReport.createdAt)}
                     </Text>
@@ -591,7 +674,7 @@ const AdminReportsScreen: React.FC = () => {
               >
                 <Ionicons name="briefcase" size={20} color="#FFFFFF" />
                 <Text style={styles.viewJobActionButtonText}>
-                  View Job Post & Take Action
+                  {t('adminReports.detailModal.viewJob')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -618,14 +701,26 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   header: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    backgroundColor: 'transparent',
+  },
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   headerContent: {
     flex: 1,
@@ -633,27 +728,33 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
+    fontWeight: '500',
   },
   backButton: {
     padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
   },
   appealsButton: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3E8FF',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E9D5FF',
+    borderColor: 'rgba(255,255,255,0.3)',
     gap: 2,
     minWidth: 70,
   },
@@ -672,7 +773,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: '#F3E8FF',
+    borderColor: '#FFFFFF',
   },
   appealsBadgeText: {
     fontSize: 10,
@@ -682,24 +783,14 @@ const styles = StyleSheet.create({
   appealsButtonText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#FFFFFF',
   },
   searchSection: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: '#FFFFFF',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    minHeight: 48,
-    gap: 8,
-  },
+
   searchInput: {
     flex: 1,
     fontSize: 15,
@@ -955,6 +1046,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    minHeight: 48,
+    gap: 8,
+  },
+  voiceInputContainer: {
+    flex: 1,
+  },
+  voiceInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E293B',
+    backgroundColor: 'transparent',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
 });
 

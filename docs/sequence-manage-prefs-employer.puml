@@ -1,0 +1,21 @@
+@startuml
+title Sequence: Manage Preferences (Employer)
+actor "Employer" as EMP
+participant "frontend" as UI
+participant "Employer Controller" as API
+database "Database" as DB
+
+EMP -> UI: Access Settings
+activate UI
+EMP -> UI: Change Settings
+UI -> API: Update Preferences
+activate API
+API -> DB: Save Preferences
+activate DB
+DB --> API: Success
+deactivate DB
+API --> UI: Confirmation
+deactivate API
+deactivate UI
+@enduml
+

@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { PrismaClient, NotificationType } from '@prisma/client';
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { AuthRequest } from '../types/user'; // ✅ Use proper type
+import { translateText } from '../services/googleTranslation';
 
 const prisma = new PrismaClient();
 const expo = new Expo();
@@ -303,12 +304,22 @@ export const createAndSendNotification = async (
   try {
     console.log(`📤 Creating notification for user ${userId}: ${title}`);
 
+    // Translate message into supported languages if not already provided
+    const message_en = metadata?.message_en ?? (message ? await translateText(message, 'en') : null);
+    const message_ms = metadata?.message_ms ?? (message ? await translateText(message, 'ms') : null);
+    const message_ta = metadata?.message_ta ?? (message ? await translateText(message, 'ta') : null);
+    const message_zh = metadata?.message_zh ?? (message ? await translateText(message, 'zh') : null);
+
     // Create notification in database
     const notification = await prisma.notification.create({
       data: {
         userId,
         title,
         message,
+        message_en: message_en ?? undefined,
+        message_ms: message_ms ?? undefined,
+        message_ta: message_ta ?? undefined,
+        message_zh: message_zh ?? undefined,
         type,
         actionUrl,
         metadata: metadata ? JSON.stringify(metadata) : null,

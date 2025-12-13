@@ -1,0 +1,25 @@
+@startuml
+title Sequence: Chat with Employer
+actor "Job Seeker" as JS
+participant "frontend" as UI
+participant "Chat Controller" as API
+database "Database" as DB
+actor "Employer" as EMP
+
+JS -> UI: Open Chat & Type Message
+activate UI
+JS -> UI: Click Send
+UI -> API: Send Message
+activate API
+API -> DB: Save Message
+activate DB
+DB --> API: Saved
+deactivate DB
+API -> EMP: Deliver Message (Socket/Push)
+activate EMP
+EMP --> API: Acknowledgement
+deactivate EMP
+API --> UI: Message Sent
+deactivate API
+deactivate UI
+@enduml

@@ -1,0 +1,27 @@
+@startuml UC_Onboard_Employer
+title Activity: Employer Onboarding
+
+|Employer|
+start
+:Complete Company Profile;
+:Submit Verification Document;
+
+repeat
+  :Review Information;
+  if (Action?) then (Edit Profile)
+    :Edit Company Profile;
+  elseif (Edit Documents)
+    :Edit Verification Document;
+  else (Continue)
+    break
+  endif
+repeat while (Action is not Continue)
+
+:Click Continue;
+
+|System|
+:Set Status to Pending;
+:Notify Admin;
+
+stop
+@enduml

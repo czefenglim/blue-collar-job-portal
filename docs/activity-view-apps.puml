@@ -1,0 +1,32 @@
+@startuml UC_ViewApps
+skinparam conditionStyle diamond
+title Activity: View Applicants
+|Employer|
+start
+:Select Job Post;
+|System|
+:Fetch Applicants List;
+:Display Applicants;
+|Employer|
+:Filter (Status, Match Score);
+repeat
+  :Select Applicant;
+  |System|
+  :Fetch Applicant Profile/Resume;
+  :Display Details;
+  |Employer|
+  :Review Resume & Profile;
+  if (Decision?) then (Shortlist)
+    :Click Shortlist;
+    |System|
+    :Update Status to Shortlisted;
+  elseif (Reject)
+    :Click Reject;
+    |System|
+    :Update Status to Rejected;
+    :Send Rejection Email (Optional);
+  endif
+|Employer|
+repeat while (More Applicants?)
+stop
+@enduml

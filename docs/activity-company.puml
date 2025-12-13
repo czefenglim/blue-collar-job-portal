@@ -1,0 +1,32 @@
+@startuml UC_Company
+skinparam conditionStyle diamond
+title Activity: Edit Company Profile
+|Employer|
+start
+:Go to Company Profile Page;
+|System|
+:Fetch Company Data;
+:Display Company Form;
+|Employer|
+if (Edit Company Info?) then (yes)
+  :Edit Company Info;
+endif
+:Upload Logo / Banner;
+if (Update Contact Information?) then (yes)
+  :Update Contact Information;
+endif
+if (Update Location?) then (yes)
+  :Update Location;
+endif
+:Click Save;
+|System|
+:Validate Input;
+if (Sensitive Changes?) then (yes)
+  :Flag for Verification;
+endif
+:Update Company Record;
+:Show Success Message;
+stop
+@enduml
+
+

@@ -19,7 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-
+import { useLanguage } from '@/contexts/LanguageContext';
+import ReviewReplyLimitModal from '@/components/ReviewReplyLimitModal';
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 interface Review {
@@ -30,6 +31,9 @@ interface Review {
   employerReply: string | null;
   repliedAt: string | null;
   createdAt: string;
+  isVisible: boolean;
+  isFlagged: boolean;
+  flagReason: string | null;
   user: {
     id: number | null;
     fullName: string;
@@ -38,6 +42,7 @@ interface Review {
 
 export default function ReviewsManagementScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,9 +56,32 @@ export default function ReviewsManagementScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState<any>(null);
 
+  // ✅ Add subscription-related state
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+
   useEffect(() => {
     fetchReviews();
+    fetchSubscriptionInfo(); // ✅ Fetch subscription info on mount
   }, [filterRating, sortBy]);
+
+  // ✅ Add function to fetch subscription info
+  const fetchSubscriptionInfo = async () => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      const response = await fetch(`${URL}/api/subscription/current`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSubscriptionInfo(data.data);
+        console.log('📊 Subscription info:', data.data.subscription);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    }
+  };
 
   const fetchReviews = async () => {
     try {
@@ -83,7 +111,7 @@ export default function ReviewsManagementScreen() {
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      Alert.alert('Error', 'Failed to load reviews');
+      Alert.alert(t('common.error'), t('employerReviews.errors.loadFailed'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -92,7 +120,7 @@ export default function ReviewsManagementScreen() {
 
   const handleReply = async () => {
     if (!selectedReview || !replyText.trim()) {
-      Alert.alert('Error', 'Please enter a reply');
+      Alert.alert(t('common.error'), t('employerReviews.errors.missingReply'));
       return;
     }
 
@@ -113,17 +141,23 @@ export default function ReviewsManagementScreen() {
       );
 
       if (response.ok) {
-        Alert.alert('Success', 'Reply posted successfully');
+        Alert.alert(
+          t('common.success'),
+          t('employerReviews.success.replyPosted')
+        );
         setShowReplyModal(false);
         setReplyText('');
         setSelectedReview(null);
         fetchReviews();
       } else {
         const data = await response.json();
-        Alert.alert('Error', data.message || 'Failed to post reply');
+        Alert.alert(
+          t('common.error'),
+          data.message || t('employerReviews.errors.postFailed')
+        );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to post reply');
+      Alert.alert(t('common.error'), t('employerReviews.errors.postFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -131,15 +165,18 @@ export default function ReviewsManagementScreen() {
 
   const handleFlag = async (reviewId: number) => {
     Alert.prompt(
-      'Flag Review',
-      'Please provide a reason for flagging this review:',
+      t('employerReviews.prompt.flagTitle'),
+      t('employerReviews.prompt.flagMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Submit',
+          text: t('employerReviews.prompt.submit'),
           onPress: async (reason) => {
             if (!reason || reason.trim().length === 0) {
-              Alert.alert('Error', 'Please provide a reason');
+              Alert.alert(
+                t('common.error'),
+                t('employerReviews.errors.provideReason')
+              );
               return;
             }
 
@@ -158,13 +195,22 @@ export default function ReviewsManagementScreen() {
               );
 
               if (response.ok) {
-                Alert.alert('Success', 'Review flagged for admin review');
+                Alert.alert(
+                  t('common.success'),
+                  t('employerReviews.success.reviewFlagged')
+                );
                 fetchReviews();
               } else {
-                Alert.alert('Error', 'Failed to flag review');
+                Alert.alert(
+                  t('common.error'),
+                  t('employerReviews.errors.flagFailed')
+                );
               }
             } catch (error) {
-              Alert.alert('Error', 'Failed to flag review');
+              Alert.alert(
+                t('common.error'),
+                t('employerReviews.errors.flagFailed')
+              );
             }
           },
         },
@@ -176,6 +222,7 @@ export default function ReviewsManagementScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchReviews();
+    fetchSubscriptionInfo(); // ✅ Also refresh subscription info
   };
 
   const renderStars = (rating: number) => {
@@ -194,7 +241,12 @@ export default function ReviewsManagementScreen() {
   };
 
   const renderReview = ({ item }: { item: Review }) => (
-    <View style={styles.reviewCard}>
+    <View
+      style={[
+        styles.reviewCard,
+        !item.isVisible && styles.reviewCardHidden, // Add visual distinction for hidden reviews
+      ]}
+    >
       <View style={styles.reviewHeader}>
         <View style={styles.reviewUserInfo}>
           <View style={styles.avatar}>
@@ -207,9 +259,25 @@ export default function ReviewsManagementScreen() {
             {renderStars(item.rating)}
           </View>
         </View>
-        <Text style={styles.reviewDate}>
-          {new Date(item.createdAt).toLocaleDateString()}
-        </Text>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={styles.reviewDate}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 4, marginTop: 4 }}>
+            {!item.isVisible && (
+              <View style={styles.hiddenBadge}>
+                <Ionicons name="eye-off" size={10} color="#DC2626" />
+                <Text style={styles.hiddenBadgeText}>Hidden</Text>
+              </View>
+            )}
+            {item.isFlagged && (
+              <View style={styles.flaggedBadge}>
+                <Ionicons name="flag" size={10} color="#D97706" />
+                <Text style={styles.flaggedBadgeText}>Flagged</Text>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
 
       {item.title && <Text style={styles.reviewTitle}>{item.title}</Text>}
@@ -220,7 +288,9 @@ export default function ReviewsManagementScreen() {
         <View style={styles.replyContainer}>
           <View style={styles.replyHeader}>
             <Ionicons name="arrow-undo" size={16} color="#1E3A8A" />
-            <Text style={styles.replyLabel}>Your Reply</Text>
+            <Text style={styles.replyLabel}>
+              {t('employerReviews.labels.yourReply')}
+            </Text>
             {item.repliedAt && (
               <Text style={styles.replyDate}>
                 {new Date(item.repliedAt).toLocaleDateString()}
@@ -231,30 +301,69 @@ export default function ReviewsManagementScreen() {
         </View>
       )}
 
+      {/* Dismissed Flag Message */}
+      {!item.isFlagged && item.flagReason && (
+        <Text style={styles.dismissedMessage}>
+          The flag for this review is dismissed, you can not flagged it again
+        </Text>
+      )}
+
       {/* Actions */}
       <View style={styles.reviewActions}>
         {!item.employerReply && (
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => {
-              setSelectedReview(item);
-              setReplyText('');
-              setShowReplyModal(true);
+              // ✅ Check subscription before allowing reply
+              const canReply =
+                subscriptionInfo?.subscription?.canReplyToReviews;
+
+              console.log('🔍 Can reply to reviews:', canReply);
+              console.log('📋 Subscription:', subscriptionInfo?.subscription);
+
+              if (!canReply) {
+                // Show upgrade modal for FREE plan users
+                setShowLimitModal(true);
+              } else {
+                // Allow reply for PRO/MAX users
+                setSelectedReview(item);
+                setReplyText('');
+                setShowReplyModal(true);
+              }
             }}
           >
             <Ionicons name="chatbox-outline" size={18} color="#1E3A8A" />
-            <Text style={styles.actionButtonText}>Reply</Text>
+            <Text style={styles.actionButtonText}>
+              {t('employerReviews.labels.replyAction')}
+            </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handleFlag(item.id)}
-        >
-          <Ionicons name="flag-outline" size={18} color="#EF4444" />
-          <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
-            Flag
-          </Text>
-        </TouchableOpacity>
+
+        {/* Active Flag Button */}
+        {!item.isFlagged && !item.flagReason && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleFlag(item.id)}
+          >
+            <Ionicons name="flag-outline" size={18} color="#EF4444" />
+            <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
+              {t('employerReviews.labels.flagAction')}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Disabled Flag Button (Dismissed) */}
+        {!item.isFlagged && item.flagReason && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonDisabled]}
+            disabled={true}
+          >
+            <Ionicons name="flag-outline" size={18} color="#94A3B8" />
+            <Text style={[styles.actionButtonText, { color: '#94A3B8' }]}>
+              {t('employerReviews.labels.flagAction')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -271,17 +380,6 @@ export default function ReviewsManagementScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reviews Management</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
       {/* Stats Summary */}
       {stats && (
         <View style={styles.statsCard}>
@@ -289,12 +387,16 @@ export default function ReviewsManagementScreen() {
             <Text style={styles.statValue}>
               {stats.averageRating.toFixed(1)}
             </Text>
-            <Text style={styles.statLabel}>Average</Text>
+            <Text style={styles.statLabel}>
+              {t('employerReviews.labels.average')}
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.totalReviews}</Text>
-            <Text style={styles.statLabel}>Total Reviews</Text>
+            <Text style={styles.statLabel}>
+              {t('employerReviews.labels.totalReviews')}
+            </Text>
           </View>
         </View>
       )}
@@ -315,7 +417,7 @@ export default function ReviewsManagementScreen() {
                 filterRating === null && styles.filterChipTextActive,
               ]}
             >
-              All
+              {t('employerReviews.labels.all')}
             </Text>
           </TouchableOpacity>
           {[5, 4, 3, 2, 1].map((rating) => (
@@ -359,7 +461,7 @@ export default function ReviewsManagementScreen() {
                 sortBy === 'newest' && styles.sortButtonTextActive,
               ]}
             >
-              Newest
+              {t('employerReviews.labels.newest')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -375,7 +477,7 @@ export default function ReviewsManagementScreen() {
                 sortBy === 'highest' && styles.sortButtonTextActive,
               ]}
             >
-              Highest
+              {t('employerReviews.labels.highest')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -391,7 +493,7 @@ export default function ReviewsManagementScreen() {
                 sortBy === 'lowest' && styles.sortButtonTextActive,
               ]}
             >
-              Lowest
+              {t('employerReviews.labels.lowest')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -409,13 +511,14 @@ export default function ReviewsManagementScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="chatbubbles-outline" size={64} color="#CBD5E1" />
-            <Text style={styles.emptyText}>No reviews found</Text>
+            <Text style={styles.emptyText}>
+              {t('employerReviews.labels.noReviews')}
+            </Text>
           </View>
         }
       />
 
       {/* Reply Modal */}
-      {/* Reply Modal - UPDATED */}
       <Modal
         visible={showReplyModal}
         animationType="slide"
@@ -437,7 +540,9 @@ export default function ReviewsManagementScreen() {
               style={styles.modalContent}
             >
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Reply to Review</Text>
+                <Text style={styles.modalTitle}>
+                  {t('employerReviews.labels.replyModalTitle')}
+                </Text>
                 <TouchableOpacity onPress={() => setShowReplyModal(false)}>
                   <Ionicons name="close" size={24} color="#64748B" />
                 </TouchableOpacity>
@@ -460,10 +565,12 @@ export default function ReviewsManagementScreen() {
                   </View>
                 )}
 
-                <Text style={styles.inputLabel}>Your Reply</Text>
+                <Text style={styles.inputLabel}>
+                  {t('employerReviews.labels.yourReply')}
+                </Text>
                 <TextInput
                   style={styles.replyInput}
-                  placeholder="Write your reply..."
+                  placeholder={t('employerReviews.labels.replyPlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={replyText}
                   onChangeText={setReplyText}
@@ -481,7 +588,9 @@ export default function ReviewsManagementScreen() {
                   onPress={() => setShowReplyModal(false)}
                   disabled={submitting}
                 >
-                  <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                  <Text style={styles.modalCancelButtonText}>
+                    {t('common.cancel')}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -492,7 +601,9 @@ export default function ReviewsManagementScreen() {
                   disabled={submitting}
                 >
                   <Text style={styles.modalSubmitButtonText}>
-                    {submitting ? 'Posting...' : 'Post Reply'}
+                    {submitting
+                      ? t('employerReviews.labels.posting')
+                      : t('employerReviews.labels.postReply')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -500,6 +611,13 @@ export default function ReviewsManagementScreen() {
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* ✅ Review Reply Limit Modal */}
+      <ReviewReplyLimitModal
+        visible={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        currentPlan={subscriptionInfo?.subscription?.planType || 'FREE'}
+      />
     </SafeAreaView>
   );
 }
@@ -621,18 +739,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#64748B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 2,
+  },
+  reviewCardHidden: {
+    backgroundColor: '#F8FAFC',
+    opacity: 0.8,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
   },
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  hiddenBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 2,
+  },
+  hiddenBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  flaggedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 2,
+  },
+  flaggedBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#D97706',
   },
   reviewUserInfo: {
     flexDirection: 'row',
@@ -720,6 +874,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1E3A8A',
+  },
+  actionButtonDisabled: {
+    opacity: 0.7,
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+  },
+  dismissedMessage: {
+    fontSize: 13,
+    color: '#64748B',
+    fontStyle: 'italic',
+    marginBottom: 12,
+    marginTop: 4,
+    backgroundColor: '#F8FAFC',
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   emptyContainer: {
     alignItems: 'center',

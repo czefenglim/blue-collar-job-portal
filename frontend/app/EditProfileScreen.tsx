@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,14 +10,19 @@ import {
   View,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as DocumentPicker from 'expo-document-picker';
+import * as WebBrowser from 'expo-web-browser';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -55,7 +60,15 @@ interface UserProfile {
   maxTravelDistance: number | null;
   experienceYears: number;
   certifications: string[];
+  // Deprecated single resume field, kept for backward compatibility
   resumeUrl: string | null;
+  // Language-specific resume keys/urls
+  resumeUrl_en?: string | null;
+  resumeUrl_ms?: string | null;
+  resumeUrl_zh?: string | null;
+  resumeUrl_ta?: string | null;
+  // Original uploaded resume key/url (user upload)
+  resumeUrl_uploaded?: string | null;
   industries: number[];
   skills: number[];
   languages: number[];
@@ -63,7 +76,7 @@ interface UserProfile {
 
 const EditProfileScreen: React.FC = () => {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [token, setToken] = useState<string>('');
@@ -88,6 +101,11 @@ const EditProfileScreen: React.FC = () => {
     experienceYears: 0,
     certifications: [],
     resumeUrl: null,
+    resumeUrl_en: null,
+    resumeUrl_ms: null,
+    resumeUrl_zh: null,
+    resumeUrl_ta: null,
+    resumeUrl_uploaded: null,
     industries: [],
     skills: [],
     languages: [],
@@ -132,6 +150,15 @@ const EditProfileScreen: React.FC = () => {
     loadInitialData();
   }, []);
 
+  // Refresh profile when screen regains focus (e.g., after regenerating resume)
+  useFocusEffect(
+    useCallback(() => {
+      if (token) {
+        fetchUserProfile(token);
+      }
+    }, [token])
+  );
+
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
@@ -158,6 +185,130 @@ const EditProfileScreen: React.FC = () => {
       Alert.alert(t('common.error'), t('editProfile.errors.loadFailed'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openResume = async () => {
+    try {
+      // Choose resume key by current language, then fallback
+      let keyOrUrl: string | null = null;
+      if (currentLanguage === 'ms' && formData.resumeUrl_ms)
+        keyOrUrl = formData.resumeUrl_ms;
+      else if (currentLanguage === 'zh' && formData.resumeUrl_zh)
+        keyOrUrl = formData.resumeUrl_zh;
+      else if (currentLanguage === 'ta' && formData.resumeUrl_ta)
+        keyOrUrl = formData.resumeUrl_ta;
+      else if (formData.resumeUrl_en) keyOrUrl = formData.resumeUrl_en;
+      else if (formData.resumeUrl_uploaded)
+        keyOrUrl = formData.resumeUrl_uploaded;
+
+      if (!keyOrUrl) return;
+
+      let targetUrl = keyOrUrl as string;
+      const isHttp = /^https?:\/\//i.test(targetUrl);
+      if (!isHttp) {
+        const encodedKey = encodeURIComponent(targetUrl);
+        const resp = await fetch(`${URL}/api/onboarding/resume/${encodedKey}`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await resp.json();
+        const signedUrl =
+          data?.resumeUrl ||
+          data?.data?.url ||
+          (typeof data === 'string' ? data : null);
+        if (!signedUrl) {
+          Alert.alert(t('common.error'), t('profile.errors.loadFailed'));
+          return;
+        }
+        targetUrl = signedUrl;
+      }
+      await WebBrowser.openBrowserAsync(targetUrl);
+    } catch (err) {
+      console.error('Open resume error:', err);
+      Alert.alert(t('common.error'), t('profile.errors.loadFailed'));
+    }
+  };
+
+  // Determine if a resume exists for the current language; fallback to uploaded
+  const getResumeKeyForCurrentLanguage = (): string | null => {
+    if (currentLanguage === 'ms')
+      return formData.resumeUrl_ms || formData.resumeUrl_uploaded || null;
+    if (currentLanguage === 'zh')
+      return formData.resumeUrl_zh || formData.resumeUrl_uploaded || null;
+    if (currentLanguage === 'ta')
+      return formData.resumeUrl_ta || formData.resumeUrl_uploaded || null;
+    return formData.resumeUrl_en || formData.resumeUrl_uploaded || null;
+  };
+
+  const handleUploadResume = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+
+      const form = new FormData();
+      if (Platform.OS === 'web') {
+        const blob = await fetch(asset.uri).then((r) => r.blob());
+        form.append('resume', blob, asset.name || 'resume.pdf');
+      } else {
+        form.append('resume', {
+          uri: asset.uri,
+          name: asset.name || 'resume.pdf',
+          type: asset.mimeType || 'application/pdf',
+        } as any);
+      }
+
+      const resp = await fetch(`${URL}/api/users/uploadResume`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await resp.json();
+      if (!data?.success) {
+        Alert.alert(t('common.error'), data?.error || 'Upload failed');
+        return;
+      }
+      const key = data?.data?.key || null;
+      // Store uploaded resume key separately
+      setFormData((prev) => ({ ...prev, resumeUrl_uploaded: key }));
+      // Optionally refresh profile to sync all language fields
+      if (token) {
+        await fetchUserProfile(token);
+      }
+      Alert.alert(t('common.success'), t('editProfile.resumeUploaded'));
+    } catch (err) {
+      console.error('Upload resume error:', err);
+      Alert.alert(t('common.error'), 'Failed to upload resume');
+    }
+  };
+
+  const handleRegenerateResume = async () => {
+    try {
+      const resp = await fetch(`${URL}/api/onboarding/generateResume`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await resp.json();
+      if (!data?.success) {
+        Alert.alert(t('common.error'), data?.error || 'Generation failed');
+        return;
+      }
+      // Resume generation updates multiple language-specific keys in profile; refresh form data
+      if (token) {
+        await fetchUserProfile(token);
+      }
+      Alert.alert(t('common.success'), t('editProfile.resumeRegenerated'));
+    } catch (err) {
+      console.error('Regenerate resume error:', err);
+      Alert.alert(t('common.error'), 'Failed to regenerate resume');
     }
   };
 
@@ -224,7 +375,14 @@ const EditProfileScreen: React.FC = () => {
           certifications: profile.profile?.certifications
             ? JSON.parse(profile.profile.certifications)
             : [],
+          // Backward compatibility
           resumeUrl: profile.profile?.resumeUrl || null,
+          // Language-specific resume keys
+          resumeUrl_en: profile.profile?.resumeUrl_en || null,
+          resumeUrl_ms: profile.profile?.resumeUrl_ms || null,
+          resumeUrl_zh: profile.profile?.resumeUrl_zh || null,
+          resumeUrl_ta: profile.profile?.resumeUrl_ta || null,
+          resumeUrl_uploaded: profile.profile?.resumeUrl_uploaded || null,
           industries:
             profile.profile?.industries?.map((ui: any) => ui.industry.id) || [],
           skills: profile.profile?.skills?.map((us: any) => us.skill.id) || [],
@@ -915,6 +1073,78 @@ const EditProfileScreen: React.FC = () => {
               <Text style={styles.dropdownArrow}>▼</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Skills & Experience section ends here */}
+        </View>
+
+        {/* Resume Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionIcon}>📄</Text>
+            <View>
+              <Text style={styles.sectionTitle}>
+                {t('editProfile.sections.resume')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('editProfile.sections.resumeSubtitle')}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.resumeActionContainer}>
+            {/* View Resume button (on top) */}
+            <TouchableOpacity
+              onPress={openResume}
+              disabled={!getResumeKeyForCurrentLanguage()}
+              style={styles.actionButton}
+            >
+              <LinearGradient
+                colors={
+                  !getResumeKeyForCurrentLanguage()
+                    ? ['#94A3B8', '#64748B']
+                    : ['#4F46E5', '#3730A3']
+                }
+                style={styles.actionGradient}
+              >
+                <Text style={styles.actionButtonIcon}>🔗</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('editProfile.viewResume')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Upload PDF button */}
+            <TouchableOpacity
+              onPress={handleUploadResume}
+              style={styles.actionButton}
+            >
+              <LinearGradient
+                colors={['#1E3A8A', '#3730A3']}
+                style={styles.actionGradient}
+              >
+                <Text style={styles.actionButtonIcon}>⬆️</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('editProfile.uploadPdf')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Regenerate (AI) button below upload */}
+            <TouchableOpacity
+              onPress={() => router.push('/resume-questions')}
+              style={styles.actionButton}
+            >
+              <LinearGradient
+                colors={['#10B981', '#059669']}
+                style={styles.actionGradient}
+              >
+                <Text style={styles.actionButtonIcon}>🤖</Text>
+                <Text style={styles.actionButtonText}>
+                  {t('editProfile.regenerateAi')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.bottomSpacer} />
@@ -975,6 +1205,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     fontWeight: '500',
+  },
+  // Resume actions enhanced styles
+  resumeActionContainer: {
+    marginTop: 8,
+  },
+  actionButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 12,
+  },
+  actionGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+  },
+  actionButtonIcon: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginRight: 8,
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   headerGradient: {
     paddingTop: 8,

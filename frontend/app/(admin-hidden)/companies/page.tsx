@@ -8,12 +8,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Href, useRouter } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -21,6 +23,7 @@ const URL =
 interface TrustScore {
   score: number;
   level: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
+  levelLabel?: string;
 }
 
 interface Company {
@@ -35,6 +38,7 @@ interface Company {
   isVerified: boolean;
   isActive: boolean;
   verificationStatus: string;
+  verificationStatusLabel?: string;
   createdAt: string;
   industry?: {
     id: number;
@@ -62,6 +66,7 @@ interface PaginationMeta {
 
 export default function AdminCompaniesPage() {
   const router = useRouter();
+  const { t, currentLanguage } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -80,7 +85,7 @@ export default function AdminCompaniesPage() {
 
   useEffect(() => {
     fetchCompanies(1);
-  }, [filter]);
+  }, [filter, currentLanguage]);
 
   const fetchCompanies = async (page: number, append: boolean = false) => {
     try {
@@ -106,6 +111,9 @@ export default function AdminCompaniesPage() {
       if (filter !== 'all') {
         url += `&verificationStatus=${filter}`;
       }
+
+      // Append current language for backend localization
+      url += `&lang=${currentLanguage}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -216,9 +224,13 @@ export default function AdminCompaniesPage() {
       <View style={styles.companyHeader}>
         <View style={styles.companyLogo}>
           {item.logo ? (
-            <Text style={styles.logoText}>{item.name.charAt(0)}</Text>
+            <Image
+              source={{ uri: item.logo }}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           ) : (
-            <Ionicons name="business" size={24} color="#1E3A8A" />
+            <Text style={styles.logoText}>{item.name.charAt(0)}</Text>
           )}
         </View>
         <View style={styles.companyInfo}>
@@ -231,12 +243,13 @@ export default function AdminCompaniesPage() {
             )}
           </View>
           <Text style={styles.companyIndustry} numberOfLines={1}>
-            {item.industry?.name || 'No industry'}
+            {item.industry?.name || t('adminCompanies.noIndustry')}
           </Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color="#64748B" />
             <Text style={styles.locationText}>
-              {item.city || 'N/A'}, {item.state || 'N/A'}
+              {item.city || t('adminCompanies.locationNA')},{' '}
+              {item.state || t('adminCompanies.locationNA')}
             </Text>
           </View>
         </View>
@@ -245,11 +258,13 @@ export default function AdminCompaniesPage() {
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{item._count.jobs}</Text>
-          <Text style={styles.statLabel}>Jobs</Text>
+          <Text style={styles.statLabel}>{t('adminCompanies.statsJobs')}</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{item._count.reviews}</Text>
-          <Text style={styles.statLabel}>Reviews</Text>
+          <Text style={styles.statLabel}>
+            {t('adminCompanies.statsReviews')}
+          </Text>
         </View>
         <View style={styles.statItem}>
           <View
@@ -267,7 +282,7 @@ export default function AdminCompaniesPage() {
                 { color: getVerificationColor(item.verificationStatus) },
               ]}
             >
-              {item.verificationStatus}
+              {item.verificationStatusLabel || item.verificationStatus}
             </Text>
           </View>
         </View>
@@ -279,7 +294,9 @@ export default function AdminCompaniesPage() {
           <View style={styles.trustScoreRow}>
             <View style={styles.trustScoreLeft}>
               <Ionicons name="shield-checkmark" size={18} color="#1E3A8A" />
-              <Text style={styles.trustScoreLabel}>Trust Score</Text>
+              <Text style={styles.trustScoreLabel}>
+                {t('adminCompanies.trustScore')}
+              </Text>
             </View>
             <View style={styles.trustScoreRight}>
               <Text
@@ -305,14 +322,16 @@ export default function AdminCompaniesPage() {
                     { color: getTrustLevelColor(item.trustScore.level) },
                   ]}
                 >
-                  {item.trustScore.level}
+                  {item.trustScore.levelLabel || item.trustScore.level}
                 </Text>
               </View>
             </View>
           </View>
         ) : (
           <View style={styles.trustScoreRow}>
-            <Text style={styles.trustScoreNA}>Trust score unavailable</Text>
+            <Text style={styles.trustScoreNA}>
+              {t('adminCompanies.trustScoreUnavailable')}
+            </Text>
           </View>
         )}
       </View>
@@ -326,7 +345,9 @@ export default function AdminCompaniesPage() {
           </Text>
           {item.user.status === 'SUSPENDED' && (
             <View style={styles.suspendedBadge}>
-              <Text style={styles.suspendedText}>SUSPENDED</Text>
+              <Text style={styles.suspendedText}>
+                {t('adminCompanies.userSuspended')}
+              </Text>
             </View>
           )}
         </View>
@@ -334,7 +355,8 @@ export default function AdminCompaniesPage() {
 
       <View style={styles.cardFooter}>
         <Text style={styles.dateText}>
-          Joined {new Date(item.createdAt).toLocaleDateString()}
+          {t('adminCompanies.joined')}{' '}
+          {new Date(item.createdAt).toLocaleDateString()}
         </Text>
         <Ionicons name="chevron-forward" size={20} color="#64748B" />
       </View>
@@ -346,7 +368,7 @@ export default function AdminCompaniesPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading companies...</Text>
+          <Text style={styles.loadingText}>{t('adminCompanies.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -356,9 +378,11 @@ export default function AdminCompaniesPage() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Company Management</Text>
+        <Text style={styles.headerTitle}>
+          {t('adminCompanies.headerTitle')}
+        </Text>
         <Text style={styles.headerSubtitle}>
-          {pagination.total} companies registered
+          {t('adminCompanies.headerSubtitle', { count: pagination.total })}
         </Text>
       </View>
 
@@ -368,7 +392,7 @@ export default function AdminCompaniesPage() {
           <Ionicons name="search" size={20} color="#64748B" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by name, email, or city..."
+            placeholder={t('adminCompanies.searchPlaceholder')}
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -388,11 +412,11 @@ export default function AdminCompaniesPage() {
         </View>
 
         <View style={styles.filterContainer}>
-          {renderFilterButton('All', 'all')}
-          {renderFilterButton('Approved', 'APPROVED')}
-          {renderFilterButton('Pending', 'PENDING')}
-          {renderFilterButton('Rejected', 'REJECTED')}
-          {renderFilterButton('Disabled', 'DISABLED')}
+          {renderFilterButton(t('adminCompanies.filterAll'), 'all')}
+          {renderFilterButton(t('adminCompanies.filterApproved'), 'APPROVED')}
+          {renderFilterButton(t('adminCompanies.filterPending'), 'PENDING')}
+          {renderFilterButton(t('adminCompanies.filterRejected'), 'REJECTED')}
+          {renderFilterButton(t('adminCompanies.filterDisabled'), 'DISABLED')}
         </View>
       </View>
 
@@ -405,17 +429,21 @@ export default function AdminCompaniesPage() {
             style={styles.retryButton}
             onPress={() => fetchCompanies(1)}
           >
-            <Text style={styles.retryButtonText}>Try Again</Text>
+            <Text style={styles.retryButtonText}>
+              {t('adminCompanies.tryAgain')}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : companies.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="business-outline" size={64} color="#CBD5E1" />
-          <Text style={styles.emptyTitle}>No companies found</Text>
+          <Text style={styles.emptyTitle}>
+            {t('adminCompanies.emptyTitle')}
+          </Text>
           <Text style={styles.emptyText}>
             {searchQuery || filter !== 'all'
-              ? 'Try adjusting your search or filter'
-              : 'No companies have registered yet'}
+              ? t('adminCompanies.emptyAdjust')
+              : t('adminCompanies.emptyNoRegistered')}
           </Text>
         </View>
       ) : (
@@ -433,7 +461,9 @@ export default function AdminCompaniesPage() {
             loadingMore ? (
               <View style={styles.loadMoreContainer}>
                 <ActivityIndicator size="small" color="#1E3A8A" />
-                <Text style={styles.loadMoreText}>Loading more...</Text>
+                <Text style={styles.loadMoreText}>
+                  {t('adminCompanies.loadingMore')}
+                </Text>
               </View>
             ) : null
           }
@@ -541,6 +571,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   logoText: {
     fontSize: 20,

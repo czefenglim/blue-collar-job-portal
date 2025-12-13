@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -30,8 +31,11 @@ interface Job {
   requirements?: string;
   benefits?: string;
   jobType: string;
+  jobTypeLabel?: string; // already localized from backend
   workingHours: string;
+  workingHoursLabel?: string; // localized
   experienceLevel: string;
+  experienceLevelLabel?: string; // localized
   skills?: string;
   city: string;
   state: string;
@@ -41,6 +45,7 @@ interface Job {
   salaryMin?: number;
   salaryMax?: number;
   salaryType?: string;
+  salaryTypeLabel?: string; // localized
   applicationDeadline?: string;
   startDate?: string;
   isActive: boolean;
@@ -53,7 +58,7 @@ interface Job {
   updatedAt: string;
   industry: {
     id: number;
-    name: string;
+    name: string; // already localized from backend
   };
   company: {
     id: number;
@@ -68,6 +73,7 @@ export default function JobDetailPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const jobId = params.id as string;
+  const { t, currentLanguage } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<Job | null>(null);
@@ -87,26 +93,26 @@ export default function JobDetailPage() {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('jwtToken');
-
       if (!token) {
         router.replace('/EmployerLoginScreen');
         return;
       }
-
-      const response = await fetch(`${URL}/api/jobs/getJob/${jobId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const response = await fetch(
+        `${URL}/api/jobs/getJob/${jobId}?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch job');
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || t('common.somethingWentWrong'));
       }
-
       setJob(data.data);
     } catch (error: any) {
-      console.error('Error fetching job:', error);
-      Alert.alert('Error', error.message || 'Failed to load job details');
+      Alert.alert(
+        t('employerJobDetails.errors.title'),
+        error.message || t('employerJobDetails.errors.loadFail')
+      );
       router.back();
     } finally {
       setLoading(false);
@@ -116,18 +122,33 @@ export default function JobDetailPage() {
   const handleToggleStatus = async () => {
     if (!job) return;
 
+    if (
+      job.approvalStatus === 'REJECTED_AI' ||
+      job.approvalStatus === 'PENDING_REVIEW'
+    ) {
+      Alert.alert(
+        t('employerJobDetails.actions.cannotActivate'),
+        t('employerJobDetails.actions.cannotActivateMessage')
+      );
+      return;
+    }
+
     const newStatus = job.isActive ? 'closed' : 'active';
     const message = job.isActive
-      ? 'This will close the job post and stop receiving applications.'
-      : 'This will reactivate the job post and allow applications.';
+      ? t('employerJobDetails.status.toggleCloseMessage')
+      : t('employerJobDetails.status.toggleActivateMessage');
 
     Alert.alert(
-      job.isActive ? 'Close Job Post' : 'Activate Job Post',
+      job.isActive
+        ? t('employerJobDetails.actions.closeTitle')
+        : t('employerJobDetails.actions.activateTitle'),
       message,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('employerJobDetails.actions.cancel'), style: 'cancel' },
         {
-          text: job.isActive ? 'Close' : 'Activate',
+          text: job.isActive
+            ? t('employerJobDetails.actions.close')
+            : t('employerJobDetails.actions.activate'),
           style: job.isActive ? 'destructive' : 'default',
           onPress: async () => {
             try {
@@ -148,18 +169,23 @@ export default function JobDetailPage() {
               const data = await response.json();
 
               if (!response.ok) {
-                throw new Error(data.message || 'Failed to update status');
+                throw new Error(
+                  data.message || t('employerJobDetails.errors.updateStatus')
+                );
               }
 
               Alert.alert(
-                'Success',
-                `Job ${
-                  newStatus === 'active' ? 'activated' : 'closed'
-                } successfully`
+                t('employerJobDetails.success.title'),
+                newStatus === 'active'
+                  ? t('employerJobDetails.success.activated')
+                  : t('employerJobDetails.success.closed')
               );
               fetchJobDetail(); // Refresh data
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to update status');
+              Alert.alert(
+                t('employerJobDetails.errors.title'),
+                error.message || t('employerJobDetails.errors.updateStatus')
+              );
             } finally {
               setActionLoading(false);
             }
@@ -175,12 +201,12 @@ export default function JobDetailPage() {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Job Post',
-      'Are you sure you want to delete this job post? This action cannot be undone.',
+      t('employerJobDetails.delete.title'),
+      t('employerJobDetails.delete.confirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('employerJobDetails.actions.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('employerJobDetails.actions.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -195,17 +221,26 @@ export default function JobDetailPage() {
               const data = await response.json();
 
               if (!response.ok) {
-                throw new Error(data.message || 'Failed to delete job');
+                throw new Error(
+                  data.message || t('employerJobDetails.errors.deleteFail')
+                );
               }
 
-              Alert.alert('Success', 'Job post deleted successfully', [
-                {
-                  text: 'OK',
-                  onPress: () => router.back(),
-                },
-              ]);
+              Alert.alert(
+                t('employerJobDetails.success.title'),
+                t('employerJobDetails.success.deleted'),
+                [
+                  {
+                    text: t('common.ok'),
+                    onPress: () => router.back(),
+                  },
+                ]
+              );
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete job');
+              Alert.alert(
+                t('employerJobDetails.errors.title'),
+                error.message || t('employerJobDetails.errors.deleteFail')
+              );
             } finally {
               setActionLoading(false);
             }
@@ -233,10 +268,16 @@ export default function JobDetailPage() {
 
     try {
       await Clipboard.setStringAsync(fullAddress);
-      Alert.alert('Copied!', 'Address copied to clipboard');
+      Alert.alert(
+        t('employerJobDetails.copyAddress.title'),
+        t('employerJobDetails.copyAddress.success')
+      );
     } catch (error) {
       console.error('Error copying:', error);
-      Alert.alert('Error', 'Failed to copy address');
+      Alert.alert(
+        t('employerJobDetails.errors.title'),
+        t('employerJobDetails.copyAddress.error')
+      );
     }
   };
 
@@ -279,17 +320,33 @@ export default function JobDetailPage() {
       }
     } catch (error) {
       console.error('Error opening maps:', error);
-      Alert.alert('Error', 'Failed to open maps');
+      Alert.alert(
+        t('employerJobDetails.errors.title'),
+        t('employerJobDetails.openMaps.error')
+      );
     }
   };
 
   const formatSalary = (min?: number, max?: number, type?: string) => {
-    if (!min && !max) return 'Negotiable';
-    const typeLabel = type ? ` / ${type.toLowerCase().replace('_', ' ')}` : '';
-    if (min && max) return `RM ${min} - RM ${max}${typeLabel}`;
-    if (min) return `From RM ${min}${typeLabel}`;
-    if (max) return `Up to RM ${max}${typeLabel}`;
-    return 'Negotiable';
+    if (!min && !max) return t('employerJobDetails.salary.negotiable');
+    const typeLabel = type
+      ? ` / ${
+          /^[A-Z_]+$/.test(type) ? type.toLowerCase().replace('_', ' ') : type
+        }`
+      : '';
+    if (min && max)
+      return `${t('employerJobDetails.salary.rm')} ${min} - ${t(
+        'employerJobDetails.salary.rm'
+      )} ${max}${typeLabel}`;
+    if (min)
+      return `${t('employerJobDetails.salary.from')} ${t(
+        'employerJobDetails.salary.rm'
+      )} ${min}${typeLabel}`;
+    if (max)
+      return `${t('employerJobDetails.salary.upTo')} ${t(
+        'employerJobDetails.salary.rm'
+      )} ${max}${typeLabel}`;
+    return t('employerJobDetails.salary.negotiable');
   };
 
   const formatDate = (dateString?: string) => {
@@ -307,7 +364,9 @@ export default function JobDetailPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading job details...</Text>
+          <Text style={styles.loadingText}>
+            {t('employerJobDetails.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -318,12 +377,14 @@ export default function JobDetailPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={48} color="#EF4444" />
-          <Text style={styles.errorText}>Job not found</Text>
+          <Text style={styles.errorText}>
+            {t('employerJobDetails.notFound')}
+          </Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Go Back</Text>
+            <Text style={styles.backButtonText}>{t('common.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -350,10 +411,28 @@ export default function JobDetailPage() {
           />
           <Text style={styles.statusText}>
             {job.isActive
-              ? 'Active - Accepting Applications'
-              : 'Closed - Not Accepting Applications'}
+              ? t('employerJobDetails.status.active')
+              : t('employerJobDetails.status.closed')}
           </Text>
         </View>
+
+        {/* Rejection / Pending Review Banner */}
+        {job.approvalStatus === 'REJECTED_AI' && (
+          <View style={[styles.statusBanner, styles.statusRejected]}>
+            <Ionicons name="alert-circle" size={20} color="#FFFFFF" />
+            <Text style={styles.statusText}>
+              {t('employerJobDetails.status.rejectedAi')}
+            </Text>
+          </View>
+        )}
+        {job.approvalStatus === 'PENDING_REVIEW' && (
+          <View style={[styles.statusBanner, styles.statusPending]}>
+            <Ionicons name="time" size={20} color="#FFFFFF" />
+            <Text style={styles.statusText}>
+              {t('employerJobDetails.status.pendingReview')}
+            </Text>
+          </View>
+        )}
 
         {/* Job Title & Company */}
         <View style={styles.section}>
@@ -386,7 +465,7 @@ export default function JobDetailPage() {
             <View style={styles.metaItem}>
               <Ionicons name="briefcase" size={16} color="#64748B" />
               <Text style={styles.metaText}>
-                {job.jobType.replace('_', ' ')}
+                {job.jobTypeLabel || job.jobType.replace('_', ' ')}
               </Text>
             </View>
           </View>
@@ -397,63 +476,88 @@ export default function JobDetailPage() {
           <View style={styles.statCard}>
             <Ionicons name="eye" size={24} color="#1E3A8A" />
             <Text style={styles.statNumber}>{job.viewCount}</Text>
-            <Text style={styles.statLabel}>Views</Text>
+            <Text style={styles.statLabel}>
+              {t('employerJobDetails.stats.views')}
+            </Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="document-text" size={24} color="#1E3A8A" />
             <Text style={styles.statNumber}>{job.applicationCount}</Text>
-            <Text style={styles.statLabel}>Applications</Text>
+            <Text style={styles.statLabel}>
+              {t('employerJobDetails.stats.applications')}
+            </Text>
           </View>
         </View>
 
         {/* Job Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Details</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobDetails.sections.details')}
+          </Text>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Industry</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerJobDetails.labels.industry')}
+            </Text>
             <Text style={styles.detailValue}>{job.industry.name}</Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Working Hours</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerJobDetails.labels.workingHours')}
+            </Text>
             <Text style={styles.detailValue}>
-              {job.workingHours.replace('_', ' ')}
+              {job.workingHoursLabel || job.workingHours.replace('_', ' ')}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Experience Level</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerJobDetails.labels.experienceLevel')}
+            </Text>
             <Text style={styles.detailValue}>
-              {job.experienceLevel.replace('_', ' ')}
+              {job.experienceLevelLabel ||
+                job.experienceLevel.replace('_', ' ')}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Salary</Text>
+            <Text style={styles.detailLabel}>
+              {t('employerJobDetails.labels.salary')}
+            </Text>
             <Text style={styles.detailValue}>
-              {formatSalary(job.salaryMin, job.salaryMax, job.salaryType)}
+              {formatSalary(
+                job.salaryMin,
+                job.salaryMax,
+                job.salaryTypeLabel || job.salaryType
+              )}
             </Text>
           </View>
 
           {job.isRemote && (
             <View style={styles.remoteBadge}>
               <Ionicons name="home" size={16} color="#1E3A8A" />
-              <Text style={styles.remoteBadgeText}>Remote Work Available</Text>
+              <Text style={styles.remoteBadgeText}>
+                {t('employerJobDetails.labels.remoteAvailable')}
+              </Text>
             </View>
           )}
         </View>
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobDetails.sections.description')}
+          </Text>
           <Text style={styles.contentText}>{job.description}</Text>
         </View>
 
         {/* Requirements */}
         {job.requirements && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Requirements</Text>
+            <Text style={styles.sectionTitle}>
+              {t('employerJobDetails.sections.requirements')}
+            </Text>
             <Text style={styles.contentText}>{job.requirements}</Text>
           </View>
         )}
@@ -461,7 +565,9 @@ export default function JobDetailPage() {
         {/* Benefits */}
         {job.benefits && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Benefits</Text>
+            <Text style={styles.sectionTitle}>
+              {t('employerJobDetails.sections.benefits')}
+            </Text>
             <Text style={styles.contentText}>{job.benefits}</Text>
           </View>
         )}
@@ -470,7 +576,9 @@ export default function JobDetailPage() {
             UPDATED LOCATION SECTION WITH COPY & MAPS
             =================================================================== */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employerJobDetails.sections.location')}
+          </Text>
 
           {/* Location Display */}
           <View style={styles.locationCard}>
@@ -496,7 +604,9 @@ export default function JobDetailPage() {
               onPress={handleCopyAddress}
             >
               <Ionicons name="copy-outline" size={20} color="#1E3A8A" />
-              <Text style={styles.locationActionText}>Copy Address</Text>
+              <Text style={styles.locationActionText}>
+                {t('employerJobDetails.actions.copyAddress')}
+              </Text>
             </TouchableOpacity>
 
             {/* Open in Maps Button */}
@@ -508,7 +618,9 @@ export default function JobDetailPage() {
               onPress={handleOpenInMaps}
             >
               <Ionicons name="navigate" size={20} color="#FFFFFF" />
-              <Text style={styles.locationActionTextPrimary}>Open in Maps</Text>
+              <Text style={styles.locationActionTextPrimary}>
+                {t('employerJobDetails.actions.openInMaps')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -516,12 +628,16 @@ export default function JobDetailPage() {
         {/* Dates */}
         {(job.applicationDeadline || job.startDate) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Important Dates</Text>
+            <Text style={styles.sectionTitle}>
+              {t('employerJobDetails.sections.dates')}
+            </Text>
             {job.applicationDeadline && (
               <View style={styles.dateRow}>
                 <Ionicons name="calendar" size={20} color="#64748B" />
                 <View style={styles.dateInfo}>
-                  <Text style={styles.dateLabel}>Application Deadline</Text>
+                  <Text style={styles.dateLabel}>
+                    {t('employerJobDetails.labels.applicationDeadline')}
+                  </Text>
                   <Text style={styles.dateValue}>
                     {formatDate(job.applicationDeadline)}
                   </Text>
@@ -532,7 +648,9 @@ export default function JobDetailPage() {
               <View style={styles.dateRow}>
                 <Ionicons name="calendar" size={20} color="#64748B" />
                 <View style={styles.dateInfo}>
-                  <Text style={styles.dateLabel}>Expected Start Date</Text>
+                  <Text style={styles.dateLabel}>
+                    {t('employerJobDetails.labels.expectedStartDate')}
+                  </Text>
                   <Text style={styles.dateValue}>
                     {formatDate(job.startDate)}
                   </Text>
@@ -549,9 +667,19 @@ export default function JobDetailPage() {
       {job.approvalStatus !== 'REJECTED_FINAL' && (
         <View style={styles.actionBar}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.toggleButton]}
+            style={[
+              styles.actionButton,
+              styles.toggleButton,
+              (job.approvalStatus === 'REJECTED_AI' ||
+                job.approvalStatus === 'PENDING_REVIEW') &&
+                styles.disabledButton,
+            ]}
             onPress={handleToggleStatus}
-            disabled={actionLoading}
+            disabled={
+              actionLoading ||
+              job.approvalStatus === 'REJECTED_AI' ||
+              job.approvalStatus === 'PENDING_REVIEW'
+            }
           >
             <Ionicons
               name={job.isActive ? 'pause' : 'play'}
@@ -559,7 +687,9 @@ export default function JobDetailPage() {
               color="#FFFFFF"
             />
             <Text style={styles.actionButtonText}>
-              {job.isActive ? 'Close' : 'Activate'}
+              {job.isActive
+                ? t('employerJobDetails.actions.close')
+                : t('employerJobDetails.actions.activate')}
             </Text>
           </TouchableOpacity>
 
@@ -569,7 +699,9 @@ export default function JobDetailPage() {
             disabled={actionLoading}
           >
             <Ionicons name="create" size={20} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Edit</Text>
+            <Text style={styles.actionButtonText}>
+              {t('employerJobDetails.actions.edit')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -578,7 +710,9 @@ export default function JobDetailPage() {
             disabled={actionLoading}
           >
             <Ionicons name="trash" size={20} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Delete</Text>
+            <Text style={styles.actionButtonText}>
+              {t('employerJobDetails.actions.delete')}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -588,8 +722,7 @@ export default function JobDetailPage() {
         <View style={styles.rejectionNotice}>
           <Ionicons name="alert-circle" size={20} color="#DC2626" />
           <Text style={styles.rejectionNoticeText}>
-            This job post has been permanently rejected and cannot be edited or
-            reactivated.
+            {t('employerJobDetails.rejectionNotice')}
           </Text>
         </View>
       )}
@@ -669,6 +802,12 @@ const styles = StyleSheet.create({
   },
   statusInactive: {
     backgroundColor: '#EF4444',
+  },
+  statusRejected: {
+    backgroundColor: '#F59E0B',
+  },
+  statusPending: {
+    backgroundColor: '#64748B',
   },
   statusText: {
     fontSize: 14,
@@ -873,6 +1012,9 @@ const styles = StyleSheet.create({
   toggleButton: {
     backgroundColor: '#F59E0B',
   },
+  disabledButton: {
+    backgroundColor: '#94A3B8',
+  },
   editButton: {
     backgroundColor: '#1E3A8A',
   },
@@ -928,3 +1070,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const renderJobInfoRow = (labelKey: string, value: any) => (
+  <View style={styles.infoRow}>
+    <Text style={styles.infoLabel}>{t(labelKey)}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);

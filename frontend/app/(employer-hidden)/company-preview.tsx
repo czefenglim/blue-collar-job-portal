@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import ReviewsList from '@/components/ReviewsList';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -38,6 +39,7 @@ interface Company {
 
 export default function CompanyPreviewScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -121,7 +123,7 @@ export default function CompanyPreviewScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Company not found</Text>
+          <Text style={styles.errorText}>{t('companies.detail.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -136,9 +138,11 @@ export default function CompanyPreviewScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Company Preview</Text>
+        <Text style={styles.headerTitle}>{t('companies.preview.title')}</Text>
         <View style={styles.previewBadge}>
-          <Text style={styles.previewBadgeText}>Preview</Text>
+          <Text style={styles.previewBadgeText}>
+            {t('companies.preview.badge')}
+          </Text>
         </View>
       </View>
 
@@ -175,8 +179,9 @@ export default function CompanyPreviewScreen() {
             </Text>
             {renderStars(company.averageRating)}
             <Text style={styles.totalReviews}>
-              Based on {company.totalReviews} review
-              {company.totalReviews !== 1 ? 's' : ''}
+              {t('companies.detail.basedOnReviews', {
+                count: company.totalReviews,
+              })}
             </Text>
           </View>
         </View>
@@ -185,22 +190,25 @@ export default function CompanyPreviewScreen() {
         <View style={styles.infoBanner}>
           <Ionicons name="information-circle" size={20} color="#1E3A8A" />
           <Text style={styles.infoBannerText}>
-            This is how job seekers see your company profile. Reviews are
-            read-only in this preview.
+            {t('companies.preview.infoBanner')}
           </Text>
         </View>
 
         {/* Company Details */}
         {company.description && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.sectionTitle}>
+              {t('companies.detail.about')}
+            </Text>
             <Text style={styles.companyDescription}>{company.description}</Text>
           </View>
         )}
 
         {/* Contact Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
+          <Text style={styles.sectionTitle}>
+            {t('companies.detail.contactInformation')}
+          </Text>
           {company.website && (
             <View style={styles.contactRow}>
               <Ionicons name="globe-outline" size={18} color="#64748B" />

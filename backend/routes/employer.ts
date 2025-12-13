@@ -20,6 +20,7 @@ import {
   uploadVerificationDocument,
   uploadCompanyLogo, // ✅ MISSING
 } from '../controllers/employerController';
+import { deleteJob } from '../controllers/jobController';
 import authMiddleware from '../middleware/authMiddleware';
 import multer from 'multer';
 
@@ -137,6 +138,13 @@ router.get('/jobs', authMiddleware, getEmployerJobs);
  * @access  Private
  */
 router.patch('/jobs/:jobId/toggle-status', authMiddleware, toggleJobStatus);
+
+/**
+ * @route   DELETE /api/employer/jobs/:jobId
+ * @desc    Delete a job post owned by the employer's company
+ * @access  Private
+ */
+router.delete('/jobs/:jobId', authMiddleware, deleteJob);
 
 // ===================================================================
 // APPLICANTS ROUTES (MISSING FROM YOUR FILE!)

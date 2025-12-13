@@ -10,12 +10,14 @@ import {
   Modal,
   TextInput,
   Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -64,6 +66,8 @@ interface CompanyDetails {
   isVerified: boolean;
   isActive: boolean;
   verificationStatus: string;
+  verificationStatusLabel?: string;
+  userStatusLabel?: string;
   createdAt: string;
   updatedAt: string;
   industry?: {
@@ -110,12 +114,14 @@ interface CompanyDetails {
   };
   trustScore: TrustScore;
   reportCount: number;
+  companySizeLabel?: string;
 }
 
 export default function AdminCompanyDetailsPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const companyId = params.id as string;
+  const { currentLanguage, t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<CompanyDetails | null>(null);
@@ -128,7 +134,7 @@ export default function AdminCompanyDetailsPage() {
 
   useEffect(() => {
     fetchCompanyDetails();
-  }, [companyId]);
+  }, [companyId, currentLanguage]);
 
   const fetchCompanyDetails = async () => {
     try {
@@ -140,13 +146,16 @@ export default function AdminCompanyDetailsPage() {
         return;
       }
 
-      const response = await fetch(`${URL}/api/admin/companies/${companyId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${URL}/api/admin/companies/${companyId}?lang=${currentLanguage}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -355,18 +364,25 @@ export default function AdminCompanyDetailsPage() {
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Ionicons name="warning" size={32} color="#EF4444" />
-            <Text style={styles.modalTitle}>Disable Company</Text>
+            <Text style={styles.modalTitle}>
+              {t('adminCompanyDetails.disableCompany')}
+            </Text>
           </View>
 
           <Text style={styles.modalDescription}>
-            This will:
-            {'\n'}• Set verification status to DISABLED
-            {'\n'}• Suspend all active jobs
-            {'\n'}• Suspend the employer account
+            {t('adminCompanyDetails.thisWill')}
+            {'\n'}
+            {t('adminCompanyDetails.disableEffect1')}
+            {'\n'}
+            {t('adminCompanyDetails.disableEffect2')}
+            {'\n'}
+            {t('adminCompanyDetails.disableEffect3')}
           </Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Reason (optional)</Text>
+            <Text style={styles.inputLabel}>
+              {t('adminCompanyDetails.reasonOptional')}
+            </Text>
             <TextInput
               style={styles.textArea}
               value={disableReason}
@@ -386,7 +402,9 @@ export default function AdminCompanyDetailsPage() {
                 setDisableReason('');
               }}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>
+                {t('adminCompanyDetails.cancel')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -399,7 +417,9 @@ export default function AdminCompanyDetailsPage() {
               ) : (
                 <>
                   <Ionicons name="ban" size={18} color="#FFFFFF" />
-                  <Text style={styles.disableButtonText}>Disable</Text>
+                  <Text style={styles.disableButtonText}>
+                    {t('adminCompanyDetails.disable')}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -414,7 +434,9 @@ export default function AdminCompanyDetailsPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>Loading company details...</Text>
+          <Text style={styles.loadingText}>
+            {t('adminCompanyDetails.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -425,12 +447,16 @@ export default function AdminCompanyDetailsPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorText}>{error || 'Company not found'}</Text>
+          <Text style={styles.errorText}>
+            {error || t('adminCompanyDetails.companyNotFound')}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.retryButtonText}>Go Back</Text>
+            <Text style={styles.retryButtonText}>
+              {t('adminCompanyDetails.goBack')}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -447,9 +473,9 @@ export default function AdminCompanyDetailsPage() {
         <View style={styles.headerCard}>
           <View style={styles.companyLogo}>
             {company.logo ? (
-              <Text style={styles.logoText}>{company.name.charAt(0)}</Text>
+              <Image source={{ uri: company.logo }} style={styles.logoImage} />
             ) : (
-              <Ionicons name="business" size={32} color="#1E3A8A" />
+              <Text style={styles.logoText}>{company.name.charAt(0)}</Text>
             )}
           </View>
 
@@ -480,14 +506,16 @@ export default function AdminCompanyDetailsPage() {
                   { color: getVerificationColor(company.verificationStatus) },
                 ]}
               >
-                {company.verificationStatus}
+                {company.verificationStatusLabel || company.verificationStatus}
               </Text>
             </View>
 
             {!company.isActive && (
               <View style={styles.inactiveBadge}>
                 <Ionicons name="close-circle" size={14} color="#EF4444" />
-                <Text style={styles.inactiveText}>INACTIVE</Text>
+                <Text style={styles.inactiveText}>
+                  {t('adminCompanyDetails.inactive')}
+                </Text>
               </View>
             )}
           </View>
@@ -499,7 +527,7 @@ export default function AdminCompanyDetailsPage() {
             <View style={styles.trustScoreHeader}>
               <Ionicons name="shield-checkmark" size={24} color="#1E3A8A" />
               <Text style={styles.trustScoreSectionTitle}>
-                Employer Trust Score
+                {t('adminCompanyDetails.employerTrustScore')}
               </Text>
             </View>
 
@@ -539,32 +567,32 @@ export default function AdminCompanyDetailsPage() {
             {/* Score Breakdown */}
             <View style={styles.scoreBreakdown}>
               {renderScoreBar(
-                'Verification Status',
+                t('adminCompanyDetails.verificationStatus'),
                 company.trustScore.breakdown.verificationStatus,
                 25
               )}
               {renderScoreBar(
-                'Company Completeness',
+                t('adminCompanyDetails.companyCompleteness'),
                 company.trustScore.breakdown.companyCompleteness,
                 20
               )}
               {renderScoreBar(
-                'Job Posting History',
+                t('adminCompanyDetails.jobPostingHistory'),
                 company.trustScore.breakdown.jobPostingHistory,
                 20
               )}
               {renderScoreBar(
-                'Applicant Engagement',
+                t('adminCompanyDetails.applicantEngagement'),
                 company.trustScore.breakdown.applicantEngagement,
                 15
               )}
               {renderScoreBar(
-                'Review Score',
+                t('adminCompanyDetails.reviewScore'),
                 company.trustScore.breakdown.reviewScore,
                 10
               )}
               {renderScoreBar(
-                'Report History',
+                t('adminCompanyDetails.reportHistory'),
                 company.trustScore.breakdown.reportHistory,
                 10
               )}
@@ -626,27 +654,33 @@ export default function AdminCompanyDetailsPage() {
             </View>
 
             {/* Strengths */}
-            {company.trustScore.strengths.length > 0 && (
+            {company.trustScore?.strengths?.length > 0 && (
               <View style={styles.strengthsContainer}>
-                <Text style={styles.strengthsTitle}>✅ Strengths</Text>
-                {company.trustScore.strengths.map((strength, index) => (
-                  <View key={index} style={styles.strengthItem}>
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={14}
-                      color="#10B981"
-                    />
-                    <Text style={styles.strengthText}>{strength}</Text>
-                  </View>
-                ))}
+                <Text style={styles.strengthsTitle}>
+                  ✅ {t('adminCompanyDetails.strengths')}
+                </Text>
+                {(company.trustScore?.strengths || []).map(
+                  (strength, index) => (
+                    <View key={index} style={styles.strengthItem}>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color="#10B981"
+                      />
+                      <Text style={styles.strengthText}>{strength}</Text>
+                    </View>
+                  )
+                )}
               </View>
             )}
 
             {/* Warnings */}
-            {company.trustScore.warnings.length > 0 && (
+            {company.trustScore?.warnings?.length > 0 && (
               <View style={styles.warningsContainer}>
-                <Text style={styles.warningsTitle}>⚠️ Warnings</Text>
-                {company.trustScore.warnings.map((warning, index) => (
+                <Text style={styles.warningsTitle}>
+                  ⚠️ {t('adminCompanyDetails.warnings')}
+                </Text>
+                {(company.trustScore?.warnings || []).map((warning, index) => (
                   <View key={index} style={styles.warningItem}>
                     <Ionicons name="warning" size={14} color="#F59E0B" />
                     <Text style={styles.warningText}>{warning}</Text>
@@ -659,7 +693,7 @@ export default function AdminCompanyDetailsPage() {
 
         {/* Company Information */}
         {renderSection(
-          'Company Information',
+          t('adminCompanyDetails.companyInformation'),
           <View>
             {company.email && (
               <View style={styles.infoRow}>
@@ -702,7 +736,10 @@ export default function AdminCompanyDetailsPage() {
             {company.companySize && (
               <View style={styles.infoRow}>
                 <Ionicons name="people-outline" size={18} color="#64748B" />
-                <Text style={styles.infoText}>Size: {company.companySize}</Text>
+                <Text style={styles.infoText}>
+                  {t('adminCompanyDetails.size')}:{' '}
+                  {company.companySizeLabel || company.companySize}
+                </Text>
               </View>
             )}
           </View>
@@ -711,7 +748,7 @@ export default function AdminCompanyDetailsPage() {
         {/* Owner Information */}
         {company.user &&
           renderSection(
-            'Owner Information',
+            t('adminCompanyDetails.ownerInformation'),
             <View>
               <View style={styles.infoRow}>
                 <Ionicons name="person-outline" size={18} color="#64748B" />
@@ -732,14 +769,17 @@ export default function AdminCompanyDetailsPage() {
               <View style={styles.infoRow}>
                 <Ionicons name="shield-outline" size={18} color="#64748B" />
                 <Text style={styles.infoText}>
-                  Status: {company.user.status}
+                  {t('adminCompanyDetails.status')}: {company.user.status}
+                  {company.userStatusLabel
+                    ? ` (${company.userStatusLabel})`
+                    : ''}
                 </Text>
               </View>
               {company.user.lastLoginAt && (
                 <View style={styles.infoRow}>
                   <Ionicons name="time-outline" size={18} color="#64748B" />
                   <Text style={styles.infoText}>
-                    Last login:{' '}
+                    {t('adminCompanyDetails.lastLogin')}:{' '}
                     {new Date(company.user.lastLoginAt).toLocaleString()}
                   </Text>
                 </View>
@@ -748,11 +788,14 @@ export default function AdminCompanyDetailsPage() {
           )}
 
         {/* Recent Jobs */}
-        {company.jobs.length > 0 &&
+        {company.jobs &&
+          company.jobs.length > 0 &&
           renderSection(
-            `Recent Jobs (${company._count.jobs} total)`,
+            t('adminCompanyDetails.recentJobs', {
+              total: company._count?.jobs ?? company.jobs?.length ?? 0,
+            }),
             <View>
-              {company.jobs.map((job) => (
+              {(company.jobs || []).map((job) => (
                 <View key={job.id} style={styles.jobItem}>
                   <View style={styles.jobInfo}>
                     <Text style={styles.jobTitle} numberOfLines={1}>
@@ -760,7 +803,8 @@ export default function AdminCompanyDetailsPage() {
                     </Text>
                     <Text style={styles.jobMeta}>
                       {new Date(job.createdAt).toLocaleDateString()} •{' '}
-                      {job.applicationCount} applications
+                      {job.applicationCount}{' '}
+                      {t('adminCompanyDetails.applications')}
                     </Text>
                   </View>
                   <View
@@ -789,18 +833,20 @@ export default function AdminCompanyDetailsPage() {
         {/* Description */}
         {company.description &&
           renderSection(
-            'Description',
+            t('adminCompanyDetails.description'),
             <Text style={styles.descriptionText}>{company.description}</Text>
           )}
 
         {/* Timeline */}
         {renderSection(
-          'Timeline',
+          t('adminCompanyDetails.timeline'),
           <View>
             <View style={styles.timelineItem}>
               <View style={styles.timelineDot} />
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Registered</Text>
+                <Text style={styles.timelineTitle}>
+                  {t('adminCompanyDetails.registered')}
+                </Text>
                 <Text style={styles.timelineDate}>
                   {new Date(company.createdAt).toLocaleString()}
                 </Text>
@@ -811,7 +857,9 @@ export default function AdminCompanyDetailsPage() {
                 style={[styles.timelineDot, { backgroundColor: '#8B5CF6' }]}
               />
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Last Updated</Text>
+                <Text style={styles.timelineTitle}>
+                  {t('adminCompanyDetails.lastUpdated')}
+                </Text>
                 <Text style={styles.timelineDate}>
                   {new Date(company.updatedAt).toLocaleString()}
                 </Text>
@@ -822,9 +870,12 @@ export default function AdminCompanyDetailsPage() {
                 style={[styles.timelineDot, { backgroundColor: '#F59E0B' }]}
               />
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Account Age</Text>
+                <Text style={styles.timelineTitle}>
+                  {t('adminCompanyDetails.accountAge')}
+                </Text>
                 <Text style={styles.timelineDate}>
-                  {company.trustScore?.factors.accountAge || 0} days
+                  {company.trustScore?.factors.accountAge || 0}{' '}
+                  {t('adminCompanyDetails.days')}
                 </Text>
               </View>
             </View>
@@ -847,7 +898,9 @@ export default function AdminCompanyDetailsPage() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.enableButtonText}>Enable Company</Text>
+                <Text style={styles.enableButtonText}>
+                  {t('adminCompanyDetails.enableCompany')}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -863,7 +916,7 @@ export default function AdminCompanyDetailsPage() {
               <>
                 <Ionicons name="ban" size={20} color="#FFFFFF" />
                 <Text style={styles.disableActionButtonText}>
-                  Disable Company
+                  {t('adminCompanyDetails.disableCompany')}
                 </Text>
               </>
             )}
@@ -933,6 +986,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  logoImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
   },
   logoText: {
     fontSize: 32,
