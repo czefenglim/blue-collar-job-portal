@@ -10,10 +10,8 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Constants from 'expo-constants';
+// removed unused Constants import
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 const LANGUAGES = [
   { code: 'en', label: 'EN', name: 'English', description: 'English' },
@@ -26,7 +24,6 @@ const LanguageSelectPage: React.FC = () => {
   const { currentLanguage, changeLanguage } = useLanguage();
   const router = useRouter();
   const [selectedLanguage, setSelectedLanguage] = useState(currentLanguage);
-  const token = AsyncStorage.getItem('jwtToken');
 
   const handleConfirm = async () => {
     try {

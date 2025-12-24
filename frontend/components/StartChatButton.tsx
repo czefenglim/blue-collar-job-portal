@@ -64,7 +64,7 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
           setExistingConversationId(null);
         }
       }
-    } catch (_error) {}
+    } catch {}
   }, [URL, applicationId]);
 
   const handlePress = async () => {
@@ -109,16 +109,10 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
               },
             });
           } else {
-            Alert.alert(
-              t('common.error'),
-              data.message || t('chat.sendError')
-            );
+            Alert.alert(t('common.error'), data.message || t('chat.sendError'));
           }
         } else {
-          Alert.alert(
-            t('common.error'),
-            t('chat.sendError')
-          );
+          Alert.alert(t('common.error'), t('chat.sendError'));
         }
       }
     } catch (error: any) {

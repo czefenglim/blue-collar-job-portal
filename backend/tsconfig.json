@@ -1,21 +1,38 @@
+// {
+//   "compilerOptions": {
+//     "target": "ES2020", // good balance for Node.js
+//     "module": "commonjs", // Node.js ecosystem default
+//     "rootDir": "./src", // keep code inside src/
+//     "outDir": "./dist", // compiled JS will go here
+//     "strict": true, // enable strict type checking
+//     "esModuleInterop": true, // allows default imports for commonjs modules
+//     "allowSyntheticDefaultImports": true,
+//     "skipLibCheck": true, // faster compile
+//     "forceConsistentCasingInFileNames": true,
+
+//     // For Node.js + Express
+//     "types": ["node"],
+
+//     // Source maps for debugging
+//     "sourceMap": true
+//   },
+//   "include": ["src"],
+//   "exclude": ["node_modules", "dist"]
+// }
 {
   "compilerOptions": {
-    "target": "ES2020", // good balance for Node.js
-    "module": "commonjs", // Node.js ecosystem default
-    "rootDir": "./src", // keep code inside src/
-    "outDir": "./dist", // compiled JS will go here
-    "strict": true, // enable strict type checking
-    "esModuleInterop": true, // allows default imports for commonjs modules
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": ".",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true, // faster compile
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
-    // For Node.js + Express
     "types": ["node"],
-
-    // Source maps for debugging
     "sourceMap": true
   },
-  "include": ["src"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

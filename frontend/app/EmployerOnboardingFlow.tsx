@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  ScrollView,
   Image,
-  Platform,
   Modal,
   FlatList,
 } from 'react-native';
@@ -75,8 +73,7 @@ export default function EmployerOnboardingFlow() {
     review: false,
   });
 
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingDocument, setUploadingDocument] = useState(false);
+  // Removed unused uploading state flags to satisfy lint rules
 
   const router = useRouter();
   const { t } = useLanguage();
@@ -90,7 +87,7 @@ export default function EmployerOnboardingFlow() {
     fetchIndustries();
     loadUserEmail();
     loadSavedData();
-  }, []);
+  }, [fetchIndustries]);
 
   const loadSavedData = async () => {
     try {
@@ -144,7 +141,7 @@ export default function EmployerOnboardingFlow() {
     }
   };
 
-  const fetchIndustries = async () => {
+  const fetchIndustries = useCallback(async () => {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (!userToken) {
@@ -170,7 +167,7 @@ export default function EmployerOnboardingFlow() {
     } catch (error) {
       console.error('Error fetching industries:', error);
     }
-  };
+  }, []);
 
   // Helper: parse Google Place details into address fields
   type AddressComponent = {
@@ -501,7 +498,6 @@ export default function EmployerOnboardingFlow() {
       let uploadedLogoKey: string | undefined = undefined;
 
       if (logo && logo.startsWith('file://')) {
-        setUploadingLogo(true);
         console.log('📤 Uploading logo after creating company...');
 
         try {
@@ -518,8 +514,6 @@ export default function EmployerOnboardingFlow() {
             t('common.error'),
             t('employerCompanyForm.warnings.logoUploadFailed')
           );
-        } finally {
-          setUploadingLogo(false);
         }
       }
 
@@ -601,7 +595,6 @@ export default function EmployerOnboardingFlow() {
       let uploadedDocumentKey: string | undefined = undefined;
 
       if (businessDocument && businessDocument.uri.startsWith('file://')) {
-        setUploadingDocument(true);
         console.log('📤 Uploading verification document...');
 
         try {
@@ -620,8 +613,6 @@ export default function EmployerOnboardingFlow() {
             t('common.error'),
             t('employerVerification.warnings.documentUploadFailed')
           );
-        } finally {
-          setUploadingDocument(false);
         }
       }
 

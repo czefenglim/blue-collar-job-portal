@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -18,7 +17,7 @@ export default function TabsLayout() {
   const { t } = useLanguage();
 
   // Load unread count
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) return;
@@ -36,16 +35,16 @@ export default function TabsLayout() {
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
-  };
+  }, [URL]);
 
   useEffect(() => {
     loadUnreadCount();
-  }, []);
+  }, [loadUnreadCount]);
 
   useFocusEffect(
     useCallback(() => {
       loadUnreadCount();
-    }, [])
+    }, [loadUnreadCount])
   );
 
   return (

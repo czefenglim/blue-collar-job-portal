@@ -207,7 +207,7 @@ export default function AdminJobDetailScreen() {
         <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
         <Text style={styles.errorTitle}>Job Not Found</Text>
         <Text style={styles.errorText}>
-          The job you're looking for doesn't exist.
+          The job you&apos;re looking for doesn&apos;t exist.
         </Text>
         <TouchableOpacity
           style={styles.backButton}

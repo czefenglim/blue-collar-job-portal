@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,9 +17,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Ionicons,
-  MaterialIcons,
   FontAwesome5,
-  Feather,
 } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -100,9 +98,9 @@ const JobDetailsScreen: React.FC = () => {
 
   useEffect(() => {
     loadJobDetails();
-  }, [slug, currentLanguage]);
+  }, [loadJobDetails]);
 
-  const loadJobDetails = async () => {
+  const loadJobDetails = useCallback(async () => {
     try {
       setIsLoading(true);
       const userToken = await AsyncStorage.getItem('jwtToken');
@@ -124,7 +122,7 @@ const JobDetailsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug, currentLanguage, router, t]);
 
   const fetchJobDetails = async (userToken: string) => {
     try {

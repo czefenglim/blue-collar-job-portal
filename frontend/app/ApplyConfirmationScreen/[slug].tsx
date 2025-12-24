@@ -33,8 +33,8 @@ interface UserProfile {
     experienceYears: number;
     resumeUrl: string | null;
     profileCompleted: boolean;
-    skills: Array<{ skill: { name: string } }>;
-    industries: Array<{ industry: { name: string } }>;
+    skills: { skill: { name: string } }[];
+    industries: { industry: { name: string } }[];
   } | null;
 }
 
@@ -56,11 +56,7 @@ const ApplyConfirmationScreen: React.FC = () => {
   const router = useRouter();
   const { t } = useLanguage();
 
-  useEffect(() => {
-    loadData();
-  }, [slug]);
-
-  const loadData = async () => {
+  const loadData = React.useCallback(async () => {
     try {
       setIsLoading(true);
       const userToken = await AsyncStorage.getItem('jwtToken');
@@ -85,7 +81,11 @@ const ApplyConfirmationScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug, t, router]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const fetchJobDetails = async (userToken: string) => {
     try {

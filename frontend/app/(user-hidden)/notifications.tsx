@@ -50,16 +50,7 @@ const NotificationsScreen: React.FC = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    loadNotifications();
-  }, [pagination.page]);
-
-  useEffect(() => {
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
-    router.setParams({ unreadCount });
-  }, [notifications]);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -97,13 +88,24 @@ const NotificationsScreen: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [pagination.page, pagination.limit, t, router]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    router.setParams({ unreadCount });
+  }, [notifications, router]);
+
+ 
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     setPagination((prev) => ({ ...prev, page: 1 }));
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   const markAsRead = async (notificationId: number) => {
     try {

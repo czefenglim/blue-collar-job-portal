@@ -16,12 +16,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  Ionicons,
-  MaterialIcons,
-  FontAwesome5,
-  Feather,
-} from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -97,7 +92,6 @@ const CARD_BACKGROUND = '#FFFFFF';
 const TEXT_PRIMARY = '#1E293B';
 const TEXT_SECONDARY = '#64748B';
 const TEXT_TERTIARY = '#94A3B8';
-const BORDER_COLOR = '#E2E8F0';
 
 const ProfileScreen: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);

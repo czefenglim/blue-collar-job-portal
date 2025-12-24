@@ -22,7 +22,6 @@ const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 // --- Theme/Style Constants (aligned with HomeScreen) ---
 const PRIMARY_BLUE = '#0D47A1';
-const ACCENT_ORANGE = '#FF9800';
 const GRAY_TEXT = '#455A64';
 const LIGHT_BACKGROUND = '#F8FAFC';
 const CARD_BACKGROUND = '#FFFFFF';

@@ -13,7 +13,7 @@ export default function MessagesRedirect() {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   // ✅ Return a loading view instead of null
   return (

@@ -1803,6 +1803,10 @@
       "title": "Tiada laporan ditemui",
       "adjust": "Cuba ubah carian atau penapis"
     },
+    "alerts": {
+      "error": "Ralat",
+      "ok": "OK"
+    },
     "errors": {
       "authRequiredTitle": "Pengesahan Diperlukan",
       "authRequiredMessage": "Sila log masuk untuk meneruskan",
@@ -1949,53 +1953,7 @@
       "loadFailed": "Gagal memuatkan pengguna"
     }
   },
-  "adminReports": {
-    "headerTitle": "Pengurusan Laporan",
-    "headerSubtitle": "{count} jumlah laporan",
-    "appeals": "Rayuan",
-    "searchPlaceholder": "Cari laporan...",
-    "loading": "Memuatkan laporan...",
-    "filters": {
-      "all": "Semua",
-      "pending": "Menunggu",
-      "underReview": "Sedang Disemak",
-      "resolved": "Diselesaikan",
-      "dismissed": "Dibuang"
-    },
-    "reportTypes": {
-      "SCAM": "Penipuan",
-      "INAPPROPRIATE": "Kandungan Tidak Sesuai",
-      "SPAM": "Spam",
-      "OTHER": "Lain-lain"
-    },
-    "status": {
-      "PENDING": "Menunggu",
-      "UNDER_REVIEW": "Sedang Disemak",
-      "RESOLVED": "Diselesaikan",
-      "DISMISSED": "Dibuang"
-    },
-    "reportCard": {
-      "viewJob": "Lihat Kerja"
-    },
-    "empty": {
-      "title": "Tiada laporan ditemui",
-      "adjust": "Cuba ubah carian atau penapis"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "Butiran Laporan",
-        "type": "Jenis Laporan",
-        "status": "Status"
-      },
-      "reportedBy": "Dilaporkan Oleh",
-      "description": "Penerangan",
-      "reviewedBy": "Disemak Oleh",
-      "admin": "Admin",
-      "reviewNotes": "Nota Semakan",
-      "submitted": "Dihantar",
-      "viewJob": "Lihat Jawatan Kerja"
-    }
-  },
+
   "adminJobManagement": {
     "title": "Pengurusan Kerja",
     "loading": "Memuatkan kerja...",
@@ -2347,111 +2305,5 @@
     "companyApprovalDetails": "Butiran Kelulusan Syarikat",
     "companies": "Syarikat",
     "companyDetails": "Butiran Syarikat"
-  },
-  "adminUsers": {
-    "title": "Pengurusan Pengguna",
-    "subtitle": "Urus pengguna dan akaun mereka",
-    "searchPlaceholder": "Cari pengguna...",
-    "loading": "Memuatkan pengguna...",
-    "actions": {
-      "suspendUser": "Gantung Pengguna",
-      "activateUser": "Aktifkan Pengguna",
-      "deleteUser": "Padam Pengguna",
-      "confirmSuspend": "Adakah anda pasti mahu menggantung {{name}}?",
-      "confirmActivate": "Adakah anda pasti mahu mengaktifkan {{name}}?",
-      "confirmDelete": "Adakah anda pasti mahu memadam {{name}}?",
-      "cancel": "Batal",
-      "confirm": "Sahkan",
-      "success": "Berjaya",
-      "error": "Ralat",
-      "updateFailed": "Gagal mengemaskini status pengguna"
-    },
-    "common": {
-      "joinedToday": "Menyertai hari ini",
-      "joinedDaysAgo": "Menyertai {{days}} hari lalu"
-    },
-    "stats": {
-      "applications": "permohonan",
-      "jobsPosted": "kerja dipos",
-      "applicationsLabel": "Permohonan",
-      "jobsLabel": "Kerja",
-      "profile": "Profil"
-    },
-    "filters": {
-      "title": "Tapis mengikut Peranan",
-      "all": "Semua",
-      "jobSeeker": "Pencari Kerja",
-      "employer": "Majikan"
-    },
-    "empty": {
-      "noJobSeekers": "Tiada pencari kerja dijumpai",
-      "noEmployers": "Tiada majikan dijumpai",
-      "noCriteria": "Tiada pengguna sepadan dengan kriteria anda"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "Laporan & Moderasi",
-    "headerSubtitle": "{{count}} laporan menunggu semakan",
-    "appeals": "Rayuan",
-    "searchPlaceholder": "Cari laporan...",
-    "loading": "Memuatkan laporan...",
-    "evidenceTitle": "BUKTI",
-    "filters": {
-      "all": "Semua",
-      "pending": "Menunggu",
-      "underReview": "Sedang Disemak",
-      "resolved": "Diselesaikan",
-      "dismissed": "Dibatalkan"
-    },
-    "status": {
-      "PENDING": "Menunggu",
-      "UNDER_REVIEW": "Sedang Disemak",
-      "RESOLVED": "Diselesaikan",
-      "DISMISSED": "Dibatalkan",
-      "PENDING_EMPLOYER_RESPONSE": "Menunggu Jawapan Majikan"
-    },
-    "reportTypes": {
-      "FAKE_JOB": "Kerja Palsu",
-      "MISLEADING_INFO": "Maklumat Mengelirukan",
-      "INAPPROPRIATE_CONTENT": "Kandungan Tidak Sesuai",
-      "SCAM_SUSPECTED": "Disyaki Penipuan",
-      "DISCRIMINATION": "Diskriminasi",
-      "DUPLICATE_POSTING": "Iklan Bertindih",
-      "OTHERS": "Lain-lain"
-    },
-    "reportCard": {
-      "viewJob": "Lihat Kerja"
-    },
-    "empty": {
-      "title": "Tiada Laporan Ditemui",
-      "adjust": "Cuba laraskan penapis carian anda"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "Maklumat Semakan",
-        "type": "Jenis Laporan",
-        "status": "Status",
-        "reportedBy": "Dilaporkan Oleh",
-        "description": "Penerangan",
-        "evidence": "Bukti",
-        "review": "Semakan"
-      },
-      "reportedBy": "Dilaporkan Oleh",
-      "description": "Penerangan",
-      "reviewedBy": "Disemak Oleh",
-      "admin": "Admin",
-      "reviewNotes": "Nota Semakan",
-      "submitted": "Dihantar",
-      "viewJob": "Lihat Iklan Kerja"
-    },
-    "errors": {
-      "authRequiredTitle": "Log Masuk Diperlukan",
-      "authRequiredMessage": "Sila log masuk untuk melihat laporan",
-      "loadFailed": "Gagal memuatkan laporan"
-    },
-    "alerts": {
-      "error": "Ralat",
-      "ok": "OK"
-    }
   }
 }

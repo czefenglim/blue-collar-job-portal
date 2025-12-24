@@ -1,4 +1,4 @@
-import { router, Stack, Tabs } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';

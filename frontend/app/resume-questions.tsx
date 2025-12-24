@@ -8,7 +8,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
@@ -40,7 +39,7 @@ interface ResumeQuestion {
 }
 
 const ResumeQuestionsScreen: React.FC = () => {
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);

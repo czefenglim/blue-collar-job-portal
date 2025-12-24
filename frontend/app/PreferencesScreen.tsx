@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -24,13 +24,6 @@ interface Industry {
   icon?: string;
 }
 
-interface UserPreferences {
-  industries: Industry[];
-  preferredLocation?: string;
-  preferredSalaryMin?: number;
-  preferredSalaryMax?: number;
-}
-
 const PreferencesScreen: React.FC = () => {
   const [allIndustries, setAllIndustries] = useState<Industry[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<number[]>([]);
@@ -43,9 +36,9 @@ const PreferencesScreen: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const userToken = await AsyncStorage.getItem('jwtToken');
@@ -71,7 +64,7 @@ const PreferencesScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, t]);
 
   const fetchIndustries = async (userToken: string) => {
     try {

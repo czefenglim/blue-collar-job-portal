@@ -11,8 +11,6 @@ import {
   Modal,
   Image,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
@@ -23,7 +21,6 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { WebView } from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -132,7 +129,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [selectedLanguages, setSelectedLanguages] = useState<number[]>([]); // Change to numbe
   const [isGeneratingResume, setIsGeneratingResume] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-  const [resumeKey, setResumeKey] = useState<string | null>(null);
 
   const [uploadingImage, setUploadingImage] = useState(false);
   // Autocomplete: track auto-filled state to default fields as read-only
@@ -266,7 +262,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     };
 
     fetchQuestions();
-  }, []);
+  }, [t]);
 
   const fetchIndustries = useCallback(async () => {
     try {
@@ -286,56 +282,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     }
   }, []);
 
-  const getGenderLabel = (value: string) => {
-    switch (value) {
-      case 'MALE':
-        return t('onboarding.profileForm.male');
-      case 'FEMALE':
-        return t('onboarding.profileForm.female');
-      case 'OTHER':
-        return t('onboarding.profileForm.other');
-      case 'PREFER_NOT_TO_SAY':
-        return t('onboarding.profileForm.preferNotToSay');
-      default:
-        return t('onboarding.profileForm.selectGender');
-    }
-  };
-
-  const getWorkingHoursLabel = (value: string) => {
-    switch (value) {
-      case 'DAY_SHIFT':
-        return t('onboarding.profileForm.dayShift');
-      case 'NIGHT_SHIFT':
-        return t('onboarding.profileForm.nightShift');
-      case 'ROTATING_SHIFT':
-        return t('onboarding.profileForm.rotatingShift');
-      case 'FLEXIBLE':
-        return t('onboarding.profileForm.flexible');
-      case 'WEEKEND_ONLY':
-        return t('onboarding.profileForm.weekendOnly');
-      default:
-        return t('onboarding.profileForm.selectWorkingHours');
-    }
-  };
-
-  const getTransportLabel = (value: string) => {
-    switch (value) {
-      case 'OWN_VEHICLE':
-        return t('onboarding.profileForm.ownVehicle');
-      case 'PUBLIC_TRANSPORT':
-        return t('onboarding.profileForm.publicTransport');
-      case 'COMPANY_TRANSPORT':
-        return t('onboarding.profileForm.companyTransport');
-      case 'MOTORCYCLE':
-        return t('onboarding.profileForm.motorcycle');
-      case 'BICYCLE':
-        return t('onboarding.profileForm.bicycle');
-      case 'WALKING':
-        return t('onboarding.profileForm.walking');
-      default:
-        return t('onboarding.profileForm.selectTransport');
-    }
-  };
+  // Removed unused label helper functions to satisfy lint rules
 
   const saveUserProfile = async (profile: UserProfile, token: string) => {
     try {
@@ -528,7 +475,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       }
 
       // Persist selected key in state and fetch signed URL
-      setResumeKey(selectedKey);
       const resume = await fetchResumeUrl(selectedKey);
       setResumeUrl(resume.resumeUrl);
 
@@ -839,7 +785,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       if (currentStep === 3) {
         try {
           await saveUserIndustries(selectedIndustries);
-        } catch (error) {
+        } catch {
           Alert.alert(
             'Error',
             'Failed to save industry preferences. Please try again.'
@@ -861,7 +807,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
           setIsGeneratingResume(false);
           setCurrentStep(currentStep + 1);
-        } catch (error) {
+        } catch {
           setIsGeneratingResume(false);
           Alert.alert('Error', 'Failed to generate resume. Please try again.');
         }
@@ -1750,7 +1696,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     try {
       setIsGeneratingResume(true);
       await generateResume();
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to regenerate resume. Please try again.');
     } finally {
       setIsGeneratingResume(false);

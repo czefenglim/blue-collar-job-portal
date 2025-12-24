@@ -2287,46 +2287,5 @@
     "companyApprovalDetails": "நிறுவன அங்கீகாரம் விவரங்கள்",
     "companies": "நிறுவனங்கள்",
     "companyDetails": "நிறுவன விவரங்கள்"
-  },
-  "adminUsers": {
-    "title": "பயனர் மேலாண்மை",
-    "subtitle": "பயனர்கள் மற்றும் அவர்களின் கணக்குகளை நிர்வகி",
-    "searchPlaceholder": "பயனர்களைத் தேடு...",
-    "loading": "பயனர்களை ஏற்றுகிறது...",
-    "actions": {
-      "suspendUser": "பயனரை இடைநிறுத்து",
-      "activateUser": "பயனரை செயல்படுத்து",
-      "deleteUser": "பயனரை நீக்கு",
-      "confirmSuspend": "{{name}}-ஐ இடைநிறுத்த விரும்புகிறீர்களா?",
-      "confirmActivate": "{{name}}-ஐ செயல்படுத்த விரும்புகிறீர்களா?",
-      "confirmDelete": "{{name}}-ஐ நீக்க விரும்புகிறீர்களா?",
-      "cancel": "ரத்துசெய்",
-      "confirm": "உறுதிசெய்",
-      "success": "வெற்றி",
-      "error": "பிழை",
-      "updateFailed": "பயனர் நிலையை புதுப்பிக்க முடியவில்லை"
-    },
-    "common": {
-      "joinedToday": "இன்று இணைந்தார்",
-      "joinedDaysAgo": "{{days}} நாட்களுக்கு முன் இணைந்தார்"
-    },
-    "stats": {
-      "applications": "விண்ணப்பங்கள்",
-      "jobsPosted": "வேலைகள் இடப்பட்டன",
-      "applicationsLabel": "விண்ணப்பங்கள்",
-      "jobsLabel": "வேலைகள்",
-      "profile": "சுயவிவரம்"
-    },
-    "filters": {
-      "title": "பங்கு மூலம் வடிகட்டு",
-      "all": "அனைத்தும்",
-      "jobSeeker": "வேலை தேடுபவர்",
-      "employer": "முதலாளி"
-    },
-    "empty": {
-      "noJobSeekers": "வேலை தேடுபவர்கள் யாரும் இல்லை",
-      "noEmployers": "முதலாளிகள் யாரும் இல்லை",
-      "noCriteria": "உங்கள் நிபந்தனைகளுக்கு எந்த பயனரும் இல்லை"
-    }
   }
 }

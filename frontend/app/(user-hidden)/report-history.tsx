@@ -313,7 +313,7 @@ const UserReportsScreen: React.FC = () => {
       <Ionicons name="document-text-outline" size={80} color="#CBD5E1" />
       <Text style={styles.emptyTitle}>No Reports Yet</Text>
       <Text style={styles.emptyText}>
-        You haven't submitted any reports. If you encounter any issues with job
+        You haven&apos;t submitted any reports. If you encounter any issues with job
         postings, you can report them.
       </Text>
     </View>

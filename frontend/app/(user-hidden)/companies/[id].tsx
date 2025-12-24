@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -51,12 +51,7 @@ export default function CompanyProfileScreen() {
   const [userReview, setUserReview] = useState<any>(null);
   const [reviewsKey, setReviewsKey] = useState(0);
 
-  useEffect(() => {
-    fetchCompanyData();
-    checkUserReview();
-  }, [id]);
-
-  const fetchCompanyData = async () => {
+  const fetchCompanyData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -81,9 +76,9 @@ export default function CompanyProfileScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [id, currentLanguage, router]);
 
-  const checkUserReview = async () => {
+  const checkUserReview = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) return;
@@ -102,7 +97,12 @@ export default function CompanyProfileScreen() {
     } catch (error) {
       console.error('Error checking user review:', error);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCompanyData();
+    checkUserReview();
+  }, [fetchCompanyData, checkUserReview]);
 
   const handleReviewSubmitted = () => {
     setShowReviewModal(false);
@@ -144,7 +144,7 @@ export default function CompanyProfileScreen() {
                 fetchCompanyData();
                 setReviewsKey((prev) => prev + 1);
               }
-            } catch (error) {
+            } catch (_error) {
               Alert.alert(
                 t('common.error'),
                 t('companies.detail.errorReviewDeleteFailed')

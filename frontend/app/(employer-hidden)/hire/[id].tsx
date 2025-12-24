@@ -19,7 +19,6 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -27,7 +26,6 @@ const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 export default function HirePage() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(false);
 
