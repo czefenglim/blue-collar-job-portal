@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Company Detail - Admin</title>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --surface: #ffffff;
+        --background: #f1f5f9;
+        --text-main: #1e293b;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background-color: var(--background);
+        color: var(--text-main);
+        padding-bottom: 80px;
+      }
+
+      .header {
+        background: var(--surface);
+        padding: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .back-btn {
+        font-size: 24px;
+        color: var(--text-main);
+        text-decoration: none;
+        display: flex;
+      }
+
+      .header-title {
+        font-size: 18px;
+        font-weight: 600;
+        flex: 1;
+      }
+
+      .profile-header {
+        background: var(--surface);
+        padding: 24px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .company-logo-large {
+        width: 80px;
+        height: 80px;
+        background: #e2e8f0;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: #94a3b8;
+        margin-bottom: 16px;
+        gap: 4px;
+      }
+
+      .logo-label {
+        font-size: 10px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      /* Lo-fi Placeholders */
+      .text-line {
+        height: auto;
+        min-height: 12px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        padding: 2px 8px;
+        font-size: 10px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .text-line.center {
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+      }
+
+      .text-line.large {
+        height: auto;
+        min-height: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 12px;
+      }
+
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #475569;
+      }
+
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .tabs {
+        display: flex;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        margin-top: 12px;
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        border-bottom: 2px solid transparent;
+      }
+
+      .tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+
+      .section {
+        background: var(--surface);
+        margin-top: 12px;
+        padding: 16px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .info-item label {
+        display: block;
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+      }
+
+      .document-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .doc-icon {
+        font-size: 24px;
+        color: var(--text-secondary);
+      }
+
+      .action-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        padding: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        z-index: 100;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-main);
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="header">
+        <a href="list.html" class="back-btn">
+          <ion-icon name="arrow-back"></ion-icon>
+        </a>
+        <div class="header-title">Company Details</div>
+        <ion-icon name="ellipsis-vertical"></ion-icon>
+      </div>
+
+      <div class="profile-header">
+        <div class="company-logo-large">
+          <ion-icon name="business"></ion-icon>
+          <span class="logo-label">Logo</span>
+      </div>
+        <div class="text-line large dark center" style="width: 60%">
+          Company Name
+        </div>
+        <div class="text-line center" style="width: 40%">Industry / Sector</div>
+        <div class="text-line center" style="width: 30%; margin-top: 8px">
+          Location
+        </div>
+      </div>
+            </div>
+      <div class="tabs">
+        <div class="tab active">Overview</div>
+        <div class="tab">Jobs (12)</div>
+        <div class="tab">Reviews</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Trust Score</div>
+        <div style="display: flex; align-items: center; gap: 16px">
+          <div
+            style="
+              width: 60px;
+              height: 60px;
+              border-radius: 50%;
+              border: 4px solid #10b981;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              color: #10b981;
+            "
+          >
+            98
+          </div>
+          <div style="flex: 1">
+            <div class="text-line dark" style="width: 40%">Trust Status</div>
+            <div class="text-line" style="width: 70%">Verification Date</div>
+          </div>
+        </div>
+      </div>
+              margin-top: 16px;
+      <div class="section">
+        <div class="section-title">Company Information</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Industry</label>
+            <div class="text-line dark" style="width: 50%">Industry Name</div>
+          </div>
+          <div class="info-item">
+            <label>Location</label>
+            <div class="text-line dark" style="width: 70%">
+              City, State, Zip
+        <!-- Stats Row -->
+          </div>
+          <div class="info-item">
+            <label>Website</label>
+            <div class="text-line dark" style="width: 60%">Website URL</div>
+          </div>
+          <div class="info-item">
+            <label>Description</label>
+            <div class="text-line" style="width: 100%">
+              Description Text Line 1
+              Total Applications
+            <div class="text-line" style="width: 100%">
+              Description Text Line 2
+            </div>
+            <div class="text-line" style="width: 80%">
+              Description Text Line 3
+            </div>
+          </div>
+        </div>
+      </div>
+          <div class="text-line" style="width: 90%">
+      <div class="section">
+        <div class="section-title">Documents</div>
+        <div class="document-item">
+          <div class="doc-icon">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <div style="flex: 1">
+            <div class="text-line dark" style="width: 60%">Document Title</div>
+            <div class="text-line" style="width: 30%">File Info</div>
+          </div>
+          <ion-icon name="eye-outline"></ion-icon>
+        </div>
+        <div class="document-item">
+          <div class="doc-icon">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+          </div>
+          <div style="flex: 1">
+            <div class="text-line dark" style="width: 50%">Document Title</div>
+            <div class="text-line" style="width: 30%">File Info</div>
+          </div>
+          <ion-icon name="eye-outline"></ion-icon>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-danger">Suspend</button>
+        <button class="btn btn-outline">Message</button>
+      </div>
+          </div>
+          <div class="text-line" style="width: 80%">
+            Company Description Line 4
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="section-title">Documents</div>
+        <div class="card">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            "
+          >
+            <div class="text-line" style="width: 120px; margin-bottom: 0">
+              Business License
+            </div>
+            <div class="text-line dark" style="width: 60px; margin-bottom: 0">
+              View
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <div class="text-line" style="width: 100px; margin-bottom: 0">
+              Tax Document
+            </div>
+            <div class="text-line dark" style="width: 60px; margin-bottom: 0">
+              View
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="section-title">Contact Information</div>
+        <div class="card">
+          <div class="text-line" style="width: 200px">Email Address</div>
+          <div class="text-line" style="width: 150px">Phone Number</div>
+          <div class="text-line" style="width: 180px">Website URL</div>
+          <div class="text-line" style="width: 220px">Headquarters Address</div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-outline">Reject</button>
+        <button class="btn btn-primary">Approve</button>
+      </div>
+    </div>
+    <script>
+      function adjustHeight() {
+        const frame = document.getElementById('mobileFrame');
+        frame.style.height = '812px'; // Reset to min-height
+        if (frame.scrollHeight > 812) {
+          frame.style.height = frame.scrollHeight + 'px';
+        }
+      }
+      window.addEventListener('load', adjustHeight);
+      setInterval(adjustHeight, 500);
+    </script>
+  </body>
+</html>

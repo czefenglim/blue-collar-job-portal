@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Companies - Admin</title>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --surface: #ffffff;
+        --background: #f1f5f9;
+        --text-main: #1e293b;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background-color: #eef2f6;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background-color: var(--background);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background: var(--surface);
+        padding: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .back-btn {
+        font-size: 24px;
+        color: var(--text-main);
+        text-decoration: none;
+        display: flex;
+      }
+
+      .header-title {
+        font-size: 18px;
+        font-weight: 600;
+        flex: 1;
+      }
+
+      .search-bar {
+        margin: 16px;
+        background: var(--surface);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+      }
+
+      .filter-tabs {
+        display: flex;
+        padding: 0 16px 16px;
+        gap: 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .filter-tab {
+        padding: 8px 16px;
+        background: var(--surface);
+        border-radius: 20px;
+        font-size: 14px;
+        white-space: nowrap;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+      }
+
+      .filter-tab.active {
+        background: var(--text-main);
+        color: white;
+        border-color: var(--text-main);
+      }
+
+      .company-list {
+        padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .company-card {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .card-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .company-logo-placeholder {
+        width: 48px;
+        height: 48px;
+        background: #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #94a3b8;
+      }
+
+      .company-info {
+        flex: 1;
+      }
+
+      /* Lo-fi Placeholders */
+      .text-line {
+        height: 12px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .text-line.large {
+        height: 16px;
+        margin-bottom: 12px;
+      }
+
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .card-stats {
+        display: flex;
+        gap: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      .stat-item {
+        flex: 1;
+      }
+
+      .bottom-nav {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-around;
+        z-index: 100;
+        flex-shrink: 0;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 10px;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+      }
+
+      .nav-item ion-icon {
+        font-size: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="header">
+        <a href="../../admin/dashboard.html" class="back-btn">
+          <ion-icon name="arrow-back"></ion-icon>
+        </a>
+        <div class="header-title">Companies</div>
+        <ion-icon name="filter"></ion-icon>
+      </div>
+
+      <div class="search-bar">
+        <ion-icon name="search"></ion-icon>
+        <div
+          class="text-line"
+          style="width: 150px; margin-bottom: 0; background: #cbd5e1"
+        >
+          Search Companies...
+        </div>
+      </div>
+
+      <div class="filter-tabs">
+        <div class="filter-tab active">All</div>
+        <div class="filter-tab">Verified</div>
+        <div class="filter-tab">Pending</div>
+        <div class="filter-tab">Suspended</div>
+      </div>
+
+      <div class="company-list">
+        <!-- Company Card 1 -->
+        <div class="company-card" onclick="window.location.href='detail.html'">
+          <div class="card-header">
+            <div class="company-logo-placeholder">
+              <ion-icon name="business"></ion-icon>
+            </div>
+            <div class="company-info">
+              <div class="text-line large dark" style="width: 60%">
+                Tech Build Inc.
+              </div>
+              <div class="text-line" style="width: 40%">San Francisco, CA</div>
+              <div class="text-line" style="width: 30%">Verified</div>
+            </div>
+            <ion-icon
+              name="ellipsis-vertical"
+              style="color: var(--text-secondary)"
+            ></ion-icon>
+          </div>
+          <div class="card-stats">
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                12
+              </div>
+              <div class="text-line" style="width: 60%">Active Jobs</div>
+            </div>
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                45
+              </div>
+              <div class="text-line" style="width: 60%">Applications</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Card 2 -->
+        <div class="company-card" onclick="window.location.href='detail.html'">
+          <div class="card-header">
+            <div class="company-logo-placeholder">
+              <ion-icon name="business"></ion-icon>
+            </div>
+            <div class="company-info">
+              <div class="text-line large dark" style="width: 50%">
+                Mega Structures
+              </div>
+              <div class="text-line" style="width: 35%">New York, NY</div>
+              <div class="text-line" style="width: 45%">
+                Pending Verification
+              </div>
+            </div>
+            <ion-icon
+              name="ellipsis-vertical"
+              style="color: var(--text-secondary)"
+            ></ion-icon>
+          </div>
+          <div class="card-stats">
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                3
+              </div>
+              <div class="text-line" style="width: 60%">Active Jobs</div>
+            </div>
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                8
+              </div>
+              <div class="text-line" style="width: 60%">Applications</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Card 3 -->
+        <div class="company-card" onclick="window.location.href='detail.html'">
+          <div class="card-header">
+            <div class="company-logo-placeholder">
+              <ion-icon name="business"></ion-icon>
+            </div>
+            <div class="company-info">
+              <div class="text-line large dark" style="width: 65%">
+                Pipe Masters
+              </div>
+              <div class="text-line" style="width: 30%">Chicago, IL</div>
+              <div class="text-line" style="width: 40%">Suspended</div>
+            </div>
+            <ion-icon
+              name="ellipsis-vertical"
+              style="color: var(--text-secondary)"
+            ></ion-icon>
+          </div>
+          <div class="card-stats">
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                0
+              </div>
+              <div class="text-line" style="width: 60%">Active Jobs</div>
+            </div>
+            <div class="stat-item">
+              <div
+                class="text-line dark"
+                style="width: 40%; margin-bottom: 4px"
+              >
+                120
+              </div>
+              <div class="text-line" style="width: 60%">Applications</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <a href="../../admin/dashboard.html" class="nav-item">
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <a href="list.html" class="nav-item active">
+          <ion-icon name="business"></ion-icon>
+          <span>Companies</span>
+        </a>
+        <a href="../admin-job-approval/list.html" class="nav-item">
+          <ion-icon name="briefcase-outline"></ion-icon>
+          <span>Jobs</span>
+        </a>
+        <a href="../../admin/report.html" class="nav-item">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>Reports</span>
+        </a>
+      </div>
+    </div>
+    <script>
+      function adjustHeight() {
+        const frame = document.getElementById('mobileFrame');
+        frame.style.height = '812px'; // Reset to min-height
+        if (frame.scrollHeight > 812) {
+          frame.style.height = frame.scrollHeight + 'px';
+        }
+      }
+      window.addEventListener('load', adjustHeight);
+      setInterval(adjustHeight, 500);
+    </script>
+  </body>
+</html>

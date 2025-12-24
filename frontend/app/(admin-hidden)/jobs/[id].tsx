@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -70,7 +70,7 @@ interface JobDetails {
     applications: number;
   };
   // ✅ NEW: Appeal data
-  appeals?: Array<{
+  appeals?: {
     id: number;
     explanation: string;
     evidence?: string;
@@ -78,7 +78,7 @@ interface JobDetails {
     createdAt: string;
     reviewedAt?: string;
     reviewNotes?: string;
-  }>;
+  }[];
 }
 
 export default function AdminJobDetailsScreen() {
@@ -92,11 +92,7 @@ export default function AdminJobDetailsScreen() {
   const router = useRouter();
   const { t, currentLanguage } = useLanguage();
 
-  useEffect(() => {
-    fetchJobDetails();
-  }, [id, currentLanguage]);
-
-  const fetchJobDetails = async () => {
+  const fetchJobDetails = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
 
@@ -134,7 +130,11 @@ export default function AdminJobDetailsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, currentLanguage, router, t]);
+
+  useEffect(() => {
+    fetchJobDetails();
+  }, [fetchJobDetails]);
 
   // ✅ UPDATED: Handle both regular approval and appeal approval
   const handleApprove = () => {
@@ -212,7 +212,10 @@ export default function AdminJobDetailsScreen() {
           ]
         );
       } else {
-        Alert.alert('Error', data.message || t('adminJobDetails.errors.failApprove'));
+        Alert.alert(
+          'Error',
+          data.message || t('adminJobDetails.errors.failApprove')
+        );
       }
     } catch (error) {
       console.error('Approve error:', error);
@@ -294,7 +297,10 @@ export default function AdminJobDetailsScreen() {
           ]
         );
       } else {
-        Alert.alert('Error', data.message || t('adminJobDetails.errors.failReject'));
+        Alert.alert(
+          'Error',
+          data.message || t('adminJobDetails.errors.failReject')
+        );
       }
     } catch (error) {
       console.error('Reject error:', error);
@@ -312,9 +318,7 @@ export default function AdminJobDetailsScreen() {
         typeLabel ? `/${typeLabel}` : ''
       }`;
     }
-    return `${formatAmount(min || max!)}${
-      typeLabel ? `/${typeLabel}` : ''
-    }`;
+    return `${formatAmount(min || max!)}${typeLabel ? `/${typeLabel}` : ''}`;
   };
 
   const formatDate = (dateString?: string) => {
@@ -398,7 +402,9 @@ export default function AdminJobDetailsScreen() {
                 ? t('adminJobDetails.status.rejectedAI')
                 : job.approvalStatus === 'REJECTED_FINAL'
                 ? t('adminJobDetails.status.rejectedFinal')
-                : t(`adminJobDetails.status.${job.approvalStatus.toLowerCase()}`)}
+                : t(
+                    `adminJobDetails.status.${job.approvalStatus.toLowerCase()}`
+                  )}
             </Text>
           </View>
         </View>
@@ -409,21 +415,29 @@ export default function AdminJobDetailsScreen() {
             <View style={styles.appealBox}>
               <View style={styles.appealHeader}>
                 <Ionicons name="document-text" size={20} color="#3B82F6" />
-                <Text style={styles.appealTitle}>{t('adminJobDetails.appeal.title')}</Text>
+                <Text style={styles.appealTitle}>
+                  {t('adminJobDetails.appeal.title')}
+                </Text>
               </View>
               <Text style={styles.appealDate}>
-                {t('adminJobDetails.appeal.submitted')}: {formatDate(job.appeals[0].createdAt)}
+                {t('adminJobDetails.appeal.submitted')}:{' '}
+                {formatDate(job.appeals[0].createdAt)}
               </Text>
-              <Text style={styles.appealLabel}>{t('adminJobDetails.appeal.explanationLabel')}</Text>
+              <Text style={styles.appealLabel}>
+                {t('adminJobDetails.appeal.explanationLabel')}
+              </Text>
               <Text style={styles.appealText}>
                 {job.appeals[0].explanation}
               </Text>
 
               {job.appeals[0].evidence && (
                 <>
-                  <Text style={styles.appealLabel}>{t('adminJobDetails.appeal.evidenceLabel')}</Text>
+                  <Text style={styles.appealLabel}>
+                    {t('adminJobDetails.appeal.evidenceLabel')}
+                  </Text>
                   <Text style={styles.appealEvidence}>
-                    {JSON.parse(job.appeals[0].evidence).length} {t('adminJobDetails.appeal.filesAttached')}
+                    {JSON.parse(job.appeals[0].evidence).length}{' '}
+                    {t('adminJobDetails.appeal.filesAttached')}
                   </Text>
                 </>
               )}
@@ -453,10 +467,12 @@ export default function AdminJobDetailsScreen() {
               {job.company.isVerified && (
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="checkmark-circle" size={14} color="#15803D" />
-              <Text style={styles.verifiedText}>{t('adminJobDetails.company.verified')}</Text>
+                  <Text style={styles.verifiedText}>
+                    {t('adminJobDetails.company.verified')}
+                  </Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
           </View>
 
           {job.company.email && (
@@ -489,22 +505,30 @@ export default function AdminJobDetailsScreen() {
 
         {/* Key Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('adminJobDetails.sections.keyInfo')}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('adminJobDetails.sections.keyInfo')}
+          </Text>
           <View style={styles.infoGrid}>
             <View style={styles.infoCard}>
               <Ionicons name="location" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.location')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.location')}
+              </Text>
               <Text style={styles.infoValue}>
                 {job.city}, {job.state}
               </Text>
               {job.isRemote && (
-                <Text style={styles.remoteTag}>{t('adminJobDetails.info.remoteTag')}</Text>
+                <Text style={styles.remoteTag}>
+                  {t('adminJobDetails.info.remoteTag')}
+                </Text>
               )}
             </View>
 
             <View style={styles.infoCard}>
               <Ionicons name="briefcase" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.jobType')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.jobType')}
+              </Text>
               <Text style={styles.infoValue}>
                 {job.jobTypeLabel || job.jobType.replace('_', ' ')}
               </Text>
@@ -512,7 +536,9 @@ export default function AdminJobDetailsScreen() {
 
             <View style={styles.infoCard}>
               <Ionicons name="cash" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.salary')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.salary')}
+              </Text>
               <Text style={styles.infoValue}>
                 {formatSalary(
                   job.salaryMin,
@@ -524,7 +550,9 @@ export default function AdminJobDetailsScreen() {
 
             <View style={styles.infoCard}>
               <Ionicons name="time" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.workingHours')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.workingHours')}
+              </Text>
               <Text style={styles.infoValue}>
                 {job.workingHoursLabel || job.workingHours.replace('_', ' ')}
               </Text>
@@ -532,15 +560,20 @@ export default function AdminJobDetailsScreen() {
 
             <View style={styles.infoCard}>
               <Ionicons name="school" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.experience')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.experience')}
+              </Text>
               <Text style={styles.infoValue}>
-                {job.experienceLevelLabel || job.experienceLevel.replace('_', ' ')}
+                {job.experienceLevelLabel ||
+                  job.experienceLevel.replace('_', ' ')}
               </Text>
             </View>
 
             <View style={styles.infoCard}>
               <Ionicons name="calendar" size={20} color="#1E3A8A" />
-              <Text style={styles.infoLabel}>{t('adminJobDetails.info.startDate')}</Text>
+              <Text style={styles.infoLabel}>
+                {t('adminJobDetails.info.startDate')}
+              </Text>
               <Text style={styles.infoValue}>{formatDate(job.startDate)}</Text>
             </View>
           </View>
@@ -548,18 +581,24 @@ export default function AdminJobDetailsScreen() {
 
         {/* Statistics */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('adminJobDetails.sections.statistics')}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('adminJobDetails.sections.statistics')}
+          </Text>
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <Ionicons name="eye" size={24} color="#1E3A8A" />
               <Text style={styles.statValue}>{job.viewCount}</Text>
-              <Text style={styles.statLabel}>{t('adminJobDetails.stats.views')}</Text>
+              <Text style={styles.statLabel}>
+                {t('adminJobDetails.stats.views')}
+              </Text>
             </View>
 
             <View style={styles.statCard}>
               <Ionicons name="document-text" size={24} color="#F97316" />
               <Text style={styles.statValue}>{job._count.applications}</Text>
-              <Text style={styles.statLabel}>{t('adminJobDetails.stats.applications')}</Text>
+              <Text style={styles.statLabel}>
+                {t('adminJobDetails.stats.applications')}
+              </Text>
             </View>
 
             <View style={styles.statCard}>
@@ -567,21 +606,27 @@ export default function AdminJobDetailsScreen() {
               <Text style={styles.statValue}>
                 {formatDate(job.createdAt).split(' ')[0]}
               </Text>
-              <Text style={styles.statLabel}>{t('adminJobDetails.stats.posted')}</Text>
+              <Text style={styles.statLabel}>
+                {t('adminJobDetails.stats.posted')}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Job Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('adminJobDetails.sections.description')}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('adminJobDetails.sections.description')}
+          </Text>
           <Text style={styles.descriptionText}>{job.description}</Text>
         </View>
 
         {/* Requirements */}
         {job.requirements && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('adminJobDetails.sections.requirements')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t('adminJobDetails.sections.requirements')}
+            </Text>
             <Text style={styles.descriptionText}>{job.requirements}</Text>
           </View>
         )}
@@ -589,7 +634,9 @@ export default function AdminJobDetailsScreen() {
         {/* Benefits */}
         {job.benefits && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('adminJobDetails.sections.benefits')}</Text>
+            <Text style={styles.sectionTitle}>
+              {t('adminJobDetails.sections.benefits')}
+            </Text>
             <Text style={styles.descriptionText}>{job.benefits}</Text>
           </View>
         )}
@@ -600,7 +647,9 @@ export default function AdminJobDetailsScreen() {
             <View style={styles.rejectionBox}>
               <View style={styles.rejectionHeader}>
                 <Ionicons name="alert-circle" size={20} color="#DC2626" />
-                <Text style={styles.rejectionTitle}>{t('adminJobDetails.sections.rejectionReason')}</Text>
+                <Text style={styles.rejectionTitle}>
+                  {t('adminJobDetails.sections.rejectionReason')}
+                </Text>
               </View>
               <Text style={styles.rejectionText}>{job.rejectionReason}</Text>
             </View>
@@ -705,7 +754,9 @@ export default function AdminJobDetailsScreen() {
                     onPress={() => setShowRejectModal(false)}
                     disabled={isSubmitting}
                   >
-                    <Text style={styles.modalCancelText}>{t('adminJobDetails.modal.cancel')}</Text>
+                    <Text style={styles.modalCancelText}>
+                      {t('adminJobDetails.modal.cancel')}
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Companies Tab Wireframe</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        margin: 0;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border-radius: 30px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: 8px solid #1e293b;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 16px;
+        align-items: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: #000;
+      }
+      .header {
+        background: #fff;
+        color: #000;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .bottom-nav {
+        height: 60px;
+        border-top: 1px solid var(--border);
+        background: #fff;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: 10px;
+        flex-shrink: 0;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .nav-item.active {
+        color: var(--primary);
+      }
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+        background: #e2e8f0;
+        border-radius: 6px;
+        margin-bottom: 4px;
+      }
+      .nav-item.active .nav-icon {
+        background: var(--primary);
+      }
+
+      /* Page Specific */
+      .title {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        background: #fff;
+        margin-bottom: 16px;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .name {
+        height: 16px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        width: 60%;
+      }
+      .meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn {
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        width: 100%;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">Companies</div>
+      <div class="content">
+        <div class="title">Browse Companies</div>
+
+        <div class="card">
+          <div class="row">
+            <div class="logo">C1</div>
+            <div style="flex: 1">
+              <div class="name" style="width: 50%"></div>
+              <div class="meta" style="margin-top: 6px">
+                New York, NY • 24 Jobs
+              </div>
+            </div>
+          </div>
+          <div class="btn btn-primary">View Company</div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="logo">C2</div>
+            <div style="flex: 1">
+              <div class="name" style="width: 70%"></div>
+              <div class="meta" style="margin-top: 6px">
+                Austin, TX • 12 Jobs
+              </div>
+            </div>
+          </div>
+          <div class="btn btn-primary">View Company</div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="logo">C3</div>
+            <div style="flex: 1">
+              <div class="name" style="width: 40%"></div>
+              <div class="meta" style="margin-top: 6px">
+                Chicago, IL • 6 Jobs
+              </div>
+            </div>
+          </div>
+          <div class="btn btn-primary">View Company</div>
+        </div>
+
+        <div class="card">
+          <div class="row">
+            <div class="logo">C4</div>
+            <div style="flex: 1">
+              <div class="name" style="width: 60%"></div>
+              <div class="meta" style="margin-top: 6px">Remote • 3 Jobs</div>
+            </div>
+          </div>
+          <div class="btn btn-primary">View Company</div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <a href="home.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Home</span>
+        </a>
+        <a href="applied.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Applied</span>
+        </a>
+        <a href="saved.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Saved</span>
+        </a>
+        <a href="companies.html" class="nav-item active">
+          <div class="nav-icon"></div>
+          <span>Companies</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Messages</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Profile</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

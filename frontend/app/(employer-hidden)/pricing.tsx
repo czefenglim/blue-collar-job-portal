@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -46,12 +46,7 @@ export default function PricingPage() {
   >(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
 
-  useEffect(() => {
-    fetchCurrentSubscription();
-    fetchPlans();
-  }, []);
-
-  const fetchCurrentSubscription = async () => {
+  const fetchCurrentSubscription = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(`${URL}/api/subscription/current`, {
@@ -65,9 +60,9 @@ export default function PricingPage() {
     } catch (error) {
       console.error('Error fetching subscription:', error);
     }
-  };
+  }, []);
 
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
       const response = await fetch(`${URL}/api/subscription-plans`);
       const data = await response.json();
@@ -105,7 +100,12 @@ export default function PricingPage() {
     } finally {
       setFetchingPlans(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchCurrentSubscription();
+    fetchPlans();
+  }, [fetchCurrentSubscription, fetchPlans]);
 
   const getFeatureIcon = (text: string): keyof typeof Ionicons.glyphMap => {
     const lowerText = text.toLowerCase();
@@ -368,6 +368,7 @@ export default function PricingPage() {
           styles.container,
           { justifyContent: 'center', alignItems: 'center' },
         ]}
+        edges={['bottom', 'left', 'right']}
       >
         <ActivityIndicator size="large" color="#1E3A8A" />
       </SafeAreaView>
@@ -375,7 +376,7 @@ export default function PricingPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

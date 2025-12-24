@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Job</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .back {
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .line {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        flex: 1;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+      .btn-outline {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background: #fff;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="back"></div>
+        <div class="title">Create Job</div>
+      </div>
+      <div class="content">
+        <div class="section">
+          <div class="section-title">Basic Info</div>
+          <div class="line" style="width: 60%"></div>
+          <div class="line" style="width: 80%"></div>
+          </div>
+          <div class="text-line" style="width: 90%">
+            Required Skills (Multi-select)
+          <div class="line" style="width: 100%"></div>
+          <div class="line" style="width: 95%"></div>
+          <div class="line" style="width: 90%"></div>
+        <!-- Details -->
+          <div class="text-line" style="width: 100%">Job Description</div>
+          <div class="text-line" style="width: 100%">Requirements</div>
+          <div class="line" style="width: 70%"></div>
+          <div class="line" style="width: 50%"></div>
+          </div>
+
+        <!-- Timeline -->
+        <div class="section">
+          <div class="section-title">Timeline</div>
+          <div class="text-line" style="width: 60%">Application Deadline</div>
+          <div class="text-line" style="width: 60%">Target Start Date</div>
+        </div>
+
+        <!-- AI Prediction Feature (Representation) -->
+        <div
+          class="section"
+          style="border-color: #8b5cf6; background-color: #f5f3ff"
+        >
+          <div class="section-title" style="color: #7c3aed">
+            AI Recruitment Prediction
+          </div>
+          <div
+            class="text-line"
+            style="width: 90%; background: #ede9fe; color: #6d28d9"
+          >
+            Estimated Time to Hire: 5-10 Days
+          </div>
+          <div
+            class="text-line"
+            style="width: 85%; background: #ede9fe; color: #6d28d9"
+          >
+            Salary Competitiveness Analysis
+          </div>
+        </div>
+
+        <div class="actions">
+          <div class="btn btn-outline">Save Draft</div>
+          <div class="btn btn-primary">Publish</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

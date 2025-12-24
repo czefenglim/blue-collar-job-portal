@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .back-btn {
+        width: 24px;
+        height: 24px;
+        background: #cbd5e1;
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        flex: 1;
+      }
+
+      .content {
+        padding: 16px;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .date-picker {
+        height: 40px;
+        background: var(--soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .chart-card {
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        background: #fff;
+      }
+      .chart-title {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .chart-placeholder {
+        height: 120px;
+        background: var(--soft);
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        padding: 10px;
+      }
+      .bar {
+        width: 12px;
+        background: #cbd5e1;
+        border-radius: 2px 2px 0 0;
+      }
+      .bar:nth-child(even) {
+        height: 60%;
+        background: var(--primary);
+      }
+      .bar:nth-child(odd) {
+        height: 40%;
+      }
+
+      .report-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .report-icon {
+        width: 32px;
+        height: 32px;
+        background: #e0e7ff;
+        border-radius: 8px;
+      }
+      .report-info {
+        flex: 1;
+        margin-left: 12px;
+      }
+      .line-lg {
+        height: 12px;
+        width: 70%;
+        background: #334155;
+        border-radius: 3px;
+        margin-bottom: 4px;
+      }
+      .line-sm {
+        height: 10px;
+        width: 40%;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+      .download-icon {
+        width: 24px;
+        height: 24px;
+        background: #f1f5f9;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="back-btn"></div>
+        <div class="title">Reports</div>
+        <div style="width: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="date-picker">Last 30 Days</div>
+
+        <div class="chart-card">
+          <div class="chart-title">Revenue Overview</div>
+          <div class="chart-placeholder">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">User Growth</div>
+          <div class="chart-placeholder">
+            <!-- Simple line chart representation -->
+            <div
+              style="
+                width: 100%;
+                height: 2px;
+                background: #cbd5e1;
+                align-self: center;
+                transform: rotate(-10deg);
+              "
+            ></div>
+          </div>
+        </div>
+
+        <div style="font-weight: 700; margin-bottom: 8px">Recent Reports</div>
+        <div class="report-list-item">
+          <div class="report-icon"></div>
+          <div class="report-info">
+            <div class="line-lg"></div>
+            <div class="line-sm"></div>
+          </div>
+          <div class="download-icon"></div>
+        </div>
+        <div class="report-list-item">
+          <div class="report-icon"></div>
+          <div class="report-info">
+            <div class="line-lg"></div>
+            <div class="line-sm"></div>
+          </div>
+          <div class="download-icon"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

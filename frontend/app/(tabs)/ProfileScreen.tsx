@@ -16,7 +16,12 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Ionicons, MaterialIcons, FontAwesome5, Feather } from '@expo/vector-icons';
+import {
+  Ionicons,
+  MaterialIcons,
+  FontAwesome5,
+  Feather,
+} from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -326,19 +331,35 @@ const ProfileScreen: React.FC = () => {
     let totalFields = 0;
 
     const profile = userProfile.profile;
-    const basicFields = [profile.dateOfBirth, profile.gender, profile.nationality];
+    const basicFields = [
+      profile.dateOfBirth,
+      profile.gender,
+      profile.nationality,
+    ];
     totalFields += basicFields.length;
     completedFields += basicFields.filter(Boolean).length;
 
-    const addressFields = [profile.address, profile.city, profile.state, profile.postcode];
+    const addressFields = [
+      profile.address,
+      profile.city,
+      profile.state,
+      profile.postcode,
+    ];
     totalFields += addressFields.length;
     completedFields += addressFields.filter(Boolean).length;
 
-    const jobFields = [profile.preferredSalaryMin, profile.workingHours, profile.transportMode];
+    const jobFields = [
+      profile.preferredSalaryMin,
+      profile.workingHours,
+      profile.transportMode,
+    ];
     totalFields += jobFields.length;
     completedFields += jobFields.filter(Boolean).length;
 
-    const skillFields = [profile.experienceYears > 0, profile.skills.length > 0];
+    const skillFields = [
+      profile.experienceYears > 0,
+      profile.skills.length > 0,
+    ];
     totalFields += skillFields.length;
     completedFields += skillFields.filter(Boolean).length;
 
@@ -386,6 +407,9 @@ const ProfileScreen: React.FC = () => {
           style={styles.editButton}
           onPress={() => router.push('/EditProfileScreen')}
         >
+          <Text style={styles.editButtonText}>
+            {t('common.edit') || 'Edit'}
+          </Text>
           <Ionicons name="create-outline" size={24} color={PRIMARY_BLUE} />
         </TouchableOpacity>
       </View>
@@ -415,7 +439,11 @@ const ProfileScreen: React.FC = () => {
                 )}
                 <View style={styles.verificationBadge}>
                   {userProfile.isEmailVerified ? (
-                    <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color="#FFFFFF"
+                    />
                   ) : (
                     <Ionicons name="alert-circle" size={16} color="#FEF3C7" />
                   )}
@@ -425,19 +453,29 @@ const ProfileScreen: React.FC = () => {
               <View style={styles.heroInfo}>
                 <Text style={styles.userName}>{userProfile.fullName}</Text>
                 <Text style={styles.userEmail}>{userProfile.email}</Text>
-                
+
                 <View style={styles.statsContainer}>
                   <View style={styles.statItem}>
-                    <Ionicons name="calendar-outline" size={16} color="rgba(255,255,255,0.7)" />
+                    <Ionicons
+                      name="calendar-outline"
+                      size={16}
+                      color="rgba(255,255,255,0.7)"
+                    />
                     <Text style={styles.statText}>
-                      {t('profile.memberSince')} {getMemberSince(userProfile.createdAt)}
+                      {t('profile.memberSince')}{' '}
+                      {getMemberSince(userProfile.createdAt)}
                     </Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statItem}>
-                    <Ionicons name="briefcase-outline" size={16} color="rgba(255,255,255,0.7)" />
+                    <Ionicons
+                      name="briefcase-outline"
+                      size={16}
+                      color="rgba(255,255,255,0.7)"
+                    />
                     <Text style={styles.statText}>
-                      {userProfile.profile?.experienceYears || 0} {t('profile.years')}
+                      {userProfile.profile?.experienceYears || 0}{' '}
+                      {t('profile.years')}
                     </Text>
                   </View>
                 </View>
@@ -453,22 +491,29 @@ const ProfileScreen: React.FC = () => {
               <Ionicons name="trophy-outline" size={20} color={ACCENT_ORANGE} />
             </View>
             <View style={styles.progressTextContainer}>
-              <Text style={styles.progressTitle}>{t('profile.completion.title')}</Text>
-              <Text style={styles.progressPercentage}>{completionPercentage}%</Text>
+              <Text style={styles.progressTitle}>
+                {t('profile.completion.title')}
+              </Text>
+              <Text style={styles.progressPercentage}>
+                {completionPercentage}%
+              </Text>
             </View>
           </View>
-          
+
           <View style={styles.progressBar}>
             <LinearGradient
               colors={['#4F46E5', '#3730A3']}
-              style={[styles.progressFill, { width: `${completionPercentage}%` }]}
+              style={[
+                styles.progressFill,
+                { width: `${completionPercentage}%` },
+              ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             />
           </View>
-          
+
           {completionPercentage < 100 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.completeProfileButton}
               onPress={() => router.push('/EditProfileScreen')}
             >
@@ -483,7 +528,12 @@ const ProfileScreen: React.FC = () => {
         {/* Personal Information Card */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: '#EFF6FF' }]}>
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: '#EFF6FF' },
+              ]}
+            >
               <Ionicons name="person-outline" size={20} color={PRIMARY_BLUE} />
             </View>
             <Text style={styles.sectionTitle}>
@@ -513,48 +563,77 @@ const ProfileScreen: React.FC = () => {
               <InfoRow
                 icon="globe-outline"
                 label={t('profile.nationality')}
-                value={userProfile.profile.nationality || t('profile.notSpecified')}
+                value={
+                  userProfile.profile.nationality || t('profile.notSpecified')
+                }
               />
             </>
           )}
         </View>
 
         {/* Address Card */}
-        {userProfile.profile && (userProfile.profile.address || userProfile.profile.city) && (
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeader}>
-              <View style={[styles.sectionIconContainer, { backgroundColor: '#F0FDF4' }]}>
-                <Ionicons name="home-outline" size={20} color={ACCENT_GREEN} />
-              </View>
-              <Text style={styles.sectionTitle}>
-                {t('profile.sections.address')}
-              </Text>
-            </View>
-            
-            <View style={styles.addressCard}>
-              <Ionicons name="location-outline" size={20} color={TEXT_SECONDARY} />
-              <View style={styles.addressContent}>
-                {userProfile.profile.address && (
-                  <Text style={styles.addressLine}>
-                    {userProfile.profile.address}
-                  </Text>
-                )}
-                <Text style={styles.addressDetails}>
-                  {[userProfile.profile.city, userProfile.profile.state, userProfile.profile.postcode]
-                    .filter(Boolean)
-                    .join(', ')}
+        {userProfile.profile &&
+          (userProfile.profile.address || userProfile.profile.city) && (
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <View
+                  style={[
+                    styles.sectionIconContainer,
+                    { backgroundColor: '#F0FDF4' },
+                  ]}
+                >
+                  <Ionicons
+                    name="home-outline"
+                    size={20}
+                    color={ACCENT_GREEN}
+                  />
+                </View>
+                <Text style={styles.sectionTitle}>
+                  {t('profile.sections.address')}
                 </Text>
               </View>
+
+              <View style={styles.addressCard}>
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={TEXT_SECONDARY}
+                />
+                <View style={styles.addressContent}>
+                  {userProfile.profile.address && (
+                    <Text style={styles.addressLine}>
+                      {userProfile.profile.address}
+                    </Text>
+                  )}
+                  <Text style={styles.addressDetails}>
+                    {[
+                      userProfile.profile.city,
+                      userProfile.profile.state,
+                      userProfile.profile.postcode,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
         {/* Job Preferences Card */}
         {userProfile.profile && (
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <View style={[styles.sectionIconContainer, { backgroundColor: '#FEF3C7' }]}>
-                <Ionicons name="briefcase-outline" size={20} color={ACCENT_ORANGE} />
+              <View
+                style={[
+                  styles.sectionIconContainer,
+                  { backgroundColor: '#FEF3C7' },
+                ]}
+              >
+                <Ionicons
+                  name="briefcase-outline"
+                  size={20}
+                  color={ACCENT_ORANGE}
+                />
               </View>
               <Text style={styles.sectionTitle}>
                 {t('profile.sections.jobPreferences')}
@@ -566,7 +645,11 @@ const ProfileScreen: React.FC = () => {
                 {t('profile.preferredIndustries')}
               </Text>
               {userProfile.profile.industries.length > 0 ? (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsScroll}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.tagsScroll}
+                >
                   {userProfile.profile.industries.map((item) => (
                     <View key={item.industry.id} style={styles.industryTag}>
                       <Text style={styles.industryTagText}>
@@ -596,7 +679,7 @@ const ProfileScreen: React.FC = () => {
               label={t('profile.workingHours')}
               value={formatWorkingHours(userProfile.profile.workingHours)}
             />
-            
+
             <InfoRow
               icon="car-outline"
               label={t('profile.transportMode')}
@@ -623,7 +706,12 @@ const ProfileScreen: React.FC = () => {
         {userProfile.profile && (
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <View style={[styles.sectionIconContainer, { backgroundColor: '#F0F9FF' }]}>
+              <View
+                style={[
+                  styles.sectionIconContainer,
+                  { backgroundColor: '#F0F9FF' },
+                ]}
+              >
                 <Ionicons name="rocket-outline" size={20} color="#0EA5E9" />
               </View>
               <Text style={styles.sectionTitle}>
@@ -634,7 +722,9 @@ const ProfileScreen: React.FC = () => {
             <InfoRow
               icon="trending-up-outline"
               label={t('profile.yearsOfExperience')}
-              value={`${userProfile.profile.experienceYears} ${t('profile.years')}`}
+              value={`${userProfile.profile.experienceYears} ${t(
+                'profile.years'
+              )}`}
             />
 
             <View style={styles.preferenceSection}>
@@ -676,7 +766,11 @@ const ProfileScreen: React.FC = () => {
                 style={styles.resumeButton}
                 onPress={openResume}
               >
-                <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color="#FFFFFF"
+                />
                 <Text style={styles.resumeButtonText}>
                   {t('profile.viewResume')}
                 </Text>
@@ -688,7 +782,12 @@ const ProfileScreen: React.FC = () => {
         {/* Quick Actions Card */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: '#EFF6FF' }]}>
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: '#EFF6FF' },
+              ]}
+            >
               <Ionicons name="flash-outline" size={20} color={PRIMARY_BLUE} />
             </View>
             <Text style={styles.sectionTitle}>
@@ -719,7 +818,12 @@ const ProfileScreen: React.FC = () => {
         {/* Language Selection Card */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: '#F0F9FF' }]}>
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: '#F0F9FF' },
+              ]}
+            >
               <Ionicons name="globe-outline" size={20} color="#0EA5E9" />
             </View>
             <Text style={styles.sectionTitle}>
@@ -743,21 +847,31 @@ const ProfileScreen: React.FC = () => {
               >
                 <Text style={styles.languageFlag}>{lang.flag}</Text>
                 <View style={styles.languageInfo}>
-                  <Text style={[
-                    styles.languageLabel,
-                    currentLanguage === lang.code && styles.languageLabelActive
-                  ]}>
+                  <Text
+                    style={[
+                      styles.languageLabel,
+                      currentLanguage === lang.code &&
+                        styles.languageLabelActive,
+                    ]}
+                  >
                     {lang.label}
                   </Text>
-                  <Text style={[
-                    styles.languageName,
-                    currentLanguage === lang.code && styles.languageNameActive
-                  ]}>
+                  <Text
+                    style={[
+                      styles.languageName,
+                      currentLanguage === lang.code &&
+                        styles.languageNameActive,
+                    ]}
+                  >
                     {lang.name}
                   </Text>
                 </View>
                 {currentLanguage === lang.code && (
-                  <Ionicons name="checkmark-circle" size={24} color={ACCENT_GREEN} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color={ACCENT_GREEN}
+                  />
                 )}
               </TouchableOpacity>
             ))}
@@ -767,7 +881,12 @@ const ProfileScreen: React.FC = () => {
         {/* Reports Card */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconContainer, { backgroundColor: '#FEF2F2' }]}>
+            <View
+              style={[
+                styles.sectionIconContainer,
+                { backgroundColor: '#FEF2F2' },
+              ]}
+            >
               <Ionicons name="flag-outline" size={20} color="#EF4444" />
             </View>
             <Text style={styles.sectionTitle}>
@@ -796,9 +915,9 @@ const ProfileScreen: React.FC = () => {
 };
 
 // Reusable Components
-const InfoRow: React.FC<{ 
-  icon: string; 
-  label: string; 
+const InfoRow: React.FC<{
+  icon: string;
+  label: string;
   value: string;
   isVerified?: boolean;
 }> = ({ icon, label, value, isVerified }) => (
@@ -811,10 +930,10 @@ const InfoRow: React.FC<{
       <View style={infoRowStyles.valueContainer}>
         <Text style={infoRowStyles.value}>{value}</Text>
         {isVerified !== undefined && (
-          <Ionicons 
-            name={isVerified ? "checkmark-circle" : "alert-circle"} 
-            size={16} 
-            color={isVerified ? ACCENT_GREEN : TEXT_TERTIARY} 
+          <Ionicons
+            name={isVerified ? 'checkmark-circle' : 'alert-circle'}
+            size={16}
+            color={isVerified ? ACCENT_GREEN : TEXT_TERTIARY}
             style={infoRowStyles.verificationIcon}
           />
         )}
@@ -830,7 +949,12 @@ const ActionButton: React.FC<{
   color: string;
 }> = ({ icon, title, onPress, color }) => (
   <TouchableOpacity style={actionButtonStyles.container} onPress={onPress}>
-    <View style={[actionButtonStyles.iconContainer, { backgroundColor: `${color}10` }]}>
+    <View
+      style={[
+        actionButtonStyles.iconContainer,
+        { backgroundColor: `${color}10` },
+      ]}
+    >
       <Ionicons name={icon as any} size={20} color={color} />
     </View>
     <Text style={actionButtonStyles.title}>{title}</Text>
@@ -908,11 +1032,20 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
   },
   editButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#F0F7FF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#DBEAFE',
+    gap: 6,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
   },
   content: {
     flex: 1,

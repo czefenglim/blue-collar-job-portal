@@ -391,7 +391,6 @@
     },
     "salary": {
       "title": "Salary Analysis",
-      "percentile": { "label": "Percentile" },
       "percentile": { "label": "Percentile", "value": "Top {percentile}%" },
       "comparison": {
         "yourOffer": "Your offer",
@@ -936,6 +935,10 @@
     "application": "application",
     "applications": "applications",
     "stats": "{filtered} of {total} {application}",
+    "options": "Saved Job Options",
+    "selectAction": "What would you like to do with this saved job?",
+    "viewDetails": "View Details",
+    "reportJob": "Report Saved Job",
     "filters": {
       "all": "All",
       "pending": "Pending",
@@ -982,6 +985,11 @@
     "jobCount": "{count} {jobs} saved",
     "job": "job",
     "jobs": "jobs",
+    "options": "Saved Job Options",
+    "selectAction": "What would you like to do with this saved job?",
+    "viewDetails": "View Details",
+    "unsave": "Unsave Saved Job",
+    "reportJob": "Report Saved Job",
     "emptyState": {
       "title": "No Saved Jobs Yet",
       "description": "Start browsing jobs and save the ones you are interested in",
@@ -1110,8 +1118,8 @@
     }
   },
   "login": {
-    "appTitle": "Budget Control",
-    "appSubtitle": "Take control of your finances",
+    "appTitle": "Blue-Collar Job Portal",
+    "appSubtitle": "Start your career journey",
     "welcomeBack": "Welcome Back!",
     "signInToContinue": "Sign in to continue",
     "email": "Email",
@@ -1270,15 +1278,9 @@
     "startChatWithApplicants": "Start chatting with applicants to see conversations here",
     "waitForEmployerMessage": "Conversations will appear when employers contact you",
     "noMessages": "No messages yet",
-    "yesterday": "Yesterday",
     "you": "You",
     "image": "Image",
     "file": "File",
-    "connecting": "Connecting to chat...",
-
-    "typeMessage": "Type a message...",
-    "messageDeleted": "This message was deleted",
-    "edited": "edited",
     "edit": "Edit",
     "delete": "Delete",
     "messageOptions": "Message Options",
@@ -1783,61 +1785,7 @@
   "adminJobApproval": {
     "flaggedAiNotice": "This job post has been flagged by our AI system and requires human review before approval."
   },
-  "adminReports": {
-    "headerTitle": "Report Management",
-    "headerSubtitle": "{count} total reports",
-    "appeals": "Appeals",
-    "pendingAppeals": "Pending Appeals",
-    "searchPlaceholder": "Search by reporter, email, or report type...",
-    "filters": {
-      "all": "All",
-      "pending": "Pending",
-      "underReview": "Under Review",
-      "resolved": "Resolved",
-      "dismissed": "Dismissed"
-    },
-    "evidenceTitle": "Evidence Files",
-    "reportCard": {
-      "type": "Type",
-      "status": "Status",
-      "reporter": "Reporter",
-      "description": "Description",
-      "submittedOn": "Submitted",
-      "viewJob": "View Job Post"
-    },
-    "reportTypes": {
-      "FAKE_JOB": "Fake Job",
-      "MISLEADING_INFO": "Misleading Information",
-      "INAPPROPRIATE_CONTENT": "Inappropriate Content",
-      "SCAM_SUSPECTED": "Scam Suspected",
-      "DISCRIMINATION": "Discrimination",
-      "DUPLICATE_POSTING": "Duplicate Posting",
-      "OTHERS": "Others"
-    },
-    "detailModal": {
-      "viewJob": "View Job Post & Take Action",
-      "sections": {
-        "type": "Report Type",
-        "status": "Report Status",
-        "reporter": "Reported By",
-        "description": "Report Description",
-        "evidence": "Evidence",
-        "reviewInfo": "Review Information",
-        "submitted": "Submitted",
-        "updated": "Last Updated"
-      }
-    },
-    "loading": "Loading reports...",
-    "empty": {
-      "title": "No reports found",
-      "adjust": "Try adjusting your search or filter"
-    },
-    "errors": {
-      "authRequiredTitle": "Authentication Required",
-      "authRequiredMessage": "Please sign in to continue",
-      "loadFailed": "Failed to load reports"
-    }
-  },
+
   "adminCompanyApproval": {
     "headerTitle": "Company Approval",
     "headerSubtitle": "{count} pending verifications",
@@ -1976,53 +1924,6 @@
     "tryAgain": "Try Again",
     "errors": {
       "loadFailed": "Failed to load users"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "Report Management",
-    "headerSubtitle": "{count} total reports",
-    "appeals": "Appeals",
-    "searchPlaceholder": "Search reports...",
-    "loading": "Loading reports...",
-    "filters": {
-      "all": "All",
-      "pending": "Pending",
-      "underReview": "Under Review",
-      "resolved": "Resolved",
-      "dismissed": "Dismissed"
-    },
-    "reportTypes": {
-      "SCAM": "Scam",
-      "INAPPROPRIATE": "Inappropriate Content",
-      "SPAM": "Spam",
-      "OTHER": "Other"
-    },
-    "status": {
-      "PENDING": "Pending",
-      "UNDER_REVIEW": "Under Review",
-      "RESOLVED": "Resolved",
-      "DISMISSED": "Dismissed"
-    },
-    "reportCard": {
-      "viewJob": "View Job"
-    },
-    "empty": {
-      "title": "No reports found",
-      "adjust": "Try adjusting your search or filter"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "Report Details",
-        "type": "Report Type",
-        "status": "Status"
-      },
-      "reportedBy": "Reported By",
-      "description": "Description",
-      "reviewedBy": "Reviewed By",
-      "admin": "Admin",
-      "reviewNotes": "Review Notes",
-      "submitted": "Submitted",
-      "viewJob": "View Job Post"
     }
   },
   "adminJobManagement": {
@@ -2378,9 +2279,9 @@
   },
   "tabsLayout": {
     "home": "Home",
-    "saved": "Saved",
-    "applied": "Applied",
-    "company": "Company",
+    "favorite": "Favorite",
+    "applied": "Application",
+    "company": "Employers",
     "chat": "Chat",
     "profile": "Profile"
   },
@@ -2395,7 +2296,8 @@
     "reportJob": "Report Job",
     "reportHistory": "Report History",
     "companyProfile": "Company Profile",
-    "updateLocation": "Update Location"
+    "updateLocation": "Update Location",
+    "notifications": "Notifications"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "Edit Company Profile",
@@ -2427,51 +2329,7 @@
     "companies": "Companies",
     "companyDetails": "Company Details"
   },
-  "adminUsers": {
-    "title": "User Management",
-    "subtitle": "Manage users and their accounts",
-    "searchPlaceholder": "Search users by name or email...",
-    "loading": "Loading users...",
-    "actions": {
-      "suspendUser": "Suspend User",
-      "activateUser": "Activate User",
-      "deleteUser": "Delete User",
-      "confirmSuspend": "Are you sure you want to suspend {{name}}?",
-      "confirmActivate": "Are you sure you want to activate {{name}}?",
-      "confirmDelete": "Are you sure you want to delete {{name}}?",
-      "cancel": "Cancel",
-      "confirm": "Confirm",
-      "success": "Success",
-      "error": "Error",
-      "updateFailed": "Failed to update user status",
-      "suspend": "Suspend",
-      "activate": "Activate",
-      "delete": "Delete"
-    },
-    "common": {
-      "joinedToday": "Joined today",
-      "joinedDaysAgo": "Joined {{days}} days ago"
-    },
-    "stats": {
-      "applications": "applications",
-      "jobsPosted": "jobs posted",
-      "applicationsLabel": "Applications",
-      "jobsLabel": "Jobs",
-      "profile": "Profile"
-    },
-    "filters": {
-      "title": "Filter by Role",
-      "all": "All",
-      "jobSeekers": "Job Seekers",
-      "employers": "Employers"
-    },
-    "empty": {
-      "title": "No Users Found",
-      "noJobSeekers": "No job seekers found",
-      "noEmployers": "No employers found",
-      "noCriteria": "No users match your criteria"
-    }
-  },
+
   "adminReports": {
     "headerTitle": "Reports",
     "headerSubtitle": "You have {count} report(s)",

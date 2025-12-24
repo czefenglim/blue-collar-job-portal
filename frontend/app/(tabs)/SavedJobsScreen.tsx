@@ -206,20 +206,6 @@ const SavedJobsScreen: React.FC = () => {
     ]);
   };
 
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return t('time.today');
-    if (diffDays === 2) return t('time.yesterday');
-    if (diffDays <= 7) return t('time.daysAgo', { days: diffDays });
-    if (diffDays <= 30)
-      return t('time.weeksAgo', { weeks: Math.floor(diffDays / 7) });
-    return t('time.monthsAgo', { months: Math.floor(diffDays / 30) });
-  };
-
   const formatJobType = (type: string) => {
     const formatted = type
       .replace(/_/g, ' ')

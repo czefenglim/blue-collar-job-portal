@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Linking,
@@ -103,16 +102,7 @@ const AdminReportsScreen: React.FC = () => {
     },
   ];
 
-  useEffect(() => {
-    loadReports();
-    loadPendingAppealsCount();
-  }, [selectedFilter, pagination.page]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [reports, searchQuery]);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
@@ -155,9 +145,16 @@ const AdminReportsScreen: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [
+    selectedFilter,
+    pagination.page,
+    pagination.limit,
+    currentLanguage,
+    router,
+    t,
+  ]);
 
-  const loadPendingAppealsCount = async () => {
+  const loadPendingAppealsCount = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) return;
@@ -176,9 +173,14 @@ const AdminReportsScreen: React.FC = () => {
     } catch (error) {
       console.error('Error loading pending appeals count:', error);
     }
-  };
+  }, []);
 
-  const applyFilters = () => {
+  useEffect(() => {
+    loadReports();
+    loadPendingAppealsCount();
+  }, [loadReports, loadPendingAppealsCount]);
+
+  const applyFilters = useCallback(() => {
     let filtered = [...reports];
 
     if (searchQuery.trim()) {
@@ -193,13 +195,17 @@ const AdminReportsScreen: React.FC = () => {
     }
 
     setFilteredReports(filtered);
-  };
+  }, [reports, searchQuery]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     loadReports();
     loadPendingAppealsCount();
-  }, [selectedFilter, pagination.page]);
+  }, [loadReports, loadPendingAppealsCount]);
 
   const handleReportPress = (report: Report) => {
     setSelectedReport(report);

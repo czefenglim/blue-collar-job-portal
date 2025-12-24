@@ -14,8 +14,7 @@ export default function EmployerLayout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { t } = useLanguage();
 
-  // Load unread count
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) return;
@@ -33,18 +32,17 @@ export default function EmployerLayout() {
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
-  };
+  }, [URL]);
 
-  // Load on mount
   useEffect(() => {
     loadUnreadCount();
-  }, []);
+  }, [loadUnreadCount]);
 
   // Refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadUnreadCount();
-    }, [])
+    }, [loadUnreadCount])
   );
 
   return (

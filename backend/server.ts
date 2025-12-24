@@ -21,8 +21,10 @@ import chatRoutes from './routes/chat';
 import aiAssistantRoutes from './routes/aiAssistant';
 import subscriptionRoutes from './routes/subscription';
 import subscriptionPlanRoutes from './routes/subscriptionPlans';
+import statisticRoutes from './routes/statistic';
 import './jobs/notificationJobs';
 import paymentRoutes from './routes/payment';
+import hireRoutes from './routes/hire';
 import path from 'path';
 
 const app = express();
@@ -93,7 +95,9 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/ai-assistant', aiAssistantRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/subscription-plans', subscriptionPlanRoutes);
+app.use('/api/statistics', statisticRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/hire', hireRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -127,4 +131,3 @@ app.use(
 );
 
 export default app;
-

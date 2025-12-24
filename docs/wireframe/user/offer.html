@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offer Wireframe</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+        --danger: #ef4444;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .back {
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .line {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+      }
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 12px 0;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .item {
+        flex: 1;
+      }
+      .label {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 4px;
+      }
+      .value {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .contract {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        background: #eff6ff;
+        border: 1px dashed #bfdbfe;
+        border-radius: 12px;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+      }
+      .btn {
+        flex: 1;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+      .btn.reject {
+        border: 1px solid var(--danger);
+        color: var(--danger);
+        background: #fff;
+      }
+      .btn.accept {
+        background: var(--success);
+        color: #fff;
+      }
+      .status {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        gap: 8px;
+      }
+      .modal {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        background: #fff;
+      }
+      .modal-title {
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .upload {
+        height: 40px;
+        border-radius: 10px;
+        border: 1px dashed #cbd5e1;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+      }
+      .checkbox {
+        height: 20px;
+        border-radius: 6px;
+        border: 1px solid #94a3b8;
+        width: 20px;
+        margin-right: 8px;
+      }
+      .modal-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-cancel {
+        flex: 1;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .btn-confirm {
+        flex: 1;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--success);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="back"></div>
+        <div class="title">Offer</div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="line" style="width: 60%"></div>
+          <div class="line" style="width: 40%"></div>
+          <div class="divider"></div>
+          <div class="row">
+            <div class="item">
+              <div class="label">Start Date</div>
+              <div class="value" style="width: 70%"></div>
+            </div>
+            <div class="item">
+              <div class="label">Salary</div>
+              <div class="value" style="width: 80%"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="item">
+              <div class="label">Duration</div>
+              <div class="value" style="width: 50%"></div>
+            </div>
+          </div>
+          <div class="contract">View Contract PDF</div>
+        </div>
+        <div class="actions">
+          <div class="btn reject">Reject Offer</div>
+          <div class="btn accept">Accept Offer</div>
+        </div>
+        <div style="height: 12px"></div>
+        <div class="status">
+          <div
+            style="
+              width: 48px;
+              height: 48px;
+              border-radius: 24px;
+              background: #d1fae5;
+            "
+          ></div>
+          <div style="font-size: 14px; color: var(--muted)">
+            You have accepted this offer
+          </div>
+        </div>
+        <div style="height: 16px"></div>
+        <div class="modal">
+          <div class="modal-title">Accept & Sign</div>
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px">
+            Upload the signed contract PDF
+          </div>
+          <div class="upload">Upload Signed PDF</div>
+          <div class="modal-row">
+            <div class="checkbox"></div>
+            <div style="font-size: 12px; color: var(--text)">
+              I agree to the contract terms
+            </div>
+          </div>
+          <div class="modal-actions">
+            <div class="btn-cancel">Cancel</div>
+            <div class="btn-confirm">Submit & Accept</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

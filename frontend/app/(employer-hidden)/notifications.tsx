@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -44,13 +44,7 @@ export default function EmployerNotifications() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchNotifications();
-    }, [filter])
-  );
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -81,7 +75,13 @@ export default function EmployerNotifications() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [filter, router, t]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -273,7 +273,10 @@ export default function EmployerNotifications() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -292,7 +295,7 @@ export default function EmployerNotifications() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}

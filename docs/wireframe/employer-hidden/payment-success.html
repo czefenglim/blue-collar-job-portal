@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Success</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 36px;
+        background: var(--success);
+        margin: 0 auto 12px;
+      }
+      .text {
+        text-align: center;
+        color: #065f46;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .message {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 18px;
+        margin-bottom: 12px;
+      }
+      .features-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .feature-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        background: #d1fae5;
+        flex-shrink: 0;
+      }
+      .feature-line {
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        flex: 1;
+      }
+      .btn {
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        background: var(--primary);
+        color: #fff;
+        margin-top: 16px;
+      }
+      .placeholder {
+        height: 60px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        font-weight: 600;
+        margin-top: 12px;
+      }
+      .helper {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 12px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div
+          style="
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 6px;
+          "
+        ></div>
+        <div class="title">Payment Success</div>
+        <div style="width: 24px; height: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="icon"></div>
+        <div class="text">Your payment was successful</div>
+        <div class="message">
+          Your subscription has been activated. Enjoy your selected plan
+          features
+        </div>
+
+        <div class="features-card">
+          <div class="feature-item">
+            <div class="feature-icon"></div>
+            <div class="feature-line" style="width: 70%"></div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon"></div>
+            <div class="feature-line" style="width: 60%"></div>
+          </div>
+          <div class="feature-item" style="margin-bottom: 0">
+            <div class="feature-icon"></div>
+            <div class="feature-line" style="width: 50%"></div>
+          </div>
+        </div>
+
+        <div class="btn">Proceed to Dashboard</div>
+        <div class="helper">A receipt has been sent to your email</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -54,6 +54,11 @@ const NotificationsScreen: React.FC = () => {
     loadNotifications();
   }, [pagination.page]);
 
+  useEffect(() => {
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    router.setParams({ unreadCount });
+  }, [notifications]);
+
   const loadNotifications = async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
@@ -317,23 +322,7 @@ const NotificationsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
-          {unreadCount > 0 && (
-            <Text style={styles.headerSubtitle}>
-              {t('notifications.unreadCount', { count: unreadCount })}
-            </Text>
-          )}
-        </View>
-      </View>
+      {/* Header removed, now handled in layout */}
 
       {/* Action Buttons */}
       {notifications.length > 0 && (
@@ -562,4 +551,3 @@ const styles = StyleSheet.create({
 });
 
 export default NotificationsScreen;
-

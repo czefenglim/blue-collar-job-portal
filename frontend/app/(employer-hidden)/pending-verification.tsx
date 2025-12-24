@@ -61,7 +61,10 @@ export default function PendingVerificationScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
         </View>
@@ -70,7 +73,7 @@ export default function PendingVerificationScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Icon */}
         <View style={styles.iconContainer}>
@@ -89,11 +92,15 @@ export default function PendingVerificationScreen() {
         <View style={styles.timelineCard}>
           <View style={styles.timelineItem}>
             <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-            <Text style={styles.timelineText}>{t('pendingVerification.statusSubmitted')}</Text>
+            <Text style={styles.timelineText}>
+              {t('pendingVerification.statusSubmitted')}
+            </Text>
           </View>
           <View style={styles.timelineItem}>
             <Ionicons name="time-outline" size={24} color="#F59E0B" />
-            <Text style={styles.timelineText}>{t('pendingVerification.statusUnderReview')}</Text>
+            <Text style={styles.timelineText}>
+              {t('pendingVerification.statusUnderReview')}
+            </Text>
           </View>
           <View style={styles.timelineItem}>
             <Ionicons name="ellipse-outline" size={24} color="#CBD5E1" />
@@ -107,7 +114,9 @@ export default function PendingVerificationScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color="#3B82F6" />
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.infoTitle}>{t('pendingVerification.infoTitle')}</Text>
+            <Text style={styles.infoTitle}>
+              {t('pendingVerification.infoTitle')}
+            </Text>
             <Text style={styles.infoText}>
               {t('pendingVerification.infoText')}
             </Text>
@@ -117,16 +126,22 @@ export default function PendingVerificationScreen() {
         {/* Company Details */}
         {companyData && (
           <View style={styles.detailsCard}>
-            <Text style={styles.detailsTitle}>{t('pendingVerification.detailsTitle')}</Text>
+            <Text style={styles.detailsTitle}>
+              {t('pendingVerification.detailsTitle')}
+            </Text>
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{t('pendingVerification.companyName')}</Text>
+              <Text style={styles.detailLabel}>
+                {t('pendingVerification.companyName')}
+              </Text>
               <Text style={styles.detailValue}>{companyData.name}</Text>
             </View>
 
             {companyData.industry && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{t('pendingVerification.industry')}</Text>
+                <Text style={styles.detailLabel}>
+                  {t('pendingVerification.industry')}
+                </Text>
                 <Text style={styles.detailValue}>
                   {companyData.industry.name}
                 </Text>
@@ -135,7 +150,9 @@ export default function PendingVerificationScreen() {
 
             {companyData.city && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{t('pendingVerification.location')}</Text>
+                <Text style={styles.detailLabel}>
+                  {t('pendingVerification.location')}
+                </Text>
                 <Text style={styles.detailValue}>
                   {companyData.city}, {companyData.state}
                 </Text>
@@ -143,7 +160,9 @@ export default function PendingVerificationScreen() {
             )}
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{t('pendingVerification.submitted')}</Text>
+              <Text style={styles.detailLabel}>
+                {t('pendingVerification.submitted')}
+              </Text>
               <Text style={styles.detailValue}>
                 {new Date(companyData.createdAt).toLocaleDateString()}
               </Text>
@@ -153,7 +172,9 @@ export default function PendingVerificationScreen() {
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>{t('pendingVerification.logout')}</Text>
+          <Text style={styles.logoutText}>
+            {t('pendingVerification.logout')}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

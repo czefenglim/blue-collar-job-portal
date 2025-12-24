@@ -10,28 +10,19 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// ✅ CRITICAL: Conditional import with error handling
-let ExpoSpeechRecognitionModule: any = null;
-// Always define a hook reference; default to a no-op hook to satisfy
-// React's Rules of Hooks even when the module isn't available.
-let useSpeechRecognitionEventHook: any = (
-  _eventName: string,
-  _handler: (...args: any[]) => void
-) => {
-  // No-op hook using useEffect to keep hook order consistent
-  React.useEffect(() => {}, [_eventName, _handler]);
-};
-let isSpeechRecognitionAvailable = false;
+import * as SpeechRecognition from 'expo-speech-recognition';
 
-try {
-  const speechRecognition = require('expo-speech-recognition');
-  ExpoSpeechRecognitionModule = speechRecognition.ExpoSpeechRecognitionModule;
-  useSpeechRecognitionEventHook = speechRecognition.useSpeechRecognitionEvent;
-  isSpeechRecognitionAvailable = true;
-} catch (error) {
-  console.log('⚠️ Speech recognition not available on this platform');
-  isSpeechRecognitionAvailable = false;
-}
+let ExpoSpeechRecognitionModule: any =
+  (SpeechRecognition as any).ExpoSpeechRecognitionModule || null;
+
+let useSpeechRecognitionEventHook: any =
+  (SpeechRecognition as any).useSpeechRecognitionEvent ||
+  ((_eventName: string, _handler: (...args: any[]) => void) => {
+    React.useEffect(() => {}, [_eventName, _handler]);
+  });
+
+const isSpeechRecognitionAvailable =
+  !!(SpeechRecognition as any).ExpoSpeechRecognitionModule;
 
 export type VoiceTextInputProps = {
   value: string;
@@ -283,4 +274,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
-
+

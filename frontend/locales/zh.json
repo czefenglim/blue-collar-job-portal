@@ -935,6 +935,10 @@
     "application": "申请",
     "applications": "申请",
     "stats": "{filtered} / {total} {application}",
+    "options": "申请选项",
+    "selectAction": "你想对这个申请做什么？",
+    "viewDetails": "查看详情",
+    "reportJob": "举报申请",
     "filters": {
       "all": "全部",
       "pending": "待处理",
@@ -981,6 +985,11 @@
     "jobCount": "已保存{count}个{jobs}",
     "job": "工作",
     "jobs": "工作",
+    "options": "已保存职位选项",
+    "selectAction": "你想对这个已保存的职位做什么？",
+    "viewDetails": "查看详情",
+    "unsave": "取消保存已保存职位",
+    "reportJob": "举报已保存职位",
     "emptyState": {
       "title": "尚无已保存工作",
       "description": "开始浏览工作并保存您感兴趣的工作",
@@ -1109,8 +1118,8 @@
     }
   },
   "login": {
-    "appTitle": "预算控制",
-    "appSubtitle": "掌控您的财务",
+    "appTitle": "蓝领工作门户",
+    "appSubtitle": "开始您的职业旅程",
     "welcomeBack": "欢迎回来！",
     "signInToContinue": "登录以继续",
     "email": "电子邮件",
@@ -1797,6 +1806,10 @@
       "authRequiredTitle": "需要认证",
       "authRequiredMessage": "请登录以继续",
       "loadFailed": "加载举报失败"
+    },
+    "alerts": {
+      "error": "错误",
+      "ok": "确定"
     }
   },
   "adminCompanyApproval": {
@@ -1909,53 +1922,6 @@
     "tryAgain": "再试一次",
     "errors": {
       "loadFailed": "加载用户失败"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "举报管理",
-    "headerSubtitle": "{count} 总举报",
-    "appeals": "申诉",
-    "searchPlaceholder": "搜索举报...",
-    "loading": "加载举报...",
-    "filters": {
-      "all": "全部",
-      "pending": "待处理",
-      "underReview": "审核中",
-      "resolved": "已解决",
-      "dismissed": "已驳回"
-    },
-    "reportTypes": {
-      "SCAM": "诈骗",
-      "INAPPROPRIATE": "不当内容",
-      "SPAM": "垃圾信息",
-      "OTHER": "其他"
-    },
-    "status": {
-      "PENDING": "待处理",
-      "UNDER_REVIEW": "审核中",
-      "RESOLVED": "已解决",
-      "DISMISSED": "已驳回"
-    },
-    "reportCard": {
-      "viewJob": "查看职位"
-    },
-    "empty": {
-      "title": "未找到举报",
-      "adjust": "请调整您的搜索或筛选"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "举报详情",
-        "type": "举报类型",
-        "status": "状态"
-      },
-      "reportedBy": "举报人",
-      "description": "描述",
-      "reviewedBy": "审核人",
-      "admin": "管理员",
-      "reviewNotes": "审核备注",
-      "submitted": "提交时间",
-      "viewJob": "查看职位发布"
     }
   },
   "adminJobManagement": {
@@ -2260,9 +2226,9 @@
   },
   "tabsLayout": {
     "home": "首页",
-    "saved": "已保存",
-    "applied": "已申请",
-    "company": "公司",
+    "favorite": "收藏",
+    "applied": "申请",
+    "company": "雇主",
     "chat": "聊天",
     "profile": "个人资料"
   },
@@ -2277,7 +2243,8 @@
     "reportJob": "举报职位",
     "reportHistory": "举报历史",
     "companyProfile": "公司资料",
-    "updateLocation": "更新位置"
+    "updateLocation": "更新位置",
+    "notifications": "通知"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "编辑公司资料",
@@ -2308,114 +2275,5 @@
     "companyApprovalDetails": "公司审批详情",
     "companies": "公司",
     "companyDetails": "公司详情"
-  },
-  "adminUsers": {
-    "title": "用户管理",
-    "subtitle": "管理用户及其帐户",
-    "searchPlaceholder": "搜索用户...",
-    "loading": "正在加载用户...",
-    "actions": {
-      "suspendUser": "暂停用户",
-      "activateUser": "激活用户",
-      "deleteUser": "删除用户",
-      "confirmSuspend": "您确定要暂停 {{name}} 吗？",
-      "confirmActivate": "您确定要激活 {{name}} 吗？",
-      "confirmDelete": "您确定要删除 {{name}} 吗？",
-      "cancel": "取消",
-      "confirm": "确认",
-      "success": "成功",
-      "error": "错误",
-      "updateFailed": "无法更新用户状态",
-      "suspend": "暂停",
-      "activate": "激活",
-      "delete": "删除"
-    },
-    "common": {
-      "joinedToday": "今天加入",
-      "joinedDaysAgo": "加入 {{days}} 天前"
-    },
-    "stats": {
-      "applications": "申请",
-      "jobsPosted": "发布职位",
-      "applicationsLabel": "申请",
-      "jobsLabel": "职位",
-      "profile": "个人资料"
-    },
-    "filters": {
-      "title": "按角色筛选",
-      "all": "全部",
-      "jobSeekers": "求职者",
-      "employers": "雇主"
-    },
-    "empty": {
-      "noJobSeekers": "未找到求职者",
-      "noEmployers": "未找到雇主",
-      "noCriteria": "没有用户符合您的标准"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "举报与审核",
-    "headerSubtitle": "{{count}} 个举报等待审核",
-    "appeals": "申诉",
-    "searchPlaceholder": "搜索举报...",
-    "loading": "正在加载举报...",
-    "evidenceTitle": "证据",
-    "filters": {
-      "all": "全部",
-      "pending": "待处理",
-      "underReview": "审核中",
-      "resolved": "已解决",
-      "dismissed": "已驳回"
-    },
-    "status": {
-      "PENDING": "待处理",
-      "UNDER_REVIEW": "审核中",
-      "RESOLVED": "已解决",
-      "DISMISSED": "已驳回",
-      "PENDING_EMPLOYER_RESPONSE": "等待雇主回应"
-    },
-    "reportTypes": {
-      "FAKE_JOB": "虚假职位",
-      "MISLEADING_INFO": "误导性信息",
-      "INAPPROPRIATE_CONTENT": "不当内容",
-      "SCAM_SUSPECTED": "涉嫌诈骗",
-      "DISCRIMINATION": "歧视",
-      "DUPLICATE_POSTING": "重复发布",
-      "OTHERS": "其他"
-    },
-    "reportCard": {
-      "viewJob": "查看职位"
-    },
-    "empty": {
-      "title": "未找到举报",
-      "adjust": "尝试调整搜索筛选器"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "审核信息",
-        "type": "举报类型",
-        "status": "状态",
-        "reportedBy": "举报人",
-        "description": "描述",
-        "evidence": "证据",
-        "review": "审核"
-      },
-      "reportedBy": "举报人",
-      "description": "描述",
-      "reviewedBy": "审核人",
-      "admin": "管理员",
-      "reviewNotes": "审核备注",
-      "submitted": "已提交",
-      "viewJob": "查看职位公告"
-    },
-    "errors": {
-      "authRequiredTitle": "需要登录",
-      "authRequiredMessage": "请登录以查看举报",
-      "loadFailed": "无法加载举报"
-    },
-    "alerts": {
-      "error": "错误",
-      "ok": "确定"
-    }
   }
 }

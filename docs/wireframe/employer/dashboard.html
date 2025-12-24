@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employer Dashboard</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .kpi-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .kpi {
+        flex: 1;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+      }
+      .kpi-number {
+        height: 18px;
+        background: #d1fae5;
+        border-radius: 6px;
+        margin: 0 auto 6px;
+        width: 60%;
+      }
+      .kpi-label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .title {
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .job-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .reviews {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .review {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">Dashboard</div>
+      <div class="content">
+            >
+              Welcome Back
+            <div class="kpi-number"></div>
+            <div class="kpi-label">Active Jobs</div>
+              Company Name
+            </div>
+            <div class="kpi-number"></div>
+            <div class="kpi-label">Applicants</div>
+            <div class="text-line" style="width: 60px; height: 30px">
+              Pricing
+            </div>
+            <div class="text-line" style="width: 30px; height: 30px">Notif</div>
+            <div class="kpi-number"></div>
+          <div class="kpi">
+            <div class="kpi-number">15</div>
+          <div class="kpi">
+            <div class="kpi-number"></div>
+            <div class="kpi-label">Reviews</div>
+            <div class="kpi-label">Total Applicants</div>
+          </div>
+            <div class="kpi-label">Shortlisted</div>
+          </div>
+        </div>
+            <span
+              style="
+                height: 14px;
+                width: 60%;
+                background: #e5e7eb;
+                border-radius: 3px;
+              "
+            ></span
+            ><span
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <div
+              class="text-line"
+              style="height: 40px; background: #dbeafe; color: var(--primary)"
+            >
+              View Applicants
+            ></span>
+              style="height: 40px; background: #fef3c7; color: #d97706"
+            >
+            <span
+              style="
+                height: 14px;
+                width: 50%;
+                background: #e5e7eb;
+                border-radius: 3px;
+              "
+            ></span
+            ><span
+              style="height: 40px; background: #f1f5f9; color: #64748b"
+            >
+              Settings
+            </div>
+          </div>
+            <div class="text-line" style="width: 60%; margin-bottom: 0">
+            ></span>
+              style="
+                height: 20px;
+                border-radius: 8px;
+          <div class="title">Recent Reviews</div>
+                width: 60px;
+                border: 1px solid var(--primary);
+              <div
+                style="
+                  height: 14px;
+                  width: 70%;
+                  background: #e5e7eb;
+                  border-radius: 3px;
+                "
+              ></div>
+                justify-content: center;
+                font-size: 10px;
+              <div
+                style="
+                  height: 14px;
+                  width: 60%;
+                  background: #e5e7eb;
+                  border-radius: 3px;
+                "
+              ></div>
+            >
+              Active
+            </div>
+          <div
+            style="
+              display: flex;
+              gap: 12px;
+              margin-bottom: 12px;
+              padding-bottom: 12px;
+              border-bottom: 1px solid var(--border);
+            "
+          >
+            <div style="width: 80px; text-align: center">
+              <div
+                class="text-line"
+                style="
+                  height: 30px;
+                  font-size: 18px;
+                  font-weight: bold;
+                  margin-bottom: 4px;
+                "
+              >
+                4.5
+              </div>
+              <div class="text-line" style="height: 12px">Stars</div>
+              <div class="text-line" style="height: 12px">12 Reviews</div>
+            </div>
+            <div style="flex: 1">
+              <div
+                class="text-line"
+                style="height: 8px; width: 100%; margin-bottom: 4px"
+              >
+                5 Star Bar
+              </div>
+              <div
+                class="text-line"
+                style="height: 8px; width: 80%; margin-bottom: 4px"
+              >
+                4 Star Bar
+              </div>
+              <div
+                class="text-line"
+                style="height: 8px; width: 40%; margin-bottom: 4px"
+              >
+                3 Star Bar
+              </div>
+              <div
+                class="text-line"
+                style="height: 8px; width: 10%; margin-bottom: 4px"
+              >
+                2 Star Bar
+              </div>
+              <div
+                class="text-line"
+                style="height: 8px; width: 5%; margin-bottom: 4px"
+              >
+                1 Star Bar
+              </div>
+            </div>
+          </div>
+
+          <div class="reviews">
+            <div class="review">
+              <div class="text-line" style="width: 70%; margin-bottom: 0">
+                Great workplace environment
+              </div>
+            </div>
+            <div class="review">
+              <div class="text-line" style="width: 60%; margin-bottom: 0">
+                Good management team
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div
+          class="card"
+          style="background-color: #fffbeb; border-color: #fcd34d"
+        >
+          <div class="title" style="color: #b45309">Hiring Tips</div>
+          <div
+            class="text-line"
+            style="width: 90%; background-color: #fef3c7; color: #92400e"
+          >
+            Tip: Complete your company profile
+          </div>
+          <div
+            class="text-line"
+            style="width: 85%; background-color: #fef3c7; color: #92400e"
+          >
+            Tip: Respond to applicants quickly
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

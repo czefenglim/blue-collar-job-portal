@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -65,7 +65,7 @@ interface JobDetails {
   };
   reportCount: number;
   employerReportCount: number;
-  recentReports: Array<{
+  recentReports: {
     id: number;
     reportType: string;
     description: string;
@@ -75,7 +75,7 @@ interface JobDetails {
       fullName: string;
       email: string;
     };
-  }>;
+  }[];
   applicationCount: number;
 }
 
@@ -92,11 +92,7 @@ const JobReviewScreen: React.FC = () => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadJobDetails();
-  }, [jobId]);
-
-  const loadJobDetails = async () => {
+  const loadJobDetails = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
@@ -128,7 +124,11 @@ const JobReviewScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [jobId, router]);
+
+  useEffect(() => {
+    loadJobDetails();
+  }, [loadJobDetails]);
 
   const handleAction = (type: typeof actionType) => {
     setActionType(type);
@@ -282,20 +282,6 @@ const JobReviewScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Job Review</Text>
-          <Text style={styles.headerSubtitle}>ID: {job.id}</Text>
-        </View>
-      </View>
-
       <ScrollView style={styles.content}>
         {/* Status Alerts */}
         {job.isSuspended && (

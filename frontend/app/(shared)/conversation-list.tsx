@@ -11,11 +11,11 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { format, isToday, isYesterday } from 'date-fns';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import useChat from '@/hooks/useChat';
+import { useChat } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 
@@ -68,7 +68,6 @@ interface User {
 // Color palette
 const PRIMARY_BLUE = '#1E40AF';
 const ACCENT_GREEN = '#10B981';
-const ACCENT_ORANGE = '#F59E0B';
 const LIGHT_BACKGROUND = '#F8FAFC';
 const CARD_BACKGROUND = '#FFFFFF';
 const TEXT_PRIMARY = '#1E293B';
@@ -90,19 +89,7 @@ const ConversationsListScreen: React.FC = () => {
   const router = useRouter();
   const isEmployer = user?.role === 'EMPLOYER';
 
-  // Load user data and token FIRST
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (navigation && conversations.length > 0) {
-      // Update header with conversation count
-      navigation.setParams({ conversationCount: conversations.length });
-    }
-  }, [conversations, navigation]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userToken = await AsyncStorage.getItem('jwtToken');
       const userData = await AsyncStorage.getItem('userData');
@@ -120,15 +107,102 @@ const ConversationsListScreen: React.FC = () => {
       console.error('Error loading user data:', error);
       Alert.alert(t('common.error'), 'Failed to load user data');
     }
-  };
+  }, [t, navigation]);
 
-  // Socket callbacks (keep your existing implementation)
-  const handleConversationUpdated = useCallback(
-    (data: any) => {
-      // ... keep your existing implementation
+  // Load user data and token FIRST
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  // Fetch and upsert a single conversation by id
+  const upsertConversationFromServer = useCallback(
+    async (conversationId: number) => {
+      if (!token) return;
+      try {
+        const response = await fetch(
+          `${URL}/api/chat/conversations/${conversationId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setConversations((prev) => {
+              const exists = prev.some((c) => c.id === conversationId);
+              const next = exists
+                ? prev.map((c) => (c.id === conversationId ? data.data : c))
+                : [data.data, ...prev];
+              return next.sort((a, b) => {
+                const dateA = a.lastMessageAt
+                  ? new Date(a.lastMessageAt).getTime()
+                  : 0;
+                const dateB = b.lastMessageAt
+                  ? new Date(b.lastMessageAt).getTime()
+                  : 0;
+                return dateB - dateA;
+              });
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error upserting conversation:', error);
+      }
     },
-    [user?.id]
+    [token]
   );
+
+  // Fetch conversations
+  const fetchConversations = useCallback(
+    async (pageNum: number = 1, refresh: boolean = false) => {
+      if (!token) return;
+
+      try {
+        if (refresh) {
+          setRefreshing(true);
+        }
+
+        const response = await fetch(
+          `${URL}/api/chat/conversations?page=${pageNum}&limit=20`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            if (pageNum === 1) {
+              setConversations(data.data);
+            } else {
+              setConversations((prev) => [...prev, ...data.data]);
+            }
+
+            setHasMore(
+              data.pagination ? pageNum < data.pagination.totalPages : false
+            );
+
+            // Update header with count
+            if (navigation && pageNum === 1) {
+              navigation.setParams({ conversationCount: data.data.length });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [token, navigation]
+  );
+
+  const handleConversationUpdated = useCallback((data: any) => {
+    console.log('📝 Conversation updated in ChatScreen:', data);
+  }, []);
 
   const handleMessagesRead = useCallback(
     (data: { conversationId: number; readBy: number; count: number }) => {
@@ -183,7 +257,7 @@ const ConversationsListScreen: React.FC = () => {
         });
       });
     },
-    [user?.id]
+    [user?.id, upsertConversationFromServer]
   );
 
   const handleMessageEdited = useCallback((message: any) => {
@@ -246,95 +320,21 @@ const ConversationsListScreen: React.FC = () => {
     onError: handleSocketError,
   });
 
-  // Fetch and upsert a single conversation by id
-  const upsertConversationFromServer = async (conversationId: number) => {
-    if (!token) return;
-    try {
-      const response = await fetch(
-        `${URL}/api/chat/conversations/${conversationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setConversations((prev) => {
-            const exists = prev.some((c) => c.id === conversationId);
-            const next = exists
-              ? prev.map((c) => (c.id === conversationId ? data.data : c))
-              : [data.data, ...prev];
-            return next.sort((a, b) => {
-              const dateA = a.lastMessageAt
-                ? new Date(a.lastMessageAt).getTime()
-                : 0;
-              const dateB = b.lastMessageAt
-                ? new Date(b.lastMessageAt).getTime()
-                : 0;
-              return dateB - dateA;
-            });
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error upserting conversation:', error);
+  useEffect(() => {
+    if (navigation) {
+      navigation.setParams({
+        conversationCount: conversations.length,
+        isConnected,
+      });
     }
-  };
-
-  // Fetch conversations
-  const fetchConversations = async (
-    pageNum: number = 1,
-    refresh: boolean = false
-  ) => {
-    if (!token) return;
-
-    try {
-      if (refresh) {
-        setRefreshing(true);
-      }
-
-      const response = await fetch(
-        `${URL}/api/chat/conversations?page=${pageNum}&limit=20`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          if (pageNum === 1) {
-            setConversations(data.data);
-          } else {
-            setConversations((prev) => [...prev, ...data.data]);
-          }
-
-          setHasMore(
-            data.pagination ? pageNum < data.pagination.totalPages : false
-          );
-
-          // Update header with count
-          if (navigation && pageNum === 1) {
-            navigation.setParams({ conversationCount: data.data.length });
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  }, [conversations.length, isConnected, navigation]);
 
   // Initial load - Only after user is loaded
   useEffect(() => {
     if (userLoaded && user && token) {
       fetchConversations();
     }
-  }, [userLoaded, user, token]);
+  }, [userLoaded, user, token, fetchConversations]);
 
   // Refresh on focus
   useFocusEffect(
@@ -342,7 +342,7 @@ const ConversationsListScreen: React.FC = () => {
       if (userLoaded && user && token) {
         fetchConversations(1, true);
       }
-    }, [userLoaded, user, token])
+    }, [userLoaded, user, token, fetchConversations])
   );
 
   // Handle refresh
@@ -616,7 +616,7 @@ const ConversationsListScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
             style={styles.backButton}
@@ -636,14 +636,14 @@ const ConversationsListScreen: React.FC = () => {
           <View style={styles.headerPlaceholder} />
         </View>
 
-        {/* Connection Status */}
+       
         {!isConnected && (
           <View style={styles.connectionBanner}>
             <Ionicons name="wifi" size={16} color="#92400e" />
             <Text style={styles.connectionText}>{t('chat.connecting')}</Text>
           </View>
         )}
-      </View>
+      </View> */}
 
       {/* Conversations List */}
       <FlatList

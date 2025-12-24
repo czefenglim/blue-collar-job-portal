@@ -935,6 +935,10 @@
     "application": "விண்ணப்பம்",
     "applications": "விண்ணப்பங்கள்",
     "stats": "{filtered} / {total} {application}",
+    "options": "விண்ணப்பங்கள் விருப்பங்கள்",
+    "selectAction": "விண்ணப்பங்கள் விருப்பங்கள்",
+    "viewDetails": "விண்ணப்பங்கள் விருப்பங்கள்",
+    "reportJob": "விண்ணப்பங்கள் விருப்பங்கள்",
     "filters": {
       "all": "அனைத்தும்",
       "pending": "நிலுவையில்",
@@ -981,6 +985,11 @@
     "jobCount": "{count} {jobs} சேமிக்கப்பட்டது",
     "job": "வேலை",
     "jobs": "வேலைகள்",
+    "options": "சேமிக்கப்பட்ட வேலை விருப்பங்கள்",
+    "selectAction": "இந்த சேமிக்கப்பட்ட வேலையுடன் நீங்கள் என்ன செய்ய விரும்புகிறீர்கள்?",
+    "viewDetails": "விவரங்களைப் பார்க்க",
+    "unsave": "சேமிக்கப்பட்ட வேலையை நீக்கு",
+    "reportJob": "சேமிக்கப்பட்ட வேலை பற்றி புகார் செய்ய",
     "emptyState": {
       "title": "இன்னும் சேமிக்கப்பட்ட வேலைகள் இல்லை",
       "description": "வேலைகளை உலாவத் தொடங்கி, நீங்கள் விரும்பும் வேலைகளைச் சேமிக்கவும்",
@@ -1109,8 +1118,8 @@
     }
   },
   "login": {
-    "appTitle": "பட்ஜெட் கண்ட்ரோல்",
-    "appSubtitle": "உங்கள் நிதியைக் கட்டுப்படுத்துங்கள்",
+    "appTitle": "நீலக்காலர் வேலை போர்டல்",
+    "appSubtitle": "உங்கள் தொழில் பயணத்தைத் தொடங்குங்கள்",
     "welcomeBack": "மீண்டும் வரவேற்கிறோம்!",
     "signInToContinue": "தொடர உள்நுழைக",
     "email": "மின்னஞ்சல்",
@@ -1269,15 +1278,9 @@
     "startChatWithApplicants": "விண்ணப்பதாரர்களுடன் உரையாடலைத் தொடங்குங்கள், பின்னர் இங்கே உரையாடல்கள் தோன்றும்",
     "waitForEmployerMessage": "நியமனத்தார் உங்களுடன் தொடர்பு கொண்டால் உரையாடல் இங்கே தோன்றும்",
     "noMessages": "செய்திகள் எதுவும் இல்லை",
-    "yesterday": "நேற்று",
     "you": "நீங்கள்",
     "image": "படம்",
     "file": "கோப்பு",
-    "connecting": "உரையாடலுக்கு இணைக்கப்படுகிறது...",
-
-    "typeMessage": "செய்தியை எழுதவும்...",
-    "messageDeleted": "இந்த செய்தி நீக்கப்பட்டுள்ளது",
-    "edited": "திருத்தப்பட்டது",
     "edit": "திருத்து",
     "delete": "நீக்கு",
     "messageOptions": "செய்தி விருப்பங்கள்",
@@ -1804,6 +1807,10 @@
       "authRequiredTitle": "அங்கீகாரம் தேவை",
       "authRequiredMessage": "தொடர உள்நுழைக",
       "loadFailed": "அறிக்கைகளை ஏற்ற முடியவில்லை"
+    },
+    "alerts": {
+      "error": "பிழை",
+      "ok": "சரி"
     }
   },
   "adminCompanyApproval": {
@@ -1927,53 +1934,6 @@
     "tryAgain": "மீண்டும் முயற்சி செய்",
     "errors": {
       "loadFailed": "பயனர்களை ஏற்ற முடியவில்லை"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "புகார் மேலாண்மை",
-    "headerSubtitle": "{count} மொத்த புகார்கள்",
-    "appeals": "முறையீடுகள்",
-    "searchPlaceholder": "புகார்களைத் தேடு...",
-    "loading": "புகார்கள் ஏற்றப்படுகிறது...",
-    "filters": {
-      "all": "அனைத்தும்",
-      "pending": "நிலுவை",
-      "underReview": "மதிப்பாய்வில் உள்ளது",
-      "resolved": "தீர்க்கப்பட்டது",
-      "dismissed": "நிராகரிக்கப்பட்டது"
-    },
-    "reportTypes": {
-      "SCAM": "மோசடி",
-      "INAPPROPRIATE": "தவறான உள்ளடக்கம்",
-      "SPAM": "ஸ்பேம்",
-      "OTHER": "மற்றவை"
-    },
-    "status": {
-      "PENDING": "நிலுவை",
-      "UNDER_REVIEW": "மதிப்பாய்வில் உள்ளது",
-      "RESOLVED": "தீர்க்கப்பட்டது",
-      "DISMISSED": "நிராகரிக்கப்பட்டது"
-    },
-    "reportCard": {
-      "viewJob": "வேலையைப் பார்"
-    },
-    "empty": {
-      "title": "புகார்கள் எதுவும் இல்லை",
-      "adjust": "தேடலை அல்லது வடிகட்டிகளை மாற்றிப் பாருங்கள்"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "புகார் விவரங்கள்",
-        "type": "புகார் வகை",
-        "status": "நிலை"
-      },
-      "reportedBy": "புகாரளித்தவர்",
-      "description": "விளக்கம்",
-      "reviewedBy": "மதிப்பாய்வு செய்தவர்",
-      "admin": "நிர்வாகி",
-      "reviewNotes": "மதிப்பாய்வு குறிப்புகள்",
-      "submitted": "சமர்ப்பிக்கப்பட்டது",
-      "viewJob": "வேலை இடுகையைப் பார்"
     }
   },
   "adminJobManagement": {
@@ -2278,9 +2238,9 @@
   },
   "tabsLayout": {
     "home": "முகப்பு",
-    "saved": "சேமிக்கப்பட்டவை",
-    "applied": "விண்ணப்பிக்கப்பட்டவை",
-    "company": "நிறுவனம்",
+    "favorite": "விருப்பம்",
+    "applied": "பதிவு செய்தவை",
+    "company": "பதிவு செய்தவை",
     "chat": "உரையாடல்",
     "profile": "சுயவிவரம்"
   },
@@ -2295,7 +2255,8 @@
     "reportJob": "வேலை புகார்",
     "reportHistory": "புகார் வரலாறு",
     "companyProfile": "நிறுவன சுயவிவரம்",
-    "updateLocation": "இருப்பிடத்தைப் புதுப்பி"
+    "updateLocation": "இருப்பிடத்தைப் புதுப்பி",
+    "notifications": "அறிவிப்புகள்"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "நிறுவன சுயவிவரத்தைத் தொகு",
@@ -2366,71 +2327,6 @@
       "noJobSeekers": "வேலை தேடுபவர்கள் யாரும் இல்லை",
       "noEmployers": "முதலாளிகள் யாரும் இல்லை",
       "noCriteria": "உங்கள் நிபந்தனைகளுக்கு எந்த பயனரும் இல்லை"
-    }
-  },
-  "adminReports": {
-    "headerTitle": "அறிக்கைகள் & மதிப்பீடு",
-    "headerSubtitle": "{{count}} அறிக்கைகள் மதிப்பாய்வுக்கு உள்ளன",
-    "appeals": "மேல்முறையீடுகள்",
-    "searchPlaceholder": "அறிக்கைகளைத் தேடு...",
-    "loading": "அறிக்கைகளை ஏற்றுகிறது...",
-    "evidenceTitle": "ஆதாரம்",
-    "filters": {
-      "all": "அனைத்தும்",
-      "pending": "நிலுவையில்",
-      "underReview": "மதிப்பாய்வில்",
-      "resolved": "தீர்க்கப்பட்டது",
-      "dismissed": "நிராகரிக்கப்பட்டது"
-    },
-    "status": {
-      "PENDING": "நிலுவையில்",
-      "UNDER_REVIEW": "மதிப்பாய்வில்",
-      "RESOLVED": "தீர்க்கப்பட்டது",
-      "DISMISSED": "நிராகரிக்கப்பட்டது",
-      "PENDING_EMPLOYER_RESPONSE": "முதலாளி பதிலுக்காக காத்திருக்கிறது"
-    },
-    "reportTypes": {
-      "FAKE_JOB": "போலி வேலை",
-      "MISLEADING_INFO": "தவறான தகவல்",
-      "INAPPROPRIATE_CONTENT": "தகாத உள்ளடக்கம்",
-      "SCAM_SUSPECTED": "மோசடி சந்தேகம்",
-      "DISCRIMINATION": "பாகுபாடு",
-      "DUPLICATE_POSTING": "நகல் பதிவு",
-      "OTHERS": "மற்றவை"
-    },
-    "reportCard": {
-      "viewJob": "வேலையைப் பார்"
-    },
-    "empty": {
-      "title": "அறிக்கைகள் எதுவும் இல்லை",
-      "adjust": "உங்கள் தேடல் வடிகட்டிகளை மாற்றவும்"
-    },
-    "detailModal": {
-      "sections": {
-        "reviewInfo": "மதிப்பாய்வு தகவல்",
-        "type": "அறிக்கை வகை",
-        "status": "நிலை",
-        "reportedBy": "புகாரளித்தவர்",
-        "description": "விளக்கம்",
-        "evidence": "ஆதாரம்",
-        "review": "மதிப்பாய்வு"
-      },
-      "reportedBy": "புகாரளித்தவர்",
-      "description": "விளக்கம்",
-      "reviewedBy": "மதிப்பாய்வு செய்தவர்",
-      "admin": "நிர்வாகி",
-      "reviewNotes": "மதிப்பாய்வு குறிப்புகள்",
-      "submitted": "சமர்ப்பிக்கப்பட்டது",
-      "viewJob": "வேலை அறிவிப்பைப் பார்"
-    },
-    "errors": {
-      "authRequiredTitle": "உள்நுழைவு தேவை",
-      "authRequiredMessage": "அறிக்கைகளைப் பார்க்க உள்நுழையவும்",
-      "loadFailed": "அறிக்கைகளை ஏற்ற முடியவில்லை"
-    },
-    "alerts": {
-      "error": "பிழை",
-      "ok": "சரி"
     }
   }
 }

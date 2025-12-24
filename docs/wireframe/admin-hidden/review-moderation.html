@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Moderation Wireframe</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        color: white;
+        padding: 20px;
+        padding-top: 40px;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .search-bar {
+        padding: 15px;
+        background-color: white;
+        border-bottom: 1px solid #eee;
+      }
+      .search-input {
+        width: 100%;
+        height: 40px;
+        background-color: #f1f5f9;
+        border-radius: 8px;
+        border: none;
+      }
+      .filters {
+        display: flex;
+        padding: 10px 15px;
+        gap: 10px;
+        overflow-x: auto;
+        border-bottom: 1px solid #eee;
+        background-color: white;
+      }
+      .filter-chip {
+        padding: 6px 12px;
+        background-color: #f1f5f9;
+        border-radius: 15px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .filter-chip.active {
+        background-color: #3b82f6;
+        color: white;
+      }
+      .content {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background-color: #f8fafc;
+      }
+      .review-card {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+      }
+      .review-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .avatar {
+        width: 30px;
+        height: 30px;
+        background-color: #cbd5e1;
+        border-radius: 50%;
+      }
+      .username {
+        width: 80px;
+        height: 12px;
+        background-color: #333;
+        border-radius: 4px;
+      }
+      .rating {
+        color: #f59e0b;
+        font-weight: bold;
+      }
+      .review-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+      }
+      .review-body {
+        font-size: 14px;
+        color: #64748b;
+        line-height: 1.4;
+        margin-bottom: 10px;
+      }
+      .flag-alert {
+        background-color: #fef2f2;
+        border: 1px solid #fee2e2;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        color: #991b1b;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .btn-sm {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-hide {
+        background-color: #e2e8f0;
+        color: #333;
+      }
+      .btn-delete {
+        background-color: #ef4444;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="header">
+        <h1>Review Moderation</h1>
+      </div>
+      <div class="search-bar">
+        <div class="search-input"></div>
+      </div>
+      <div class="filters">
+        <div class="filter-chip active">All Reviews</div>
+        <div class="filter-chip">Flagged</div>
+        <div class="filter-chip">Hidden</div>
+        <div class="filter-chip">Low Rating</div>
+      </div>
+      <div class="content">
+        <!-- Review Card 1 -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="user-info">
+              <div class="avatar"></div>
+              <div class="username"></div>
+            </div>
+            <div class="rating">★ 1.0</div>
+          </div>
+          <div class="review-title">Fake Job Posting</div>
+          <div class="review-body">
+            This company asked for money upfront. Do not apply!
+          </div>
+          <div class="flag-alert">⚠ Flagged: Scam / Fraud</div>
+          <div class="actions">
+            <div class="btn-sm btn-hide">Hide</div>
+            <div class="btn-sm btn-delete">Delete</div>
+          </div>
+        </div>
+
+        <!-- Review Card 2 -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="user-info">
+              <div class="avatar"></div>
+              <div class="username"></div>
+            </div>
+            <div class="rating">★ 4.5</div>
+          </div>
+          <div class="review-title">Great Experience</div>
+          <div class="review-body">Good work environment and fair pay.</div>
+          <div class="actions">
+            <div class="btn-sm btn-hide">Hide</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      function adjustHeight() {
+        const frame = document.getElementById('mobileFrame');
+        frame.style.height = '812px'; // Reset to min-height
+        if (frame.scrollHeight > 812) {
+          frame.style.height = frame.scrollHeight + 'px';
+        }
+      }
+      window.addEventListener('load', adjustHeight);
+      setInterval(adjustHeight, 1000);
+    </script>
+  </body>
+</html>

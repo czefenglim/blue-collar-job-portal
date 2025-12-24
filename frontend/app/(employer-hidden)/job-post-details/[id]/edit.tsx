@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -124,13 +124,7 @@ export default function EditJobPage() {
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showSkillsPicker, setShowSkillsPicker] = useState(false);
 
-  useEffect(() => {
-    fetchJobData();
-    fetchIndustries();
-    fetchSkills();
-  }, [jobId]);
-
-  const fetchJobData = async () => {
+  const fetchJobData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(`${URL}/api/jobs/getJob/${jobId}`, {
@@ -190,9 +184,9 @@ export default function EditJobPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, router, t]);
 
-  const fetchIndustries = async () => {
+  const fetchIndustries = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(
@@ -206,9 +200,9 @@ export default function EditJobPage() {
     } catch (error) {
       console.error('Error fetching industries:', error);
     }
-  };
+  }, [currentLanguage]);
 
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(
@@ -222,7 +216,13 @@ export default function EditJobPage() {
     } catch (error) {
       console.error('Error fetching skills:', error);
     }
-  };
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    fetchJobData();
+    fetchIndustries();
+    fetchSkills();
+  }, [fetchJobData, fetchIndustries, fetchSkills]);
 
   const toggleSkill = (skillId: number) => {
     setSelectedSkills((prev) =>
@@ -512,20 +512,7 @@ export default function EditJobPage() {
     .join(', ');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {t('employerJobEdit.headerTitle')}
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
-
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}

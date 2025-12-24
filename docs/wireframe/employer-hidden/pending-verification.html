@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pending Verification</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --warn: #f59e0b;
+        --success: #10b981;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 36px;
+        background: #fde68a;
+        margin: 0 auto 12px;
+      }
+      .text {
+        text-align: center;
+        color: #92400e;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .hint {
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 12px;
+      }
+      .timeline-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .timeline-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .status-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        background: #e0e7ff;
+      }
+      .status-line {
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        flex: 1;
+      }
+      .info-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .info-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        background: #93c5fd;
+      }
+      .info-lines {
+        flex: 1;
+      }
+      .line {
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+      }
+      .details-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .details-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1e293b;
+        margin-bottom: 10px;
+      }
+      .detail-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--soft);
+        margin-bottom: 8px;
+      }
+      .label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .value {
+        width: 50%;
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .logout {
+        margin-top: 12px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #dc2626;
+        border: 1px solid #dc2626;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div
+          style="
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 6px;
+          "
+        ></div>
+        <div class="title">Pending Verification</div>
+        <div style="width: 24px; height: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="icon"></div>
+        <div class="text">Your company is under review</div>
+        <div class="hint">
+          You will be notified once verification is complete
+        </div>
+
+        <div class="timeline-card">
+          <div class="timeline-item">
+            <div class="status-icon" style="background: #d1fae5"></div>
+            <div class="status-line" style="width: 60%"></div>
+          </div>
+          <div class="timeline-item">
+            <div class="status-icon" style="background: #fde68a"></div>
+            <div class="status-line" style="width: 70%"></div>
+          </div>
+          <div class="timeline-item" style="margin-bottom: 0">
+            <div class="status-icon" style="background: #e5e7eb"></div>
+            <div class="status-line" style="width: 50%"></div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon"></div>
+          <div class="info-lines">
+            <div class="line" style="width: 50%"></div>
+            <div class="line" style="width: 80%"></div>
+          </div>
+        </div>
+
+        <div class="details-card">
+          <div class="details-title">Company Details</div>
+          <div class="detail-row">
+            <div class="label">Company Name</div>
+            <div class="value"></div>
+          </div>
+          <div class="detail-row">
+            <div class="label">Industry</div>
+            <div class="value"></div>
+          </div>
+          <div class="detail-row">
+            <div class="label">Location</div>
+            <div class="value"></div>
+          </div>
+          <div class="detail-row">
+            <div class="label">Submitted</div>
+            <div class="value"></div>
+          </div>
+        </div>
+
+        <div class="logout">Logout</div>
+      </div>
+    </div>
+  </body>
+</html>

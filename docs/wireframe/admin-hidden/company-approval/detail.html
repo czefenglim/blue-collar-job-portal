@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Company Approval Detail Wireframe</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background-color: #f8fafc;
+        border: 1px solid #ddd;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        background-color: white;
+        padding: 16px;
+        padding-top: 50px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .back-button {
+        width: 24px;
+        height: 24px;
+        background-color: #3b82f6;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+      }
+      .header-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .content {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .status-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+      }
+      .status-badge {
+        padding: 8px 16px;
+        background-color: #fef3c7;
+        color: #d97706;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .card {
+        background-color: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+      .company-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+      }
+      .logo-placeholder {
+        width: 64px;
+        height: 64px;
+        background-color: #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 24px;
+      }
+      .company-info {
+        flex: 1;
+      }
+      .company-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .industry-badge {
+        display: inline-block;
+        background-color: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #475569;
+      }
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 8px;
+      }
+      .description {
+        font-size: 14px;
+        color: #475569;
+        line-height: 1.5;
+      }
+      .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .info-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .info-icon {
+        width: 20px;
+        height: 20px;
+        background-color: #e2e8f0;
+        border-radius: 50%;
+      }
+      .info-label {
+        color: #64748b;
+        width: 80px;
+      }
+      .info-value {
+        color: #0f172a;
+        flex: 1;
+      }
+      .link-text {
+        color: #3b82f6;
+        text-decoration: underline;
+      }
+      .document-card {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        gap: 12px;
+      }
+      .doc-icon {
+        width: 24px;
+        height: 24px;
+        background-color: #3b82f6;
+        border-radius: 4px;
+      }
+      .document-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #0f172a;
+      }
+      .job-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+      }
+      .job-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .job-title {
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .job-type {
+        font-size: 12px;
+        color: #64748b;
+        background-color: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .job-status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .job-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background-color: #fef3c7;
+        color: #d97706;
+      }
+      .fixed-actions {
+        background-color: white;
+        padding: 16px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        position: sticky;
+        bottom: 0;
+      }
+      .action-button {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 600;
+        color: white;
+      }
+      .reject-button {
+        background-color: #ef4444;
+      }
+      .approve-button {
+        background-color: #10b981;
+      }
+      .spacer {
+        height: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="header">
+        <div class="back-button">&larr;</div>
+        <div class="header-title">Company Details</div>
+      </div>
+
+      <div class="content">
+        <!-- Status Badge -->
+        <div class="status-container">
+          <div class="status-badge">PENDING</div>
+        </div>
+
+        <!-- Company Info Card -->
+        <div class="card">
+          <div class="company-header">
+            <div class="logo-placeholder">Img</div>
+            <div class="company-info">
+              <div class="company-name">Acme Construction</div>
+              <div class="industry-badge">Construction</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">About</div>
+            <div class="description">
+              Leading construction company specializing in commercial and
+              residential projects. Established in 2010.
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Contact Information</div>
+            <div class="info-grid">
+              <div class="info-row">
+                <div class="info-icon"></div>
+                <div class="info-label">Email:</div>
+                <div class="info-value">contact@acme.com</div>
+              </div>
+              <div class="info-row">
+                <div class="info-icon"></div>
+                <div class="info-label">Phone:</div>
+                <div class="info-value">+1 234 567 8900</div>
+              </div>
+              <div class="info-row">
+                <div class="info-icon"></div>
+                <div class="info-label">Website:</div>
+                <div class="info-value link-text">www.acme.com</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Location</div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-value">123 Build St, New York, NY, 10001</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Company Size</div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-value">50-100 Employees</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Employer Account Card -->
+        <div class="card">
+          <div class="card-title">Employer Account</div>
+          <div class="info-grid">
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Name:</div>
+              <div class="info-value">John Doe</div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Email:</div>
+              <div class="info-value">john.doe@acme.com</div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Phone:</div>
+              <div class="info-value">+1 987 654 3210</div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Registered:</div>
+              <div class="info-value">12/20/2024</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Documents -->
+        <div class="card">
+          <div class="card-title">Verification Documents</div>
+          <div class="document-card">
+            <div class="doc-icon"></div>
+            <div class="document-name">Business Document</div>
+            <div class="doc-icon" style="background-color: #cbd5e1"></div>
+          </div>
+          <div class="info-grid" style="margin-top: 8px">
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Type:</div>
+              <div class="info-value">Business License</div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon"></div>
+              <div class="info-label">Submitted:</div>
+              <div class="info-value">12/21/2024</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jobs Posted -->
+        <div class="card">
+          <div class="card-title">Jobs Posted (2)</div>
+
+          <div class="job-card">
+            <div class="job-header">
+              <div class="job-title">Site Manager</div>
+              <div class="job-type">FULL TIME</div>
+            </div>
+            <div class="job-status-row">
+              <div class="job-badge">PENDING</div>
+              <div class="info-icon" style="background-color: #10b981"></div>
+            </div>
+          </div>
+
+          <div class="job-card">
+            <div class="job-header">
+              <div class="job-title">Laborer</div>
+              <div class="job-type">CONTRACT</div>
+            </div>
+            <div class="job-status-row">
+              <div
+                class="job-badge"
+                style="background-color: #d1fae5; color: #047857"
+              >
+                APPROVED
+              </div>
+              <div class="info-icon" style="background-color: #10b981"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+      </div>
+
+      <div class="fixed-actions">
+        <div class="action-button reject-button" onclick="openRejectModal()">
+          <span>Reject</span>
+        </div>
+        <div class="action-button approve-button" onclick="openApproveModal()">
+          <span>Approve</span>
+        </div>
+      </div>
+
+      <!-- Approve Modal -->
+      <div class="modal-overlay" id="approveModal">
+        <div class="modal-content">
+          <div class="modal-title">Approve Company</div>
+          <div class="modal-message">
+            Are you sure you want to approve "Acme Construction"? The employer
+            will be notified and can start posting jobs.
+          </div>
+          <div class="modal-actions">
+            <button class="modal-button cancel" onclick="closeApproveModal()">
+              Cancel
+            </button>
+            <button
+              class="modal-button confirm-success"
+              onclick="confirmApprove()"
+            >
+              Approve
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reject Modal -->
+      <div class="modal-overlay" id="rejectModal">
+        <div class="modal-content">
+          <div class="modal-title">Reject Company</div>
+          <div class="modal-message">
+            Please provide a detailed reason for rejecting "Acme Construction".
+            This will be sent to the employer.
+          </div>
+          <input
+            type="text"
+            class="modal-input"
+            id="rejectReason"
+            placeholder="Reason for rejection (min 10 chars)"
+          />
+          <div class="modal-actions">
+            <button class="modal-button cancel" onclick="closeRejectModal()">
+              Cancel
+            </button>
+            <button
+              class="modal-button confirm-danger"
+              onclick="confirmReject()"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      function adjustHeight() {
+        const frame = document.getElementById('mobileFrame');
+        frame.style.height = '812px'; // Reset to min-height
+        if (frame.scrollHeight > 812) {
+          frame.style.height = frame.scrollHeight + 'px';
+        }
+      }
+      window.addEventListener('load', adjustHeight);
+      setInterval(adjustHeight, 500);
+
+      // Modal Logic
+      function openApproveModal() {
+        document.getElementById('approveModal').style.display = 'flex';
+      }
+
+      function closeApproveModal() {
+        document.getElementById('approveModal').style.display = 'none';
+      }
+
+      function confirmApprove() {
+        alert('Company approved!');
+        closeApproveModal();
+      }
+
+      function openRejectModal() {
+        document.getElementById('rejectModal').style.display = 'flex';
+      }
+
+      function closeRejectModal() {
+        document.getElementById('rejectModal').style.display = 'none';
+        document.getElementById('rejectReason').value = '';
+      }
+
+      function confirmReject() {
+        const reason = document.getElementById('rejectReason').value;
+        if (reason.length < 10) {
+          alert('Please provide a more detailed reason (at least 10 characters)');
+          return;
+        }
+        alert('Company rejected with reason: ' + reason);
+        closeRejectModal();
+      }
+    </script>
+  </body>
+</html>

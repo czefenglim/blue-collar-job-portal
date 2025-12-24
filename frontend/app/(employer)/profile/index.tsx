@@ -11,14 +11,13 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { Href, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 
 const URL =
   Constants.expoConfig?.extra?.API_BASE_URL || 'http://localhost:5000';
@@ -34,7 +33,6 @@ const TEXT_GRAY = '#64748B';
 
 // Functional colors (keep these for semantic meaning, but can be muted or blue-shifted if needed)
 const SUCCESS_COLOR = '#10B981';
-const WARNING_COLOR = '#F59E0B';
 const ERROR_COLOR = '#EF4444';
 
 const BLUE_GRADIENT = [PRIMARY_BLUE, SECONDARY_BLUE] as const;
@@ -82,17 +80,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchProfile();
-    }, [])
-  );
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('jwtToken');
@@ -132,7 +120,6 @@ export default function ProfilePage() {
 
       setError(null);
 
-      // Animate in
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 800,
@@ -144,7 +131,17 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLanguage, router, fadeAnim]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   const LANGUAGES = [
     {
@@ -226,7 +223,7 @@ export default function ProfilePage() {
     icon: string,
     label: string,
     value?: string,
-    gradientColors?: readonly string[]
+    gradientColors?: readonly [string, string, ...string[]]
   ) => (
     <Animated.View
       style={[
@@ -245,7 +242,7 @@ export default function ProfilePage() {
       ]}
     >
       <LinearGradient
-        colors={gradientColors || BLUE_GRADIENT}
+        colors={gradientColors ?? BLUE_GRADIENT}
         style={styles.infoIconGradient}
       >
         <Ionicons name={icon as any} size={20} color="#FFFFFF" />
@@ -270,7 +267,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
           colors={[LIGHT_BLUE_BG, WHITE]}
           style={styles.loadingBackground}
@@ -282,13 +279,13 @@ export default function ProfilePage() {
             </Text>
           </View>
         </LinearGradient>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error || !profile) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
           colors={['#FEE2E2', '#FECACA']}
           style={styles.errorBackground}
@@ -319,12 +316,12 @@ export default function ProfilePage() {
             </TouchableOpacity>
           </View>
         </LinearGradient>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={[LIGHT_BLUE_BG, '#FFFFFF']}
         style={styles.backgroundGradient}
@@ -794,7 +791,7 @@ export default function ProfilePage() {
           </Animated.View>
         </ScrollView>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
 

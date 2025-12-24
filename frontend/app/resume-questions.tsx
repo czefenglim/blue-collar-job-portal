@@ -8,21 +8,31 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
+
+// --- Theme/Style Constants (Synced with HomeScreen) ---
+const PRIMARY_BLUE = '#0D47A1';
+const ACCENT_ORANGE = '#FF9800';
+const GRAY_TEXT = '#455A64';
+const LIGHT_BACKGROUND = '#F5F5F5';
+const CARD_BACKGROUND = '#FFFFFF';
+const BORDER_COLOR = '#E0E0E0';
+const SPACING = 16;
 
 interface ResumeQuestion {
   id: number;
   questionId: string;
   question: string;
-  type: string; // select | multiselect | multiline | text | number
+  type: string;
   options?: string[];
   required: boolean;
   conditionalOn?: string;
@@ -30,7 +40,7 @@ interface ResumeQuestion {
 }
 
 const ResumeQuestionsScreen: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +51,9 @@ const ResumeQuestionsScreen: React.FC = () => {
     try {
       const storedLang = await AsyncStorage.getItem('preferredLanguage');
       const lang = storedLang || 'en';
-      const response = await fetch(`${URL}/api/onboarding/getResumeQuestions?lang=${lang}`);
+      const response = await fetch(
+        `${URL}/api/onboarding/getResumeQuestions?lang=${lang}`
+      );
       const data = await response.json();
       setQuestions(data);
     } catch (err) {
@@ -66,7 +78,9 @@ const ResumeQuestionsScreen: React.FC = () => {
     });
   };
 
-  const saveResumeAnswers = async (formattedAnswers: { questionId: string; answer: any }[]) => {
+  const saveResumeAnswers = async (
+    formattedAnswers: { questionId: string; answer: any }[]
+  ) => {
     const token = await AsyncStorage.getItem('jwtToken');
     if (!token) throw new Error('JWT token missing');
     const response = await fetch(`${URL}/api/onboarding/saveResumeAnswers`, {
@@ -78,7 +92,8 @@ const ResumeQuestionsScreen: React.FC = () => {
       body: JSON.stringify({ answers: formattedAnswers }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data?.error || 'Failed to save resume answers');
+    if (!response.ok)
+      throw new Error(data?.error || 'Failed to save resume answers');
     return data;
   };
 
@@ -94,19 +109,21 @@ const ResumeQuestionsScreen: React.FC = () => {
       body: JSON.stringify({}),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data?.error || 'Failed to generate resume');
-    return data; // { data: { key } }
+    if (!response.ok)
+      throw new Error(data?.error || 'Failed to generate resume');
+    return data;
   };
 
   const handleRegenerate = async () => {
     try {
       setIsSubmitting(true);
-      // format answers
-      const formatted = Object.entries(answers).map(([questionId, answer]) => ({ questionId, answer }));
+      const formatted = Object.entries(answers).map(([questionId, answer]) => ({
+        questionId,
+        answer,
+      }));
       await saveResumeAnswers(formatted);
-      const data = await generateResume();
+      await generateResume();
       Alert.alert(t('common.success'), t('editProfile.resumeRegenerated'));
-      // Go back to EditProfile
       router.back();
     } catch (err) {
       console.error('Regenerate resume error:', err);
@@ -116,49 +133,52 @@ const ResumeQuestionsScreen: React.FC = () => {
     }
   };
 
-  const handleCancel = () => router.back();
-
   const renderQuestion = (q: ResumeQuestion) => {
     const qid = q.questionId || String(q.id);
     const value = answers[qid];
 
     switch (q.type) {
       case 'select':
-        return (
-          <View style={styles.optionList}>
-            {(q.options || []).map((opt) => (
-              <TouchableOpacity
-                key={opt}
-                style={[styles.optionItem, value === opt && styles.optionItemSelected]}
-                onPress={() => setAnswers((prev) => ({ ...prev, [qid]: opt }))}
-              >
-                <Text style={[styles.optionText, value === opt && styles.optionTextSelected]}>{opt}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        );
       case 'multiselect':
         return (
           <View style={styles.optionList}>
-            {(q.options || []).map((opt) => (
-              <TouchableOpacity
-                key={opt}
-                style={[
-                  styles.optionItem,
-                  Array.isArray(value) && value.includes(opt) && styles.optionItemSelected,
-                ]}
-                onPress={() => toggleMultiSelect(qid, opt)}
-              >
-                <Text
+            {(q.options || []).map((opt) => {
+              const isSelected =
+                q.type === 'select'
+                  ? value === opt
+                  : Array.isArray(value) && value.includes(opt);
+              return (
+                <TouchableOpacity
+                  key={opt}
                   style={[
-                    styles.optionText,
-                    Array.isArray(value) && value.includes(opt) && styles.optionTextSelected,
+                    styles.optionItem,
+                    isSelected && styles.optionItemSelected,
                   ]}
+                  onPress={() =>
+                    q.type === 'select'
+                      ? setAnswers((p) => ({ ...p, [qid]: opt }))
+                      : toggleMultiSelect(qid, opt)
+                  }
                 >
-                  {opt}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.optionTextSelected,
+                    ]}
+                  >
+                    {opt}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={PRIMARY_BLUE}
+                      style={{ marginLeft: 6 }}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         );
       case 'multiline':
@@ -170,29 +190,25 @@ const ResumeQuestionsScreen: React.FC = () => {
             placeholder={t('onboarding.buildResume.subtitle')}
             placeholderTextColor="#94A3B8"
             value={value || ''}
-            onChangeText={(text) => setAnswers((prev) => ({ ...prev, [qid]: text }))}
+            onChangeText={(text) =>
+              setAnswers((prev) => ({ ...prev, [qid]: text }))
+            }
           />
         );
-      case 'number':
-        return (
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder={t('onboarding.buildResume.subtitle')}
-            placeholderTextColor="#94A3B8"
-            value={value?.toString() || ''}
-            onChangeText={(text) => setAnswers((prev) => ({ ...prev, [qid]: Number(text) }))}
-          />
-        );
-      case 'text':
       default:
         return (
           <TextInput
             style={styles.input}
+            keyboardType={q.type === 'number' ? 'numeric' : 'default'}
             placeholder={t('onboarding.buildResume.subtitle')}
             placeholderTextColor="#94A3B8"
-            value={value || ''}
-            onChangeText={(text) => setAnswers((prev) => ({ ...prev, [qid]: text }))}
+            value={value?.toString() || ''}
+            onChangeText={(text) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [qid]: q.type === 'number' ? Number(text) : text,
+              }))
+            }
           />
         );
     }
@@ -202,8 +218,8 @@ const ResumeQuestionsScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>{t('onboarding.buildResume.title')}</Text>
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -211,59 +227,88 @@ const ResumeQuestionsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <LinearGradient colors={["#1E3A8A", "#3730A3"]} style={styles.headerGradient}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
-            <LinearGradient colors={["rgba(255,255,255,0.2)", "rgba(255,255,255,0.1)"]} style={styles.backButtonGradient}>
-              <Text style={styles.backIcon}>←</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>{t('onboarding.buildResume.title')}</Text>
-            <Text style={styles.headerSubtitle}>{t('onboarding.buildResume.subtitle')}</Text>
-          </View>
-          <View style={{ width: 44 }} />
+      {/* Header - Styled like Home Screen Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={26} color={PRIMARY_BLUE} />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>
+            {t('onboarding.buildResume.title')}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {t('onboarding.buildResume.subtitle')}
+          </Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>📝</Text>
-            <View>
-              <Text style={styles.sectionTitle}>{t('onboarding.buildResume.title')}</Text>
-              <Text style={styles.sectionSubtitle}>{t('onboarding.buildResume.description')}</Text>
-            </View>
+        {/* Intro Card */}
+        <View style={styles.introCard}>
+          <View style={styles.introIconContainer}>
+            <Ionicons
+              name="document-text-outline"
+              size={24}
+              color={PRIMARY_BLUE}
+            />
           </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.introTitle}>
+              {t('onboarding.buildResume.description')}
+            </Text>
+            <Text style={styles.introSubtitle}>
+              AI will enhance your answers into professional summaries.
+            </Text>
+          </View>
+        </View>
 
-          {questions.map((q) => (
-            <View key={q.id} style={styles.inputGroup}>
-              <Text style={styles.label}>{q.question}</Text>
+        {/* Questions Section */}
+        <View style={styles.questionsCard}>
+          {questions.map((q, index) => (
+            <View
+              key={q.id}
+              style={[styles.inputGroup, index === 0 && { marginTop: 0 }]}
+            >
+              <View style={styles.labelRow}>
+                <View style={styles.dot} />
+                <Text style={styles.label}>{q.question}</Text>
+              </View>
               {renderQuestion(q)}
+              {index < questions.length - 1 && <View style={styles.divider} />}
             </View>
           ))}
         </View>
-
-        <View style={{ height: 80 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Bottom actions */}
+      {/* Bottom Actions - Styled like Job Card Buttons */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.bottomButton} onPress={handleCancel} disabled={isSubmitting}>
-          <LinearGradient colors={["#94A3B8", "#64748B"]} style={styles.bottomButtonGradient}>
-            <Text style={styles.bottomButtonText}>{t('common.cancel')}</Text>
-          </LinearGradient>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => router.back()}
+          disabled={isSubmitting}
+        >
+          <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.bottomButton} onPress={handleRegenerate} disabled={isSubmitting}>
-          <LinearGradient colors={["#10B981", "#059669"]} style={styles.bottomButtonGradient}>
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.bottomButtonText}>{t('editProfile.regenerateAi')}</Text>
-            )}
-          </LinearGradient>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleRegenerate}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={styles.submitButtonText}>
+                {t('editProfile.regenerateAi')}
+              </Text>
+              <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -271,79 +316,147 @@ const ResumeQuestionsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: LIGHT_BACKGROUND },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 12, color: '#334155' },
-  headerGradient: { paddingBottom: 16 },
+  loadingText: { marginTop: 12, color: GRAY_TEXT, fontSize: 16 },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: SPACING,
+    paddingVertical: SPACING,
+    backgroundColor: CARD_BACKGROUND,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_COLOR,
   },
-  backButton: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden' },
-  backButtonGradient: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { color: '#FFFFFF', fontSize: 18 },
-  headerTitleContainer: { alignItems: 'center' },
-  headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },
-  headerSubtitle: { color: '#E5E7EB', fontSize: 12 },
-  content: { paddingHorizontal: 16, paddingTop: 16 },
-  section: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  sectionIcon: { fontSize: 20, marginRight: 8 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#0F172A' },
-  sectionSubtitle: { fontSize: 12, color: '#475569' },
-  inputGroup: { marginTop: 12 },
-  label: { fontSize: 14, color: '#334155', marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+  backButton: { marginRight: 12, padding: 4 },
+  headerContent: { flex: 1 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: PRIMARY_BLUE },
+  headerSubtitle: { fontSize: 13, color: GRAY_TEXT, marginTop: 2 },
+
+  content: { padding: SPACING },
+
+  // Intro Card
+  introCard: {
+    backgroundColor: '#E8F0FE',
+    borderRadius: 16,
+    padding: SPACING,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING,
+    borderLeftWidth: 4,
+    borderLeftColor: PRIMARY_BLUE,
+  },
+  introIconContainer: {
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
-    color: '#0F172A',
+    backgroundColor: CARD_BACKGROUND,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  introTitle: { fontSize: 15, fontWeight: '700', color: PRIMARY_BLUE },
+  introSubtitle: { fontSize: 12, color: GRAY_TEXT, marginTop: 2 },
+
+  // Questions Card
+  questionsCard: {
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 20,
+    padding: SPACING,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  inputGroup: { marginTop: 24 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: ACCENT_ORANGE,
+    marginRight: 8,
+  },
+  label: { fontSize: 15, fontWeight: '700', color: '#1A202C', flex: 1 },
+  divider: { height: 1, backgroundColor: '#F1F5F9', marginTop: 24 },
+
+  // Inputs
+  input: {
+    backgroundColor: LIGHT_BACKGROUND,
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: GRAY_TEXT,
   },
   inputMultiline: {
+    backgroundColor: LIGHT_BACKGROUND,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: BORDER_COLOR,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 96,
-    backgroundColor: '#FFFFFF',
-    color: '#0F172A',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 100,
+    fontSize: 16,
+    color: GRAY_TEXT,
     textAlignVertical: 'top',
   },
-  optionList: { flexDirection: 'row', flexWrap: 'wrap' },
+
+  // Options
+  optionList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   optionItem: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-    marginBottom: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  optionItemSelected: { borderColor: '#4F46E5', backgroundColor: '#EEF2FF' },
-  optionText: { color: '#334155', fontSize: 13 },
-  optionTextSelected: { color: '#312E81', fontWeight: '600' },
-  bottomActions: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     flexDirection: 'row',
-    padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    alignItems: 'center',
+    backgroundColor: LIGHT_BACKGROUND,
+    borderWidth: 1.5,
+    borderColor: BORDER_COLOR,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  optionItemSelected: {
+    borderColor: PRIMARY_BLUE,
+    backgroundColor: '#E3F2FD',
+  },
+  optionText: { color: GRAY_TEXT, fontSize: 14, fontWeight: '600' },
+  optionTextSelected: { color: PRIMARY_BLUE },
+
+  // Bottom Actions
+  bottomActions: {
+    flexDirection: 'row',
+    padding: SPACING,
+    backgroundColor: CARD_BACKGROUND,
+    borderTopWidth: 1,
+    borderTopColor: BORDER_COLOR,
     gap: 12,
   },
-  bottomButton: { flex: 1, borderRadius: 12, overflow: 'hidden' },
-  bottomButtonGradient: { paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
-  bottomButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  cancelButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: BORDER_COLOR,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CARD_BACKGROUND,
+  },
+  cancelButtonText: { color: GRAY_TEXT, fontSize: 16, fontWeight: '700' },
+  submitButton: {
+    flex: 2,
+    height: 52,
+    backgroundColor: PRIMARY_BLUE,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
 
 export default ResumeQuestionsScreen;
-

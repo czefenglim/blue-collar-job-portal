@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hire</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #fff;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .item {
+        flex: 1;
+      }
+      .label {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      .value {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .input-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .radio-group {
+        display: flex;
+        gap: 12px;
+      }
+      .radio {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        text-align: center;
+        font-weight: 600;
+        font-size: 12px;
+        color: #64748b;
+      }
+      .radio.active {
+        background: #eff6ff;
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .sub-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .frequency-group {
+        display: flex;
+        gap: 8px;
+      }
+      .freq {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #f8fafc;
+        text-align: center;
+        font-size: 12px;
+        color: #64748b;
+      }
+      .freq.active {
+        background: #eff6ff;
+        border-color: var(--primary);
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .contract {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 40px;
+        background: #eff6ff;
+        border: 1px dashed #bfdbfe;
+        border-radius: 12px;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        background: #f8fafc;
+      }
+      .checkbox-text {
+        font-size: 12px;
+        color: #475569;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+      }
+      .btn {
+        flex: 1;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+      .btn-outline {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background: #fff;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .placeholder {
+        height: 60px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div
+          style="
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 6px;
+          "
+        ></div>
+        <div class="title">Hire</div>
+        <div style="width: 24px; height: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="label">1. Start Date</div>
+          <div class="input-button">
+            <div class="value" style="width: 60%"></div>
+            <div
+              style="
+                width: 20px;
+                height: 20px;
+                border-radius: 6px;
+                background: #e2e8f0;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label">2. Contract Duration</div>
+          <div class="radio-group" style="margin-bottom: 8px">
+            <div class="radio active">Fixed-term</div>
+            <div class="radio">Permanent</div>
+          </div>
+          <div class="sub-label">Duration</div>
+          <div class="row">
+            <div class="value" style="flex: 1; margin-right: 12px"></div>
+            <div class="input-button" style="width: 140px; padding: 0 12px">
+              <div class="value" style="width: 60%"></div>
+              <div
+                style="
+                  width: 20px;
+                  height: 20px;
+                  border-radius: 6px;
+                  background: #e2e8f0;
+                "
+              ></div>
+            </div>
+          </div>
+          </div>
+          <div class="text-line">Duration Input (if Fixed-term)</div>
+        </div>
+          <div class="label">3. Salary Details</div>
+          <div class="sub-label">Amount (MYR)</div>
+          <div class="value" style="width: 60%"></div>
+          <div class="sub-label" style="margin-top: 8px">Pay Frequency</div>
+          <div class="frequency-group">
+            <div class="freq">Daily</div>
+            <div class="freq">Weekly</div>
+            <div class="freq active">Monthly</div>
+          </div>
+          <div class="text-line">Salary Amount Input</div>
+          <div class="text-line">
+            Pay Frequency Selection (Daily/Weekly/Monthly)
+          <div class="label">4. Contract PDF</div>
+          <div class="contract">Upload Contract (PDF)</div>
+
+        <div class="card">
+          <div class="section-title">Documents</div>
+          <div class="label">5. Employer Confirmation</div>
+          <div class="checkbox-row">
+            <div class="checkbox"></div>
+            <div class="checkbox-text">I confirm this offer is accurate</div>
+          </div>
+          <div class="checkbox-row" style="margin-bottom: 0">
+            <div class="checkbox"></div>
+            <div class="checkbox-text">
+              This contract complies with local labor laws
+            </div>
+          </div>
+        </div>
+
+        <div class="placeholder">Terms & Conditions</div>
+        <div class="placeholder">Identity Verification</div>
+        <div class="placeholder">Internal Notes</div>
+          <div class="text-line">"Compliance with laws" Checkbox</div>
+          <div class="btn btn-outline">Cancel</div>
+          <div class="btn btn-primary">Send Offer</div>
+        <div class="text-line">Terms & Conditions Link</div>
+        <div class="text-line">Identity Verification Notice</div>
+
+        <div class="actions">
+          <div class="btn">Cancel</div>
+          <div class="btn">Send Job Offer</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

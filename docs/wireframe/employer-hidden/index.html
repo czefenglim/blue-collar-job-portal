@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employer Hidden Flows</title>
+  <style>
+    :root { --primary:#1E3A8A; --border:#E2E8F0; --text:#334155; --muted:#64748B; --bg:#FFFFFF; --soft:#F8FAFC; }
+    body { margin:0; font-family: Segoe UI, Tahoma, sans-serif; background:var(--soft); color:var(--text); display:flex; justify-content:center; padding:24px; }
+    .app { width:100%; max-width:960px; background:var(--bg); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .header { background:var(--primary); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+    .title { font-weight:600; }
+    .nav { display:flex; gap:10px; flex-wrap:wrap; }
+    .nav a { text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,0.4); padding:6px 10px; border-radius:6px; font-size:12px; }
+    .content { padding:20px; }
+    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
+    .card { border:1px solid var(--border); border-radius:8px; padding:16px; background:var(--soft); }
+    .card h3 { margin:0 0 8px 0; font-size:16px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:8px; border:1px solid var(--primary); color:var(--primary); text-decoration:none; font-weight:600; font-size:13px; }
+    .btn-primary { background:var(--primary); color:#fff; border:none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">Employer Hidden Flows</div>
+      <nav class="nav">
+        <a href="./create-job.html">Create Job</a>
+        <a href="./edit-company-profile.html">Edit Company Profile</a>
+        <a href="./company-preview.html">Company Preview</a>
+        <a href="./job-post-details.html">Job Post Details</a>
+        <a href="./job-post-details-edit.html">Edit Job Post</a>
+        <a href="./hire.html">Hire</a>
+        <a href="./hire-verify.html">Hire Verify</a>
+        <a href="./notifications.html">Notifications</a>
+        <a href="./payment-success.html">Payment Success</a>
+        <a href="./payment-failed.html">Payment Failed</a>
+        <a href="./pending-verification.html">Pending Verification</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./reports.html">Reports</a>
+        <a href="./report-details.html">Report Details</a>
+        <a href="./reviews.html">Reviews</a>
+        <a href="./applicant-details.html">Applicant Details</a>
+      </nav>
+    </div>
+    <div class="content">
+      <div class="grid">
+        <div class="card"><h3>Create Job</h3><p class="muted">Form and publish flow</p><a class="btn btn-primary" href="./create-job.html">Open</a></div>
+        <div class="card"><h3>Edit Company Profile</h3><p class="muted">Company info editing</p><a class="btn btn-primary" href="./edit-company-profile.html">Open</a></div>
+        <div class="card"><h3>Company Preview</h3><p class="muted">Public company view</p><a class="btn btn-primary" href="./company-preview.html">Open</a></div>
+        <div class="card"><h3>Job Post Details</h3><p class="muted">Details and actions</p><a class="btn btn-primary" href="./job-post-details.html">Open</a></div>
+        <div class="card"><h3>Edit Job Post</h3><p class="muted">Edit fields</p><a class="btn btn-primary" href="./job-post-details-edit.html">Open</a></div>
+        <div class="card"><h3>Hire</h3><p class="muted">Offer setup</p><a class="btn btn-primary" href="./hire.html">Open</a></div>
+        <div class="card"><h3>Hire Verify</h3><p class="muted">Verify candidate</p><a class="btn btn-primary" href="./hire-verify.html">Open</a></div>
+        <div class="card"><h3>Notifications</h3><p class="muted">System alerts</p><a class="btn btn-primary" href="./notifications.html">Open</a></div>
+        <div class="card"><h3>Payment Success</h3><p class="muted">Confirmation</p><a class="btn btn-primary" href="./payment-success.html">Open</a></div>
+        <div class="card"><h3>Payment Failed</h3><p class="muted">Error message</p><a class="btn btn-primary" href="./payment-failed.html">Open</a></div>
+        <div class="card"><h3>Pending Verification</h3><p class="muted">Awaiting checks</p><a class="btn btn-primary" href="./pending-verification.html">Open</a></div>
+        <div class="card"><h3>Pricing</h3><p class="muted">Plans</p><a class="btn btn-primary" href="./pricing.html">Open</a></div>
+        <div class="card"><h3>Reports</h3><p class="muted">Incoming reports</p><a class="btn btn-primary" href="./reports.html">Open</a></div>
+        <div class="card"><h3>Report Details</h3><p class="muted">Case details</p><a class="btn btn-primary" href="./report-details.html">Open</a></div>
+        <div class="card"><h3>Reviews</h3><p class="muted">Company reviews</p><a class="btn btn-primary" href="./reviews.html">Open</a></div>
+        <div class="card"><h3>Applicant Details</h3><p class="muted">Candidate profile</p><a class="btn btn-primary" href="./applicant-details.html">Open</a></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

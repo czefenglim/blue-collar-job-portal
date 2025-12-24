@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabs Wireframes</title>
+  <style>
+    :root {
+      --primary: #1E3A8A;
+      --border: #E2E8F0;
+      --text: #334155;
+      --muted: #64748B;
+      --bg: #FFFFFF;
+      --bg-soft: #F8FAFC;
+    }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Tahoma, sans-serif;
+      background: var(--bg-soft);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+    .app {
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title {
+      font-weight: 600;
+    }
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav a {
+      text-decoration: none;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .content {
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--bg-soft);
+    }
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">Tabs Wireframes</div>
+      <nav class="nav">
+        <a href="./home.html">Home</a>
+        <a href="./applied.html">Applied Jobs</a>
+        <a href="./saved.html">Saved Jobs</a>
+        <a href="./companies.html">Companies</a>
+        <a href="./messages.html">Messages</a>
+        <a href="./profile.html">Profile</a>
+      </nav>
+    </div>
+    <div class="content">
+      <div class="grid">
+        <div class="card">
+          <h3>Home</h3>
+          <p class="muted">Find Jobs, Preferences, Filters, Job Cards</p>
+          <a class="btn btn-primary" href="./home.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Applied Jobs</h3>
+          <p class="muted">List of applications with status</p>
+          <a class="btn btn-primary" href="./applied.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Saved Jobs</h3>
+          <p class="muted">Saved job cards and actions</p>
+          <a class="btn btn-primary" href="./saved.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Companies</h3>
+          <p class="muted">Company listing grid, details</p>
+          <a class="btn btn-primary" href="./companies.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Messages</h3>
+          <p class="muted">Conversation list, previews</p>
+          <a class="btn btn-primary" href="./messages.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Profile</h3>
+          <p class="muted">Avatar, details, preferences</p>
+          <a class="btn btn-primary" href="./profile.html">Open</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

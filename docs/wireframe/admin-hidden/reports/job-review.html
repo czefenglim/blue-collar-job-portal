@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Review Wireframe</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background-color: #f8fafc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        background-color: white;
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+      }
+      .back-button {
+        cursor: pointer;
+      }
+      .header-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1e293b;
+      }
+      .header-subtitle {
+        font-size: 14px;
+        color: #64748b;
+      }
+      .content {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+      }
+      .alert-box {
+        display: flex;
+        background-color: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        gap: 12px;
+      }
+      .alert-content {
+        flex: 1;
+      }
+      .alert-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #92400e;
+        margin-bottom: 4px;
+      }
+      .alert-text {
+        font-size: 14px;
+        color: #78350f;
+      }
+      .stats-container {
+        display: flex;
+        gap: 12px;
+      }
+      .stat-card {
+        flex: 1;
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e293b;
+        margin-bottom: 4px;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.2;
+      }
+      .section {
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 16px;
+      }
+      .detail-row {
+        display: flex;
+        margin-bottom: 8px;
+      }
+      .detail-label {
+        width: 100px;
+        font-size: 14px;
+        color: #64748b;
+        flex-shrink: 0;
+      }
+      .detail-value {
+        flex: 1;
+        font-size: 14px;
+        color: #334155;
+        font-weight: 500;
+      }
+      .description-text {
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.5;
+      }
+      .report-card {
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .report-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .report-type {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+      }
+      .report-status {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .status-resolved {
+        color: #10b981;
+      }
+      .status-dismissed {
+        color: #64748b;
+      }
+      .status-pending {
+        color: #f59e0b;
+      }
+      .report-description {
+        font-size: 14px;
+        color: #334155;
+        margin-bottom: 8px;
+      }
+      .report-meta {
+        font-size: 12px;
+        color: #64748b;
+      }
+      .action-section {
+        background: #fff;
+        padding: 16px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .action-button {
+        padding: 14px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        border: none;
+      }
+      .dismiss-button {
+        background-color: #64748b;
+      }
+      .suspend-button {
+        background-color: #f59e0b;
+      }
+      .delete-button {
+        background-color: #ef4444;
+      }
+      .suspend-employer-button {
+        background-color: #dc2626;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background-color: white;
+        width: 85%;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        max-height: 80%;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+      .modal-description {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 16px;
+      }
+      .modal-textarea {
+        width: 100%;
+        height: 100px;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        resize: none;
+        font-family: inherit;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+      }
+      .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        border: none;
+      }
+      .btn-cancel {
+        background-color: #f1f5f9;
+        color: #64748b;
+      }
+      .btn-confirm {
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="header">
+        <div class="back-button" onclick="history.back()">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#1e3a8a"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </div>
+        <div>
+          <div class="header-title">Job Review</div>
+          <div class="header-subtitle">ID: 12345</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Status Alerts -->
+        <div class="alert-box" style="display: none" id="suspendedAlert">
+          <span>⚠️</span>
+          <div class="alert-content">
+            <div class="alert-title">Job is Suspended</div>
+            <div class="alert-text">Suspicious activity detected.</div>
+          </div>
+        </div>
+
+        <!-- Report Stats -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div style="color: #ef4444; margin-bottom: 4px">🚩</div>
+            <div class="stat-number">3</div>
+            <div class="stat-label">Reports on Job</div>
+          </div>
+          <div class="stat-card">
+            <div style="color: #f59e0b; margin-bottom: 4px">⚠️</div>
+            <div class="stat-number">1</div>
+            <div class="stat-label">Reports on Employer</div>
+          </div>
+          <div class="stat-card">
+            <div style="color: #3b82f6; margin-bottom: 4px">👥</div>
+            <div class="stat-number">12</div>
+            <div class="stat-label">Applications</div>
+          </div>
+        </div>
+
+        <!-- Job Details -->
+        <div class="section">
+          <div class="section-title">Job Information</div>
+          <div class="detail-row">
+            <div class="detail-label">Title:</div>
+            <div class="detail-value">Warehouse Manager</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Company:</div>
+            <div class="detail-value">Logistics Pro Inc.</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Industry:</div>
+            <div class="detail-value">Logistics</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Type:</div>
+            <div class="detail-value">Full Time</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Location:</div>
+            <div class="detail-value">Dallas, TX</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Salary:</div>
+            <div class="detail-value">RM 3,000 - RM 4,500 Monthly</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Posted:</div>
+            <div class="detail-value">Dec 18, 2023</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Views:</div>
+            <div class="detail-value">450</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="section">
+          <div class="section-title">Description</div>
+          <div class="description-text">
+            Oversee daily warehouse operations, manage inventory, and supervise
+            staff. Ensure safety protocols are followed.
+          </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="section">
+          <div class="section-title">Requirements</div>
+          <div class="description-text">
+            - 3+ years warehouse experience<br />
+            - Leadership skills<br />
+            - Forklift certification
+          </div>
+        </div>
+
+        <!-- Employer Info -->
+        <div class="section">
+          <div class="section-title">Employer Information</div>
+          <div class="detail-row">
+            <div class="detail-label">Name:</div>
+            <div class="detail-value">John Smith</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Email:</div>
+            <div class="detail-value">john@logisticspro.com</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Phone:</div>
+            <div class="detail-value">+1 234 567 890</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">Account Status:</div>
+            <div class="detail-value" style="color: #10b981">ACTIVE</div>
+          </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="section">
+          <div class="section-title">Recent Reports</div>
+          <!-- Report 1 -->
+          <div class="report-card">
+            <div class="report-header">
+              <div class="report-type">Scam / Fake Job</div>
+              <div class="report-status status-pending">PENDING</div>
+            </div>
+            <div class="report-description">
+              This job asks for payment before interview.
+            </div>
+            <div class="report-meta">
+              Reported by Alice Doe • Dec 20, 2023, 10:00 AM
+            </div>
+          </div>
+          <!-- Report 2 -->
+          <div class="report-card">
+            <div class="report-header">
+              <div class="report-type">Inappropriate Content</div>
+              <div class="report-status status-resolved">RESOLVED</div>
+            </div>
+            <div class="report-description">
+              Job description contains offensive language.
+            </div>
+            <div class="report-meta">
+              Reported by Bob Ross • Dec 19, 2023, 2:30 PM
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 20px"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-section">
+        <div class="section-title" style="margin-bottom: 12px; font-size: 16px">
+          Admin Actions
+        </div>
+        <button
+          class="action-button dismiss-button"
+          onclick="openModal('dismiss')"
+        >
+          <span>✖</span> Dismiss Report
+        </button>
+        <button
+          class="action-button suspend-button"
+          onclick="openModal('suspend')"
+        >
+          <span>⏸</span> Suspend Job Post
+        </button>
+        <button
+          class="action-button delete-button"
+          onclick="openModal('delete')"
+        >
+          <span>🗑</span> Delete Job Post
+        </button>
+        <button
+          class="action-button suspend-employer-button"
+          onclick="openModal('suspend-employer')"
+        >
+          <span>🚫</span> Suspend Employer Account
+        </button>
+      </div>
+
+      <!-- Action Modal -->
+      <div id="actionModal" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Action Title</div>
+            <div
+              style="cursor: pointer; font-size: 24px; color: #64748b"
+              onclick="closeModal()"
+            >
+              ×
+            </div>
+          </div>
+          <div class="modal-description">
+            Please provide a detailed reason for this action. This will be
+            shared with the affected parties.
+          </div>
+          <textarea
+            id="modalReason"
+            class="modal-textarea"
+            placeholder="Enter reason (minimum 10 characters)..."
+          ></textarea>
+          <div class="modal-actions">
+            <button class="modal-btn btn-cancel" onclick="closeModal()">
+              Cancel
+            </button>
+            <button
+              class="modal-btn btn-confirm"
+              id="confirmBtn"
+              onclick="confirmAction()"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentAction = null;
+
+      function adjustHeight() {
+        const frame = document.getElementById('mobileFrame');
+        const content = frame.querySelector('.content');
+
+        // Reset height to minimum
+        frame.style.height = '812px';
+
+        if (frame.scrollHeight > 812) {
+          frame.style.height = frame.scrollHeight + 'px';
+        }
+      }
+
+      window.addEventListener('load', adjustHeight);
+      setInterval(adjustHeight, 1000);
+
+      function openModal(actionType) {
+        currentAction = actionType;
+        const modal = document.getElementById('actionModal');
+        const title = document.getElementById('modalTitle');
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        switch (actionType) {
+          case 'dismiss':
+            title.innerText = 'Dismiss Report';
+            confirmBtn.style.backgroundColor = '#64748B';
+            break;
+          case 'suspend':
+            title.innerText = 'Suspend Job Post';
+            confirmBtn.style.backgroundColor = '#F59E0B';
+            break;
+          case 'delete':
+            title.innerText = 'Delete Job Post';
+            confirmBtn.style.backgroundColor = '#EF4444';
+            break;
+          case 'suspend-employer':
+            title.innerText = 'Suspend Employer Account';
+            confirmBtn.style.backgroundColor = '#DC2626';
+            break;
+        }
+
+        modal.style.display = 'flex';
+      }
+
+      function closeModal() {
+        document.getElementById('actionModal').style.display = 'none';
+        document.getElementById('modalReason').value = '';
+        currentAction = null;
+      }
+
+      function confirmAction() {
+        const reason = document.getElementById('modalReason').value;
+        if (reason.length < 10) {
+          alert('Error: Please provide a reason (minimum 10 characters)');
+          return;
+        }
+
+        alert(`Action '${currentAction}' confirmed with reason: ${reason}`);
+        closeModal();
+      }
+    </script>
+  </body>
+</html>

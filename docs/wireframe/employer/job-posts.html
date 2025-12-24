@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employer Job Posts</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .pill {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .btn {
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+      }
+      .btn-outline {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">Job Posts</div>
+      <div class="content">
+        <div class="filters">
+          <div class="pill">Active</div>
+          <div class="pill">Closed</div>
+          <div class="pill">Draft</div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <div
+              style="
+                height: 14px;
+                width: 60%;
+                background: #e5e7eb;
+                border-radius: 3px;
+              "
+            ></div>
+            <div class="meta">3 applicants</div>
+          </div>
+          <div class="actions">
+            <div class="btn btn-outline">Edit</div>
+            <div class="btn btn-primary">Manage</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <div
+              style="
+                height: 14px;
+                width: 50%;
+                background: #e5e7eb;
+                border-radius: 3px;
+              "
+            ></div>
+            <div class="meta">0 applicants</div>
+          </div>
+          <div class="actions">
+            <div class="btn btn-outline">Edit</div>
+            <div class="btn btn-primary">Manage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

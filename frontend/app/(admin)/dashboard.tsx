@@ -324,7 +324,7 @@ export default function AdminDashboardScreen() {
 
         <TouchableOpacity
           style={styles.manageButton}
-          onPress={() => router.push('/(admin)/job-statistics')}
+          onPress={() => router.push('/(admin-hidden)/job-statistics')}
         >
           <Ionicons name="stats-chart" size={20} color="#FFFFFF" />
           <Text style={styles.manageButtonText}>View More Statistics</Text>

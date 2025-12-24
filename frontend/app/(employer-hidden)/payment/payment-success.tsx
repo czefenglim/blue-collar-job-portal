@@ -12,7 +12,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useLanguage } from '@/contexts/LanguageContext';
-import LottieView from 'lottie-react-native';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -21,35 +20,28 @@ export default function PaymentSuccessScreen() {
   const { t } = useLanguage();
   const { session_id } = useLocalSearchParams();
   const [verifying, setVerifying] = useState(true);
-  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
+    const verifyPayment = async () => {
+      try {
+        const token = await AsyncStorage.getItem('jwtToken');
+        await fetch(
+          `${URL}/api/subscription/verify-payment?sessionId=${session_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+      } finally {
+        setVerifying(false);
+      }
+    };
+
     if (session_id) {
       verifyPayment();
     }
   }, [session_id]);
-
-  const verifyPayment = async () => {
-    try {
-      const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(
-        `${URL}/api/subscription/verify-payment?sessionId=${session_id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setVerified(true);
-      }
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-    } finally {
-      setVerifying(false);
-    }
-  };
 
   const handleProceed = () => {
     router.replace('/(employer)/dashboard');
@@ -57,7 +49,10 @@ export default function PaymentSuccessScreen() {
 
   if (verifying) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.loadingText}>
@@ -69,7 +64,7 @@ export default function PaymentSuccessScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.content}>
         {/* Success Icon */}
         <View style={styles.iconContainer}>

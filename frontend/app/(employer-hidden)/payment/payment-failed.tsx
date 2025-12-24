@@ -19,7 +19,7 @@ export default function PaymentFailedScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.content}>
         {/* Error Icon */}
         <View style={styles.iconContainer}>

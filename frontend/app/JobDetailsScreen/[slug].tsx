@@ -80,6 +80,16 @@ const TEXT_SECONDARY = '#64748B';
 const TEXT_TERTIARY = '#94A3B8';
 const BORDER_COLOR = '#E2E8F0';
 
+const EXPERIENCE_LEVEL_DATA: {
+  [key: string]: { title: string; subtitle?: string };
+} = {
+  ENTRY_LEVEL: { title: 'Entry Level' },
+  JUNIOR: { title: 'Junior', subtitle: '1-2 years' },
+  MID_LEVEL: { title: 'Mid Level', subtitle: '3-5 years' },
+  SENIOR: { title: 'Senior', subtitle: '5+ years' },
+  EXPERT: { title: 'Expert', subtitle: '10+ years' },
+};
+
 const JobDetailsScreen: React.FC = () => {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [job, setJob] = useState<JobDetails | null>(null);
@@ -359,12 +369,23 @@ const JobDetailsScreen: React.FC = () => {
           <TouchableOpacity style={styles.saveButton} onPress={toggleSaveJob}>
             <Ionicons
               name={job.isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={24}
+              size={20}
               color={job.isSaved ? ACCENT_ORANGE : PRIMARY_BLUE}
             />
+            <Text
+              style={[
+                styles.actionButtonText,
+                { color: job.isSaved ? ACCENT_ORANGE : PRIMARY_BLUE },
+              ]}
+            >
+              {job.isSaved ? 'Saved' : 'Save'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.reportButton} onPress={handleReport}>
-            <Ionicons name="flag-outline" size={22} color="#EF4444" />
+            <Ionicons name="flag-outline" size={20} color="#EF4444" />
+            <Text style={[styles.actionButtonText, { color: '#EF4444' }]}>
+              Report
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -426,12 +447,6 @@ const JobDetailsScreen: React.FC = () => {
                   {getTimeAgo(job.createdAt)}
                 </Text>
               </View>
-              <View style={styles.postedInfo}>
-                <Ionicons name="eye-outline" size={14} color={TEXT_TERTIARY} />
-                <Text style={styles.viewCount}>
-                  {job.viewCount} {t('jobDetails.stats.views')}
-                </Text>
-              </View>
             </View>
           </View>
         </View>
@@ -463,7 +478,27 @@ const JobDetailsScreen: React.FC = () => {
             <Text style={styles.statCardLabel}>
               {t('jobDetails.quickInfo.experience')}
             </Text>
-            <Text style={styles.statCardValue}>{job.experienceLevelLabel}</Text>
+            {EXPERIENCE_LEVEL_DATA[job.experienceLevel] ? (
+              <Text style={styles.statCardValue}>
+                {EXPERIENCE_LEVEL_DATA[job.experienceLevel].title}
+                {EXPERIENCE_LEVEL_DATA[job.experienceLevel].subtitle ? (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '400',
+                      color: '#64748B',
+                    }}
+                  >
+                    {'\n'}
+                    {EXPERIENCE_LEVEL_DATA[job.experienceLevel].subtitle}
+                  </Text>
+                ) : null}
+              </Text>
+            ) : (
+              <Text style={styles.statCardValue}>
+                {job.experienceLevelLabel}
+              </Text>
+            )}
           </View>
 
           <View style={styles.statCard}>
@@ -722,18 +757,30 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   saveButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#F0F7FF',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#DBEAFE',
+    gap: 6,
   },
   reportButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#FEF2F2',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#FECACA',
+    gap: 6,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   // Hero Section
   heroSection: {

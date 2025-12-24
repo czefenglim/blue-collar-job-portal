@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Company Approval</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        background-color: #f8fafc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        min-height: 812px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .status-bar {
+        height: 44px;
+        background-color: #1e3a8a; /* Matches header gradient start */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .header {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        padding: 16px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .header-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+      .header-subtitle {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .content {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+      }
+      .company-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .company-logo {
+        width: 48px;
+        height: 48px;
+        background-color: #eff6ff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e293b;
+        font-weight: bold;
+        margin-right: 12px;
+        font-size: 16px;
+      }
+      .company-info {
+        flex: 1;
+      }
+      .company-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+      }
+      .company-industry {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 4px;
+      }
+      .verification-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: #fef3c7;
+        color: #d97706;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .card-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+      }
+      .action-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .reject-btn {
+        background-color: #fee2e2;
+        color: #ef4444;
+      }
+      .approve-btn {
+        background-color: #d1fae5;
+        color: #10b981;
+      }
+      .tab-bar {
+        height: 60px;
+        background-color: #fff;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: 20px; /* Safe area padding */
+        z-index: 100;
+      }
+      .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #94a3b8;
+        cursor: pointer;
+      }
+      .tab-item.active {
+        color: #1e3a8a;
+      }
+      .tab-icon {
+        font-size: 24px;
+      }
+      .tab-label {
+        font-size: 10px;
+        font-weight: 500;
+      }
+    </style>
+    <!-- Ionicons for Icons -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+    <script>
+      function adjustHeight() {
+        const mobileFrame = document.getElementById('mobileFrame');
+        if (mobileFrame) {
+          const contentHeight = mobileFrame.scrollHeight;
+          if (contentHeight > 812) {
+            mobileFrame.style.height = contentHeight + 'px';
+          } else {
+            mobileFrame.style.height = '812px';
+          }
+        }
+      }
+      window.onload = adjustHeight;
+    </script>
+  </head>
+  <body>
+    <div class="mobile-frame" id="mobileFrame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="header-content">
+          <div class="header-title">Company Approvals</div>
+          <div class="header-subtitle">3 Pending Requests</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Company Card 1 -->
+        <div class="company-card">
+          <div class="card-header">
+            <div class="company-logo">BC</div>
+            <div class="company-info">
+              <div class="company-name">Blue Collar Pros</div>
+              <div class="company-industry">Construction</div>
+              <div class="verification-badge">PENDING VERIFICATION</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <div class="action-btn reject-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Reject
+            </div>
+            <div class="action-btn approve-btn">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Approve
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Card 2 -->
+        <div class="company-card">
+          <div class="card-header">
+            <div class="company-logo">EL</div>
+            <div class="company-info">
+              <div class="company-name">Elite Logistics</div>
+              <div class="company-industry">Transportation</div>
+              <div class="verification-badge">PENDING VERIFICATION</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <div class="action-btn reject-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Reject
+            </div>
+            <div class="action-btn approve-btn">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Approve
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Card 3 -->
+        <div class="company-card">
+          <div class="card-header">
+            <div class="company-logo">TF</div>
+            <div class="company-info">
+              <div class="company-name">TechFix Solutions</div>
+              <div class="company-industry">Maintenance</div>
+              <div class="verification-badge">PENDING VERIFICATION</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <div class="action-btn reject-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Reject
+            </div>
+            <div class="action-btn approve-btn">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Approve
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item">
+          <ion-icon name="home-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Dashboard</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="briefcase-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Jobs</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="people-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Users</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="alert-circle-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Reports</span>
+        </div>
+        <div class="tab-item active">
+          <ion-icon name="checkmark-circle" class="tab-icon"></ion-icon>
+          <span class="tab-label">Companies</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

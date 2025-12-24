@@ -12,8 +12,9 @@ import {
   Modal,
   Image,
   Dimensions,
+  ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -839,14 +840,14 @@ export default function JobPostsPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={PRIMARY_BLUE} />
           <Text style={styles.loadingText}>
             {t('employerJobPosts.loading')}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -873,7 +874,7 @@ export default function JobPostsPage() {
   ).length;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.searchSection}>
         {/* Search bar with VoiceTextInput */}
         <View style={styles.searchBar}>
@@ -1019,14 +1020,119 @@ export default function JobPostsPage() {
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Appeal Modal - keeping existing implementation */}
+      {/* Appeal Modal */}
       <Modal
         visible={appealModalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setAppealModalVisible(false)}
       >
-        {/* ... existing appeal modal code ... */}
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t('employerJobPosts.appeal.title')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setAppealModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={GRAY_TEXT} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalSubtitle}>
+                {selectedJobForAppeal?.title}
+              </Text>
+
+              <Text style={styles.inputLabel}>
+                {t('employerJobPosts.appeal.explanationLabel')}
+              </Text>
+              <VoiceTextInput
+                value={appealExplanation}
+                onChangeText={setAppealExplanation}
+                placeholder={t(
+                  'employerJobPosts.appeal.explanationPlaceholder'
+                )}
+                multiline
+                numberOfLines={4}
+                style={styles.textArea}
+                inputStyle={styles.textAreaInput}
+                textAlignVertical="top"
+              />
+
+              <Text style={styles.inputLabel}>
+                {t('employerJobPosts.appeal.evidenceLabel')}
+              </Text>
+
+              <View style={styles.evidenceList}>
+                {appealEvidence.map((file, index) => (
+                  <View key={index} style={styles.evidenceItem}>
+                    <Ionicons
+                      name="document-text"
+                      size={20}
+                      color={PRIMARY_BLUE}
+                    />
+                    <Text style={styles.evidenceName} numberOfLines={1}>
+                      {file.name}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveEvidence(index)}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={20}
+                        color={ACCENT_RED}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={handlePickDocument}
+              >
+                <Ionicons
+                  name="cloud-upload-outline"
+                  size={24}
+                  color={PRIMARY_BLUE}
+                />
+                <Text style={styles.uploadButtonText}>
+                  {t('employerJobPosts.appeal.uploadButton')}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setAppealModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  submittingAppeal && styles.submitButtonDisabled,
+                ]}
+                onPress={handleSubmitAppeal}
+                disabled={submittingAppeal}
+              >
+                {submittingAppeal ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    {t('common.submit')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {subscriptionInfo && (
@@ -1038,7 +1144,7 @@ export default function JobPostsPage() {
           limit={subscriptionInfo.jobPostLimit}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -1516,5 +1622,132 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: PRIMARY_BLUE,
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  textArea: {
+    minHeight: 120,
+    marginBottom: 16,
+  },
+  textAreaInput: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  evidenceList: {
+    marginBottom: 16,
+    gap: 8,
+  },
+  evidenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 12,
+  },
+  evidenceName: {
+    flex: 1,
+    fontSize: 14,
+    color: '#334155',
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    gap: 8,
+    marginBottom: 24,
+  },
+  uploadButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PRIMARY_BLUE,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 16,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: GRAY_TEXT,
+  },
+  submitButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: PRIMARY_BLUE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employer Profile</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --accent: #3b82f6;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .hero {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: linear-gradient(180deg, #dbeafe 0%, #ffffff 50%);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: #e0e7ff;
+        flex-shrink: 0;
+      }
+      .lines {
+        flex: 1;
+      }
+      .line {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+      }
+      .verification {
+        margin-top: 8px;
+        height: 28px;
+        border-radius: 8px;
+        background: #1e3a8a;
+      }
+      .edit-btn {
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        background: var(--primary);
+        color: #fff;
+        margin-top: 12px;
+      }
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1e293b;
+        margin-bottom: 8px;
+      }
+      .info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--soft);
+        margin-bottom: 8px;
+      }
+      .label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .value {
+        width: 50%;
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .onboarding {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .progress-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .progress-title {
+        height: 14px;
+        width: 40%;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .progress-percentage {
+        height: 14px;
+        width: 20%;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .progress-bar {
+        height: 10px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        overflow: hidden;
+      }
+      .progress-fill {
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        border-radius: 8px;
+      }
+      .settings {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 8px;
+      }
+      .setting-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .setting-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #eff6ff;
+      }
+      .setting-texts {
+        width: 160px;
+      }
+      .chevron {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        background: #cbd5e1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div
+          style="
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--primary);
+          "
+        ></div>
+        <div class="title">Profile</div>
+        <div style="width: 24px; height: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="hero">
+          <div class="row">
+            <div class="avatar"></div>
+            <div class="lines">
+              <div class="line" style="width: 60%"></div>
+              <div class="line" style="width: 40%"></div>
+            </div>
+          </div>
+          <div class="verification"></div>
+          <div class="edit-btn">Edit Company Profile</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Company Information</div>
+          <div class="info-row">
+            <div class="label">Industry</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Company Size</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Address</div>
+            <div class="value"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Contact Information</div>
+          <div class="info-row">
+            <div class="label">Email</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Phone</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Website</div>
+            <div class="value"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Account Information</div>
+          <div class="info-row">
+            <div class="label">Full Name</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Email</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Phone</div>
+            <div class="value"></div>
+          </div>
+          <div class="info-row">
+            <div class="label">Role</div>
+            <div class="value"></div>
+          </div>
+        </div>
+
+        <div class="onboarding">
+          <div class="progress-header">
+            <div class="progress-title"></div>
+            <div class="progress-percentage"></div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="settings">
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon"></div>
+              <div class="setting-texts">
+                <div class="line" style="width: 70%"></div>
+                <div class="line" style="width: 50%"></div>
+              </div>
+            </div>
+            <div class="chevron"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon"></div>
+              <div class="setting-texts">
+                <div class="line" style="width: 70%"></div>
+                <div class="line" style="width: 50%"></div>
+              </div>
+            </div>
+            <div class="chevron"></div>
+          </div>
+          <div class="setting-item" style="margin-bottom: 0">
+            <div class="setting-left">
+              <div class="setting-icon"></div>
+              <div class="setting-texts">
+                <div class="line" style="width: 70%"></div>
+                <div class="line" style="width: 50%"></div>
+              </div>
+            </div>
+            <div class="chevron"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

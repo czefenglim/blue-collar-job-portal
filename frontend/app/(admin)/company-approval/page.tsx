@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
-  TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Href, useRouter } from 'expo-router';
@@ -68,13 +67,8 @@ export default function CompanyApprovalScreen() {
     total: 0,
     pages: 0,
   });
-  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchPendingCompanies();
-  }, [pagination.page]);
-
-  const fetchPendingCompanies = async () => {
+  const fetchPendingCompanies = useCallback(async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('adminToken');
@@ -112,7 +106,11 @@ export default function CompanyApprovalScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [pagination.page, pagination.limit, t]);
+
+  useEffect(() => {
+    fetchPendingCompanies();
+  }, [fetchPendingCompanies]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -188,7 +186,7 @@ export default function CompanyApprovalScreen() {
         {
           text: t('adminCompanyApproval.actions.reject'),
           style: 'destructive',
-          onPress: async (reason) => {
+          onPress: async (reason: any) => {
             if (!reason || reason.trim().length === 0) {
               Alert.alert(
                 t('adminCompanyApproval.alerts.reasonRequiredTitle'),

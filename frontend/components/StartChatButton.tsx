@@ -1,6 +1,6 @@
 // src/components/StartChatButton.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -8,13 +8,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import {
-  createConversation,
-  getConversationByApplicationId,
-} from '../services/chatService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StartChatButtonProps {
   applicationId: number;
@@ -33,8 +31,9 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
   size = 'medium',
   fullWidth = false,
 }) => {
-  const { t } = useTranslation();
-  const navigation = useNavigation<any>();
+  const { t } = useLanguage();
+  const router = useRouter();
+  const URL = Constants.expoConfig?.extra?.API_BASE_URL;
   const [loading, setLoading] = useState(false);
   const [hasExistingChat, setHasExistingChat] = useState(false);
   const [existingConversationId, setExistingConversationId] = useState<
@@ -44,19 +43,29 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
   // Check if conversation already exists
   useEffect(() => {
     checkExistingConversation();
-  }, [applicationId]);
+  }, [applicationId, checkExistingConversation]);
 
-  const checkExistingConversation = async () => {
+  const checkExistingConversation = useCallback(async () => {
     try {
-      const response = await getConversationByApplicationId(applicationId);
-      if (response.success && response.data) {
-        setHasExistingChat(true);
-        setExistingConversationId(response.data.id);
+      const token = await AsyncStorage.getItem('jwtToken');
+      const response = await fetch(
+        `${URL}/api/chat/conversations/application/${applicationId}`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setHasExistingChat(true);
+          setExistingConversationId(data.data.id);
+        } else {
+          setHasExistingChat(false);
+          setExistingConversationId(null);
+        }
       }
-    } catch (error) {
-      // No existing conversation
-    }
-  };
+    } catch (_error) {}
+  }, [URL, applicationId]);
 
   const handlePress = async () => {
     setLoading(true);
@@ -64,29 +73,51 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
     try {
       if (hasExistingChat && existingConversationId) {
         // Navigate to existing conversation
-        navigation.navigate('/(employer)/chat/[id]', {
-          id: existingConversationId,
-          name: applicantName,
-          jobTitle,
+        router.push({
+          pathname: '/(shared)/chat/[id]',
+          params: {
+            id: existingConversationId.toString(),
+            name: applicantName || '',
+            jobTitle: jobTitle || '',
+          },
         });
       } else {
         // Create new conversation
-        const response = await createConversation(applicationId);
+        const token = await AsyncStorage.getItem('jwtToken');
+        const response = await fetch(`${URL}/api/chat/conversations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ applicationId }),
+        });
 
-        if (response.success && response.data) {
-          setHasExistingChat(true);
-          setExistingConversationId(response.data.id);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setHasExistingChat(true);
+            setExistingConversationId(data.data.id);
 
-          // Navigate to chat
-          navigation.navigate('/(employer)/chat/[id]', {
-            id: response.data.id,
-            name: applicantName,
-            jobTitle,
-          });
+            // Navigate to chat
+            router.push({
+              pathname: '/(shared)/chat/[id]',
+              params: {
+                id: data.data.id.toString(),
+                name: applicantName || '',
+                jobTitle: jobTitle || '',
+              },
+            });
+          } else {
+            Alert.alert(
+              t('common.error'),
+              data.message || t('chat.sendError')
+            );
+          }
         } else {
           Alert.alert(
             t('common.error'),
-            response.message || t('chat.sendError')
+            t('chat.sendError')
           );
         }
       }

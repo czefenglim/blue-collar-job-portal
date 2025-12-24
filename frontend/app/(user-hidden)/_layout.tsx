@@ -1,10 +1,39 @@
 import { router, Stack, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
+
+  const NotificationsHeader = ({ route }: { route: any }) => {
+    const unreadCount = route.params?.unreadCount || 0;
+
+    return (
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>
+            {t('notifications.title') || 'Notifications'}
+          </Text>
+          {unreadCount > 0 && (
+            <Text style={styles.headerSubtitle}>
+              {t('notifications.unreadCount', { count: unreadCount }) ||
+                `${unreadCount} unread`}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <Stack
       screenOptions={{
@@ -46,6 +75,43 @@ export default function TabsLayout() {
           title: t('userHiddenLayout.updateLocation'),
         }}
       />
+      <Stack.Screen
+        name="notifications"
+        options={({ route }) => ({
+          header: () => <NotificationsHeader route={route} />,
+          headerShown: true,
+        })}
+      />
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    paddingTop: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 12,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
+  },
+});

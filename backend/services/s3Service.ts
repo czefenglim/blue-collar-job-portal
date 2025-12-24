@@ -56,6 +56,50 @@ export async function getResumeSignedUrl(key: string) {
   return await getSignedUrl(s3, command, { expiresIn: 300 });
 }
 
+export async function uploadContractToS3(
+  applicationId: number,
+  pdfBuffer: Buffer
+) {
+  const timestamp = Date.now();
+  const key = `contracts/${applicationId}_${timestamp}.pdf`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+    })
+  );
+
+  return {
+    key,
+    url: `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`,
+  };
+}
+
+export async function uploadOfferContractToS3(
+  offerId: number,
+  fileName: string,
+  pdfBuffer: Buffer
+) {
+  const key = `contracts/${offerId}/${fileName}`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: pdfBuffer,
+      ContentType: 'application/pdf',
+    })
+  );
+
+  return {
+    key,
+    url: `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`,
+  };
+}
+
 // ==========================================
 // NEW HELPERS FOR MULTI-LANGUAGE RESUMES
 // ==========================================

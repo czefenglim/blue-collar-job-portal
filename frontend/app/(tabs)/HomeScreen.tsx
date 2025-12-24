@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
   Image,
-  Dimensions,
+  AlertButton,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,7 +31,6 @@ const LIGHT_BACKGROUND = '#F5F5F5';
 const CARD_BACKGROUND = '#FFFFFF';
 const BORDER_COLOR = '#E0E0E0';
 
-const { width } = Dimensions.get('window');
 const CARD_PADDING = 20;
 const SPACING = 16;
 
@@ -58,6 +57,8 @@ interface Job {
   salaryType?: string;
   createdAt: string;
   isSaved?: boolean;
+  isReported?: boolean;
+
   industry: Industry;
 }
 
@@ -71,6 +72,16 @@ interface UserPreferences {
   industries: Array<{ id: number; name: string }>;
   preferredLocation?: string;
 }
+
+const EXPERIENCE_LEVEL_DATA: {
+  [key: string]: { title: string; subtitle?: string };
+} = {
+  ENTRY_LEVEL: { title: 'Entry Level' },
+  JUNIOR: { title: 'Junior', subtitle: '1-2 years' },
+  MID_LEVEL: { title: 'Mid Level', subtitle: '3-5 years' },
+  SENIOR: { title: 'Senior', subtitle: '5+ years' },
+  EXPERT: { title: 'Expert', subtitle: '10+ years' },
+};
 
 const HomeScreen: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -282,7 +293,7 @@ const HomeScreen: React.FC = () => {
       const storedLang = await AsyncStorage.getItem('preferredLanguage');
       const lang = storedLang || 'en';
 
-      let url = `${URL}/api/jobs?lang=${lang}`;
+      let url = `${URL}/api/jobs?lang=${lang}&_t=${Date.now()}`;
 
       if (distanceFilter !== null && userCoordinates) {
         url += `&distance=${distanceFilter}&userLat=${userCoordinates.latitude}&userLon=${userCoordinates.longitude}`;
@@ -386,7 +397,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const showJobOptions = (item: Job) => {
-    Alert.alert(t('home.options'), t('home.selectAction'), [
+    const buttons = [
       {
         text: t('home.viewDetails'),
         onPress: () =>
@@ -399,16 +410,20 @@ const HomeScreen: React.FC = () => {
         text: item.isSaved ? t('home.unsave') : t('home.save'),
         onPress: () => toggleSaveJob(item.id),
       },
-      {
-        text: t('home.reportJob'),
-        onPress: () => handleReport(item.id, item.title),
-        style: 'destructive',
-      },
+      !item.isReported
+        ? {
+            text: t('home.reportJob'),
+            onPress: () => handleReport(item.id, item.title),
+            style: 'destructive',
+          }
+        : null,
       {
         text: t('common.cancel'),
         style: 'cancel',
       },
-    ]);
+    ].filter(Boolean) as AlertButton[];
+
+    Alert.alert(t('home.options'), t('home.selectAction'), buttons);
   };
 
   const formatSalary = (min?: number, max?: number, type?: string) => {
@@ -551,9 +566,21 @@ const HomeScreen: React.FC = () => {
               />
             </View>
             <Text style={styles.detailLabel}>{t('home.experienceLevel')}</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>
-              {item.experienceLevelLabel}
-            </Text>
+            {EXPERIENCE_LEVEL_DATA[item.experienceLevel] ? (
+              <Text style={styles.detailValue} numberOfLines={2}>
+                {EXPERIENCE_LEVEL_DATA[item.experienceLevel].title}
+                {EXPERIENCE_LEVEL_DATA[item.experienceLevel].subtitle ? (
+                  <Text style={styles.detailSubtitle}>
+                    {'\n'}
+                    {EXPERIENCE_LEVEL_DATA[item.experienceLevel].subtitle}
+                  </Text>
+                ) : null}
+              </Text>
+            ) : (
+              <Text style={styles.detailValue} numberOfLines={1}>
+                {item.experienceLevelLabel}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -624,12 +651,6 @@ const HomeScreen: React.FC = () => {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/ProfileScreen')}
-          >
-            <Ionicons name="menu" size={28} color={PRIMARY_BLUE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -1394,6 +1415,12 @@ const styles = StyleSheet.create({
     color: '#334155',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  detailSubtitle: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: '#64748B',
+    lineHeight: 14,
   },
   detailDivider: {
     width: 1,

@@ -216,7 +216,7 @@ export default function WriteReviewModal({
                 color={isAnonymous ? '#1E3A8A' : '#94A3B8'}
               />
               <Text style={styles.checkboxLabel}>
-                Post anonymously (your name won't be shown)
+                Post anonymously (your name won&#39;t be shown)
               </Text>
             </TouchableOpacity>
           </ScrollView>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #f8fafc;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .status-bar {
+        height: 44px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+        z-index: 10;
+      }
+      .header {
+        padding: 16px 16px 24px;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .header-title {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .header-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .content {
+        flex: 1;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto; /* Allow scrolling within the frame if fixed height, or just flow if dynamic */
+      }
+
+      .search-section {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        padding: 8px;
+        display: flex;
+        gap: 8px;
+        border: 1px solid var(--border);
+      }
+      .search-bar {
+        flex: 1;
+        height: 36px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+      }
+      .search-placeholder {
+        width: 40%;
+        height: 8px;
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      .filters {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .filter-chip {
+        padding: 6px 16px;
+        border-radius: 20px;
+        background: #fff;
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .filter-chip.active {
+        background: linear-gradient(to right, #1e3a8a, #2563eb);
+        color: white;
+        border: none;
+      }
+
+      .user-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+      }
+      .card-gradient-top {
+        height: 60px;
+        background: linear-gradient(to right, #1e3a8a, #2563eb);
+        position: relative;
+        margin-bottom: 20px;
+      }
+      .user-avatar-container {
+        position: absolute;
+        bottom: -20px;
+        left: 16px;
+        width: 48px;
+        height: 48px;
+        background: #fff;
+        border-radius: 50%;
+        padding: 2px;
+      }
+      .user-avatar {
+        width: 100%;
+        height: 100%;
+        background: #e2e8f0;
+        border-radius: 50%;
+      }
+      .status-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981; /* Active green */
+        border-radius: 50%;
+      }
+      .status-text {
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      .card-body {
+        padding: 0 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .user-info {
+        margin-left: 56px; /* Offset for avatar */
+        margin-top: -16px; /* Pull up to align with avatar bottom */
+      }
+      .user-name {
+        width: 60%;
+        height: 14px;
+        background: #1e293b;
+        border-radius: 4px;
+        margin-bottom: 4px;
+      }
+      .user-email {
+        width: 80%;
+        height: 10px;
+        background: #64748b;
+        border-radius: 3px;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .meta-icon {
+        width: 24px;
+        height: 24px;
+        background: #f1f5f9;
+        border-radius: 6px;
+      }
+      .meta-text {
+        width: 60px;
+        height: 8px;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+
+      .stats-bar {
+        display: flex;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 0;
+        margin: 4px 0;
+      }
+      .stat-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        border-right: 1px solid var(--border);
+      }
+      .stat-col:last-child {
+        border-right: none;
+      }
+      .stat-val {
+        width: 20px;
+        height: 12px;
+        background: #1e293b;
+        border-radius: 2px;
+      }
+      .stat-label {
+        width: 40px;
+        height: 8px;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        flex: 1;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .btn-suspend {
+        background: linear-gradient(to right, #fef3c7, #fde68a);
+        color: #d97706;
+      }
+      .btn-delete {
+        background: linear-gradient(to right, #fee2e2, #fecaca);
+        color: #dc2626;
+      }
+      .btn-activate {
+        background: linear-gradient(to right, #d1fae5, #a7f3d0);
+        color: #059669;
+      }
+      .btn-icon {
+        width: 14px;
+        height: 14px;
+        background: currentColor;
+        border-radius: 50%;
+        opacity: 0.5;
+      }
+      .btn-text {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      /* Lo-fi Placeholders */
+      .text-line {
+        height: 14px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 24px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+
+      <div class="header">
+        <div class="header-title">User Management</div>
+        <div class="header-subtitle">Manage users and roles</div>
+      </div>
+
+      <div class="content">
+        <div class="search-section">
+          <div class="search-bar">
+            <div class="text-line" style="width: 40%; background: #cbd5e1">
+              Search Users...
+            </div>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">Job Seekers</div>
+          <div class="filter-chip">Employers</div>
+        </div>
+
+        <!-- Active User Card -->
+        <div class="user-card">
+          <div class="card-gradient-top">
+            <div class="status-badge">
+              <div class="status-dot"></div>
+              <span class="status-text">ACTIVE</span>
+            </div>
+            <div class="user-avatar-container">
+              <div class="user-avatar"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="user-info">
+              <div
+                class="text-line dark large"
+                style="width: 60%; margin-bottom: 4px"
+              >
+                John Doe
+              </div>
+              <div class="text-line" style="width: 80%">
+                john.doe@example.com
+              </div>
+            </div>
+
+            <div class="meta-grid">
+              <div class="meta-item">
+                <div class="meta-icon"></div>
+                <div class="text-line" style="width: 60px">Job Seeker</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-icon"></div>
+                <div class="text-line" style="width: 60px">New York</div>
+              </div>
+            </div>
+
+            <div class="stats-bar">
+              <div class="stat-col">
+                <div
+                  class="text-line dark"
+                  style="width: 20px; height: 12px; margin-bottom: 4px"
+                >
+                  12
+                </div>
+                <div
+                  class="text-line"
+                  style="width: 50px; height: 8px; font-size: 7px"
+                >
+                  Applications
+                </div>
+              </div>
+              <div class="stat-col">
+                <div
+                  class="text-line dark"
+                  style="width: 20px; height: 12px; margin-bottom: 4px"
+                >
+                  5
+                </div>
+                <div
+                  class="text-line"
+                  style="width: 50px; height: 8px; font-size: 7px"
+                >
+                  Interviews
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <div class="btn btn-suspend">
+                <div class="btn-icon"></div>
+                <span class="btn-text">Suspend</span>
+              </div>
+              <div class="btn btn-delete">
+                <div class="btn-icon"></div>
+                <span class="btn-text">Delete</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suspended User Card -->
+        <div class="user-card">
+          <div
+            class="card-gradient-top"
+            style="background: linear-gradient(to right, #f59e0b, #d97706)"
+          >
+            <div class="status-badge">
+              <div class="status-dot" style="background: #fbbf24"></div>
+              <span class="status-text">SUSPENDED</span>
+            </div>
+            <div class="user-avatar-container">
+              <div class="user-avatar"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="user-info">
+              <div
+                class="text-line dark large"
+                style="width: 60%; margin-bottom: 4px"
+              >
+                Jane Smith
+              </div>
+              <div class="text-line" style="width: 80%">
+                jane.smith@company.com
+              </div>
+            </div>
+
+            <div class="stats-bar">
+              <div class="stat-col">
+                <div
+                  class="text-line dark"
+                  style="width: 20px; height: 12px; margin-bottom: 4px"
+                >
+                  2
+                </div>
+                <div
+                  class="text-line"
+                  style="width: 50px; height: 8px; font-size: 7px"
+                >
+                  Jobs Posted
+                </div>
+              </div>
+              <div class="stat-col">
+                <div
+                  class="text-line dark"
+                  style="width: 20px; height: 12px; margin-bottom: 4px"
+                >
+                  0
+                </div>
+                <div
+                  class="text-line"
+                  style="width: 50px; height: 8px; font-size: 7px"
+                >
+                  Active Jobs
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <div class="btn btn-activate">
+                <div class="btn-icon"></div>
+                <span class="btn-text">Activate</span>
+              </div>
+              <div class="btn btn-delete">
+                <div class="btn-icon"></div>
+                <span class="btn-text">Delete</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Another User -->
+        <div class="user-card">
+          <div class="card-gradient-top">
+            <div class="status-badge">
+              <div class="status-dot"></div>
+              <span class="status-text">ACTIVE</span>
+            </div>
+            <div class="user-avatar-container">
+              <div class="user-avatar"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="user-info">
+              <div class="user-name"></div>
+              <div class="user-email"></div>
+            </div>
+            <div class="stats-bar">
+              <div class="stat-col">
+                <div class="stat-val"></div>
+                <div class="stat-label"></div>
+              </div>
+              <div class="stat-col">
+                <div class="stat-val"></div>
+                <div class="stat-label"></div>
+              </div>
+            </div>
+            <div class="action-buttons">
+              <div class="btn btn-suspend">
+                <div class="btn-icon"></div>
+                <span class="btn-text">Suspend</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

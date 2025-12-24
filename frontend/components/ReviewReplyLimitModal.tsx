@@ -104,7 +104,7 @@ export default function ReviewReplyLimitModal({
                 <View style={styles.benefitContent}>
                   <Text style={styles.benefitText}>Advanced analytics</Text>
                   <Text style={styles.benefitDescription}>
-                    Track your company's performance
+                    Track your company&#39;s performance
                   </Text>
                 </View>
               </View>

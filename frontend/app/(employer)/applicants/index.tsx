@@ -10,9 +10,7 @@ import {
   RefreshControl,
   Alert,
   Image,
-  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -31,7 +29,6 @@ const LIGHT_BACKGROUND = '#F8FAFC';
 const CARD_BACKGROUND = '#FFFFFF';
 const BORDER_COLOR = '#E2E8F0';
 
-const { width } = Dimensions.get('window');
 const SPACING = 16;
 const CARD_PADDING = 20;
 
@@ -82,7 +79,7 @@ export default function ApplicantsPage() {
   const [filteredApplicants, setFilteredApplicants] = useState<Applicant[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<
-    'all' | 'PENDING' | 'SHORTLISTED' | 'REJECTED' | 'INTERVIEWED'
+    'all' | 'PENDING' | 'SHORTLISTED' | 'REJECTED' | 'INTERVIEWED' | 'HIRED'
   >('all');
   const [pagination, setPagination] = useState<PaginationMeta>({
     total: 0,
@@ -95,71 +92,7 @@ export default function ApplicantsPage() {
     Record<number, QualityScore>
   >({});
 
-  useEffect(() => {
-    fetchApplicants(1);
-  }, [filter]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchApplicants(1);
-    }, [])
-  );
-
-  useEffect(() => {
-    filterApplicants();
-  }, [applicants, searchQuery, filter, qualityScores]);
-
-  const fetchApplicants = async (page: number, append: boolean = false) => {
-    try {
-      if (page === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
-
-      const token = await AsyncStorage.getItem('jwtToken');
-
-      if (!token) {
-        router.replace('/EmployerLoginScreen');
-        return;
-      }
-      const response = await fetch(`${URL}/api/employer/applicants`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch applicants');
-      }
-
-      const applicantData = data.data || [];
-
-      if (append) {
-        setApplicants((prev) => [...prev, ...applicantData]);
-      } else {
-        setApplicants(applicantData);
-      }
-
-      setPagination(data.pagination);
-      setError(null);
-
-      fetchQualityScores(applicantData);
-    } catch (error: any) {
-      console.error('Error fetching applicants:', error);
-      setError(error.message || 'Failed to load applicants');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setLoadingMore(false);
-    }
-  };
-
-  const fetchQualityScores = async (applicantList: Applicant[]) => {
+  const fetchQualityScores = useCallback(async (applicantList: Applicant[]) => {
     const token = await AsyncStorage.getItem('jwtToken');
     if (!token) return;
 
@@ -198,9 +131,62 @@ export default function ApplicantsPage() {
     }
 
     setQualityScores(scores);
-  };
+  }, []);
 
-  const filterApplicants = () => {
+  const fetchApplicants = useCallback(
+    async (page: number, append: boolean = false) => {
+      try {
+        if (page === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+
+        const token = await AsyncStorage.getItem('jwtToken');
+
+        if (!token) {
+          router.replace('/EmployerLoginScreen');
+          return;
+        }
+        const response = await fetch(`${URL}/api/employer/applicants`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch applicants');
+        }
+
+        const applicantData = data.data || [];
+
+        if (append) {
+          setApplicants((prev) => [...prev, ...applicantData]);
+        } else {
+          setApplicants(applicantData);
+        }
+
+        setPagination(data.pagination);
+        setError(null);
+
+        fetchQualityScores(applicantData);
+      } catch (error: any) {
+        console.error('Error fetching applicants:', error);
+        setError(error.message || 'Failed to load applicants');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        setLoadingMore(false);
+      }
+    },
+    [router, fetchQualityScores]
+  );
+
+  const filterApplicants = useCallback(() => {
     let filtered = applicants;
 
     if (filter !== 'all') {
@@ -223,8 +209,21 @@ export default function ApplicantsPage() {
     }));
 
     setFilteredApplicants(filtered);
-  };
+  }, [applicants, searchQuery, filter, qualityScores]);
 
+  useEffect(() => {
+    fetchApplicants(1);
+  }, [filter, fetchApplicants]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchApplicants(1);
+    }, [fetchApplicants])
+  );
+
+  useEffect(() => {
+    filterApplicants();
+  }, [filterApplicants]);
   const handleStartChat = async (applicant: Applicant, e: any) => {
     e.stopPropagation();
 
@@ -331,7 +330,7 @@ export default function ApplicantsPage() {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchApplicants(1);
-  }, [filter]);
+  }, [fetchApplicants]);
 
   const loadMore = () => {
     if (pagination.page < pagination.totalPages && !loadingMore) {
@@ -397,7 +396,13 @@ export default function ApplicantsPage() {
 
   const renderFilterButton = (
     label: string,
-    value: 'all' | 'PENDING' | 'SHORTLISTED' | 'REJECTED' | 'INTERVIEWED',
+    value:
+      | 'all'
+      | 'PENDING'
+      | 'SHORTLISTED'
+      | 'REJECTED'
+      | 'INTERVIEWED'
+      | 'HIRED',
     count: number
   ) => (
     <TouchableOpacity
@@ -576,6 +581,52 @@ export default function ApplicantsPage() {
               </Text>
             </TouchableOpacity>
 
+            {/* Hire Button - Only for SHORTLISTED status */}
+            {item.status === 'SHORTLISTED' && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.hireButton]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push(`/(employer-hidden)/hire/${item.id}` as Href);
+                }}
+              >
+                <View style={styles.actionIconContainer}>
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <Text style={[styles.actionButtonText, styles.hireText]}>
+                  {t('employerApplicants.actions.hire') || 'Hire'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Verify Button - Only for OFFER_ACCEPTED status */}
+            {item.status === 'OFFER_ACCEPTED' && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.verifyButton]}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push(
+                    `/(employer-hidden)/hire/verify/${item.id}` as Href
+                  );
+                }}
+              >
+                <View style={styles.actionIconContainer}>
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <Text style={[styles.actionButtonText, styles.verifyText]}>
+                  Verify
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {/* Shortlist Button - Only for PENDING status */}
             {item.status === 'PENDING' && (
               <TouchableOpacity
@@ -603,14 +654,14 @@ export default function ApplicantsPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={PRIMARY_BLUE} />
           <Text style={styles.loadingText}>
             {t('employerApplicants.loading')}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -624,9 +675,10 @@ export default function ApplicantsPage() {
   const interviewedCount = applicants.filter(
     (a) => a.status === 'INTERVIEWED'
   ).length;
+  const hiredCount = applicants.filter((a) => a.status === 'HIRED').length;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color={GRAY_TEXT} />
@@ -675,6 +727,11 @@ export default function ApplicantsPage() {
             interviewedCount
           )}
           {renderFilterButton(
+            t('employerApplicants.status.hired'),
+            'HIRED',
+            hiredCount
+          )}
+          {renderFilterButton(
             t('employerApplicants.filters.rejected'),
             'REJECTED',
             rejectedCount
@@ -703,6 +760,14 @@ export default function ApplicantsPage() {
           </Text>
           <Text style={styles.statLabel}>
             {t('employerApplicants.stats.shortlisted')}
+          </Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={[styles.statValue, { color: ACCENT_GREEN }]}>
+            {hiredCount}
+          </Text>
+          <Text style={styles.statLabel}>
+            {t('employerApplicants.status.hired')}
           </Text>
         </View>
       </View>
@@ -762,7 +827,7 @@ export default function ApplicantsPage() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -1070,6 +1135,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: GRAY_TEXT,
   },
+  hireText: {
+    color: '#FFFFFF',
+  },
+  verifyText: {
+    color: '#FFFFFF',
+  },
   shortlistText: {
     color: '#FFFFFF',
   },
@@ -1125,5 +1196,13 @@ const styles = StyleSheet.create({
   loadMoreText: {
     fontSize: 14,
     color: GRAY_TEXT,
+  },
+  hireButton: {
+    backgroundColor: ACCENT_GREEN,
+    borderColor: ACCENT_GREEN,
+  },
+  verifyButton: {
+    backgroundColor: ACCENT_PURPLE,
+    borderColor: ACCENT_PURPLE,
   },
 });

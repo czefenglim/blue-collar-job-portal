@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employer Onboarding Wireframe</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .mobile-frame {
+        width: 375px;
+        height: 812px;
+        background: #f8fafc;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .header {
+        padding: 50px 20px 20px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 4px;
+      }
+
+      .header-subtitle {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      /* Progress Bar */
+      .progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 24px;
+        padding: 0 10px;
+      }
+      .step-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+      .step-dot.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+      }
+      .step-line {
+        flex: 1;
+        height: 3px;
+        background: #e2e8f0;
+        margin: 0 8px;
+        border-radius: 2px;
+        position: relative;
+      }
+      .step-line.active {
+        background: var(--primary);
+      }
+
+      /* Content */
+      .content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #0f172a;
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+      .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+      }
+      .input-field {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        color: var(--text);
+        box-sizing: border-box;
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      .upload-box {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .upload-box:hover {
+        background: #f1f5f9;
+        border-color: var(--primary);
+      }
+      .upload-icon {
+        font-size: 24px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .upload-text {
+        font-size: 13px;
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      .footer {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid var(--border);
+      }
+      .btn-primary {
+        width: 100%;
+        padding: 16px;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="header">
+        <div class="header-title" id="header-title">Company Details</div>
+        <div class="header-subtitle" id="header-subtitle">
+          Tell us about your business
+        </div>
+        <div class="progress-row">
+          <div class="step-dot active" id="dot-1">1</div>
+          <div class="step-line" id="line-1"></div>
+          <div class="step-dot" id="dot-2">2</div>
+          <div class="step-line" id="line-2"></div>
+          <div class="step-dot" id="dot-3">3</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Step 1: Company Details -->
+        <div id="step-1">
+          <div class="card">
+            <div class="section-title">Basic Information</div>
+            <div class="input-group">
+              <div class="label">Company Name</div>
+              <input
+                class="input-field"
+                type="text"
+                value="BuildIt Construction Sdn Bhd"
+              />
+            </div>
+            <div class="input-group">
+              <div class="label">Industry</div>
+              <input
+                class="input-field"
+                type="text"
+                value="Construction & Engineering"
+              />
+            </div>
+            <div class="input-group">
+              <div class="label">Company Size</div>
+              <input class="input-field" type="text" value="Small (1-50)" />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Location & Contact</div>
+            <div class="input-group">
+              <div class="label">Address</div>
+              <input
+                class="input-field"
+                type="text"
+                placeholder="Search address..."
+              />
+            </div>
+            <div class="input-group">
+              <div class="label">Website (Optional)</div>
+              <input class="input-field" type="text" placeholder="https://" />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Company Logo</div>
+            <div class="upload-box">
+              <div class="upload-icon">📷</div>
+              <div class="upload-text">Upload Logo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Verification -->
+        <div id="step-2" class="hidden">
+          <div class="card">
+            <div class="section-title">Contact Verification</div>
+            <div class="input-group">
+              <div class="label">Business Phone</div>
+              <input class="input-field" type="text" value="+60 3-1234 5678" />
+            </div>
+            <div class="input-group">
+              <div class="label">Business Email</div>
+              <input
+                class="input-field"
+                type="text"
+                value="admin@buildit.com"
+              />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Business Registration</div>
+            <div class="upload-box">
+              <div class="upload-icon">📄</div>
+              <div class="upload-text">Upload SSM / License</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Review -->
+        <div id="step-3" class="hidden">
+          <div class="card">
+            <div class="section-title">Summary</div>
+            <div class="input-group">
+              <div class="label">Company</div>
+              <div style="font-size: 14px">BuildIt Construction Sdn Bhd</div>
+            </div>
+            <div class="input-group">
+              <div class="label">Industry</div>
+              <div style="font-size: 14px">Construction & Engineering</div>
+            </div>
+            <div class="input-group">
+              <div class="label">Verification</div>
+              <div style="font-size: 14px; color: var(--success)">
+                Document Uploaded ✅
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="btn-primary" id="btn-action" onclick="nextStep()">
+          Continue
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentStep = 1;
+
+      function nextStep() {
+        if (currentStep < 3) {
+          showStep(currentStep + 1);
+        } else {
+          alert('Onboarding Completed!');
+        }
+      }
+
+      function showStep(step) {
+        currentStep = step;
+
+        // Toggle Content
+        document
+          .getElementById('step-1')
+          .classList.toggle('hidden', step !== 1);
+        document
+          .getElementById('step-2')
+          .classList.toggle('hidden', step !== 2);
+        document
+          .getElementById('step-3')
+          .classList.toggle('hidden', step !== 3);
+
+        // Update Header
+        const titles = ['Company Details', 'Verification', 'Review'];
+        const subtitles = [
+          'Tell us about your business',
+          'Verify your identity',
+          'Confirm your details',
+        ];
+        document.getElementById('header-title').innerText = titles[step - 1];
+        document.getElementById('header-subtitle').innerText =
+          subtitles[step - 1];
+
+        // Update Progress Bar
+        document.getElementById('dot-1').classList.toggle('active', step >= 1);
+        document.getElementById('line-1').classList.toggle('active', step >= 2);
+        document.getElementById('dot-2').classList.toggle('active', step >= 2);
+        document.getElementById('line-2').classList.toggle('active', step >= 3);
+        document.getElementById('dot-3').classList.toggle('active', step >= 3);
+
+        // Update Button
+        const btn = document.getElementById('btn-action');
+        if (step === 3) {
+          btn.innerText = 'Complete Setup';
+          btn.style.background = '#10b981';
+        } else {
+          btn.innerText = 'Continue';
+          btn.style.background = '#1e3a8a';
+        }
+      }
+    </script>
+  </body>
+</html>

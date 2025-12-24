@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Applicant Details</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #f8fafc;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+        z-index: 10;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 10;
+      }
+      .back {
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        padding: 16px;
+        background: #f8fafc;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      /* Header Card */
+      .header-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 16px;
+      }
+      .avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 40px;
+        background: #e0e7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 12px;
+      }
+      .applicant-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+      .badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .badge-status {
+        background: #fef3c7;
+        color: #d97706;
+      }
+      .badge-quality {
+        background: #d1fae5;
+        color: #059669;
+      }
+
+      /* Quick Actions */
+      .quick-actions {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+      .action-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--primary);
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .action-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .chat-icon {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+
+      /* Quality Section */
+      .section-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .score-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .score-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        border: 4px solid #10b981;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .score-val {
+        font-size: 18px;
+        font-weight: 800;
+        color: #10b981;
+        line-height: 1;
+      }
+      .score-max {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .score-text {
+        flex: 1;
+      }
+      .score-label {
+        font-size: 16px;
+        font-weight: 700;
+        color: #10b981;
+        margin-bottom: 4px;
+      }
+      .score-sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* Progress Bars */
+      .progress-row {
+        margin-bottom: 12px;
+      }
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .progress-track {
+        height: 6px;
+        background: #f1f5f9;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+      }
+
+      /* Lists */
+      .list-group {
+        margin-top: 16px;
+      }
+      .list-title {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .list-item {
+        display: flex;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 6px;
+        align-items: flex-start;
+      }
+      .check-icon {
+        color: var(--success);
+        font-weight: bold;
+      }
+      .alert-icon {
+        color: var(--warning);
+        font-weight: bold;
+      }
+
+      /* Details Grid */
+      .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .detail-label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .detail-value {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      /* Footer Actions */
+      .footer-actions {
+        background: #fff;
+        padding: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+      }
+      .btn {
+        flex: 1;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .btn-reject {
+        background: #fff;
+        border: 1px solid var(--danger);
+        color: var(--danger);
+      }
+      .btn-shortlist {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+      }
+      .placeholder {
+        height: 60px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="back">&larr;</div>
+        <div class="title">Applicant Details</div>
+      </div>
+
+      <div class="content">
+        <!-- Header Profile Card -->
+        <div class="header-card">
+          <div class="avatar">JD</div>
+          <div class="applicant-name">John Doe</div>
+          <div class="badges">
+            <div class="badge badge-status">
+              <span
+                style="
+                  width: 6px;
+                  height: 6px;
+                  border-radius: 50%;
+                  background: #d97706;
+                "
+              ></span>
+              Pending
+            </div>
+            <div class="badge badge-quality">
+              <span>&#9733;</span> High Quality
+            </div>
+              border-radius: 40px;
+              margin-bottom: 12px;
+            "
+          >
+              <div class="action-icon chat-icon">&#128172;</div>
+              Chat
+          </div>
+          <div
+              <div class="action-icon">&#9993;</div>
+              Email
+            style="width: 150px; font-weight: bold; font-size: 14px"
+          >
+              <div class="action-icon">&#128222;</div>
+              Call
+          </div>
+          <div
+              <div class="action-icon">&#128196;</div>
+              Resume
+            style="justify-content: center; margin-bottom: 12px"
+          >
+            <div
+              class="text-line"
+              style="width: 80px; background: #fef3c7; color: #d97706"
+            >
+              Status: Pending
+            <span>&#128202;</span> Application Quality
+            <div
+              class="text-line"
+              style="width: 100px; background: #d1fae5; color: #059669"
+            <div class="score-circle">
+              <span class="score-val">85</span>
+              <span class="score-max">/100</span>
+            </div>
+            <div class="score-text">
+              <div class="score-label">Excellent Match</div>
+              <div class="score-sub">Top 10% of applicants for this role</div>
+
+          <div class="quick-actions">
+            <div class="action-item">
+              <div
+            <div class="progress-header">
+              <span>Profile Completeness</span>
+              <span>100/100</span>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                style="width: 100%; background: #10b981"
+              ></div>
+            </div>
+                style="
+
+                  width: 40px;
+            <div class="progress-header">
+              <span>Experience Match</span>
+              <span>85/100</span>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                style="width: 85%; background: #10b981"
+              ></div>
+            </div>
+                  border-radius: 20px;
+
+                  background: #ecfdf5;
+            <div class="progress-header">
+              <span>Skills Match</span>
+              <span>75/100</span>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                style="width: 75%; background: #f59e0b"
+              ></div>
+            </div>
+                "
+              >
+                Chat
+            <div class="list-title" style="color: #10b981">
+              <span>&#10003;</span> Key Strengths
+            </div>
+            <div class="list-item">
+              <span class="check-icon">&bull;</span>
+              <span>5+ years experience in relevant field</span>
+            </div>
+            <div class="list-item">
+              <span class="check-icon">&bull;</span>
+              <span>Located within 10km radius</span>
+            </div>
+              <div
+                class="text-line"
+                style="width: 40px; height: 40px; border-radius: 20px"
+              >
+                Email
+          <div class="section-header"><span>&#8505;</span> Details</div>
+            </div>
+            <div class="action-item">
+              <span class="detail-label">Location</span>
+              <span class="detail-value">New York, NY</span>
+                style="width: 40px; height: 40px; border-radius: 20px"
+              >
+              <span class="detail-label">Experience</span>
+              <span class="detail-value">5 Years</span>
+            </div>
+            <div class="action-item">
+              <span class="detail-label">Applied</span>
+              <span class="detail-value">2 days ago</span>
+                style="width: 40px; height: 40px; border-radius: 20px"
+              >
+              <span class="detail-label">Job Type</span>
+              <span class="detail-value">Full Time</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quality Score Section -->
+        <div class="section-card">
+          <div class="section-header"><span>&#9997;</span> Cover Letter</div>
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text);
+              line-height: 1.5;
+              margin: 0;
+            "
+          >
+            I am writing to express my strong interest in this position. With my
+            background in construction and team leadership...
+          </p>
+              class="text-line"
+        <div class="placeholder">Resume Preview</div>
+        <div class="placeholder">Interview Schedule</div>
+        <div class="placeholder">Internal Notes</div>
+        <div class="placeholder">Documents</div>
+            >
+              Application Quality Title
+            </div>
+          </div>
+
+          <div class="score-container">
+            <div
+              class="text-line"
+              style="
+                width: 60px;
+                height: 60px;
+                border-radius: 30px;
+                border: 2px solid #10b981;
+                color: #10b981;
+                font-weight: bold;
+              "
+            >
+              85/100
+            </div>
+            <div class="score-text" style="padding-left: 16px">
+              <div
+                class="text-line"
+                style="
+                  width: 120px;
+                  background: #d1fae5;
+                  color: #059669;
+                  font-weight: bold;
+                "
+              >
+                Excellent Match
+              </div>
+              <div class="text-line" style="width: 180px">Top 10% Analysis</div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="text-line" style="width: 100%; margin-bottom: 4px">
+              Profile Completeness Bar
+            </div>
+          </div>
+          <div class="progress-row">
+            <div class="text-line" style="width: 100%; margin-bottom: 4px">
+              Experience Match Bar
+            </div>
+          </div>
+          <div class="progress-row">
+            <div class="text-line" style="width: 100%; margin-bottom: 4px">
+              Skills Match Bar
+            </div>
+          </div>
+
+          <div class="list-group">
+            <div
+              class="text-line"
+              style="
+                width: 100px;
+                text-align: left;
+                justify-content: flex-start;
+                background: transparent;
+                color: #10b981;
+                font-weight: bold;
+              "
+            >
+              Key Strengths
+            </div>
+            <div class="text-line" style="width: 90%; margin-left: 10px">
+              Strength 1
+            </div>
+            <div class="text-line" style="width: 80%; margin-left: 10px">
+              Strength 2
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="text-line" style="width: 80px">Details Title</div>
+          </div>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="text-line" style="width: 60px; margin-bottom: 2px">
+                Location
+              </div>
+              <div class="text-line" style="width: 100px; font-weight: bold">
+                New York, NY
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="text-line" style="width: 70px; margin-bottom: 2px">
+                Experience
+              </div>
+              <div class="text-line" style="width: 80px; font-weight: bold">
+                5 Years
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="text-line" style="width: 60px; margin-bottom: 2px">
+                Applied
+              </div>
+              <div class="text-line" style="width: 90px; font-weight: bold">
+                2 days ago
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="text-line" style="width: 60px; margin-bottom: 2px">
+                Job Type
+              </div>
+              <div class="text-line" style="width: 80px; font-weight: bold">
+                Full Time
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cover Letter -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="text-line" style="width: 100px">Cover Letter Title</div>
+          </div>
+          <div class="text-line" style="width: 100%; height: 80px">
+            Cover Letter Content Placeholder
+          </div>
+        </div>
+
+        <div class="text-line" style="width: 100%; height: 40px">
+          Resume Preview
+        </div>
+        <div class="text-line" style="width: 100%; height: 40px">
+          Interview Schedule
+        </div>
+        <div class="text-line" style="width: 100%; height: 40px">
+          Internal Notes
+        </div>
+        <div class="text-line" style="width: 100%; height: 40px">Documents</div>
+      </div>
+
+      <div class="footer-actions">
+        <div class="btn btn-reject">Reject</div>
+        <div class="btn btn-shortlist">Shortlist</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -121,15 +121,15 @@ const ReportJobScreen: React.FC = () => {
         copyToCacheDirectory: true,
       });
 
-      if (result.type === 'success') {
-        const newFile: Evidence = {
-          uri: result.uri,
-          name: result.name,
-          type: result.mimeType || 'application/pdf',
-          size: result.size,
-        };
+      if (!result.canceled && result.assets) {
+        const newFiles = result.assets.map((asset) => ({
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.mimeType || 'application/pdf',
+          size: asset.size,
+        }));
 
-        if (evidence.length >= 5) {
+        if (evidence.length + newFiles.length > 5) {
           Alert.alert(
             t('report.maxFilesReached'),
             t('report.maxFilesReachedMessage')
@@ -137,7 +137,7 @@ const ReportJobScreen: React.FC = () => {
           return;
         }
 
-        setEvidence([...evidence, newFile]);
+        setEvidence([...evidence, ...newFiles]);
       }
     } catch (error) {
       console.error('Error picking document:', error);
@@ -258,18 +258,6 @@ const ReportJobScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          disabled={isSubmitting}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('report.title')}</Text>
-        <View style={styles.headerPlaceholder} />
-      </View>
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

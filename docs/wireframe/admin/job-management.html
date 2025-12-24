@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Management</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #f8fafc;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .status-bar {
+        height: 44px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .header {
+        padding: 16px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .header-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .back-btn {
+        width: 24px;
+        height: 24px;
+        background: #cbd5e1;
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 18px;
+        flex: 1;
+      }
+
+      .content {
+        padding: 16px;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .tab {
+        padding: 8px 16px;
+        background: var(--soft);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tab.active {
+        background: linear-gradient(to right, #1e3a8a, #2563eb);
+        color: white;
+        border: none;
+      }
+      .badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 10px;
+      }
+      .tab:not(.active) .badge {
+        background: #e2e8f0;
+        color: #64748b;
+      }
+
+      .sub-filters {
+        display: flex;
+        gap: 8px;
+        margin-top: -8px;
+      }
+      .sub-filter {
+        padding: 4px 12px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        font-size: 10px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+      .sub-filter.active {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #fca5a5;
+      }
+
+      .job-card {
+        padding: 0;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 12px;
+        background: linear-gradient(to right, #f8fafc, #f1f5f9);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .company-info {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .company-logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+      }
+      .company-name-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .company-name {
+        height: 12px;
+        width: 80px;
+        background: #64748b;
+        border-radius: 3px;
+      }
+      .verified-badge {
+        height: 10px;
+        width: 60px;
+        background: #10b981;
+        border-radius: 2px;
+        opacity: 0.2;
+      }
+
+      .card-body {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .job-title {
+        height: 16px;
+        width: 90%;
+        background: #1e293b;
+        border-radius: 4px;
+      }
+
+      .meta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .meta-item {
+        height: 20px;
+        padding: 0 8px;
+        background: #f1f5f9;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .meta-icon {
+        width: 10px;
+        height: 10px;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+      .meta-text {
+        width: 40px;
+        height: 6px;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--soft);
+        padding-top: 12px;
+      }
+      .stat-item {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .stat-val {
+        height: 12px;
+        width: 20px;
+        background: #334155;
+        border-radius: 2px;
+      }
+      .stat-lbl {
+        height: 8px;
+        width: 30px;
+        background: #94a3b8;
+        border-radius: 2px;
+      }
+
+      .status-section {
+        margin: 0 12px 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .status-icon {
+        width: 16px;
+        height: 16px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+      }
+      .status-text {
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .action-prompt {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 10px;
+      }
+
+      .info-box {
+        margin: 0 12px 12px;
+        padding: 8px;
+        background: #fee2e2;
+        border-radius: 6px;
+        border: 1px solid #fecaca;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .info-text {
+        height: 10px;
+        flex: 1;
+        background: #dc2626;
+        opacity: 0.5;
+        border-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="header-top">
+          <div class="back-btn"></div>
+          <div class="title">Jobs</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tabs">
+          <div class="tab active">
+            <span>Pending</span>
+            <div class="badge">12</div>
+          </div>
+          <div class="tab">
+            <span>Approved</span>
+            <div class="badge">45</div>
+          </div>
+          <div class="tab">
+            <span>Rejected</span>
+            <div class="badge">8</div>
+          </div>
+        </div>
+
+        <!-- Job Card 1 (Pending) -->
+        <div class="job-card">
+          <div class="card-header">
+            <div class="company-info">
+              <div class="company-logo">C</div>
+              <div class="company-name-row">
+                <div class="company-name"></div>
+                <div class="verified-badge"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="job-title"></div>
+            <div class="meta-row">
+              <div class="meta-item">
+                <div class="meta-icon"></div>
+                <div class="meta-text"></div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-icon"></div>
+                <div class="meta-text"></div>
+              </div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="status-section"
+            style="background: linear-gradient(to right, #f59e0b, #d97706)"
+          >
+            <div class="status-content">
+              <div class="status-icon"></div>
+              <span class="status-text">Pending Review</span>
+            </div>
+            <span class="action-prompt">Tap to review</span>
+          </div>
+        </div>
+
+        <!-- Job Card 2 (Rejected) -->
+        <div class="job-card">
+          <div class="card-header">
+            <div class="company-info">
+              <div
+                class="company-logo"
+                style="background: linear-gradient(135deg, #ef4444, #dc2626)"
+              >
+                X
+              </div>
+              <div class="company-name-row">
+                <div class="company-name"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="job-title"></div>
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="status-section"
+            style="background: linear-gradient(to right, #ef4444, #dc2626)"
+          >
+            <div class="status-content">
+              <div class="status-icon"></div>
+              <span class="status-text">AI Rejected</span>
+            </div>
+          </div>
+          <div class="info-box">
+            <div
+              style="
+                width: 16px;
+                height: 16px;
+                background: #dc2626;
+                border-radius: 50%;
+                opacity: 0.5;
+              "
+            ></div>
+            <div class="info-text"></div>
+          </div>
+        </div>
+
+        <!-- Job Card 3 (Approved) -->
+        <div class="job-card">
+          <div class="card-header">
+            <div class="company-info">
+              <div class="company-logo">A</div>
+              <div class="company-name-row">
+                <div class="company-name"></div>
+                <div class="verified-badge"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="job-title"></div>
+            <div class="meta-row">
+              <div class="meta-item">
+                <div class="meta-icon"></div>
+                <div class="meta-text"></div>
+              </div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-val"></div>
+                <div class="stat-lbl"></div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="status-section"
+            style="background: linear-gradient(to right, #10b981, #059669)"
+          >
+            <div class="status-content">
+              <div class="status-icon"></div>
+              <span class="status-text">Approved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

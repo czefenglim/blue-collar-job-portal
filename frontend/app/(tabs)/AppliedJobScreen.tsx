@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
@@ -66,6 +67,7 @@ const AppliedJobsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [token, setToken] = useState<string>('');
 
   const router = useRouter();
@@ -77,6 +79,8 @@ const AppliedJobsScreen: React.FC = () => {
     { key: 'REVIEWING', label: t('applications.filters.reviewing') },
     { key: 'SHORTLISTED', label: t('applications.filters.shortlisted') },
     { key: 'INTERVIEW_SCHEDULED', label: t('applications.filters.interview') },
+    { key: 'OFFERED', label: 'Offered' },
+    { key: 'HIRED', label: 'Hired' },
     { key: 'REJECTED', label: t('applications.filters.rejected') },
   ];
 
@@ -368,6 +372,24 @@ const AppliedJobsScreen: React.FC = () => {
                 <Text style={styles.jobTitle} numberOfLines={2}>
                   {item.job.title}
                 </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: getStatusColor(item.status).bg,
+                      borderColor: getStatusColor(item.status).border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: getStatusColor(item.status).text },
+                    ]}
+                  >
+                    {formatStatus(item.status)}
+                  </Text>
+                </View>
               </View>
               <Text style={styles.companyName}>{item.job.company.name}</Text>
               <View style={styles.locationRow}>
@@ -443,6 +465,29 @@ const AppliedJobsScreen: React.FC = () => {
 
           {/* Bottom Action Row */}
           <View style={styles.actionRow}>
+            {item.status === 'OFFERED' && (
+              <TouchableOpacity
+                style={[
+                  styles.viewDetailsButton,
+                  { backgroundColor: '#10B981', marginRight: 8 },
+                ]}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(user-hidden)/offer/[id]',
+                    params: { id: item.id },
+                  })
+                }
+              >
+                <Text style={styles.viewDetailsText}>View Offer</Text>
+                <Ionicons
+                  name="document-text-outline"
+                  size={16}
+                  color="#FFFFFF"
+                  style={{ marginLeft: 4 }}
+                />
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={styles.viewDetailsButton}
               onPress={() =>
@@ -556,33 +601,72 @@ const AppliedJobsScreen: React.FC = () => {
 
       {applications.length > 0 && (
         <View style={styles.filterContainer}>
-          <FlatList
-            horizontal
-            data={statusFilters}
-            keyExtractor={(item) => item.key}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.filterTab,
-                  selectedFilter === item.key && styles.filterTabActive,
-                ]}
-                onPress={() => setSelectedFilter(item.key)}
-              >
-                <Text
-                  style={[
-                    styles.filterTabText,
-                    selectedFilter === item.key && styles.filterTabTextActive,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
+          <View style={styles.pickerContainer}>
+            <Text style={styles.filterLabel}>Status:</Text>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setShowStatusPicker(true)}
+            >
+              <Text style={styles.dropdownButtonText}>
+                {statusFilters.find((f) => f.key === selectedFilter)?.label ||
+                  selectedFilter}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color={GRAY_TEXT} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
+
+      {/* Custom Dropdown Modal */}
+      <Modal
+        visible={showStatusPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowStatusPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatusPicker(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter by Status</Text>
+              <TouchableOpacity onPress={() => setShowStatusPicker(false)}>
+                <Ionicons name="close" size={24} color={GRAY_TEXT} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={statusFilters}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    selectedFilter === item.key && styles.modalItemActive,
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(item.key);
+                    setShowStatusPicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.modalItemText,
+                      selectedFilter === item.key && styles.modalItemTextActive,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                  {selectedFilter === item.key && (
+                    <Ionicons name="checkmark" size={20} color={PRIMARY_BLUE} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <FlatList
         data={filteredApplications}
@@ -663,29 +747,87 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BACKGROUND,
     borderBottomWidth: 1,
     borderBottomColor: BORDER_COLOR,
-  },
-  filterList: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    gap: 8,
   },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    marginRight: 8,
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  filterTabActive: {
-    backgroundColor: '#1E3A8A',
-  },
-  filterTabText: {
+  filterLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#64748B',
   },
-  filterTabTextActive: {
-    color: '#FFFFFF',
+  dropdownButton: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  dropdownButtonText: {
+    fontSize: 14,
+    color: '#1E293B',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    maxHeight: '80%',
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  modalItemActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#475569',
+  },
+  modalItemTextActive: {
+    color: '#1E40AF',
+    fontWeight: '600',
   },
   applicationList: {
     paddingHorizontal: SPACING,
@@ -756,6 +898,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 4,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginLeft: 8,
+    alignSelf: 'flex-start',
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   jobTitle: {
     fontSize: 18,

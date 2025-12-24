@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Tab Wireframe</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        margin: 0;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border-radius: 30px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: 8px solid #1e293b;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 16px;
+        align-items: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: #000;
+      }
+      .header {
+        background: #fff;
+        color: #000;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .bottom-nav {
+        height: 60px;
+        border-top: 1px solid var(--border);
+        background: #fff;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: 10px;
+        flex-shrink: 0;
+      }
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .nav-item.active {
+        color: var(--primary);
+      }
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+        background: #e2e8f0;
+        border-radius: 6px;
+        margin-bottom: 4px;
+      }
+      .nav-item.active .nav-icon {
+        background: var(--primary);
+      }
+
+      /* Page Specific */
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+        background: var(--soft);
+      }
+      .title {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .input {
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0 10px;
+        margin-bottom: 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .pill {
+        display: inline-block;
+        border: 1px dashed var(--border);
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 999px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        font-size: 12px;
+        color: #475569;
+      }
+      .btn {
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+      }
+      .btn-outline {
+        background: #fff;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+      }
+      .job-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #fff;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-weight: 700;
+      }
+      .meta {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        gap: 8px;
+      }
+      .badge {
+        background: #e0e7ff;
+        color: var(--primary);
+        border: 1px solid #c7d2fe;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        margin-right: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">Home</div>
+      <div class="content">
+        <div class="section">
+          <div class="title">Your Job Preferences</div>
+          <div>
+            <span class="pill">Electrician Industrial</span>
+            <span class="pill">Automotive</span>
+          </div>
+          <div class="btn btn-primary" style="margin-top: 8px">
+            Edit Preferences
+          </div>
+        </div>
+
+        <div class="section" style="background: #fff">
+          <input class="input" placeholder="Search jobs or companies..." />
+          <div class="btn btn-outline" style="margin-bottom: 8px">
+            📍 Distance: &lt; 20 miles
+          </div>
+          <div class="btn btn-primary">Search Jobs</div>
+        </div>
+
+        <div style="margin-bottom: 12px; font-weight: 600; color: var(--text)">
+          Featured Jobs
+        </div>
+
+        <div class="job-card">
+          <div class="row">
+            <div class="logo">L1</div>
+            <div style="flex: 1; margin-left: 8px">
+              <div
+                style="
+                  height: 14px;
+                  background: #e5e7eb;
+                  border-radius: 3px;
+                  width: 70%;
+                  margin-bottom: 6px;
+                "
+              ></div>
+              <div class="meta">
+                <span>New York, NY</span><span>Full-time</span>
+              </div>
+            </div>
+            <div class="badge">Saved</div>
+          </div>
+          <div
+            style="
+              height: 12px;
+              background: #e5e7eb;
+              border-radius: 3px;
+              width: 100%;
+              margin: 8px 0;
+            "
+          ></div>
+          <div class="meta">
+            <span>$25-30/hr</span><span>M-F</span><span>2+ Years</span>
+          </div>
+          <div class="btn btn-primary" style="margin-top: 8px">
+            View Details
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="row">
+            <div class="logo">L2</div>
+            <div style="flex: 1; margin-left: 8px">
+              <div
+                style="
+                  height: 14px;
+                  background: #e5e7eb;
+                  border-radius: 3px;
+                  width: 60%;
+                  margin-bottom: 6px;
+                "
+              ></div>
+              <div class="meta">
+                <span>Austin, TX</span><span>Contract</span>
+              </div>
+            </div>
+            <div class="badge">New</div>
+          </div>
+          <div
+            style="
+              height: 12px;
+              background: #e5e7eb;
+              border-radius: 3px;
+              width: 100%;
+              margin: 8px 0;
+            "
+          ></div>
+          <div class="meta">
+            <span>$22/hr</span><span>Shift</span><span>Entry</span>
+          </div>
+          <div class="btn btn-primary" style="margin-top: 8px">
+            View Details
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+          <div class="nav-icon"></div>
+          <span>Home</span>
+        </a>
+        <a href="applied.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Applied</span>
+        </a>
+        <a href="saved.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Saved</span>
+        </a>
+        <a href="companies.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Companies</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Messages</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+          <div class="nav-icon"></div>
+          <span>Profile</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -119,6 +119,10 @@ export const getAllJobs = async (
           where: { userId },
           select: { id: true },
         },
+        reports: {
+          where: { userId },
+          select: { id: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
       skip,
@@ -205,6 +209,7 @@ export const getAllJobs = async (
           lang as any
         ),
         isSaved: job.savedJobs.length > 0,
+        isReported: (job as any).reports.length > 0,
         savedJobs: undefined,
       };
     });
@@ -274,6 +279,10 @@ export const getJobBySlug = async (
           },
         },
         savedJobs: { where: { userId }, select: { id: true } },
+        reports: {
+          where: { userId },
+          select: { id: true },
+        },
         applications: {
           where: { userId },
           select: { id: true, status: true, appliedAt: true },
@@ -358,6 +367,7 @@ export const getJobBySlug = async (
 
       // Application status
       isSaved: job.savedJobs.length > 0,
+      isReported: (job as any).reports.length > 0,
       hasApplied: job.applications.length > 0,
       applicationStatus: job.applications[0]?.status || null,
       savedJobs: undefined,

@@ -1,228 +1,697 @@
 @startuml
-title ERD — Blue‑Collar Job Portal (Prisma)
-left to right direction
-skinparam classBackgroundColor #F8FAFC
-skinparam classBorderColor #1E3A8A
-skinparam ArrowColor #334155
 
-' Core entities
-entity "User" as User {
-  *id : Int
+!theme plain
+hide circle
+skinparam linetype ortho
+
+' Models
+
+entity "User" as user {
+  *id : Int <<generated>>
+  --
+  *email : String <<unique>>
+  *password : String
+  phoneNumber : String
+  isEmailVerified : Boolean
+  isPhoneVerified : Boolean
+  isActive : Boolean
+  lastLoginAt : DateTime
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  *fullName : String
+  *preferredLanguage : LanguageType
+  *role : UserRole
+  *status : AccountStatus
+  suspendedAt : DateTime
+  suspendedBy : String
+  suspensionReason : String
+  suspensionReason_ms : String
+  suspensionReason_ta : String
+  suspensionReason_zh : String
+  suspensionReason_en : String
+  pushToken : String
+}
+
+entity "RegistrationOTP" as registration_otp {
+  *id : String <<generated>>
+  --
+  *email : String <<unique>>
+  *otp : String
+  *expiresAt : DateTime
+  *data : String
+  *createdAt : DateTime
+}
+
+entity "PasswordResetOTP" as password_reset_otp {
+  *id : String <<generated>>
+  --
+  *userId : Int
+  *codeHash : String
+  *otpSessionToken : String <<unique>>
+  *expiresAt : DateTime
+  consumedAt : DateTime
+  *attempts : Int
+  *createdAt : DateTime
+}
+
+entity "UserProfile" as user_profile {
+  *id : Int <<generated>>
+  --
+  *userId : Int <<unique>>
+  dateOfBirth : DateTime
+  gender : Gender
+  nationality : String
+  address : String
+  city : String
+  state : String
+  postcode : String
+  preferredSalaryMin : Int
+  preferredSalaryMax : Int
+  availableFrom : DateTime
+  workingHours : WorkingHours
+  transportMode : TransportMode
+  maxTravelDistance : Int
+  *experienceYears : Int
+  certifications : String
+  *profileCompleted : Boolean
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  profilePicture : String
+  resumeUrl_en : String
+  resumeUrl_ms : String
+  resumeUrl_zh : String
+  resumeUrl_ta : String
+  resumeUrl_uploaded : String
+  uploadedLanguage : String
+  uploadedFileName : String
+  uploadedAt : DateTime
+  resumeSource : ResumeSource
+  resumeGeneratedAt : DateTime
+  resumeVersion : Int
+  latitude : Float
+  longitude : Float
+}
+
+entity "UserSkill" as user_skill {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *skillId : Int
+}
+
+entity "UserLanguage" as user_language {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *languageId : Int
+}
+
+entity "Industry" as industry {
+  *id : Int <<generated>>
+  --
+  *name : String <<unique>>
+  *slug : String <<unique>>
+  icon : String
+  description : String
+  *isActive : Boolean
+  *createdAt : DateTime
+  description_ms : String
+  description_ta : String
+  description_zh : String
+  description_en : String
+  name_ms : String
+  name_ta : String
+  name_zh : String
+  name_en : String
+}
+
+entity "Report" as report {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *jobId : Int
+  *reportType : ReportType
+  *description : String
+  description_ms : String
+  description_ta : String
+  description_zh : String
+  description_en : String
+  evidence : String
+  *status : ReportStatus
+  reviewedBy : Int
+  reviewedAt : DateTime
+  reviewNotes : String
+  reviewNotes_ms : String
+  reviewNotes_ta : String
+  reviewNotes_zh : String
+  reviewNotes_en : String
+  *createdAt : DateTime
+  *updatedAt : DateTime
+}
+
+entity "UserIndustry" as user_industry {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *industryId : Int
+}
+
+entity "ResumeAnswer" as resume_answer {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *questionId : String
+  *answer : Json
+  *createdAt : DateTime
+  *updatedAt : DateTime
+}
+
+entity "Company" as company {
+  *id : Int <<generated>>
+  --
+  *name : String
+  *slug : String <<unique>>
+  description : String
+  logo : String
+  website : String
   email : String
-  role : UserRole
-}
-
-entity "UserProfile" as UserProfile {
-  *id : Int
-  userId : Int (unique)
-}
-
-entity "Company" as Company {
-  *id : Int
-  userId : Int? (unique)
-  industryId : Int?
-}
-
-entity "CompanyVerification" as CompanyVerification {
-  *id : Int
-  companyId : Int (unique)
-}
-
-entity "Industry" as Industry {
-  *id : Int
-}
-
-entity "Job" as Job {
-  *id : Int
-  companyId : Int
+  phone : String
+  address : String
+  city : String
+  state : String
+  postcode : String
+  companySize : CompanySize
+  *isVerified : Boolean
+  *isActive : Boolean
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  description_ms : String
+  description_ta : String
+  description_zh : String
+  description_en : String
+  name_ms : String
+  name_ta : String
+  name_zh : String
+  name_en : String
+  userId : Int <<unique>>
   industryId : Int
-  createdBy : Int?
-  updatedBy : Int?
+  *onboardingCompleted : Boolean
+  *onboardingStep : Int
+  verificationDocument : String
+  *verificationStatus : String
+  verificationRemark : String
+  verificationRemark_ms : String
+  verificationRemark_ta : String
+  verificationRemark_zh : String
+  verificationRemark_en : String
+  verifiedDate : DateTime
+  *hasCompletedInitialSubscription : Boolean
 }
 
-entity "JobAnalytics" as JobAnalytics {
-  *id : Int
-  jobId : Int (unique)
+entity "CompanyVerification" as company_verification {
+  *id : Int <<generated>>
+  --
+  *companyId : Int <<unique>>
+  businessDocument : String
+  documentType : String
+  documentName : String
+  *phoneVerified : Boolean
+  *emailVerified : Boolean
+  status : String
+  reviewNotes : String
+  reviewNotes_ms : String
+  reviewNotes_ta : String
+  reviewNotes_zh : String
+  reviewNotes_en : String
+  reviewedBy : Int
+  reviewedAt : DateTime
+  *submittedAt : DateTime
+  *createdAt : DateTime
+  *updatedAt : DateTime
 }
 
-entity "JobApplication" as JobApplication {
-  *id : Int
-  userId : Int
-  jobId : Int
+entity "Job" as job {
+  *id : Int <<generated>>
+  --
+  *title : String
+  *slug : String <<unique>>
+  *description : String
+  requirements : String
+  benefits : String
+  *industryId : Int
+  *companyId : Int
+  *jobType : JobType
+  *workingHours : WorkingHours
+  *experienceLevel : ExperienceLevel
+  address : String
+  *city : String
+  *state : String
+  postcode : String
+  *isRemote : Boolean
+  salaryMin : Int
+  salaryMax : Int
+  salaryType : SalaryType
+  *isActive : Boolean
+  *isFeatured : Boolean
+  applicationDeadline : DateTime
+  startDate : DateTime
+  *viewCount : Int
+  *applicationCount : Int
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  benefits_ms : String
+  benefits_ta : String
+  benefits_zh : String
+  benefits_en : String
+  description_ms : String
+  description_ta : String
+  description_zh : String
+  description_en : String
+  requirements_ms : String
+  requirements_ta : String
+  requirements_zh : String
+  requirements_en : String
+  title_ms : String
+  title_ta : String
+  title_zh : String
+  title_en : String
+  estimatedHireDaysMin : Int
+  estimatedHireDaysMax : Int
+  createdBy : Int
+  updatedBy : Int
+  skills : String
+  *approvalStatus : ApprovalStatus
+  approvedAt : DateTime
+  rejectedAt : DateTime
+  rejectedBy : Int
+  rejectionReason : String
+  rejectionReason_ms : String
+  rejectionReason_ta : String
+  rejectionReason_zh : String
+  rejectionReason_en : String
+  *isSuspended : Boolean
+  suspendedAt : DateTime
+  suspendedBy : String
+  suspensionReason : String
+  suspensionReason_ms : String
+  suspensionReason_ta : String
+  suspensionReason_zh : String
+  suspensionReason_en : String
+  latitude : Float
+  longitude : Float
 }
 
-entity "SavedJob" as SavedJob {
-  *id : Int
-  userId : Int
-  jobId : Int
+entity "JobApplication" as job_application {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *jobId : Int
+  *status : ApplicationStatus
+  coverLetter : String
+  resumeUrl : String
+  *appliedAt : DateTime
+  *updatedAt : DateTime
+  employerNote : String
+  interviewDate : DateTime
 }
 
-entity "Notification" as Notification {
-  *id : Int
-  userId : Int
+entity "SavedJob" as saved_job {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *jobId : Int
+  *savedAt : DateTime
 }
 
-entity "Message" as Message {
-  *id : Int
-  senderId : Int
-  receiverId : Int
+entity "Notification" as notification {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *title : String
+  *message : String
+  message_ms : String
+  message_ta : String
+  message_zh : String
+  message_en : String
+  *type : NotificationType
+  *isRead : Boolean
+  actionUrl : String
+  *createdAt : DateTime
+  metadata : String
 }
 
-entity "Review" as Review {
-  *id : Int
-  userId : Int
-  companyId : Int
+entity "Review" as review {
+  *id : Int <<generated>>
+  --
+  *userId : Int
+  *companyId : Int
+  *rating : Int
+  title : String
+  comment : String
+  comment_ms : String
+  comment_ta : String
+  comment_zh : String
+  comment_en : String
+  *isAnonymous : Boolean
+  *isApproved : Boolean
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  *isVisible : Boolean
+  employerReply : String
+  employerReply_ms : String
+  employerReply_ta : String
+  employerReply_zh : String
+  employerReply_en : String
+  flagReason : String
+  flagReason_ms : String
+  flagReason_ta : String
+  flagReason_zh : String
+  flagReason_en : String
+  flaggedAt : DateTime
+  *isFlagged : Boolean
+  repliedAt : DateTime
 }
 
-entity "Report" as Report {
-  *id : Int
-  userId : Int (reporter)
-  jobId : Int
-  reviewedBy : Int?
+entity "AdminAction" as admin_action {
+  *id : Int <<generated>>
+  --
+  *adminEmail : String
+  *actionType : AdminActionType
+  *targetType : String
+  *targetId : Int
+  reason : String
+  reason_ms : String
+  reason_ta : String
+  reason_zh : String
+  reason_en : String
+  notes : String
+  *createdAt : DateTime
 }
 
-entity "Appeal" as Appeal {
-  *id : Int
-  reportId : Int
-  employerId : Int
-  reviewedBy : Int?
-}
-
-entity "JobAppeal" as JobAppeal {
-  *id : Int
-  jobId : Int
-  employerId : Int
-  reviewedBy : Int?
-}
-
-entity "Conversation" as Conversation {
-  *id : Int
-  applicationId : Int (unique)
-  employerId : Int
-  jobSeekerId : Int
-  jobId : Int
-}
-
-entity "ChatMessage" as ChatMessage {
-  *id : Int
-  conversationId : Int
-  senderId : Int
-}
-
-entity "Subscription" as Subscription {
-  *id : Int
-  companyId : Int (unique)
-}
-
-entity "Invoice" as Invoice {
-  *id : Int
-  subscriptionId : Int
-}
-
-entity "UserIndustry" as UserIndustry {
-  *id : Int
-  userId : Int (UserProfile)
-  industryId : Int
-}
-
-entity "UserLanguage" as UserLanguage {
-  *id : Int
-  userId : Int (UserProfile)
-  languageId : Int
-}
-
-entity "UserSkill" as UserSkill {
-  *id : Int
-  userId : Int (UserProfile)
-  skillId : Int
+entity "Appeal" as appeal {
+  *id : Int <<generated>>
+  --
+  *reportId : Int
+  *employerId : Int
+  *explanation : String
+  explanation_ms : String
+  explanation_ta : String
+  explanation_zh : String
+  explanation_en : String
+  evidence : String
+  *status : AppealStatus
+  reviewedBy : Int
+  reviewedAt : DateTime
+  reviewNotes : String
+  reviewNotes_ms : String
+  reviewNotes_ta : String
+  reviewNotes_zh : String
+  reviewNotes_en : String
+  *createdAt : DateTime
+  *updatedAt : DateTime
 }
 
 entity "language" as language {
-  *id : Int
+  *id : Int <<generated>>
+  --
+  *name : String <<unique>>
+  *isActive : Boolean
+  *createdAt : DateTime
+  name_ms : String
+  name_ta : String
+  name_zh : String
+  name_en : String
+}
+
+entity "resumequestion" as resume_question {
+  *id : Int <<generated>>
+  --
+  *questionId : String <<unique>>
+  *question : String
+  *type : String
+  options : Json
+  *required : Boolean
+  conditionalOn : String
+  conditionalValue : String
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  question_ms : String
+  question_ta : String
+  question_zh : String
+  question_en : String
 }
 
 entity "skill" as skill {
-  *id : Int
+  *id : Int <<generated>>
+  --
+  *name : String <<unique>>
+  *isActive : Boolean
+  *createdAt : DateTime
+  name_ms : String
+  name_ta : String
+  name_zh : String
+  name_en : String
 }
 
-entity "resumequestion" as resumequestion {
-  *id : Int
-  questionId : String (unique)
+entity "JobAppeal" as job_appeal {
+  *id : Int <<generated>>
+  --
+  *jobId : Int
+  *employerId : Int
+  *explanation : String
+  explanation_ms : String
+  explanation_ta : String
+  explanation_zh : String
+  explanation_en : String
+  evidence : String
+  updatedJobData : Json
+  *status : AppealStatus
+  reviewedBy : Int
+  reviewedAt : DateTime
+  reviewNotes : String
+  reviewNotes_ms : String
+  reviewNotes_ta : String
+  reviewNotes_zh : String
+  reviewNotes_en : String
+  adminDecision : String
+  *createdAt : DateTime
+  *updatedAt : DateTime
 }
 
-entity "ResumeAnswer" as ResumeAnswer {
-  *id : Int
-  userId : Int
-  questionId : String
+entity "Conversation" as conversation {
+  *id : Int <<generated>>
+  --
+  *applicationId : Int <<unique>>
+  *employerId : Int
+  *jobSeekerId : Int
+  *jobId : Int
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  lastMessageAt : DateTime
+  *isActive : Boolean
 }
 
-entity "PasswordResetOTP" as PasswordResetOTP {
-  *id : String
-  userId : Int
+entity "ChatMessage" as chat_message {
+  *id : Int <<generated>>
+  --
+  *conversationId : Int
+  *senderId : Int
+  content : String
+  *messageType : MessageType
+  attachmentUrl : String
+  attachmentName : String
+  attachmentSize : Int
+  attachmentType : String
+  *isRead : Boolean
+  readAt : DateTime
+  *isEdited : Boolean
+  editedAt : DateTime
+  *isDeleted : Boolean
+  deletedAt : DateTime
+  *createdAt : DateTime
+  *updatedAt : DateTime
 }
 
-entity "AdminAction" as AdminAction {
-  *id : Int
+entity "Subscription" as subscription {
+  *id : Int <<generated>>
+  --
+  *companyId : Int <<unique>>
+  *planType : PlanType
+  *status : SubscriptionStatus
+  stripeCustomerId : String <<unique>>
+  stripeSubscriptionId : String <<unique>>
+  stripePriceId : String
+  stripeCurrentPeriodEnd : DateTime
+  *jobPostLimit : Int
+  *jobPostsUsed : Int
+  *canReplyToReviews : Boolean
+  billingCycleStart : DateTime
+  billingCycleEnd : DateTime
+  lastPaymentDate : DateTime
+  lastPaymentAmount : Float
+  *createdAt : DateTime
+  *updatedAt : DateTime
+  cancelledAt : DateTime
 }
 
-' Relationships (crow's foot notation)
-User ||--|| UserProfile : has
-User ||--|| Company : owns
-Company ||--|| CompanyVerification : verification
+entity "SubscriptionPlan" as subscription_plan {
+  *id : Int <<generated>>
+  --
+  *type : PlanType <<unique>>
+  *name : String
+  *price : Float
+  *currency : String
+  features : Json
+  *isActive : Boolean
+  *createdAt : DateTime
+  *updatedAt : DateTime
+}
 
-Industry ||--o{ Company : has
-Industry ||--o{ Job : has
-Company ||--o{ Job : posts
+entity "Invoice" as invoice {
+  *id : Int <<generated>>
+  --
+  *subscriptionId : Int
+  *stripeInvoiceId : String <<unique>>
+  *amount : Float
+  *currency : String
+  *status : String
+  invoiceUrl : String
+  invoicePdf : String
+  paidAt : DateTime
+  *createdAt : DateTime
+}
 
-Job ||--|| JobAnalytics : analytics
+entity "JobOffer" as job_offer {
+  *id : Int <<generated>>
+  --
+  *applicationId : Int <<unique>>
+  *startDate : DateTime
+  *contractDuration : String
+  durationPeriod : String
+  *salaryAmount : Decimal
+  *salaryCurrency : String
+  *payFrequency : String
+  contractUrl : String
+  *employerConfirmed : Boolean
+  *compliesWithLaws : Boolean
+  *applicantStatus : OfferStatus
+  applicantSignature : String
+  signedContractUrl : String
+  *employerVerified : Boolean
+  *createdAt : DateTime
+  *updatedAt : DateTime
+}
 
-User ||--o{ JobApplication : applies
-Job ||--o{ JobApplication : receives
+' Relations
 
-User ||--o{ SavedJob : saves
-Job ||--o{ SavedJob : saved_by
+user ||..o{ appeal : "employerAppeals"
+user ||..o{ appeal : "reviewedAppeals"
+user ||--o| company : "company"
+user ||..o{ job_application : "applications"
+user ||..o{ job : "createdJobs"
+user ||..o{ job : "updatedJobs"
+user ||..o{ notification : "notifications"
+user ||..o{ report : "reviewedReports"
+user ||..o{ report : "reports"
+user ||..o{ resume_answer : "resumeAnswers"
+user ||..o{ review : "reviews"
+user ||..o{ saved_job : "savedJobs"
+user ||--o| user_profile : "profile"
+user ||..o{ job_appeal : "employerJobAppeals"
+user ||..o{ job_appeal : "reviewedJobAppeals"
+user ||..o{ chat_message : "sentChatMessages"
+user ||..o{ conversation : "employerConversations"
+user ||..o{ conversation : "jobSeekerConversations"
+user ||..o{ password_reset_otp : "passwordResetOTPs"
 
-User ||--o{ Notification : receives
+password_reset_otp }o..|| user : "user"
 
-User ||--o{ Message : sends
-User ||--o{ Message : receives
+user_profile ||..|| user : "user"
+user_profile ||..o{ user_industry : "industries"
+user_profile ||..o{ user_language : "languages"
+user_profile ||..o{ user_skill : "skills"
 
-User ||--o{ Review : writes
-Company ||--o{ Review : receives
+user_skill }o..|| skill : "skill"
+user_skill }o..|| user_profile : "user"
 
-User ||--o{ Report : reports
-Job ||--o{ Report : reported
-User ||--o{ Report : reviews (reviewer)
+user_language }o..|| language : "language"
+user_language }o..|| user_profile : "user"
 
-Report ||--o{ Appeal : appeals
-User ||--o{ Appeal : employer
-User ||--o{ Appeal : reviewer
+industry ||..o{ company : "companies"
+industry ||..o{ job : "jobs"
+industry ||..o{ user_industry : "users"
 
-Job ||--o{ JobAppeal : appealed
-User ||--o{ JobAppeal : employer
-User ||--o{ JobAppeal : reviewer
+report ||..o{ appeal : "appeals"
+report }o..|| job : "job"
+report }o..|| user : "reviewer"
+report }o..|| user : "user"
 
-JobApplication ||--|| Conversation : linked
-Conversation ||--o{ ChatMessage : messages
-User ||--o{ Conversation : employer
-User ||--o{ Conversation : jobSeeker
-User ||--o{ ChatMessage : sends
+user_industry }o..|| industry : "industry"
+user_industry }o..|| user_profile : "user"
 
-Company ||--|| Subscription : has
-Subscription ||--o{ Invoice : invoices
+resume_answer }o..|| resume_question : "question"
+resume_answer }o..|| user : "user"
 
-UserProfile ||--o{ UserIndustry : links
-Industry ||--o{ UserIndustry : links
+company ||..o| industry : "industry"
+company ||..o| user : "user"
+company ||--o| company_verification : "verification"
+company ||..o{ job : "jobs"
+company ||..o{ review : "reviews"
+company ||--o| subscription : "subscription"
 
-UserProfile ||--o{ UserLanguage : links
-language ||--o{ UserLanguage : links
+company_verification ||..|| company : "company"
 
-UserProfile ||--o{ UserSkill : links
-skill ||--o{ UserSkill : links
+job ||..o{ job_application : "applications"
+job }o..|| company : "company"
+job }o..|| user : "creator"
+job }o..|| industry : "industry"
+job }o..|| user : "updater"
+job ||..o{ report : "reports"
+job ||..o{ saved_job : "savedJobs"
+job ||..o{ job_appeal : "appeals"
+job ||..o{ conversation : "conversations"
 
-User ||--o{ ResumeAnswer : answers
-resumequestion ||--o{ ResumeAnswer : has
+job_application }o..|| job : "job"
+job_application }o..|| user : "user"
+job_application ||--o| conversation : "conversation"
+job_application ||--o| job_offer : "offer"
 
-User ||--o{ PasswordResetOTP : resets
+saved_job }o..|| job : "job"
+saved_job }o..|| user : "user"
+
+notification }o..|| user : "user"
+
+review }o..|| company : "company"
+review }o..|| user : "user"
+
+appeal }o..|| user : "employer"
+appeal }o..|| report : "report"
+appeal }o..|| user : "reviewer"
+
+language ||..o{ user_language : "users"
+
+resume_question ||..o{ resume_answer : "answers"
+
+skill ||..o{ user_skill : "users"
+
+job_appeal }o..|| job : "job"
+job_appeal }o..|| user : "employer"
+job_appeal }o..|| user : "reviewer"
+
+conversation }o..|| job_application : "application"
+conversation }o..|| user : "employer"
+conversation }o..|| user : "jobSeeker"
+conversation }o..|| job : "job"
+conversation ||..o{ chat_message : "messages"
+
+chat_message }o..|| conversation : "conversation"
+chat_message }o..|| user : "sender"
+
+subscription ||..|| company : "company"
+subscription ||..o{ invoice : "invoices"
+
+invoice }o..|| subscription : "subscription"
+
+job_offer ||..|| job_application : "application"
+
 @enduml
-

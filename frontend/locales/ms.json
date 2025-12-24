@@ -935,6 +935,10 @@
     "application": "permohonan",
     "applications": "permohonan",
     "stats": "{filtered} daripada {total} {application}",
+    "options": "Pilihan Kerja Disimpan",
+    "selectAction": "Apa yang anda mahu lakukan dengan kerja yang disimpan ini?",
+    "viewDetails": "Lihat Butiran",
+    "reportJob": "Laporkan Kerja Disimpan",
     "filters": {
       "all": "Semua",
       "pending": "Belum Selesai",
@@ -981,6 +985,11 @@
     "jobCount": "{count} {jobs} disimpan",
     "job": "kerja",
     "jobs": "kerja",
+    "options": "Pilihan Kerja Disimpan",
+    "selectAction": "Apa yang anda mahu lakukan dengan kerja yang disimpan ini?",
+    "viewDetails": "Lihat Butiran",
+    "unsave": "Nyah-simpan Kerja Disimpan",
+    "reportJob": "Laporkan Kerja Disimpan",
     "emptyState": {
       "title": "Tiada Kerja Disimpan Lagi",
       "description": "Mula melayar kerja dan simpan kerja yang anda minati",
@@ -1109,8 +1118,8 @@
     }
   },
   "login": {
-    "appTitle": "Kawalan Belanjawan",
-    "appSubtitle": "Kawal kewangan anda",
+    "appTitle": "Portal Kerja Kolar Biru",
+    "appSubtitle": "Mulakan perjalanan kerjaya anda",
     "welcomeBack": "Selamat Kembali!",
     "signInToContinue": "Log masuk untuk teruskan",
     "email": "E-mel",
@@ -2289,9 +2298,9 @@
   },
   "tabsLayout": {
     "home": "Utama",
-    "saved": "Disimpan",
-    "applied": "Dipohon",
-    "company": "Syarikat",
+    "favorite": "Suka",
+    "applied": "Pemohon",
+    "company": "Pencari Kerja",
     "chat": "Chat",
     "profile": "Profil"
   },
@@ -2306,7 +2315,8 @@
     "reportJob": "Lapor Kerja",
     "reportHistory": "Sejarah Laporan",
     "companyProfile": "Profil Syarikat",
-    "updateLocation": "Kemaskini Lokasi"
+    "updateLocation": "Kemaskini Lokasi",
+    "notifications": "Pemberitahuan"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "Edit Profil Syarikat",

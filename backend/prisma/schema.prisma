@@ -38,8 +38,7 @@ model User {
   applications           JobApplication[]
   createdJobs            Job[]               @relation("JobCreator")
   updatedJobs            Job[]               @relation("JobUpdater")
-  receivedMessages       Message[]           @relation("MessageReceiver")
-  sentMessages           Message[]           @relation("MessageSender")
+ 
   notifications          Notification[]
   reviewedReports        Report[]            @relation("ReportReviewer")
   reports                Report[]
@@ -278,7 +277,6 @@ model Company {
   onboardingStep       Int                  @default(1)
   verificationDocument String?              @db.Text
   verificationStatus   String               @default("PENDING")
-  verifiedAt           DateTime?
   verificationRemark   String?              @db.Text 
   verificationRemark_ms String?             @db.Text
   verificationRemark_ta String?             @db.Text
@@ -372,7 +370,6 @@ model Job {
   skills              String?             @db.Text
   approvalStatus      ApprovalStatus @default(PENDING)
   approvedAt          DateTime?
-  approvedBy          Int?
   rejectedAt          DateTime?
   rejectedBy          Int?
   rejectionReason     String?             @db.Text 
@@ -390,7 +387,6 @@ model Job {
   suspensionReason_en String?             @db.Text
   latitude            Float?
   longitude           Float?
-  jobAnalytics        JobAnalytics?
   applications        JobApplication[]
   company             Company             @relation(fields: [companyId], references: [id])
   creator             User?               @relation("JobCreator", fields: [createdBy], references: [id])
@@ -422,6 +418,7 @@ model JobApplication {
   job           Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversation Conversation?
+  offer         JobOffer?
 
 
   @@unique([userId, jobId])
@@ -462,31 +459,7 @@ model Notification {
   @@map("notifications")
 }
 
-model JobAnalytics {
-  id           Int      @id @default(autoincrement())
-  jobId        Int      @unique
-  views        Int      @default(0)
-  applications Int      @default(0)
-  lastUpdated  DateTime @updatedAt
-  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
-  @@map("job_analytics")
-}
-
-model Message {
-  id         Int      @id @default(autoincrement())
-  senderId   Int
-  receiverId Int
-  content    String   @db.Text
-  isRead     Boolean  @default(false)
-  sentAt     DateTime @default(now())
-  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
-  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
-
-  @@index([receiverId], map: "messages_receiverId_fkey")
-  @@index([senderId], map: "messages_senderId_fkey")
-  @@map("messages")
-}
 
 model Review {
   id            Int       @id @default(autoincrement())
@@ -837,7 +810,45 @@ model SubscriptionPlan {
     REJECTED
     HIRED
     WITHDRAWN
+    OFFERED
+    OFFER_ACCEPTED
+    OFFER_REJECTED
   }
+
+model JobOffer {
+  id              Int       @id @default(autoincrement())
+  applicationId   Int       @unique
+  application     JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  startDate       DateTime
+  contractDuration String    // "Fixed-term" or "Permanent"
+  durationPeriod  String?   // e.g. "6 months" if fixed-term
+  salaryAmount    Decimal   @db.Decimal(10, 2)
+  salaryCurrency  String    // e.g. "MYR", "SGD"
+  payFrequency    String    // "Daily", "Weekly", "Monthly"
+  
+  contractUrl     String?   // PDF URL
+  
+  employerConfirmed Boolean @default(false)
+  compliesWithLaws  Boolean @default(false)
+  
+  applicantStatus   OfferStatus @default(PENDING)
+  applicantSignature String?   @db.Text
+  signedContractUrl String?    @db.Text
+  
+  employerVerified  Boolean @default(false)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("job_offers")
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
   
   enum NotificationType {
     JOB_MATCH

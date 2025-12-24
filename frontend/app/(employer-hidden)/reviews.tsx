@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -60,13 +60,8 @@ export default function ReviewsManagementScreen() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
 
-  useEffect(() => {
-    fetchReviews();
-    fetchSubscriptionInfo(); // ✅ Fetch subscription info on mount
-  }, [filterRating, sortBy]);
-
   // ✅ Add function to fetch subscription info
-  const fetchSubscriptionInfo = async () => {
+  const fetchSubscriptionInfo = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(`${URL}/api/subscription/current`, {
@@ -81,9 +76,9 @@ export default function ReviewsManagementScreen() {
     } catch (error) {
       console.error('Error fetching subscription:', error);
     }
-  };
+  }, []);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -116,7 +111,12 @@ export default function ReviewsManagementScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [filterRating, sortBy, router, t]);
+
+  useEffect(() => {
+    fetchReviews();
+    fetchSubscriptionInfo();
+  }, [fetchReviews, fetchSubscriptionInfo]);
 
   const handleReply = async () => {
     if (!selectedReview || !replyText.trim()) {
@@ -157,6 +157,7 @@ export default function ReviewsManagementScreen() {
         );
       }
     } catch (error) {
+      console.error('Error posting reply:', error);
       Alert.alert(t('common.error'), t('employerReviews.errors.postFailed'));
     } finally {
       setSubmitting(false);
@@ -171,7 +172,7 @@ export default function ReviewsManagementScreen() {
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('employerReviews.prompt.submit'),
-          onPress: async (reason) => {
+          onPress: async (reason: any) => {
             if (!reason || reason.trim().length === 0) {
               Alert.alert(
                 t('common.error'),
@@ -207,6 +208,7 @@ export default function ReviewsManagementScreen() {
                 );
               }
             } catch (error) {
+              console.error('Error flagging review:', error);
               Alert.alert(
                 t('common.error'),
                 t('employerReviews.errors.flagFailed')
@@ -370,7 +372,10 @@ export default function ReviewsManagementScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
         </View>
@@ -379,7 +384,7 @@ export default function ReviewsManagementScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Stats Summary */}
       {stats && (
         <View style={styles.statsCard}>

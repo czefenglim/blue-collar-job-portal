@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Wireframe</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .mobile-frame { width: 375px; min-height: 812px; background-color: #ffffff; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .logo-section { margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; }
+        .logo-icon { width: 80px; height: 80px; background-color: #1e3a8a; border-radius: 16px; margin-bottom: 20px; }
+        .title { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: #64748b; }
+        .form-section { width: 80%; }
+        .input-group { margin-bottom: 20px; }
+        .input-label { display: none; }
+        .input-field { width: 100%; height: 50px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 15px; box-sizing: border-box; font-size: 16px; }
+        .login-btn { width: 100%; height: 50px; background-color: #1e3a8a; border-radius: 8px; color: white; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-top: 10px; }
+        .footer { position: absolute; bottom: 30px; font-size: 12px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="mobile-frame" id="mobileFrame">
+        <div class="logo-section">
+            <div class="logo-icon"></div>
+            <div class="title">Admin Portal</div>
+            <div class="subtitle">Sign in to manage the platform</div>
+        </div>
+
+        <div class="form-section">
+            <div class="input-group">
+                <input type="email" class="input-field" placeholder="Email Address">
+            </div>
+            <div class="input-group">
+                <input type="password" class="input-field" placeholder="Password">
+            </div>
+            <div class="login-btn">Sign In</div>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Job Portal Admin
+        </div>
+    </div>
+    <script>
+        function adjustHeight() {
+            const frame = document.getElementById('mobileFrame');
+            frame.style.height = '812px'; // Reset to min-height
+            if (frame.scrollHeight > 812) {
+                frame.style.height = frame.scrollHeight + 'px';
+            }
+        }
+        window.addEventListener('load', adjustHeight);
+        setInterval(adjustHeight, 1000);
+    </script>
+</body>
+</html>

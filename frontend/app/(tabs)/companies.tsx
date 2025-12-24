@@ -39,7 +39,6 @@ interface Company {
 // Color palette
 const PRIMARY_BLUE = '#1E40AF';
 const ACCENT_ORANGE = '#F59E0B';
-const ACCENT_GREEN = '#10B981';
 const ACCENT_PURPLE = '#8B5CF6';
 const LIGHT_BACKGROUND = '#F8FAFC';
 const CARD_BACKGROUND = '#FFFFFF';

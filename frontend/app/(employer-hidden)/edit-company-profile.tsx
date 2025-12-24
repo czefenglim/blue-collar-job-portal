@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -81,15 +81,9 @@ export default function ProfileEditPage() {
   const [showSizePicker, setShowSizePicker] = useState(false);
   const [showStatePicker, setShowStatePicker] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-    fetchIndustries();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const userData = await AsyncStorage.getItem('userData');
 
       if (!token) {
         router.replace('/EmployerLoginScreen');
@@ -118,24 +112,33 @@ export default function ProfileEditPage() {
       setState(company.state || '');
       setPostcode(company.postcode || '');
     } catch (error: any) {
+      console.error('Error loading profile:', error);
       Alert.alert(t('common.error'), t('employerProfile.loadFailed'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, t]);
 
-  const fetchIndustries = async () => {
+  const fetchIndustries = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${URL}/api/industries?lang=${currentLanguage}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/industries?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       if (response.ok) setIndustries(data.data || []);
     } catch (error) {
       console.error('Error fetching industries:', error);
     }
-  };
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    fetchProfile();
+    fetchIndustries();
+  }, [fetchProfile, fetchIndustries]);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -327,7 +330,10 @@ export default function ProfileEditPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.logoHint}>{t('common.loading')}</Text>
@@ -340,7 +346,7 @@ export default function ProfileEditPage() {
   const selectedSize = COMPANY_SIZES.find((s) => s.value === companySize);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Custom Header */}
 
       <ScrollView
@@ -537,7 +543,7 @@ export default function ProfileEditPage() {
         () => setShowStatePicker(false),
         t('employerProfile.selectState'),
         MALAYSIAN_STATES,
-        (value) => setCompanyArea(value),
+        (value) => setState(value),
         (item) => t(`states.${item}`),
         (item) => item
       )}

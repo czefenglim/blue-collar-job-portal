@@ -34,10 +34,10 @@ interface Report {
   user: {
     fullName: string;
   };
-  appeals: Array<{
+  appeals: {
     id: number;
     status: string;
-  }>;
+  }[];
 }
 
 const EmployerReportsScreen: React.FC = () => {
@@ -48,11 +48,7 @@ const EmployerReportsScreen: React.FC = () => {
   const router = useRouter();
   const { t } = useLanguage();
 
-  useEffect(() => {
-    loadReports();
-  }, []);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -60,11 +56,11 @@ const EmployerReportsScreen: React.FC = () => {
           t('employerReports.list.errors.authRequiredTitle'),
           t('employerReports.list.errors.authRequiredMessage'),
           [
-          {
-            text: t('common.ok'),
-            onPress: () => router.replace('/LoginScreen'),
-          },
-        ]
+            {
+              text: t('common.ok'),
+              onPress: () => router.replace('/LoginScreen'),
+            },
+          ]
         );
         return;
       }
@@ -92,12 +88,16 @@ const EmployerReportsScreen: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [router, t]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     loadReports();
-  }, []);
+  }, [loadReports]);
 
   const formatReportType = (type: string) => {
     return type
@@ -233,7 +233,9 @@ const EmployerReportsScreen: React.FC = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="documents-outline" size={80} color="#CBD5E1" />
-      <Text style={styles.emptyTitle}>{t('employerReports.list.empty.title')}</Text>
+      <Text style={styles.emptyTitle}>
+        {t('employerReports.list.empty.title')}
+      </Text>
       <Text style={styles.emptyText}>
         {t('employerReports.list.empty.text')}
       </Text>
@@ -242,23 +244,32 @@ const EmployerReportsScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
-          <Text style={styles.loadingText}>{t('employerReports.list.loading')}</Text>
+          <Text style={styles.loadingText}>
+            {t('employerReports.list.loading')}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{t('employerReports.list.header.title')}</Text>
+          <Text style={styles.headerTitle}>
+            {t('employerReports.list.header.title')}
+          </Text>
           <Text style={styles.headerSubtitle}>
-            {t('employerReports.list.header.subtitle', { count: reports.length })}
+            {t('employerReports.list.header.subtitle', {
+              count: reports.length,
+            })}
           </Text>
         </View>
       </View>

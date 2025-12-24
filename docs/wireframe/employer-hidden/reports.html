@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .content {
+        padding: 16px;
+        background: #fff;
+        flex: 1;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        font-size: 11px;
+      }
+      .desc {
+        font-size: 13px;
+        color: #475569;
+        line-height: 18px;
+        margin-bottom: 10px;
+      }
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .placeholder {
+        height: 60px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">Reports</div>
+      <div class="content">
+        <div class="placeholder">Filters</div>
+        <div class="placeholder">Bulk Actions</div>
+        <div class="card">
+          <div class="row">
+            <div class="type">
+              <div
+                style="
+                  width: 20px;
+                  height: 20px;
+                  background: #ef4444;
+                  border-radius: 6px;
+                "
+              ></div>
+              <span>Fake Job</span>
+            </div>
+            <div class="badge">Under Review</div>
+          </div>
+          <div class="desc">Short description of the report goes here.</div>
+          <div class="footer">
+            <span>Dec 12, 2025</span><span>Action Available</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <div class="type">
+              <div
+                style="
+                  width: 20px;
+                  height: 20px;
+                  background: #f59e0b;
+                  border-radius: 6px;
+                "
+              ></div>
+              <span>Misleading Info</span>
+            </div>
+            <div class="badge">Dismissed</div>
+          </div>
+          <div class="desc">Another description of the issue.</div>
+          <div class="footer"><span>Nov 30, 2025</span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

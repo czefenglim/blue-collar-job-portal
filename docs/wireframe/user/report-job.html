@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Job Wireframe</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --danger: #ef4444;
+      }
+      body {
+        background: #eef2f6;
+        margin: 0;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+      }
+      .status-bar {
+        height: 20px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .header {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .back {
+        width: 24px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 6px;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 16px;
+        color: #000;
+      }
+      .content {
+        background: #fff;
+        flex: 1;
+      }
+      .job-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px;
+      }
+      .job-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: var(--primary);
+      }
+      .section {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px;
+      }
+      .section-title {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 6px;
+      }
+      .section-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .type-card {
+        width: 47%;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: #f8fafc;
+      }
+      .type-card.selected {
+        background: #fff;
+        border-color: #ef4444;
+      }
+      .check {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #ef4444;
+      }
+      .text-area {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        min-height: 120px;
+      }
+      .line {
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        margin-bottom: 6px;
+      }
+      .char {
+        font-size: 12px;
+        color: #94a3b8;
+        text-align: right;
+        margin-top: 6px;
+      }
+      .uploads {
+        display: flex;
+        gap: 12px;
+      }
+      .upload-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      .evidence-list {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .evidence-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .evidence-thumb {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        background: #e2e8f0;
+      }
+      .evidence-name {
+        height: 12px;
+        width: 60%;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .remove {
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background: #fee2e2;
+      }
+      .notice {
+        display: flex;
+        gap: 12px;
+        background: #ecfeff;
+        border: 1px solid #06b6d4;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 16px;
+      }
+      .notice-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: #0891b2;
+      }
+      .bottom-bar {
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+        padding: 16px;
+      }
+      .submit {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+      <div class="header">
+        <div class="back"></div>
+        <div class="title">Report a Job</div>
+        <div style="width: 24px"></div>
+      </div>
+      <div class="content">
+        <div class="job-info">
+          <div class="job-icon"></div>
+          <div style="flex: 1">
+            <div style="font-size: 12px; color: var(--muted)">
+              Reporting Job
+            </div>
+            <div class="line" style="width: 80%"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Select Type *</div>
+          <div class="section-subtitle">
+            Choose the issue that best describes the problem
+          </div>
+          <div class="grid">
+            <div class="type-card selected">
+              <div class="check"></div>
+              <span style="font-size: 12px; color: #ef4444">Fake Job</span>
+            </div>
+            <div class="type-card">
+              <span style="font-size: 12px; color: #64748b"
+                >Misleading Info</span
+              >
+            </div>
+            <div class="type-card">
+              <span style="font-size: 12px; color: #64748b"
+                >Inappropriate Content</span
+              >
+            </div>
+            <div class="type-card">
+              <span style="font-size: 12px; color: #64748b"
+                >Scam Suspected</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Description *</div>
+          <div class="section-subtitle">Explain the issue clearly</div>
+          <div class="text-area">
+            <div class="line" style="width: 100%"></div>
+            <div class="line" style="width: 95%"></div>
+            <div class="line" style="width: 90%"></div>
+          </div>
+          <div class="char">0/1000 characters</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Evidence</div>
+          <div class="section-subtitle">Add screenshots or documents</div>
+          <div class="uploads">
+            <div class="upload-btn">Upload Image</div>
+            <div class="upload-btn">Upload Document</div>
+          </div>
+          <div class="evidence-list">
+            <div class="evidence-item">
+              <div class="evidence-thumb"></div>
+              <div style="flex: 1">
+                <div class="evidence-name"></div>
+                <div
+                  style="
+                    height: 12px;
+                    width: 30%;
+                    background: #e5e7eb;
+                    border-radius: 3px;
+                    margin-top: 4px;
+                  "
+                ></div>
+              </div>
+              <div class="remove"></div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted); margin-top: 8px">
+            You can add up to 5 files
+          </div>
+        </div>
+
+        <div class="notice">
+          <div class="notice-icon"></div>
+          <div style="flex: 1; font-size: 13px; color: #0e7490">
+            Important: Provide accurate information to help us review your
+            report
+          </div>
+        </div>
+        <div style="height: 40px"></div>
+      </div>
+      <div class="bottom-bar">
+        <div class="submit">Submit Report</div>
+      </div>
+    </div>
+  </body>
+</html>

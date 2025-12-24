@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -169,36 +169,42 @@ export default function CreateJobPage() {
   );
   const [loadingPrediction, setLoadingPrediction] = useState(false);
 
-  useEffect(() => {
-    fetchIndustries();
-    fetchSkills();
-  }, []);
-
-  const fetchIndustries = async () => {
+  const fetchIndustries = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/industries?lang=${currentLanguage}` , {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/industries?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       if (response.ok) setIndustries(data.data || []);
     } catch (error) {
       console.error('Error fetching industries:', error);
     }
-  };
+  }, [currentLanguage]);
 
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const response = await fetch(`${URL}/api/onboarding/getSkills?lang=${currentLanguage}` , {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${URL}/api/onboarding/getSkills?lang=${currentLanguage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
-      if (response.ok) setSkills(Array.isArray(data) ? data : (data.data || []));
+      if (response.ok) setSkills(Array.isArray(data) ? data : data.data || []);
     } catch (error) {
       console.error('Error fetching skills:', error);
     }
-  };
+  }, [currentLanguage]);
+
+  useEffect(() => {
+    fetchIndustries();
+    fetchSkills();
+  }, [fetchIndustries, fetchSkills]);
 
   const toggleSkill = (skillId: number) => {
     setSelectedSkills((prev) =>
@@ -921,7 +927,7 @@ export default function CreateJobPage() {
     .join(', ');
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -1012,7 +1018,7 @@ export default function CreateJobPage() {
                 }
               >
                 {selectedJobType
-                  ? getJobTypeLabel(selectedJobType.value)
+                  ? getJobTypeLabel(selectedJobType.value, t)
                   : t('employerCreateJob.modals.selectJobType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
@@ -1036,7 +1042,7 @@ export default function CreateJobPage() {
                 }
               >
                 {selectedWorkingHours
-                  ? getWorkingHoursLabel(selectedWorkingHours.value)
+                  ? getWorkingHoursLabel(selectedWorkingHours.value, t)
                   : t('employerCreateJob.modals.selectWorkingHours')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
@@ -1060,7 +1066,7 @@ export default function CreateJobPage() {
                 }
               >
                 {selectedExperience
-                  ? getExperienceLabel(selectedExperience.value)
+                  ? getExperienceLabel(selectedExperience.value, t)
                   : t('employerCreateJob.modals.selectExperience')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
@@ -1177,7 +1183,7 @@ export default function CreateJobPage() {
                 }
               >
                 {selectedSalaryType
-                  ? getSalaryTypeLabel(selectedSalaryType.value)
+                  ? getSalaryTypeLabel(selectedSalaryType.value, t)
                   : t('employerCreateJob.modals.selectSalaryType')}
               </Text>
               <Ionicons name="chevron-down" size={20} color="#64748B" />
@@ -1279,7 +1285,7 @@ export default function CreateJobPage() {
         t('employerCreateJob.modals.selectJobType'),
         JOB_TYPES,
         (value) => setJobType(value),
-        (item) => getJobTypeLabel(item.value),
+        (item) => getJobTypeLabel(item.value, t),
         (item) => item.value
       )}
 
@@ -1289,7 +1295,7 @@ export default function CreateJobPage() {
         t('employerCreateJob.modals.selectWorkingHours'),
         WORKING_HOURS,
         (value) => setWorkingHours(value),
-        (item) => getWorkingHoursLabel(item.value),
+        (item) => getWorkingHoursLabel(item.value, t),
         (item) => item.value
       )}
 
@@ -1299,7 +1305,7 @@ export default function CreateJobPage() {
         t('employerCreateJob.modals.selectExperience'),
         EXPERIENCE_LEVELS,
         (value) => setExperienceLevel(value),
-        (item) => getExperienceLabel(item.value),
+        (item) => getExperienceLabel(item.value, t),
         (item) => item.value
       )}
 
@@ -1309,7 +1315,7 @@ export default function CreateJobPage() {
         t('employerCreateJob.modals.selectSalaryType'),
         SALARY_TYPES,
         (value) => setSalaryType(value),
-        (item) => getSalaryTypeLabel(item.value),
+        (item) => getSalaryTypeLabel(item.value, t),
         (item) => item.value
       )}
 
@@ -1330,8 +1336,7 @@ export default function CreateJobPage() {
 }
 
 // Helper label resolvers
-function getJobTypeLabel(value: string) {
-  const { t } = useLanguage();
+function getJobTypeLabel(value: string, t: any) {
   switch (value) {
     case 'FULL_TIME':
       return t('jobTypes.fullTime');
@@ -1348,8 +1353,7 @@ function getJobTypeLabel(value: string) {
   }
 }
 
-function getWorkingHoursLabel(value: string) {
-  const { t } = useLanguage();
+function getWorkingHoursLabel(value: string, t: any) {
   switch (value) {
     case 'DAY_SHIFT':
       return t('workingHours.dayShift');
@@ -1366,8 +1370,7 @@ function getWorkingHoursLabel(value: string) {
   }
 }
 
-function getExperienceLabel(value: string) {
-  const { t } = useLanguage();
+function getExperienceLabel(value: string, t: any) {
   switch (value) {
     case 'ENTRY_LEVEL':
       return t('experienceLevels.entryLevel');
@@ -1384,8 +1387,7 @@ function getExperienceLabel(value: string) {
   }
 }
 
-function getSalaryTypeLabel(value: string) {
-  const { t } = useLanguage();
+function getSalaryTypeLabel(value: string, t: any) {
   switch (value) {
     case 'HOURLY':
       return t('salaryTypes.hourly');

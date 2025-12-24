@@ -79,17 +79,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    fetchJobDetail();
-  }, [jobId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchJobDetail();
-    }, [jobId])
-  );
-
-  const fetchJobDetail = async () => {
+  const fetchJobDetail = useCallback(async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('jwtToken');
@@ -117,7 +107,17 @@ export default function JobDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, currentLanguage, router, t]);
+
+  useEffect(() => {
+    fetchJobDetail();
+  }, [fetchJobDetail]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobDetail();
+    }, [fetchJobDetail])
+  );
 
   const handleToggleStatus = async () => {
     if (!job) return;
@@ -361,7 +361,10 @@ export default function JobDetailPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.loadingText}>
@@ -374,7 +377,10 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={48} color="#EF4444" />
           <Text style={styles.errorText}>
@@ -392,7 +398,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -1070,10 +1076,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-const renderJobInfoRow = (labelKey: string, value: any) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{t(labelKey)}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);

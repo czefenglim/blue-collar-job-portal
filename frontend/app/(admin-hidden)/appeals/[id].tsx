@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -77,11 +77,7 @@ const AdminAppealReviewScreen: React.FC = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    loadAppealDetails();
-  }, [id]);
-
-  const loadAppealDetails = async () => {
+  const loadAppealDetails = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
@@ -94,8 +90,6 @@ const AdminAppealReviewScreen: React.FC = () => {
         return;
       }
 
-      // For this, we need to add a new endpoint or modify existing one
-      // For now, let's fetch from the appeals list and find the specific one
       const response = await fetch(`${URL}/api/appeals/admin/appeals`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -119,7 +113,11 @@ const AdminAppealReviewScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    loadAppealDetails();
+  }, [loadAppealDetails]);
 
   const handleReviewAction = (action: 'ACCEPTED' | 'REJECTED') => {
     setReviewAction(action);
@@ -366,7 +364,7 @@ const AdminAppealReviewScreen: React.FC = () => {
               size={18}
               color="#1E3A8A"
             />
-            <Text style={styles.detailLabel}>Employer's Explanation</Text>
+            <Text style={styles.detailLabel}>Employer&apos;s Explanation</Text>
           </View>
           <View style={styles.explanationCard}>
             <Text style={styles.explanationText}>{appeal.explanation}</Text>

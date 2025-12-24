@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -38,11 +38,7 @@ export default function ReviewsList({ companyId }: ReviewsListProps) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [companyId]);
-
-  const fetchReviews = async (pageNum = 1) => {
+  const fetchReviews = useCallback(async (pageNum = 1) => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
 
@@ -75,7 +71,11 @@ export default function ReviewsList({ companyId }: ReviewsListProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [companyId, fetchReviews]);
 
   const loadMore = () => {
     if (!loading && hasMore) {

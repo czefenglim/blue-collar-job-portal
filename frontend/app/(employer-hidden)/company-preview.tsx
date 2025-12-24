@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -44,15 +44,9 @@ export default function CompanyPreviewScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchCompanyData();
-  }, []);
-
-  const fetchCompanyData = async () => {
+  const fetchCompanyData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
-      const userData = await AsyncStorage.getItem('userData');
-      const user = JSON.parse(userData || '{}');
 
       if (!token) {
         router.replace('/EmployerLoginScreen');
@@ -87,7 +81,11 @@ export default function CompanyPreviewScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchCompanyData();
+  }, [fetchCompanyData]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -111,7 +109,10 @@ export default function CompanyPreviewScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
         </View>
@@ -121,7 +122,10 @@ export default function CompanyPreviewScreen() {
 
   if (!company) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('companies.detail.notFound')}</Text>
         </View>
@@ -130,7 +134,7 @@ export default function CompanyPreviewScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}

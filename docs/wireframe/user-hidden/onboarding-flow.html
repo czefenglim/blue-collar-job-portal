@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Onboarding Flow Wireframe (Lo-Fi)</title>
+    <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+        --success: #10b981;
+      }
+      body {
+        font-family: Segoe UI, Tahoma, sans-serif;
+        padding: 40px;
+        background: #e2e8f0;
+        overflow-x: auto;
+        margin: 0;
+        color: var(--text);
+      }
+      .container {
+        display: flex;
+        gap: 40px;
+        width: max-content;
+      }
+      .frame-wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+      .screen-label {
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #475569;
+        font-size: 18px;
+      }
+      .mobile-frame {
+        width: 375px;
+        height: 812px;
+        background: #f8fafc;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .header {
+        padding: 24px 16px 16px;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header-title {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .header-sub {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .content {
+        flex: 1;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+      }
+      .center-content {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      /* Skeleton / Lo-Fi Elements */
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border);
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+      }
+      .title-line {
+        height: 24px;
+        width: 70%;
+        background: #0f172a;
+        margin-bottom: 8px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .subtitle-line {
+        height: 16px;
+        width: 50%;
+        background: #64748b;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+      }
+      .body-line {
+        height: 14px;
+        background: #cbd5e1;
+        width: 100%;
+        margin-bottom: 6px;
+        color: #475569;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        padding-left: 4px;
+      }
+
+      .illustration-box {
+        width: 200px;
+        height: 200px;
+        background: #eff6ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        color: #3b82f6;
+        font-weight: bold;
+        font-size: 24px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+      }
+      .input-label {
+        height: 14px;
+        width: auto;
+        min-width: 80px;
+        background: #64748b;
+        border-radius: 3px;
+        opacity: 0.8;
+        color: white;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        align-self: flex-start;
+      }
+      .input-field {
+        height: 44px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding-left: 12px;
+        color: #94a3b8;
+        font-size: 12px;
+      }
+
+      .btn-primary {
+        width: 100%;
+        height: 50px;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        margin-top: auto;
+        cursor: pointer;
+      }
+      .btn-secondary {
+        width: 100%;
+        height: 50px;
+        background: #e2e8f0;
+        color: #475569;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        width: 100%;
+      }
+      .grid-item {
+        height: 80px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .grid-icon {
+        width: 32px;
+        height: 32px;
+        background: #e2e8f0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .grid-label {
+        width: auto;
+        min-width: 60px;
+        height: 12px;
+        background: #cbd5e1;
+        border-radius: 2px;
+        color: #334155;
+        font-size: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+      }
+
+      .preview-doc {
+        width: 100%;
+        height: 300px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Step 1: Welcome -->
+      <div class="frame-wrapper">
+        <div class="screen-label">1. Welcome</div>
+        <div class="mobile-frame">
+          <div class="content center-content">
+            <div class="illustration-box">IMG</div>
+            <div class="title-line">Welcome to JobPortal</div>
+            <div class="subtitle-line">Find your dream job today</div>
+            <div style="flex: 1"></div>
+            <div class="btn-primary">Get Started</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: How It Works -->
+      <div class="frame-wrapper">
+        <div class="screen-label">2. How It Works</div>
+        <div class="mobile-frame">
+          <div class="header">
+            <div class="header-title">How It Works</div>
+          </div>
+          <div class="content center-content">
+            <div class="card">
+              <div class="body-line" style="width: 40%">Step 1</div>
+              <div
+                class="illustration-box"
+                style="
+                  width: 100px;
+                  height: 100px;
+                  margin: 0 auto;
+                  font-size: 32px;
+                "
+              >
+                👤
+              </div>
+              <div class="body-line">Create your profile</div>
+              <div class="body-line">Upload resume & skills</div>
+            </div>
+            <div class="card" style="margin-top: 16px">
+              <div class="body-line" style="width: 40%">Step 2</div>
+              <div
+                class="illustration-box"
+                style="
+                  width: 100px;
+                  height: 100px;
+                  margin: 0 auto;
+                  font-size: 32px;
+                "
+              >
+                🤝
+              </div>
+              <div class="body-line">Get matched with jobs</div>
+              <div class="body-line">Connect with employers</div>
+            </div>
+            <div class="btn-primary">Next</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Complete Profile -->
+      <div class="frame-wrapper">
+        <div class="screen-label">3. Complete Profile</div>
+        <div class="mobile-frame">
+          <div class="header">
+            <div class="header-title">Complete Profile</div>
+            <div class="header-sub">Tell us about you</div>
+          </div>
+          <div class="content">
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                margin-bottom: 16px;
+              "
+            >
+              <div
+                style="
+                  width: 80px;
+                  height: 80px;
+                  background: #e2e8f0;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 24px;
+                  color: #64748b;
+                "
+              >
+                📷
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="input-group">
+                <div class="input-label">Full Name</div>
+                <div class="input-field">John Doe</div>
+              </div>
+              <div class="input-group">
+                <div class="input-label">Email Address</div>
+                <div class="input-field">john@example.com</div>
+              </div>
+              <div class="input-group">
+                <div class="input-label">Phone Number</div>
+                <div class="input-field">(555) 123-4567</div>
+              </div>
+              <div class="input-group">
+                <div class="input-label">Location</div>
+                <div class="input-field">New York, NY</div>
+              </div>
+            </div>
+            <div class="btn-primary">Continue</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Choose Industries -->
+      <div class="frame-wrapper">
+        <div class="screen-label">4. Choose Industries</div>
+        <div class="mobile-frame">
+          <div class="header">
+            <div class="header-title">Select Industries</div>
+            <div class="header-sub">Pick at least one</div>
+          </div>
+          <div class="content">
+            <div class="grid-container">
+              <div class="grid-item">
+                <div class="grid-icon">🏗️</div>
+                <div class="grid-label">Construction</div>
+              </div>
+              <div class="grid-item">
+                <div class="grid-icon">🔧</div>
+                <div class="grid-label">Plumbing</div>
+              </div>
+              <div class="grid-item">
+                <div class="grid-icon">⚡</div>
+                <div class="grid-label">Electrical</div>
+              </div>
+              <div class="grid-item">
+                <div class="grid-icon">🚚</div>
+                <div class="grid-label">Transport</div>
+              </div>
+              <div class="grid-item">
+                <div class="grid-icon">🧹</div>
+                <div class="grid-label">Cleaning</div>
+              </div>
+              <div class="grid-item">
+                <div class="grid-icon">🏭</div>
+                <div class="grid-label">Factory</div>
+              </div>
+            </div>
+            <div class="btn-primary">Continue (3)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Build Resume -->
+      <div class="frame-wrapper">
+        <div class="screen-label">5. Build Resume</div>
+        <div class="mobile-frame">
+          <div class="header">
+            <div class="header-title">Build Resume</div>
+            <div class="header-sub">Answer a few questions</div>
+          </div>
+          <div class="content">
+            <div class="card">
+              <div
+                class="text-line"
+                style="
+                  width: 80%;
+                  height: 16px;
+                  margin-bottom: 12px;
+                  background: #334155;
+                  color: white;
+                  font-size: 10px;
+                  display: flex;
+                  align-items: center;
+                  padding-left: 4px;
+                "
+              >
+                Years of Experience?
+              </div>
+              <div class="input-field">3 Years</div>
+            </div>
+            <div class="card">
+              <div
+                class="text-line"
+                style="
+                  width: 60%;
+                  height: 16px;
+                  margin-bottom: 12px;
+                  background: #334155;
+                  color: white;
+                  font-size: 10px;
+                  display: flex;
+                  align-items: center;
+                  padding-left: 4px;
+                "
+              >
+                Education Level?
+              </div>
+              <div class="grid-container">
+                <div class="grid-item" style="height: 40px; font-size: 10px">
+                  High School
+                </div>
+                <div class="grid-item" style="height: 40px; font-size: 10px">
+                  College
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div
+                class="text-line"
+                style="
+                  width: 70%;
+                  height: 16px;
+                  margin-bottom: 12px;
+                  background: #334155;
+                  color: white;
+                  font-size: 10px;
+                  display: flex;
+                  align-items: center;
+                  padding-left: 4px;
+                "
+              >
+                Previous Job Title?
+              </div>
+              <div
+                class="input-field"
+                style="height: 80px; align-items: flex-start; padding-top: 8px"
+              >
+                Junior Welder at ABC Corp...
+              </div>
+            </div>
+            <div class="btn-primary">Generate Resume</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Preview Resume -->
+      <div class="frame-wrapper">
+        <div class="screen-label">6. Preview Resume</div>
+        <div class="mobile-frame">
+          <div class="header">
+            <div class="header-title">Preview Resume</div>
+          </div>
+          <div class="content">
+            <div class="preview-doc">
+              <div class="title-line" style="width: 40%; background: #334155">
+                John Doe
+              </div>
+              <div class="body-line" style="margin-top: 20px">
+                Experienced Welder with 5 years...
+              </div>
+              <div class="body-line">Specialized in TIG and MIG welding...</div>
+              <div class="body-line">Certified in safety procedures...</div>
+              <div class="body-line" style="width: 80%">
+                Available immediately.
+              </div>
+
+              <div style="margin-top: 30px">
+                <div
+                  class="subtitle-line"
+                  style="margin-bottom: 10px; background: #334155"
+                >
+                  Experience
+                </div>
+                <div class="body-line">
+                  Senior Welder - BuildIt Inc (2020-2023)
+                </div>
+                <div class="body-line">
+                  Junior Welder - MetalWorks (2018-2020)
+                </div>
+              </div>
+            </div>
+            <div class="btn-secondary" style="margin-bottom: 12px">
+              Edit / Regenerate
+            </div>
+            <div class="btn-primary" style="margin-top: 0">
+              Confirm & Finish
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 7: Completion -->
+      <div class="frame-wrapper">
+        <div class="screen-label">7. Completion</div>
+        <div class="mobile-frame">
+          <div class="content center-content">
+            <div
+              class="illustration-box"
+              style="background: #dcfce7; color: #16a34a; margin-top: 100px"
+            >
+              ✓
+            </div>
+            <div
+              class="title-line"
+              style="margin-bottom: 12px; background: #334155"
+            >
+              All Set!
+            </div>
+            <div class="subtitle-line">Your profile is ready.</div>
+            <div style="flex: 1"></div>
+            <div class="btn-primary">Go to Dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

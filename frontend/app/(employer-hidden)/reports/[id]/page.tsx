@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -45,7 +45,7 @@ interface Report {
       name: string;
     };
   };
-  appeals: Array<{
+  appeals: {
     id: number;
     explanation: string;
     evidenceUrls?: string[];
@@ -57,7 +57,7 @@ interface Report {
     reviewer?: {
       fullName: string;
     };
-  }>;
+  }[];
 }
 
 const EmployerReportDetailsScreen: React.FC = () => {
@@ -67,11 +67,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
   const router = useRouter();
   const { t } = useLanguage();
 
-  useEffect(() => {
-    loadReportDetails();
-  }, [id]);
-
-  const loadReportDetails = async () => {
+  const loadReportDetails = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) {
@@ -113,7 +109,11 @@ const EmployerReportDetailsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, router, t]);
+
+  useEffect(() => {
+    loadReportDetails();
+  }, [loadReportDetails]);
 
   const formatReportType = (type: string) => {
     return type
@@ -218,7 +218,10 @@ const EmployerReportDetailsScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.loadingText}>
@@ -231,7 +234,10 @@ const EmployerReportDetailsScreen: React.FC = () => {
 
   if (!report) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
           <Text style={styles.errorText}>
@@ -249,7 +255,7 @@ const EmployerReportDetailsScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity

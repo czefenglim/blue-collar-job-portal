@@ -35,7 +35,6 @@ const AppealSubmissionScreen: React.FC = () => {
   const [explanation, setExplanation] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showFilePicker, setShowFilePicker] = useState(false);
 
   const router = useRouter();
   const { t } = useLanguage();
@@ -70,11 +69,13 @@ const AppealSubmissionScreen: React.FC = () => {
         }));
 
         setSelectedFiles([...selectedFiles, ...newFiles]);
-        setShowFilePicker(false);
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.pickImageFailed'));
+      Alert.alert(
+        t('employerReports.appeal.errorTitle'),
+        t('employerReports.appeal.errors.pickImageFailed')
+      );
     }
   };
 
@@ -86,20 +87,21 @@ const AppealSubmissionScreen: React.FC = () => {
         copyToCacheDirectory: true,
       });
 
-      if (result.type === 'success') {
-        const newFile: SelectedFile = {
-          uri: result.uri,
-          name: result.name,
-          type: result.mimeType || 'application/pdf',
-          size: result.size,
-        };
-
-        setSelectedFiles([...selectedFiles, newFile]);
-        setShowFilePicker(false);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newFiles: SelectedFile[] = result.assets.map((asset) => ({
+          uri: asset.uri,
+          name: asset.name || `document_${Date.now()}.pdf`,
+          type: asset.mimeType || 'application/pdf',
+          size: asset.size,
+        }));
+        setSelectedFiles([...selectedFiles, ...newFiles]);
       }
     } catch (error) {
       console.error('Error picking document:', error);
-      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.pickDocumentFailed'));
+      Alert.alert(
+        t('employerReports.appeal.errorTitle'),
+        t('employerReports.appeal.errors.pickDocumentFailed')
+      );
     }
   };
 
@@ -111,7 +113,10 @@ const AppealSubmissionScreen: React.FC = () => {
 
   const validateForm = () => {
     if (!explanation.trim()) {
-      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.missingExplanation'));
+      Alert.alert(
+        t('employerReports.appeal.errorTitle'),
+        t('employerReports.appeal.errors.missingExplanation')
+      );
       return false;
     }
 
@@ -124,7 +129,10 @@ const AppealSubmissionScreen: React.FC = () => {
     }
 
     if (selectedFiles.length > 5) {
-      Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.maxFiles'));
+      Alert.alert(
+        t('employerReports.appeal.errorTitle'),
+        t('employerReports.appeal.errors.maxFiles')
+      );
       return false;
     }
 
@@ -195,11 +203,18 @@ const AppealSubmissionScreen: React.FC = () => {
                 );
               } else {
                 const data = await response.json();
-                Alert.alert(t('employerReports.appeal.errorTitle'), data.message || t('employerReports.appeal.errors.submitFailed'));
+                Alert.alert(
+                  t('employerReports.appeal.errorTitle'),
+                  data.message ||
+                    t('employerReports.appeal.errors.submitFailed')
+                );
               }
             } catch (error) {
               console.error('Error submitting appeal:', error);
-              Alert.alert(t('employerReports.appeal.errorTitle'), t('employerReports.appeal.errors.submitFailed'));
+              Alert.alert(
+                t('employerReports.appeal.errorTitle'),
+                t('employerReports.appeal.errors.submitFailed')
+              );
             } finally {
               setIsSubmitting(false);
             }
@@ -235,7 +250,7 @@ const AppealSubmissionScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -245,8 +260,12 @@ const AppealSubmissionScreen: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{t('employerReports.appeal.headerTitle')}</Text>
-          <Text style={styles.headerSubtitle}>{t('employerReports.appeal.headerSubtitle', { id })}</Text>
+          <Text style={styles.headerTitle}>
+            {t('employerReports.appeal.headerTitle')}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {t('employerReports.appeal.headerSubtitle', { id })}
+          </Text>
         </View>
       </View>
 
@@ -263,18 +282,29 @@ const AppealSubmissionScreen: React.FC = () => {
           <View style={styles.instructionsCard}>
             <View style={styles.instructionsHeader}>
               <Ionicons name="information-circle" size={24} color="#1E3A8A" />
-            <Text style={styles.instructionsTitle}>{t('employerReports.appeal.instructionsTitle')}</Text>
-          </View>
-            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline1')}</Text>
-            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline2')}</Text>
-            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline3')}</Text>
-            <Text style={styles.instructionsText}>• {t('employerReports.appeal.guideline4')}</Text>
+              <Text style={styles.instructionsTitle}>
+                {t('employerReports.appeal.instructionsTitle')}
+              </Text>
+            </View>
+            <Text style={styles.instructionsText}>
+              • {t('employerReports.appeal.guideline1')}
+            </Text>
+            <Text style={styles.instructionsText}>
+              • {t('employerReports.appeal.guideline2')}
+            </Text>
+            <Text style={styles.instructionsText}>
+              • {t('employerReports.appeal.guideline3')}
+            </Text>
+            <Text style={styles.instructionsText}>
+              • {t('employerReports.appeal.guideline4')}
+            </Text>
           </View>
 
           {/* Explanation Input */}
           <View style={styles.inputSection}>
             <Text style={styles.inputLabel}>
-              {t('employerReports.appeal.explanationLabel')} <Text style={styles.required}>*</Text>
+              {t('employerReports.appeal.explanationLabel')}{' '}
+              <Text style={styles.required}>*</Text>
             </Text>
             <Text style={styles.inputHint}>
               {t('employerReports.appeal.explanationHint')}
@@ -291,7 +321,9 @@ const AppealSubmissionScreen: React.FC = () => {
               editable={!isSubmitting}
             />
             <Text style={styles.characterCount}>
-              {t('employerReports.appeal.characterCount', { count: explanation.length })}
+              {t('employerReports.appeal.characterCount', {
+                count: explanation.length,
+              })}
             </Text>
           </View>
 
@@ -320,7 +352,9 @@ const AppealSubmissionScreen: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <Ionicons name="image-outline" size={24} color="#1E3A8A" />
-                  <Text style={styles.uploadButtonText}>{t('employerReports.appeal.addImage')}</Text>
+                  <Text style={styles.uploadButtonText}>
+                    {t('employerReports.appeal.addImage')}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -329,7 +363,9 @@ const AppealSubmissionScreen: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <Ionicons name="document-outline" size={24} color="#1E3A8A" />
-                  <Text style={styles.uploadButtonText}>{t('employerReports.appeal.addDocument')}</Text>
+                  <Text style={styles.uploadButtonText}>
+                    {t('employerReports.appeal.addDocument')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -348,9 +384,13 @@ const AppealSubmissionScreen: React.FC = () => {
           <View style={styles.noteCard}>
             <View style={styles.noteHeader}>
               <Ionicons name="warning-outline" size={20} color="#F59E0B" />
-              <Text style={styles.noteTitle}>{t('employerReports.appeal.noteTitle')}</Text>
+              <Text style={styles.noteTitle}>
+                {t('employerReports.appeal.noteTitle')}
+              </Text>
             </View>
-            <Text style={styles.noteText}>{t('employerReports.appeal.noteText')}</Text>
+            <Text style={styles.noteText}>
+              {t('employerReports.appeal.noteText')}
+            </Text>
           </View>
 
           {/* Submit Button */}
@@ -365,12 +405,16 @@ const AppealSubmissionScreen: React.FC = () => {
             {isSubmitting ? (
               <>
                 <ActivityIndicator size="small" color="#FFFFFF" />
-                <Text style={styles.submitButtonText}>{t('employerReports.appeal.submitting')}</Text>
+                <Text style={styles.submitButtonText}>
+                  {t('employerReports.appeal.submitting')}
+                </Text>
               </>
             ) : (
               <>
                 <Ionicons name="send" size={20} color="#FFFFFF" />
-                <Text style={styles.submitButtonText}>{t('employerReports.appeal.submitButton')}</Text>
+                <Text style={styles.submitButtonText}>
+                  {t('employerReports.appeal.submitButton')}
+                </Text>
               </>
             )}
           </TouchableOpacity>

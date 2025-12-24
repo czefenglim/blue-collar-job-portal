@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -30,13 +30,13 @@ interface DashboardStats {
   totalApplicants: number;
   pendingApplicants: number;
   shortlistedApplicants: number;
-  recentJobs: Array<{
+  recentJobs: {
     id: number;
     title: string;
     status: string;
     applicants: number;
     createdAt: string;
-  }>;
+  }[];
   companyName: string;
 }
 
@@ -51,7 +51,7 @@ interface ReviewStats {
     4: number;
     5: number;
   };
-  recentReviews: Array<{
+  recentReviews: {
     id: number;
     rating: number;
     title: string | null;
@@ -60,7 +60,7 @@ interface ReviewStats {
     user: {
       fullName: string;
     };
-  }>;
+  }[];
 }
 
 export default function EmployerDashboard() {
@@ -75,55 +75,7 @@ export default function EmployerDashboard() {
   const responseListener = React.useRef<any>(null);
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  // Add this to your useEffect or create a new one
-  useEffect(() => {
-    fetchReviewStats();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchDashboardData();
-    }, [])
-  );
-
-  useEffect(() => {
-    // 1. Register for push notifications (CRITICAL - registers token with backend)
-    registerForPushNotificationsAsync();
-
-    // 2. Load unread count for badge
-    loadUnreadCount();
-
-    // 3. Listen for notifications while app is open
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
-        console.log('Notification received:', notification);
-        loadUnreadCount(); // Update badge
-      });
-
-    // 4. Handle notification taps
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data;
-        if (data.actionUrl) {
-          router.push(data.actionUrl as any);
-        }
-      });
-
-    return () => {
-      if (notificationListener.current) {
-        notificationListener.current.remove();
-      }
-      if (responseListener.current) {
-        responseListener.current.remove();
-      }
-    };
-  }, []);
-
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) return;
@@ -139,9 +91,9 @@ export default function EmployerDashboard() {
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
-  };
+  }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const userData = await AsyncStorage.getItem('userData');
@@ -176,14 +128,14 @@ export default function EmployerDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [router]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchDashboardData();
-  };
+  }, [fetchDashboardData]);
 
-  const fetchReviewStats = async () => {
+  const fetchReviewStats = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       if (!token) return;
@@ -199,7 +151,7 @@ export default function EmployerDashboard() {
     } catch (error) {
       console.error('Error fetching review stats:', error);
     }
-  };
+  }, []);
 
   const renderStars = (rating: number) => {
     const stars = [];
@@ -237,6 +189,45 @@ export default function EmployerDashboard() {
     </View>
   );
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  useEffect(() => {
+    fetchReviewStats();
+  }, [fetchReviewStats]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+    }, [fetchDashboardData])
+  );
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+    loadUnreadCount();
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log('Notification received:', notification);
+        loadUnreadCount();
+      });
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const data = response.notification.request.content.data;
+        if (data.actionUrl) {
+          router.push(data.actionUrl as any);
+        }
+      });
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, [router, loadUnreadCount]);
+
   const renderQuickAction = (
     icon: string,
     label: string,
@@ -253,21 +244,20 @@ export default function EmployerDashboard() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E3A8A" />-{' '}
-          <Text style={styles.loadingText}>Loading dashboard...</Text>+{' '}
+          <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.loadingText}>
             {t('employerDashboard.loading')}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error || !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
           <Text style={styles.errorText}>
@@ -282,12 +272,12 @@ export default function EmployerDashboard() {
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -626,7 +616,7 @@ export default function EmployerDashboard() {
 
         <View style={{ height: 30 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

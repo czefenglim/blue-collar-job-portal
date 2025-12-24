@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -83,13 +83,7 @@ export default function ApplicantDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Re-fetch when application id or language changes
-    fetchApplicantDetail();
-    fetchQualityScore();
-  }, [applicationId, currentLanguage]);
-
-  const fetchApplicantDetail = async () => {
+  const fetchApplicantDetail = useCallback(async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('jwtToken');
@@ -178,9 +172,9 @@ export default function ApplicantDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [applicationId, currentLanguage, router]);
 
-  const fetchQualityScore = async () => {
+  const fetchQualityScore = useCallback(async () => {
     try {
       setLoadingQuality(true);
       const token = await AsyncStorage.getItem('jwtToken');
@@ -208,7 +202,12 @@ export default function ApplicantDetailPage() {
     } finally {
       setLoadingQuality(false);
     }
-  };
+  }, [applicationId, currentLanguage]);
+
+  useEffect(() => {
+    fetchApplicantDetail();
+    fetchQualityScore();
+  }, [fetchApplicantDetail, fetchQualityScore]);
 
   const handleStatusChange = async (action: 'shortlist' | 'reject') => {
     if (!applicant) return;
@@ -472,7 +471,10 @@ export default function ApplicantDetailPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
           <Text style={styles.loadingText}>
@@ -503,7 +505,7 @@ export default function ApplicantDetailPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -870,6 +872,34 @@ export default function ApplicantDetailPage() {
                   </Text>
                 </>
               )}
+            </TouchableOpacity>
+          )}
+
+          {applicant.status === 'OFFER_ACCEPTED' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.verifyButton]}
+              onPress={() =>
+                router.push(
+                  `/(employer-hidden)/hire/verify/${applicant.id}` as Href
+                )
+              }
+            >
+              <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
+              <Text style={styles.actionButtonText}>Verify Hire</Text>
+            </TouchableOpacity>
+          )}
+
+          {applicant.status === 'SHORTLISTED' && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.hireButton]}
+              onPress={() =>
+                router.push(`/(employer-hidden)/hire/${applicant.id}` as Href)
+              }
+            >
+              <Ionicons name="briefcase" size={20} color="#FFFFFF" />
+              <Text style={styles.actionButtonText}>
+                {t('employerApplicantDetails.actions.hire') || 'Hire'}
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -1287,5 +1317,11 @@ const styles = StyleSheet.create({
   },
   scoreBreakDownContainer: {
     marginBottom: 16,
+  },
+  hireButton: {
+    backgroundColor: '#10B981',
+  },
+  verifyButton: {
+    backgroundColor: '#8B5CF6',
   },
 });
