@@ -4,17 +4,12 @@ import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
-import { SignupRequest } from '../types/signUpRequest';
+import { SignupRequest, LoginRequest, DecodedToken } from '../types/auth';
 
 // Remove WhatsApp service and use email service
 import { sendEmailOtp, sendRegistrationOtp } from '../services/emailService';
 
 const prisma = new PrismaClient();
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
 
 // ✅ Helper function to normalize Malaysian phone numbers
 function normalizePhoneNumber(phone: string): string {
@@ -426,7 +421,7 @@ export class AuthController {
       const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET as string
-      ) as any;
+      ) as DecodedToken;
 
       const user = await prisma.user.update({
         where: { id: decoded.userId },

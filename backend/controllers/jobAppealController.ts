@@ -1,9 +1,8 @@
-// src/controllers/jobAppeal.controller.ts
-
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { AppealStatus, Prisma, PrismaClient } from '@prisma/client';
+import { JobAppealWhereInput } from '../types/input';
 import { translateText } from '../services/googleTranslation';
-import { AuthRequest } from '../types/user';
+import { AuthRequest } from '../types/common';
 import { uploadToS3 } from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
 
@@ -165,11 +164,13 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
         evidenceUrls: evidenceUrls, // Optional: return URLs to frontend
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error submitting appeal:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal server error';
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: errorMessage,
     });
   }
 };
@@ -319,11 +320,13 @@ export const reviewJobAppeal = async (req: AdminAuthRequest, res: Response) => {
         reviewedAt: updatedAppeal.reviewedAt,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error reviewing appeal:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal server error';
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: errorMessage,
     });
   }
 };
@@ -349,10 +352,10 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = {};
+    const where: Prisma.JobAppealWhereInput = {};
 
     if (status && status !== 'all') {
-      where.status = status;
+      where.status = status as AppealStatus;
     }
 
     const [appeals, total] = await Promise.all([
@@ -401,11 +404,13 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
         },
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error fetching appeals:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal server error';
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: errorMessage,
     });
   }
 };
@@ -464,11 +469,13 @@ export const getAppealById = async (req: AuthRequest, res: Response) => {
       success: true,
       data: appeal,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error fetching appeal:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Internal server error';
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: errorMessage,
     });
   }
 };

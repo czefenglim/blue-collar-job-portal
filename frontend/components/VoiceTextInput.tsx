@@ -10,19 +10,43 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import * as SpeechRecognition from 'expo-speech-recognition';
+// Only enable speech recognition on Android to avoid crashes on iOS Expo Go
+// The native module 'ExpoSpeechRecognition' is not available in Expo Go on iOS
+const isAndroid = Platform.OS === 'android';
 
-let ExpoSpeechRecognitionModule: any =
-  (SpeechRecognition as any).ExpoSpeechRecognitionModule || null;
+let SpeechRecognition: any = null;
+if (isAndroid) {
+  try {
+    SpeechRecognition = require('expo-speech-recognition');
+  } catch (e) {
+    console.warn('Failed to load expo-speech-recognition:', e);
+  }
+}
 
-let useSpeechRecognitionEventHook: any =
-  (SpeechRecognition as any).useSpeechRecognitionEvent ||
-  ((_eventName: string, _handler: (...args: any[]) => void) => {
-    React.useEffect(() => {}, [_eventName, _handler]);
-  });
+let ExpoSpeechRecognitionModule: any = null;
 
-const isSpeechRecognitionAvailable =
-  !!(SpeechRecognition as any).ExpoSpeechRecognitionModule;
+// Default no-op hook
+let useSpeechRecognitionEventHook: any = (
+  _eventName: string,
+  _handler: (...args: any[]) => void
+) => {
+  React.useEffect(() => {}, [_eventName, _handler]);
+};
+
+if (isAndroid && SpeechRecognition) {
+  try {
+    ExpoSpeechRecognitionModule =
+      (SpeechRecognition as any).ExpoSpeechRecognitionModule || null;
+    if ((SpeechRecognition as any).useSpeechRecognitionEvent) {
+      useSpeechRecognitionEventHook = (SpeechRecognition as any)
+        .useSpeechRecognitionEvent;
+    }
+  } catch (error) {
+    console.warn('Failed to initialize speech recognition module:', error);
+  }
+}
+
+const isSpeechRecognitionAvailable = isAndroid && !!ExpoSpeechRecognitionModule;
 
 export type VoiceTextInputProps = {
   value: string;
@@ -274,4 +298,3 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
-

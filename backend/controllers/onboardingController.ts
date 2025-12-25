@@ -1,9 +1,4 @@
-import {
-  Gender,
-  PrismaClient,
-  TransportMode,
-  WorkingHours,
-} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { refineAnswers } from '../services/aiRefine';
 import { generateResumePDF } from '../services/generateResume';
 import {
@@ -14,6 +9,15 @@ import {
 } from '../services/s3Service';
 import { getResumeSignedUrl } from '../services/s3Service';
 import { Request, Response } from 'express';
+import { AuthRequest } from '../types/common';
+import { Gender, TransportMode } from '../types/user';
+import { WorkingHours } from '../types/job';
+import {
+  OnboardingUserProfile,
+  ResumeProfile,
+  SaveResumeAnswersRequest,
+  ResumeAnswerItem,
+} from '../types/onboarding';
 import { geocodeAddress } from '../utils/geocoding';
 import multer from 'multer';
 import { translateText } from '../services/googleTranslation';
@@ -22,51 +26,9 @@ const prisma = new PrismaClient();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-interface UserProfile {
-  fullName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: Date;
-  gender: Gender;
-  nationality: string;
-  address: string;
-  city: string;
-  state: string;
-  postcode: string;
-  profilePicture?: string;
-  // Job Preferences
-  preferredSalaryMin: number | null;
-  preferredSalaryMax: number | null;
-  availableFrom: Date | null;
-  workingHours: WorkingHours | null;
-  transportMode: TransportMode | null;
-  maxTravelDistance: number | null;
-
-  // Skills and Experience
-  experienceYears: number | null;
-  certifications: string | null;
-
-  skills?: number[];
-  languages?: number[];
-}
-
-// For resume generation only
-interface ResumeProfile {
-  fullName: string;
-  email: string;
-  phone: string; // no `| null`
-  skills: {
-    id: number;
-    name: string;
-  }[];
-  gender?: string;
-  dateOfBirth?: string;
-  profilePicture?: string;
-}
-
 export class OnboardingController {
   // Fetch all industries
-  async getIndustries(req: any, res: any) {
+  async getIndustries(req: Request, res: Response) {
     try {
       const { lang = 'en' } = req.query; // default to English if not provided
 
@@ -90,7 +52,7 @@ export class OnboardingController {
         orderBy: { name: 'asc' },
       });
 
-      const translatedIndustries = industries.map((industry) => {
+      const translatedIndustries = industries.map((industry: any) => {
         let translatedName = industry.name;
         let translatedDescription = industry.description;
 
@@ -225,7 +187,7 @@ export class OnboardingController {
   }
 
   // Save or update user profile
-  async saveUserProfile(req: any, res: any) {
+  async saveUserProfile(req: AuthRequest, res: Response) {
     const {
       dateOfBirth,
       gender,
@@ -245,7 +207,7 @@ export class OnboardingController {
       skills,
       certifications,
       languages,
-    }: UserProfile = req.body;
+    }: OnboardingUserProfile = req.body;
 
     try {
       const userId = Number(req.user?.userId);
@@ -389,7 +351,7 @@ export class OnboardingController {
   }
 
   // Save user's industries (replace old selections with new ones)
-  async saveUserIndustries(req: any, res: any) {
+  async saveUserIndustries(req: AuthRequest, res: Response) {
     const { industryIds } = req.body; // expecting an array of industry IDs
     const userId = Number(req.user?.userId);
 
@@ -486,7 +448,7 @@ export class OnboardingController {
 
       // Map and translate questions and options based on selected language
       const translatedQuestions = await Promise.all(
-        questions.map(async (q) => {
+        questions.map(async (q: any) => {
           let translatedQuestion = q.question; // default English
 
           if (targetLang === 'ms' && q.question_ms)
@@ -643,7 +605,7 @@ export class OnboardingController {
     }
   }
   // Add to OnboardingController class
-  async getSkills(req: any, res: any) {
+  async getSkills(req: Request, res: Response) {
     try {
       const { lang = 'en' } = req.query; // default language
 
@@ -661,7 +623,7 @@ export class OnboardingController {
       });
 
       // Apply language-based translation
-      const translatedSkills = skills.map((s) => {
+      const translatedSkills = skills.map((s: any) => {
         let translatedName = s.name;
         if (lang === 'ms' && s.name_ms) translatedName = s.name_ms;
         else if (lang === 'zh' && s.name_zh) translatedName = s.name_zh;
@@ -700,7 +662,7 @@ export class OnboardingController {
       });
 
       // Apply language-based translation
-      const translatedLanguages = languages.map((l) => {
+      const translatedLanguages = languages.map((l: any) => {
         let translatedName = l.name;
         if (lang === 'ms' && l.name_ms) translatedName = l.name_ms;
         else if (lang === 'zh' && l.name_zh) translatedName = l.name_zh;
@@ -752,7 +714,7 @@ export class OnboardingController {
           ? profile.dateOfBirth.toISOString()
           : undefined,
         profilePicture: profile.profilePicture ?? '',
-        skills: profile.skills.map((s) => ({
+        skills: profile.skills.map((s: any) => ({
           id: s.skill.id,
           name: s.skill.name,
         })),
@@ -762,7 +724,7 @@ export class OnboardingController {
       const answersRaw = await prisma.resumeAnswer.findMany({
         where: { userId },
       });
-      const answers = answersRaw.map((a) => ({
+      const answers = answersRaw.map((a: any) => ({
         questionId: a.questionId,
         answer:
           typeof a.answer === 'string' ? a.answer : JSON.stringify(a.answer),
@@ -803,7 +765,7 @@ export class OnboardingController {
       const mapSkills = (
         lang: 'en' | 'ms' | 'zh' | 'ta'
       ): { id: number; name: string }[] => {
-        return profile.skills.map((s) => {
+        return profile.skills.map((s: any) => {
           const sk = s.skill as any;
           let name = sk.name as string;
           if (lang === 'ms' && sk.name_ms) name = sk.name_ms;

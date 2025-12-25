@@ -10,7 +10,6 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// removed unused Constants import
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGES = [

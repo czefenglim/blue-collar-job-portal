@@ -1,15 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AuthRequest } from '../types/common';
 
 const prisma = new PrismaClient();
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role?: string;
-  };
-}
 
 /**
  * Middleware to ensure employer has completed initial subscription selection

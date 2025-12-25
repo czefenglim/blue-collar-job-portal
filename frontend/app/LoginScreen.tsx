@@ -115,7 +115,7 @@ const LoginScreen: React.FC = () => {
         }
 
         Alert.alert(t('common.success'), t('login.success.loggedIn'));
-        router.push('/HomeScreen');
+        router.replace('/HomeScreen');
       } else {
         if (response.status === 403 && data.code === 'ACCOUNT_SUSPENDED') {
           router.replace('/suspended');

@@ -1623,7 +1623,8 @@
     "actions": {
       "chat": "Sembang",
       "view": "Lihat",
-      "shortlist": "Senarai Pendek"
+      "shortlist": "Senarai Pendek",
+      "hire": "Ambil Bekerja"
     },
     "appliedFor": "Memohon untuk",
     "errors": {
@@ -1641,7 +1642,8 @@
       "resume": "Resume",
       "shortlist": "Senarai Pendek",
       "reject": "Tolak",
-      "shortlisted": "Disenarai Pendek"
+      "shortlisted": "Disenarai Pendek",
+      "hire": "Ambil Bekerja"
     },
     "alerts": {
       "shortlistTitle": "Senarai Pendek Pemohon",

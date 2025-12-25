@@ -15,10 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  Ionicons,
-  FontAwesome5,
-} from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -96,9 +93,26 @@ const JobDetailsScreen: React.FC = () => {
   const router = useRouter();
   const { t, currentLanguage } = useLanguage();
 
-  useEffect(() => {
-    loadJobDetails();
-  }, [loadJobDetails]);
+  const fetchJobDetails = useCallback(
+    async (userToken: string) => {
+      try {
+        const lang = currentLanguage || 'en';
+        const response = await fetch(`${URL}/api/jobs/${slug}?lang=${lang}`, {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setJob(data.data);
+        } else {
+          throw new Error('Failed to fetch job details');
+        }
+      } catch (error) {
+        console.error('Error fetching job details:', error);
+        throw error;
+      }
+    },
+    [slug, currentLanguage, URL]
+  );
 
   const loadJobDetails = useCallback(async () => {
     try {
@@ -122,26 +136,11 @@ const JobDetailsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [slug, currentLanguage, router, t]);
+  }, [slug, currentLanguage, router, t, fetchJobDetails]);
 
-  const fetchJobDetails = async (userToken: string) => {
-    try {
-      const lang = currentLanguage || 'en';
-      const response = await fetch(`${URL}/api/jobs/${slug}?lang=${lang}`, {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setJob(data.data);
-      } else {
-        throw new Error('Failed to fetch job details');
-      }
-    } catch (error) {
-      console.error('Error fetching job details:', error);
-      throw error;
-    }
-  };
+  useEffect(() => {
+    loadJobDetails();
+  }, [loadJobDetails]);
 
   const toggleSaveJob = async () => {
     if (!job) return;

@@ -104,6 +104,7 @@ export default function EmployerLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="applicants/index"
         options={{

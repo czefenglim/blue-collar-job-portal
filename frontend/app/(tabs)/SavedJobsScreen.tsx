@@ -65,17 +65,30 @@ const SavedJobsScreen: React.FC = () => {
   const router = useRouter();
   const { t, currentLanguage } = useLanguage();
 
-  useEffect(() => {
-    loadSavedJobs();
+  const fetchSavedJobs = useCallback(async (userToken: string) => {
+    try {
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      const response = await fetch(`${URL}/api/jobs/saved/list?lang=${lang}`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSavedJobs(data.data);
+      } else {
+        throw new Error('Failed to fetch saved jobs');
+      }
+    } catch (error) {
+      console.error('Error fetching saved jobs:', error);
+      throw error;
+    }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadSavedJobs();
-    }, [])
-  );
-
-  const loadSavedJobs = async () => {
+  const loadSavedJobs = useCallback(async () => {
     try {
       setIsLoading(true);
       const userToken = await AsyncStorage.getItem('jwtToken');
@@ -97,41 +110,28 @@ const SavedJobsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t, router, fetchSavedJobs]);
 
-  const fetchSavedJobs = async (userToken: string) => {
-    try {
-      const storedLang = await AsyncStorage.getItem('preferredLanguage');
-      const lang = storedLang || 'en';
+  useEffect(() => {
+    loadSavedJobs();
+  }, [loadSavedJobs]);
 
-      const response = await fetch(`${URL}/api/jobs/saved/list?lang=${lang}`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSavedJobs(data.data);
-      } else {
-        throw new Error('Failed to fetch saved jobs');
-      }
-    } catch (error) {
-      console.error('Error fetching saved jobs:', error);
-      throw error;
-    }
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedJobs();
+    }, [loadSavedJobs])
+  );
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await fetchSavedJobs(token);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(t('common.error'), t('savedJobs.errors.refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
-  }, [token]);
+  }, [token, t, fetchSavedJobs]);
 
   const unsaveJob = async (jobId: number) => {
     try {

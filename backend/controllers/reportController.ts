@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma, ReportStatus } from '@prisma/client';
 import { translateText } from '../services/googleTranslation';
 import { SupportedLang, labelEnum } from '../utils/enumLabels';
 import {
@@ -8,15 +8,10 @@ import {
   generatePresignedUrlsForEvidence,
 } from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
+import { AuthRequest, MulterAuthRequest } from '../types/common';
+import { Report } from '../types/report';
 import multer from 'multer';
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role?: string;
-  };
-}
+import { ReportWhereInput } from '../types/input';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +43,7 @@ export const upload = multer({
 });
 
 // Helper function to add presigned URLs to report
-async function addPresignedUrlsToReport(report: any) {
+async function addPresignedUrlsToReport(report: Report) {
   if (report.evidence) {
     const presignedUrls = await generatePresignedUrlsForEvidence(
       report.evidence
@@ -70,7 +65,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { jobId, reportType, description } = req.body;
-    const files = req.files as any[];
+    const files = (req as MulterAuthRequest).files as Express.Multer.File[];
 
     if (!userId) {
       return res.status(401).json({
@@ -168,7 +163,9 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     });
 
     // Add presigned URLs to response
-    const reportWithPresignedUrls = await addPresignedUrlsToReport(report);
+    const reportWithPresignedUrls = await addPresignedUrlsToReport(
+      report as unknown as Report
+    );
 
     return res.status(201).json({
       success: true,
@@ -224,7 +221,9 @@ export const getUserReports = async (req: AuthRequest, res: Response) => {
 
     // Add presigned URLs to all reports
     const reportsWithPresignedUrls = await Promise.all(
-      reports.map((report) => addPresignedUrlsToReport(report))
+      reports.map((report: Report) =>
+        addPresignedUrlsToReport(report as unknown as Report)
+      )
     );
 
     return res.status(200).json({
@@ -290,7 +289,9 @@ export const getReportById = async (req: AuthRequest, res: Response) => {
     }
 
     // Add presigned URLs
-    const reportWithPresignedUrls = await addPresignedUrlsToReport(report);
+    const reportWithPresignedUrls = await addPresignedUrlsToReport(
+      report as unknown as Report
+    );
 
     return res.status(200).json({
       success: true,
@@ -376,7 +377,7 @@ export const updateReportStatus = async (
 
     // Add presigned URLs
     const reportWithPresignedUrls = await addPresignedUrlsToReport(
-      updatedReport
+      updatedReport as unknown as Report
     );
 
     return res.status(200).json({
@@ -469,9 +470,9 @@ export const getAllReports = async (req: AdminAuthRequest, res: Response) => {
     const { status, page = 1, limit = 20 } = req.query;
     const langParam: SupportedLang = (req.query.lang as SupportedLang) || 'en';
 
-    const where: any = {};
+    const where: Prisma.ReportWhereInput = {};
     if (status) {
-      where.status = status;
+      where.status = status as ReportStatus;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -506,8 +507,10 @@ export const getAllReports = async (req: AdminAuthRequest, res: Response) => {
 
     // Add presigned URLs and localized labels to all reports
     const reportsWithPresignedUrls = await Promise.all(
-      reports.map(async (report) => {
-        const withUrls = await addPresignedUrlsToReport(report);
+      reports.map(async (report: Report) => {
+        const withUrls = await addPresignedUrlsToReport(
+          report as unknown as Report
+        );
         const statusLabel = labelEnum(
           'JobReportStatus',
           report.status,

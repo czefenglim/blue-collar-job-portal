@@ -1,23 +1,27 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  ApplicationStatus,
+  ApprovalStatus,
+  Prisma,
+  JobType,
+} from '@prisma/client';
 import { generateAIResponse, TOOLS } from '../services/aiAssistantService';
+import { AIAction } from '../types/ai';
+import {
+  JobApplication,
+  JobApplicationWithDetails,
+} from '../types/application';
+import { AuthRequest } from '../types/common';
 
 const prisma = new PrismaClient();
 
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role: string;
-  };
-}
+
 
 export const handleChat = async (req: AuthRequest, res: Response) => {
   try {
     const { message } = req.body;
     const userId = req.user?.userId;
-    // Assume role is fetched or passed. ideally we get it from user profile if not in token
-    // For now, let's fetch user role from DB to be safe
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { role: true },
@@ -27,12 +31,9 @@ export const handleChat = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    // 1. First call to AI
     let aiResponse = await generateAIResponse(userId, user.role, message);
 
-    // 2. Check if AI wants to use a tool
     if (aiResponse.tool) {
-      console.log(`Executing tool: ${aiResponse.tool}`);
       const toolResult = await executeTool(
         userId,
         user.role,
@@ -40,16 +41,12 @@ export const handleChat = async (req: AuthRequest, res: Response) => {
         aiResponse.params
       );
 
-      // 3. Feed result back to AI
       aiResponse = await generateAIResponse(userId, user.role, message, {
         tool: aiResponse.tool,
         result: toolResult,
       });
     }
 
-    // Normalize response for frontend
-    // The AI service returns { response: string, actions: [] }
-    // The frontend expects { text: string, buttons: [] }
     const normalizedResponse = {
       text:
         aiResponse.response ||
@@ -77,33 +74,38 @@ async function executeTool(
   userId: number,
   role: string,
   toolName: string,
-  params: any
+  params: Record<string, unknown>
 ) {
   try {
     switch (toolName) {
-      case TOOLS.SEARCH_JOBS:
-        const where: any = { isActive: true, approvalStatus: 'APPROVED' };
-        if (params.keyword) {
+      case TOOLS.SEARCH_JOBS: {
+        const where: Prisma.JobWhereInput = {
+          isActive: true,
+          approvalStatus: ApprovalStatus.APPROVED,
+        };
+        if (typeof params.keyword === 'string' && params.keyword.length > 0) {
           where.OR = [
-            { title: { contains: params.keyword, mode: 'insensitive' } },
+            { title: { contains: params.keyword } },
             {
               company: {
-                name: { contains: params.keyword, mode: 'insensitive' },
+                name: { contains: params.keyword },
               },
             },
           ];
         }
-        if (params.location) {
+        if (typeof params.location === 'string' && params.location.length > 0) {
           where.OR = [
             ...(where.OR || []),
-            { city: { contains: params.location, mode: 'insensitive' } },
-            { state: { contains: params.location, mode: 'insensitive' } },
+            { city: { contains: params.location } },
+            { state: { contains: params.location } },
           ];
         }
-        if (params.jobType) where.jobType = params.jobType;
+        if (typeof params.jobType === 'string' && params.jobType.length > 0) {
+          where.jobType = params.jobType as JobType;
+        }
 
         const jobs = await prisma.job.findMany({
-          where,
+          where: where as any,
           take: 5,
           select: {
             id: true,
@@ -114,20 +116,24 @@ async function executeTool(
           },
         });
         return jobs;
+      }
 
-      case TOOLS.GET_MY_APPLICATIONS:
+      case TOOLS.GET_MY_APPLICATIONS: {
         if (role !== 'JOB_SEEKER')
           return 'Error: Only job seekers can view applications.';
 
-        const appWhere: any = { userId };
-        if (params.status) appWhere.status = params.status;
-        if (params.keyword) {
+        const appWhere: Prisma.JobApplicationWhereInput = { userId };
+        if (typeof params.status === 'string' && params.status.length > 0) {
+          appWhere.status = params.status as unknown as ApplicationStatus;
+        }
+        if (typeof params.keyword === 'string' && params.keyword.length > 0) {
+          const keyword = params.keyword as string;
           appWhere.job = {
             OR: [
-              { title: { contains: params.keyword, mode: 'insensitive' } },
+              { title: { contains: keyword } },
               {
                 company: {
-                  name: { contains: params.keyword, mode: 'insensitive' },
+                  name: { contains: keyword },
                 },
               },
             ],
@@ -147,15 +153,22 @@ async function executeTool(
             },
           },
         });
-        return apps.map((a) => ({
-          id: a.id,
-          job: a.job.title,
-          slug: a.job.slug,
-          company: a.job.company.name,
-          status: a.status,
-        }));
+        return apps.map(
+          (a: {
+            id: number;
+            status: ApplicationStatus;
+            job: { title: string; slug: string; company: { name: string } };
+          }) => ({
+            id: a.id,
+            job: a.job.title,
+            slug: a.job.slug,
+            company: a.job.company.name,
+            status: a.status,
+          })
+        );
+      }
 
-      case TOOLS.GET_SAVED_JOBS:
+      case TOOLS.GET_SAVED_JOBS: {
         if (role !== 'JOB_SEEKER')
           return 'Error: Only job seekers can save jobs.';
         const saved = await prisma.savedJob.findMany({
@@ -171,17 +184,22 @@ async function executeTool(
             },
           },
         });
-        return saved.map((s) => ({
-          id: s.id,
-          job: s.job.title,
-          company: s.job.company.name,
-          slug: s.job.slug,
-        }));
+        return saved.map(
+          (s: {
+            id: number;
+            job: { title: string; slug: string; company: { name: string } };
+          }) => ({
+            id: s.id,
+            job: s.job.title,
+            company: s.job.company.name,
+            slug: s.job.slug,
+          })
+        );
+      }
 
-      case TOOLS.GET_EMPLOYER_JOBS:
+      case TOOLS.GET_EMPLOYER_JOBS: {
         if (role !== 'EMPLOYER')
           return 'Error: Only employers can view posted jobs.';
-        // Need to find company first
         const company = await prisma.company.findUnique({ where: { userId } });
         if (!company) return 'Error: No company profile found.';
 
@@ -199,38 +217,51 @@ async function executeTool(
           },
         });
         return postedJobs;
+      }
 
-      case TOOLS.GET_JOB_APPLICATIONS:
+      case TOOLS.GET_JOB_APPLICATIONS: {
         if (role !== 'EMPLOYER')
           return 'Error: Only employers can view applicants.';
         if (!params.jobId) return 'Error: Job ID is required.';
 
-        // Verify ownership
+        const jobId = parseInt(params.jobId as string);
+        if (isNaN(jobId)) return 'Error: Invalid Job ID.';
+
         const job = await prisma.job.findFirst({
-          where: { id: params.jobId, company: { userId } },
+          where: { id: jobId, company: { userId } },
         });
         if (!job) return 'Error: Job not found or access denied.';
 
         const applicants = await prisma.jobApplication.findMany({
           where: {
-            jobId: params.jobId,
-            ...(params.status ? { status: params.status } : {}),
+            jobId: jobId,
+            ...(params.status && typeof params.status === 'string'
+              ? { status: params.status as ApplicationStatus }
+              : {}),
           },
           take: 5,
           include: { user: { select: { fullName: true } } },
         });
-        return applicants.map((a) => ({
-          id: a.id,
-          name: a.user.fullName,
-          status: a.status,
-        }));
+        return applicants.map(
+          (a: {
+            id: number;
+            status: ApplicationStatus;
+            user: { fullName: string };
+          }) => ({
+            id: a.id,
+            name: a.user.fullName,
+            status: a.status,
+          })
+        );
+      }
 
       default:
         return 'Error: Unknown tool.';
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Tool Execution Error:', error);
-    return `Error executing tool: ${error.message}`;
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown tool error';
+    return `Error executing tool: ${errorMessage}`;
   }
 }
-

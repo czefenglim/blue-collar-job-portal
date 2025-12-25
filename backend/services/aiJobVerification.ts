@@ -3,6 +3,8 @@
 import { PrismaClient } from '@prisma/client';
 import { CohereClientV2 } from 'cohere-ai';
 import { AssistantMessageResponseContentItem } from 'cohere-ai/api/types/AssistantMessageResponseContentItem';
+import { VerificationResult } from '../types/ai';
+import { Job } from '../types/job';
 
 const prisma = new PrismaClient();
 
@@ -11,14 +13,6 @@ const cohere = new CohereClientV2({
   token:
     process.env.COHERE_API_KEY || '9KjRTgmeA7d93zMJ5yBcZDOlXHLZFGXNaPebOf2q',
 });
-
-interface VerificationResult {
-  isClean: boolean;
-  autoApprove: boolean;
-  flagReason?: string;
-  riskScore: number; // 0-100, higher = more risky
-  flags: string[];
-}
 
 interface JobData {
   title: string;

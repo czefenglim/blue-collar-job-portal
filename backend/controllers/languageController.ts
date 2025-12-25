@@ -1,12 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-  };
-}
+import { AuthRequest } from '../types/common';
 
 export const updatePreferredLanguage = async (
   req: AuthRequest,

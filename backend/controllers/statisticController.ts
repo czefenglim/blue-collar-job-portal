@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ApprovalStatus, UserRole } from '@prisma/client';
 import { AdminAuthRequest } from '../types/admin';
 
 const prisma = new PrismaClient();
@@ -11,14 +11,14 @@ export const getOverviewStats = async (
   try {
     const totalJobs = await prisma.job.count();
     const pendingJobs = await prisma.job.count({
-      where: { approvalStatus: 'PENDING' },
+      where: { approvalStatus: ApprovalStatus.PENDING },
     });
     const approvedJobs = await prisma.job.count({
-      where: { approvalStatus: 'APPROVED' },
+      where: { approvalStatus: ApprovalStatus.APPROVED },
     });
     const rejectedJobs = await prisma.job.count({
       where: {
-        approvalStatus: { in: ['REJECTED_AI', 'REJECTED_FINAL'] },
+        approvalStatus: { in: [ApprovalStatus.REJECTED_AI, ApprovalStatus.REJECTED_FINAL] },
       },
     });
 
@@ -241,7 +241,7 @@ export const getLanguageUsage = async (
     const usage = await prisma.user.groupBy({
       by: ['preferredLanguage'],
       where: {
-        role: 'JOB_SEEKER',
+        role: UserRole.JOB_SEEKER,
       },
       _count: {
         preferredLanguage: true,

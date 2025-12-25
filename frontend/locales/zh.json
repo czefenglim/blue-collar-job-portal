@@ -1621,7 +1621,8 @@
     "actions": {
       "chat": "聊天",
       "view": "查看",
-      "shortlist": "入围"
+      "shortlist": "入围",
+      "hire": "录用"
     },
     "appliedFor": "申请职位",
     "errors": {
@@ -1639,7 +1640,8 @@
       "resume": "简历",
       "shortlist": "入围",
       "reject": "拒绝",
-      "shortlisted": "已入围"
+      "shortlisted": "已入围",
+      "hire": "录用"
     },
     "alerts": {
       "shortlistTitle": "入围申请者",

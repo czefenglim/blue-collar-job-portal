@@ -817,7 +817,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
       setCurrentStep(currentStep + 1);
     } else {
-      router.push('/HomeScreen');
+      router.replace('/HomeScreen');
     }
   };
 

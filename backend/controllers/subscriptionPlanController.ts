@@ -1,26 +1,22 @@
 import { Request, Response } from 'express';
-import { PrismaClient, PlanType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { AdminAuthRequest } from '../types/admin';
+import { AuthRequest } from '../types/common';
+
 const prisma = new PrismaClient();
 
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role?: string;
-  };
-}
+type PlanTypeLiteral = 'FREE' | 'PRO' | 'MAX';
 
 const DEFAULT_PLANS = [
   {
-    type: PlanType.FREE,
+    type: 'FREE' as PlanTypeLiteral,
     name: 'Free Plan',
     price: 0,
     features: ['1 Job Post', 'View Company Reviews', 'Basic Analytics'],
     isActive: true,
   },
   {
-    type: PlanType.PRO,
+    type: 'PRO' as PlanTypeLiteral,
     name: 'Pro Plan',
     price: 30,
     features: [
@@ -33,7 +29,7 @@ const DEFAULT_PLANS = [
     isActive: true,
   },
   {
-    type: PlanType.MAX,
+    type: 'MAX' as PlanTypeLiteral,
     name: 'Max Plan',
     price: 60,
     features: [

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { PrismaClient, ApplicationStatus, OfferStatus } from '@prisma/client';
-import { AuthRequest } from '../types/user';
+import { AuthRequest } from '../types/common';
 import {
   uploadOfferContractToS3,
   getSignedDownloadUrl,
@@ -215,7 +215,7 @@ export const respondToOffer = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+    if (!Object.values(OfferStatus).includes(status as OfferStatus)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid status',
@@ -254,7 +254,7 @@ export const respondToOffer = async (req: AuthRequest, res: Response) => {
 
     let signedContractUrl = offer.signedContractUrl;
 
-    if (status === 'ACCEPTED' && file) {
+    if (status === OfferStatus.ACCEPTED && file) {
       const uploadResult = await uploadOfferContractToS3(
         offer.id,
         'applicant_signed_v2.pdf',
@@ -269,7 +269,7 @@ export const respondToOffer = async (req: AuthRequest, res: Response) => {
       data: {
         applicantStatus: status as OfferStatus,
         applicantSignature:
-          status === 'ACCEPTED' ? 'Signed via PDF upload' : null,
+          status === OfferStatus.ACCEPTED ? 'Signed via PDF upload' : null,
         signedContractUrl: signedContractUrl,
       },
     });
@@ -279,7 +279,7 @@ export const respondToOffer = async (req: AuthRequest, res: Response) => {
       where: { id: offer.applicationId },
       data: {
         status:
-          status === 'ACCEPTED'
+          status === OfferStatus.ACCEPTED
             ? ApplicationStatus.OFFER_ACCEPTED
             : ApplicationStatus.OFFER_REJECTED,
       },
@@ -335,7 +335,7 @@ export const verifyHire = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (offer.applicantStatus !== 'ACCEPTED') {
+    if (offer.applicantStatus !== OfferStatus.ACCEPTED) {
       return res.status(400).json({
         success: false,
         message: 'Applicant has not accepted the offer yet',

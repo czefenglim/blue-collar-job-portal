@@ -1654,7 +1654,8 @@
     "actions": {
       "chat": "Chat",
       "view": "View",
-      "shortlist": "Shortlist"
+      "shortlist": "Shortlist",
+      "hire": "Hire"
     },
     "appliedFor": "Applied for",
     "errors": {
@@ -1672,7 +1673,8 @@
       "resume": "Resume",
       "shortlist": "Shortlist",
       "reject": "Reject",
-      "shortlisted": "Shortlisted"
+      "shortlisted": "Shortlisted",
+      "hire": "Hire"
     },
     "alerts": {
       "shortlistTitle": "Shortlist Applicant",

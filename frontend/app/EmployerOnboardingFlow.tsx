@@ -83,6 +83,34 @@ export default function EmployerOnboardingFlow() {
   const GOOGLE_MAPS_AUTOCOMPLETE_KEY =
     Constants.expoConfig?.extra?.GOOGLE_MAPS_AUTOCOMPLETE_KEY || '';
 
+  const fetchIndustries = useCallback(async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (!userToken) {
+        throw new Error('Authentication required');
+      }
+      const storedLang = await AsyncStorage.getItem('preferredLanguage');
+      const lang = storedLang || 'en';
+
+      const response = await fetch(
+        `${URL}/api/employer/industries?lang=${lang}`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched industries:', data);
+        setIndustries(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching industries:', error);
+    }
+  }, [URL]);
+
   useEffect(() => {
     fetchIndustries();
     loadUserEmail();
@@ -140,34 +168,6 @@ export default function EmployerOnboardingFlow() {
       console.error('Error loading user email:', error);
     }
   };
-
-  const fetchIndustries = useCallback(async () => {
-    try {
-      const userToken = await AsyncStorage.getItem('userToken');
-      if (!userToken) {
-        throw new Error('Authentication required');
-      }
-      const storedLang = await AsyncStorage.getItem('preferredLanguage');
-      const lang = storedLang || 'en';
-
-      const response = await fetch(
-        `${URL}/api/employer/industries?lang=${lang}`,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Fetched industries:', data);
-        setIndustries(data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching industries:', error);
-    }
-  }, []);
 
   // Helper: parse Google Place details into address fields
   type AddressComponent = {

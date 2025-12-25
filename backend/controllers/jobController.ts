@@ -1,5 +1,26 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  Prisma,
+  ApprovalStatus,
+  ApplicationStatus,
+  UserRole,
+  NotificationType,
+  JobType,
+  ExperienceLevel,
+} from '@prisma/client';
+import { AuthRequest, SupportedLang } from '../types/common';
+import {
+  JobWithDetails,
+  CreateJobRequest,
+  UpdateJobRequest,
+} from '../types/job';
+import {
+  JobApplication,
+  CreateApplicationRequest,
+  JobApplicationWithDetails,
+} from '../types/application';
+import { UserProfile } from '../types/user';
 import { translateJobs } from '../workers/translationWorker';
 import { translateText } from '../services/googleTranslation';
 import slugify from 'slugify';
@@ -16,10 +37,12 @@ import { labelEnum } from '../utils/enumLabels';
 import { AdminAuthRequest } from '../types/admin';
 import { RecruitmentPredictionService } from '../services/recruitmentPrediction';
 import { getSignedDownloadUrl } from '../services/s3Service';
+import { JobWhereInput, JobApplicationWhereInput } from '../types/input';
+import { VerificationResult } from '../types/ai';
 
 const prisma = new PrismaClient();
 
-// Helper to resolve provided translations or auto-translate from base (any language)
+// Helper to resolve provided translations or auto-translate from base language
 async function resolveTranslations(
   base?: string | null,
   ms?: string | null,
@@ -36,11 +59,9 @@ async function resolveTranslations(
   return { en: enVal, ms: msVal, ta: taVal, zh: zhVal };
 }
 
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-  };
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
 }
 
 export const getAllJobs = async (
@@ -66,15 +87,19 @@ export const getAllJobs = async (
 
     const userId = req.user!.userId;
 
-    const where: any = {
+    const where: Prisma.JobWhereInput = {
       isActive: true,
       approvalStatus: 'APPROVED',
     };
 
     if (keyword && typeof keyword === 'string') {
       where.OR = [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { company: { name: { contains: keyword, mode: 'insensitive' } } },
+        { title: { contains: keyword } },
+        {
+          company: {
+            name: { contains: keyword },
+          },
+        },
       ];
     }
 
@@ -84,29 +109,44 @@ export const getAllJobs = async (
 
     if (location && typeof location === 'string') {
       where.OR = [
-        { city: { contains: location, mode: 'insensitive' } },
-        { state: { contains: location, mode: 'insensitive' } },
+        { city: { contains: location } },
+        { state: { contains: location } },
       ];
     }
 
-    if (jobType && typeof jobType === 'string') where.jobType = jobType;
+    if (jobType && typeof jobType === 'string')
+      where.jobType = jobType as JobType;
     if (experienceLevel && typeof experienceLevel === 'string')
-      where.experienceLevel = experienceLevel;
+      where.experienceLevel = experienceLevel as ExperienceLevel;
 
     if (salaryMin || salaryMax) {
       where.AND = where.AND || [];
       if (salaryMin && typeof salaryMin === 'string') {
-        where.AND.push({ salaryMax: { gte: parseInt(salaryMin) } });
+        where.AND = Array.isArray(where.AND)
+          ? where.AND
+          : where.AND
+          ? [where.AND]
+          : [];
+        (where.AND as Prisma.JobWhereInput[]).push({
+          salaryMax: { gte: parseInt(salaryMin) },
+        });
       }
       if (salaryMax && typeof salaryMax === 'string') {
-        where.AND.push({ salaryMin: { lte: parseInt(salaryMax) } });
+        where.AND = Array.isArray(where.AND)
+          ? where.AND
+          : where.AND
+          ? [where.AND]
+          : [];
+        (where.AND as Prisma.JobWhereInput[]).push({
+          salaryMin: { lte: parseInt(salaryMax) },
+        });
       }
     }
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const take = parseInt(limit as string);
 
-    let jobs = await prisma.job.findMany({
+    let jobs = (await prisma.job.findMany({
       where,
       include: {
         company: {
@@ -116,7 +156,13 @@ export const getAllJobs = async (
           select: { id: true, name: true, slug: true },
         },
         savedJobs: {
-          where: { userId },
+          where: {
+            userId,
+            job: {
+              isActive: true,
+              approvalStatus: 'APPROVED',
+            },
+          },
           select: { id: true },
         },
         reports: {
@@ -127,7 +173,7 @@ export const getAllJobs = async (
       orderBy: { createdAt: 'desc' },
       skip,
       take: distance ? undefined : take,
-    });
+    })) as unknown as JobWithDetails[];
 
     // FILTER BY DISTANCE IF PROVIDED
     if (distance && userLat && userLon) {
@@ -140,15 +186,15 @@ export const getAllJobs = async (
       );
 
       jobs = jobs.filter((job) => {
-        if (!job.latitude || !job.longitude) {
+        if (job.latitude == null || job.longitude == null) {
           return false;
         }
 
         const dist = calculateDistance(
           userLatitude,
           userLongitude,
-          job.latitude,
-          job.longitude
+          job.latitude as number,
+          job.longitude as number
         );
 
         return dist <= maxDistance;
@@ -184,12 +230,14 @@ export const getAllJobs = async (
 
     // Map data to translated version
     const jobsWithTranslatedFields = jobsWithSignedUrls.map((job) => {
-      const title = (job as any)[`title_${lang}`] || job.title;
+      const currentLang = (lang as SupportedLang) || 'en';
+      const title = (job[`title_${currentLang}`] as string) || job.title;
       const description =
-        (job as any)[`description_${lang}`] || job.description;
+        (job[`description_${currentLang}`] as string) || job.description;
       const requirements =
-        (job as any)[`requirements_${lang}`] || job.requirements;
-      const benefits = (job as any)[`benefits_${lang}`] || job.benefits;
+        (job[`requirements_${currentLang}`] as string) || job.requirements;
+      const benefits =
+        (job[`benefits_${currentLang}`] as string) || job.benefits;
 
       return {
         ...job,
@@ -197,19 +245,19 @@ export const getAllJobs = async (
         description,
         requirements,
         benefits,
-        jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+        jobTypeLabel: labelEnum('JobType', job.jobType, currentLang),
         workingHoursLabel: labelEnum(
           'WorkingHours',
-          job.workingHours as any,
-          lang as any
+          job.workingHours,
+          currentLang
         ),
         experienceLevelLabel: labelEnum(
           'ExperienceLevel',
-          job.experienceLevel as any,
-          lang as any
+          job.experienceLevel,
+          currentLang
         ),
-        isSaved: job.savedJobs.length > 0,
-        isReported: (job as any).reports.length > 0,
+        isSaved: job.savedJobs ? job.savedJobs.length > 0 : false,
+        isReported: job.reports ? job.reports.length > 0 : false,
         savedJobs: undefined,
       };
     });
@@ -226,12 +274,12 @@ export const getAllJobs = async (
         pages: Math.ceil(total / parseInt(limit as string)),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching jobs:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch jobs',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -317,59 +365,68 @@ export const getJobBySlug = async (
     }
 
     // Replace with translated fields
+    const jobData = job as unknown as JobWithDetails;
+    const currentLang = (lang as SupportedLang) || 'en';
+
     const jobWithTranslated = {
-      ...job,
+      ...jobData,
       // Job translations
-      title: (job as any)[`title_${lang}`] || job.title,
-      description: (job as any)[`description_${lang}`] || job.description,
-      requirements: (job as any)[`requirements_${lang}`] || job.requirements,
-      benefits: (job as any)[`benefits_${lang}`] || job.benefits,
+      title: jobData[`title_${currentLang}`] || jobData.title,
+      description: jobData[`description_${currentLang}`] || jobData.description,
+      requirements:
+        jobData[`requirements_${currentLang}`] || jobData.requirements,
+      benefits: jobData[`benefits_${currentLang}`] || jobData.benefits,
 
       // Enum label translations
-      jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+      jobTypeLabel: labelEnum('JobType', jobData.jobType, currentLang),
       workingHoursLabel: labelEnum(
         'WorkingHours',
-        job.workingHours as any,
-        lang as any
+        jobData.workingHours,
+        currentLang
       ),
       experienceLevelLabel: labelEnum(
         'ExperienceLevel',
-        job.experienceLevel as any,
-        lang as any
+        jobData.experienceLevel,
+        currentLang
       ),
 
       // Company translations
       company: {
-        id: job.company.id,
-        website: job.company.website,
-        city: job.company.city,
-        state: job.company.state,
+        id: jobData.company.id,
+        website: jobData.company.website,
+        city: jobData.company.city,
+        state: jobData.company.state,
         // ✅ ADDED: Translate company size
-        companySize: job.company.companySize,
+        companySize: jobData.company.companySize,
         companySizeLabel: labelEnum(
           'CompanySize',
-          job.company.companySize as any,
-          lang as any
+          jobData.company.companySize,
+          currentLang
         ),
         logo: signedLogoUrl,
-        name: (job.company as any)[`name_${lang}`] || job.company.name,
+        name: jobData.company[`name_${currentLang}`] || jobData.company.name,
         description:
-          (job.company as any)[`description_${lang}`] ||
-          job.company.description,
+          jobData.company[`description_${currentLang}`] ||
+          jobData.company.description,
       },
 
       // Industry translation
       industry: {
-        id: job.industry.id,
-        slug: job.industry.slug,
-        name: (job.industry as any)[`name_${lang}`] || job.industry.name,
+        id: jobData.industry.id,
+        slug: jobData.industry.slug,
+        name: jobData.industry[`name_${currentLang}`] || jobData.industry.name,
       },
 
       // Application status
-      isSaved: job.savedJobs.length > 0,
-      isReported: (job as any).reports.length > 0,
-      hasApplied: job.applications.length > 0,
-      applicationStatus: job.applications[0]?.status || null,
+      isSaved: jobData.savedJobs ? jobData.savedJobs.length > 0 : false,
+      isReported: jobData.reports ? jobData.reports.length > 0 : false,
+      hasApplied: jobData.applications
+        ? jobData.applications.length > 0
+        : false,
+      applicationStatus:
+        jobData.applications && jobData.applications[0]
+          ? jobData.applications[0].status
+          : null,
       savedJobs: undefined,
       applications: undefined,
     };
@@ -388,12 +445,12 @@ export const getJobBySlug = async (
     });
 
     res.json({ success: true, data: jobWithTranslated });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching job:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch job details',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -454,12 +511,12 @@ export const toggleSaveJob = async (
       message: isSaved ? 'Job saved successfully' : 'Job unsaved successfully',
       data: { isSaved },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error toggling save job:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to save/unsave job',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -505,47 +562,54 @@ export const getSavedJobs = async (
 
     // ✅ Add translation support and generate signed URLs
     const jobs = await Promise.all(
-      savedJobs.map(async (saved) => {
-        const job = saved.job as any;
+      savedJobs.map(async (saved: any) => {
+        const jobData = saved.job as unknown as JobWithDetails;
+        const currentLang = (lang as SupportedLang) || 'en';
 
         // Generate signed URL for company logo
-        if (job.company?.logo) {
+        if (jobData.company?.logo) {
           try {
             const signedLogoUrl = await getSignedDownloadUrl(
-              job.company.logo,
+              jobData.company.logo,
               3600
             );
-            job.company.logo = signedLogoUrl;
+            jobData.company.logo = signedLogoUrl;
           } catch (error) {
             console.error(
               'Error generating signed URL for company logo:',
               error
             );
-            job.company.logo = null;
+            jobData.company.logo = null;
           }
         }
 
         const translatedJob = {
-          ...job,
-          title: job[`title_${lang}`] || job.title,
-          description: job[`description_${lang}`] || job.description,
-          requirements: job[`requirements_${lang}`] || job.requirements,
-          benefits: job[`benefits_${lang}`] || job.benefits,
-          jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+          ...jobData,
+          title: (jobData[`title_${currentLang}`] as string) || jobData.title,
+          description:
+            (jobData[`description_${currentLang}`] as string) ||
+            jobData.description,
+          requirements:
+            (jobData[`requirements_${currentLang}`] as string) ||
+            jobData.requirements,
+          benefits:
+            (jobData[`benefits_${currentLang}`] as string) || jobData.benefits,
+          jobTypeLabel: labelEnum('JobType', jobData.jobType, currentLang),
           workingHoursLabel: labelEnum(
             'WorkingHours',
-            job.workingHours as any,
-            lang as any
+            jobData.workingHours,
+            currentLang
           ),
           experienceLevelLabel: labelEnum(
             'ExperienceLevel',
-            job.experienceLevel as any,
-            lang as any
+            jobData.experienceLevel,
+            currentLang
           ),
           industry: {
-            id: job.industry.id,
-            slug: job.industry.slug,
-            name: (job.industry as any)[`name_${lang}`] || job.industry.name,
+            id: jobData.industry.id,
+            slug: jobData.industry.slug,
+            name:
+              jobData.industry[`name_${currentLang}`] || jobData.industry.name,
           },
         };
 
@@ -569,12 +633,12 @@ export const getSavedJobs = async (
         pages: Math.ceil(total / parseInt(limit as string)),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching saved jobs:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch saved jobs',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -586,7 +650,7 @@ export const applyToJob = async (
   try {
     const jobId = parseInt(req.params.id);
     const userId = req.user!.userId;
-    const { coverLetter, resumeUrl } = req.body;
+    const { coverLetter, resumeUrl } = req.body as CreateApplicationRequest;
 
     // Check if job exists and is active
     const job = await prisma.job.findUnique({
@@ -644,7 +708,7 @@ export const applyToJob = async (
         include: { profile: true },
       });
       const preferred = applicant?.preferredLanguage || 'ENGLISH';
-      const p: any = applicant?.profile;
+      const p = applicant?.profile as unknown as UserProfile;
       const langMap: Record<string, string> = {
         ENGLISH: 'en',
         MALAY: 'ms',
@@ -670,7 +734,7 @@ export const applyToJob = async (
         jobId,
         coverLetter,
         resumeUrl: resumeRef ?? undefined,
-        status: 'PENDING',
+        status: ApplicationStatus.PENDING,
       },
     });
 
@@ -709,12 +773,12 @@ export const applyToJob = async (
       message: 'Application submitted successfully',
       data: application,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error applying to job:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to submit application',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -727,9 +791,9 @@ export const getUserApplications = async (
     const userId = req.user!.userId;
     const { status, page = '1', limit = '20', lang = 'en' } = req.query;
 
-    const where: any = { userId };
+    const where: Prisma.JobApplicationWhereInput = { userId };
     if (status && typeof status === 'string') {
-      where.status = status;
+      where.status = status as ApplicationStatus;
     }
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
@@ -764,47 +828,51 @@ export const getUserApplications = async (
 
     // ✅ Add translation support and generate signed URLs
     const applicationsWithTranslatedJobs = await Promise.all(
-      applications.map(async (app) => {
-        const job = app.job as any;
+      applications.map(async (app: any) => {
+        const jobData = app.job as unknown as JobWithDetails;
+        const currentLang = (lang as SupportedLang) || 'en';
 
         // Generate signed URL for company logo
-        if (job.company?.logo) {
+        if (jobData.company?.logo) {
           try {
             const signedLogoUrl = await getSignedDownloadUrl(
-              job.company.logo,
+              jobData.company.logo,
               3600
             );
-            job.company.logo = signedLogoUrl;
+            jobData.company.logo = signedLogoUrl;
           } catch (error) {
             console.error(
               'Error generating signed URL for company logo:',
               error
             );
-            job.company.logo = null;
+            jobData.company.logo = null;
           }
         }
 
         const translatedJob = {
-          ...job,
-          title: job[`title_${lang}`] || job.title,
-          description: job[`description_${lang}`] || job.description,
-          requirements: job[`requirements_${lang}`] || job.requirements,
-          benefits: job[`benefits_${lang}`] || job.benefits,
-          jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+          ...jobData,
+          title: jobData[`title_${currentLang}`] || jobData.title,
+          description:
+            jobData[`description_${currentLang}`] || jobData.description,
+          requirements:
+            jobData[`requirements_${currentLang}`] || jobData.requirements,
+          benefits: jobData[`benefits_${currentLang}`] || jobData.benefits,
+          jobTypeLabel: labelEnum('JobType', jobData.jobType, currentLang),
           workingHoursLabel: labelEnum(
             'WorkingHours',
-            job.workingHours as any,
-            lang as any
+            jobData.workingHours,
+            currentLang
           ),
           experienceLevelLabel: labelEnum(
             'ExperienceLevel',
-            job.experienceLevel as any,
-            lang as any
+            jobData.experienceLevel,
+            currentLang
           ),
           industry: {
-            id: job.industry.id,
-            slug: job.industry.slug,
-            name: (job.industry as any)[`name_${lang}`] || job.industry.name,
+            id: jobData.industry.id,
+            slug: jobData.industry.slug,
+            name:
+              jobData.industry[`name_${currentLang}`] || jobData.industry.name,
           },
         };
 
@@ -827,12 +895,12 @@ export const getUserApplications = async (
         pages: Math.ceil(total / parseInt(limit as string)),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching applications:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch applications',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 };
@@ -868,7 +936,7 @@ export const createJob = async (req: AuthRequest, res: Response) => {
       salaryType,
       applicationDeadline,
       startDate,
-    } = req.body;
+    } = req.body as CreateJobRequest;
 
     // Optional pre-translated fields from client
     const {
@@ -933,19 +1001,20 @@ export const createJob = async (req: AuthRequest, res: Response) => {
     // ✅ RUN AI VERIFICATION WITH COHERE
     console.log('🤖 Starting AI verification for job post...');
 
-    const verificationResult = await AIJobVerificationService.verifyJob({
-      title,
-      description,
-      requirements,
-      benefits,
-      salaryMin,
-      salaryMax,
-      salaryType,
-      city,
-      state,
-      industryId,
-      companyId: company.id,
-    });
+    const verificationResult: VerificationResult =
+      await AIJobVerificationService.verifyJob({
+        title,
+        description,
+        requirements,
+        benefits,
+        salaryMin,
+        salaryMax,
+        salaryType,
+        city,
+        state,
+        industryId,
+        companyId: company.id,
+      });
 
     console.log('🤖 AI Verification Complete:', {
       riskScore: verificationResult.riskScore,
@@ -978,10 +1047,10 @@ export const createJob = async (req: AuthRequest, res: Response) => {
       console.log(`📍 Geocoding job location: ${city}, ${state}`);
 
       const geocodingResult = await geocodeAddress(
-        address,
-        city,
-        state,
-        postcode
+        address ?? '',
+        city || undefined,
+        state || undefined,
+        postcode ?? undefined
       );
 
       if (geocodingResult) {
@@ -1233,11 +1302,11 @@ export const createJob = async (req: AuthRequest, res: Response) => {
         },
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error creating job:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: getErrorMessage(error) || 'Internal server error',
     });
   }
 };
@@ -1317,7 +1386,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
       salaryType,
       applicationDeadline,
       startDate,
-    } = req.body;
+    } = req.body as UpdateJobRequest;
 
     // Validate salary range if provided
     if (salaryMin && salaryMax && salaryMin > salaryMax) {
@@ -1336,7 +1405,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
     let isActive = existingJob.isActive;
     let approvedAt = existingJob.approvedAt;
     let rejectedAt = existingJob.rejectedAt;
-    let verificationResult: any = null;
+    let verificationResult: VerificationResult | null = null;
 
     if (needsAIVerification) {
       console.log('🤖 Running AI verification for edited job...');
@@ -1346,8 +1415,8 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
         description: description || existingJob.description,
         requirements: requirements || existingJob.requirements || undefined,
         benefits: benefits || existingJob.benefits || undefined,
-        salaryMin: salaryMin ?? existingJob.salaryMin,
-        salaryMax: salaryMax ?? existingJob.salaryMax,
+        salaryMin: salaryMin ?? existingJob.salaryMin ?? undefined,
+        salaryMax: salaryMax ?? existingJob.salaryMax ?? undefined,
         salaryType: salaryType || existingJob.salaryType || undefined,
         city: city || existingJob.city,
         state: state || existingJob.state,
@@ -1445,7 +1514,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
             title: 'Job Post Approved!',
             message: `Great news! Your edited job post "${updatedJob.title}" has been approved by our automated review and is now live.`,
             message_en: `Great news! Your edited job post "${updatedJob.title}" has been approved by our automated review and is now live.`,
-            type: 'SYSTEM_UPDATE',
+            type: NotificationType.SYSTEM_UPDATE,
             actionUrl: `/(employer-hidden)/job-post-details/${updatedJob.id}`,
           },
         });
@@ -1453,7 +1522,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
         // Find matching job seekers and notify them
         const matchingUsers = await prisma.user.findMany({
           where: {
-            role: 'JOB_SEEKER',
+            role: UserRole.JOB_SEEKER,
             isActive: true,
             profile: {
               industries: {
@@ -1493,7 +1562,7 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
             message_ms: n_ms ?? undefined,
             message_ta: n_ta ?? undefined,
             message_zh: n_zh ?? undefined,
-            type: 'SYSTEM_UPDATE',
+            type: NotificationType.SYSTEM_UPDATE,
             actionUrl: `/(employer-hidden)/job-post-details/${updatedJob.id}`,
           },
         });
@@ -1562,11 +1631,11 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
           }),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating job:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to update job',
+      message: getErrorMessage(error) || 'Failed to update job',
     });
   }
 };
@@ -1578,7 +1647,8 @@ export const getJobById = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { jobId } = req.params;
-    const { lang = 'en' } = req.query as any;
+    const { lang = 'en' } = req.query;
+    const currentLang = (lang as SupportedLang) || 'en';
 
     if (!userId) {
       return res.status(401).json({
@@ -1657,54 +1727,53 @@ export const getJobById = async (req: AuthRequest, res: Response) => {
         job.company.logo = signedLogoUrl;
       } catch (error) {
         console.error('Error generating signed URL for company logo:', error);
-        job.company.logo = null as any;
+        job.company.logo = null;
       }
     }
 
-    const translatedJob = {
-      ...job,
-      title: (job as any)[`title_${lang}`] || job.title,
-      description: (job as any)[`description_${lang}`] || job.description,
-      requirements: (job as any)[`requirements_${lang}`] || job.requirements,
-      benefits: (job as any)[`benefits_${lang}`] || job.benefits,
+    const jobData = job as unknown as JobWithDetails;
 
-      jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
+    const translatedJob = {
+      ...jobData,
+      title: jobData[`title_${currentLang}`] || jobData.title,
+      description: jobData[`description_${currentLang}`] || jobData.description,
+      requirements:
+        jobData[`requirements_${currentLang}`] || jobData.requirements,
+      benefits: jobData[`benefits_${currentLang}`] || jobData.benefits,
+
+      jobTypeLabel: labelEnum('JobType', jobData.jobType, currentLang),
       workingHoursLabel: labelEnum(
         'WorkingHours',
-        job.workingHours as any,
-        lang as any
+        jobData.workingHours,
+        currentLang
       ),
       experienceLevelLabel: labelEnum(
         'ExperienceLevel',
-        job.experienceLevel as any,
-        lang as any
+        jobData.experienceLevel,
+        currentLang
       ),
-      salaryTypeLabel: labelEnum(
-        'SalaryType',
-        job.salaryType as any,
-        lang as any
-      ),
+      salaryTypeLabel: labelEnum('SalaryType', jobData.salaryType, currentLang),
 
       company: {
-        id: job.company.id,
-        city: job.company.city,
-        state: job.company.state,
-        logo: job.company.logo,
-        companySize: job.company.companySize,
+        id: jobData.company.id,
+        city: jobData.company.city,
+        state: jobData.company.state,
+        logo: jobData.company.logo,
+        companySize: jobData.company.companySize,
         companySizeLabel: labelEnum(
           'CompanySize',
-          job.company.companySize as any,
-          lang as any
+          jobData.company.companySize,
+          currentLang
         ),
-        name: (job.company as any)[`name_${lang}`] || job.company.name,
+        name: jobData.company[`name_${currentLang}`] || jobData.company.name,
         description:
-          (job.company as any)[`description_${lang}`] ||
-          job.company.description,
+          jobData.company[`description_${currentLang}`] ||
+          jobData.company.description,
       },
 
       industry: {
-        id: job.industry.id,
-        name: (job.industry as any)[`name_${lang}`] || job.industry.name,
+        id: jobData.industry.id,
+        name: jobData.industry[`name_${currentLang}`] || jobData.industry.name,
       },
     };
 
@@ -1712,11 +1781,11 @@ export const getJobById = async (req: AuthRequest, res: Response) => {
       success: true,
       data: translatedJob,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching job:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to fetch job details',
+      message: getErrorMessage(error) || 'Failed to fetch job details',
     });
   }
 };
@@ -1777,11 +1846,11 @@ export const deleteJob = async (req: AuthRequest, res: Response) => {
       success: true,
       message: 'Job deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: getErrorMessage(error) || 'Internal server error',
     });
   }
 };
@@ -1878,11 +1947,11 @@ export const approveJob = async (req: AdminAuthRequest, res: Response) => {
         notifiedUsers: matchingUsers.length,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error approving job:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to approve job',
+      message: getErrorMessage(error) || 'Failed to approve job',
     });
   }
 };
@@ -1994,11 +2063,11 @@ export const rejectJob = async (req: AdminAuthRequest, res: Response) => {
         isActive: job.isActive,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('❌ Error rejecting job:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to reject job',
+      message: getErrorMessage(error) || 'Failed to reject job',
     });
   }
 };
@@ -2056,20 +2125,20 @@ export const predictRecruitmentTime = async (
       success: true,
       data: prediction,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error predicting recruitment time:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to predict recruitment time',
+      message: getErrorMessage(error) || 'Failed to predict recruitment time',
     });
   }
 };
 
 // Helper function to find matching job seekers
-const findMatchingJobSeekers = async (job: any) => {
+const findMatchingJobSeekers = async (job: { industryId: number }) => {
   const users = await prisma.user.findMany({
     where: {
-      role: 'JOB_SEEKER',
+      role: UserRole.JOB_SEEKER,
       isActive: true,
       profile: {
         industries: {

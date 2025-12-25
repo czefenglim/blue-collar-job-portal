@@ -60,25 +60,25 @@ interface UserProfile {
     resumeUrl_ta?: string | null;
     resumeUrl_uploaded?: string | null;
     profileCompleted: boolean;
-    industries: Array<{
+    industries: {
       industry: {
         id: number;
         name: string;
         slug: string;
       };
-    }>;
-    skills: Array<{
+    }[];
+    skills: {
       skill: {
         id: number;
         name: string;
       };
-    }>;
-    languages: Array<{
+    }[];
+    languages: {
       language: {
         id: number;
         name: string;
       };
-    }>;
+    }[];
   } | null;
 }
 
@@ -100,17 +100,33 @@ const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const { t, currentLanguage, changeLanguage } = useLanguage();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  const fetchProfile = useCallback(
+    async (userToken: string) => {
+      try {
+        const response = await fetch(
+          `${URL}/api/users/getProfile?lang=${currentLanguage}`,
+          {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+            },
+          }
+        );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile();
-    }, [])
+        if (response.ok) {
+          const data = await response.json();
+          setUserProfile(data.data);
+        } else {
+          throw new Error('Failed to fetch profile');
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+    },
+    [currentLanguage]
   );
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       const userToken = await AsyncStorage.getItem('jwtToken');
@@ -132,7 +148,17 @@ const ProfileScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t, router, fetchProfile]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
 
   const openResume = async () => {
     try {
@@ -192,29 +218,6 @@ const ProfileScreen: React.FC = () => {
     if (currentLanguage === 'ta')
       return p.resumeUrl_ta || p.resumeUrl_uploaded || null;
     return p.resumeUrl_en || p.resumeUrl_uploaded || null;
-  };
-
-  const fetchProfile = async (userToken: string) => {
-    try {
-      const response = await fetch(
-        `${URL}/api/users/getProfile?lang=${currentLanguage}`,
-        {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserProfile(data.data);
-      } else {
-        throw new Error('Failed to fetch profile');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      throw error;
-    }
   };
 
   const handleLogout = async () => {

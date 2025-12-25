@@ -7,19 +7,14 @@ import {
   generatePresignedUrlsForEvidence,
 } from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
+import { AuthRequest, MulterAuthRequest } from '../types/common';
+import { Appeal } from '../types/appeal';
+import { Report } from '../types/report';
 import multer from 'multer';
 import {
   sendAppealAcceptedNotification,
   sendAppealRejectedNotification,
 } from '../utils/notificationHelper';
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role?: string;
-  };
-}
 
 const prisma = new PrismaClient();
 
@@ -51,7 +46,7 @@ export const upload = multer({
 });
 
 // Helper function to add presigned URLs to appeal
-async function addPresignedUrlsToAppeal(appeal: any) {
+async function addPresignedUrlsToAppeal(appeal: Appeal) {
   if (appeal.evidence) {
     try {
       const evidenceUrls = JSON.parse(appeal.evidence);
@@ -151,12 +146,11 @@ export const getEmployerReports = async (req: AuthRequest, res: Response) => {
 
     // Add presigned URLs to all reports
     const reportsWithPresignedUrls = await Promise.all(
-      reports.map(async (report) => {
+      reports.map(async (report: Report) => {
         let evidenceUrls: string[] = [];
-        if (report.evidence) {
-          evidenceUrls = await generatePresignedUrlsForEvidence(
-            report.evidence
-          );
+        const r = report as unknown as Report;
+        if (r.evidence) {
+          evidenceUrls = await generatePresignedUrlsForEvidence(r.evidence);
         }
         return {
           ...report,
@@ -281,7 +275,9 @@ export const getEmployerReportById = async (
 
     // Add presigned URLs to appeals
     const appealsWithUrls = await Promise.all(
-      report.appeals.map((appeal) => addPresignedUrlsToAppeal(appeal))
+      report.appeals.map((appeal: Appeal) =>
+        addPresignedUrlsToAppeal(appeal as unknown as Appeal)
+      )
     );
 
     return res.status(200).json({
@@ -307,7 +303,7 @@ export const submitAppeal = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { reportId, explanation } = req.body;
-    const files = req.files as any[];
+    const files = (req as MulterAuthRequest).files as Express.Multer.File[];
 
     if (!userId) {
       return res.status(401).json({
@@ -520,12 +516,14 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
         skip,
         take: Number(limit),
       }),
-      prisma.appeal.count({ where }),
+      prisma.appeal.count({ where: where as any }),
     ]);
 
     // Add presigned URLs to all appeals
     const appealsWithPresignedUrls = await Promise.all(
-      appeals.map((appeal) => addPresignedUrlsToAppeal(appeal))
+      appeals.map((appeal: Appeal) =>
+        addPresignedUrlsToAppeal(appeal as unknown as Appeal)
+      )
     );
 
     return res.status(200).json({

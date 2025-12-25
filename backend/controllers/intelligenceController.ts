@@ -2,13 +2,7 @@ import { Request, Response } from 'express';
 import { ApplicantQualityService } from '../services/applicantQualityService';
 import { SalaryCompetitivenessService } from '../services/salaryCompetitivenessService';
 import { SupportedLang } from '../utils/enumLabels';
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-  };
-}
+import { AuthRequest } from '../types/common';
 
 /**
  * Get quality score for a specific application

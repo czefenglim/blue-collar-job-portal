@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Industry } from '../types/industry';
 
 const prisma = new PrismaClient();
 
@@ -23,20 +24,21 @@ export const getIndustries = async (req: Request, res: Response) => {
         description_ms: true,
         description_zh: true,
         description_ta: true,
+        isActive: true,
       },
       orderBy: { name: 'asc' },
     });
 
-    const translatedIndustries = industries.map((ind) => {
-      // use "as any" for safe dynamic access
-      const name = (ind as any)[`name_${lang}`] || ind.name;
+    const translatedIndustries = industries.map((ind: Industry) => {
+      const industry = ind as unknown as Industry;
+      const name = (industry[`name_${lang}`] as string) || industry.name;
       const description =
-        (ind as any)[`description_${lang}`] || ind.description;
+        (industry[`description_${lang}`] as string) || industry.description;
 
       return {
-        id: ind.id,
-        slug: ind.slug,
-        icon: ind.icon,
+        id: industry.id,
+        slug: industry.slug,
+        icon: industry.icon,
         name,
         description,
       };

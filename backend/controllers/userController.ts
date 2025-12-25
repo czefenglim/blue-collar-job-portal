@@ -1,56 +1,19 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { geocodeAddress } from '../utils/geocoding';
 import {
   getSignedDownloadUrl,
   uploadResumeToS3,
   deleteOldFile,
 } from '../services/s3Service';
-
-import multer from 'multer';
+import { UpdateUserPreferencesRequest, UpdateProfileBody } from '../types/user';
+import { AuthRequest } from '../types/common';
 
 const prisma = new PrismaClient();
 
 interface UserPreferences {
   industries: Array<{ id: number; name: string }>;
   preferredLocation?: string;
-}
-
-interface UpdatePreferencesBody {
-  industries?: number[];
-  preferredLocation?: string;
-}
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-  };
-}
-
-interface UpdateProfileBody {
-  fullName?: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  nationality?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postcode?: string;
-  profilePicture?: string;
-  preferredSalaryMin?: number;
-  preferredSalaryMax?: number;
-  availableFrom?: string;
-  workingHours?: string;
-  transportMode?: string;
-  maxTravelDistance?: number;
-  experienceYears?: number;
-  certifications?: string[];
-  resumeUrl?: string;
-  industries?: number[];
-  skills?: number[];
-  languages?: number[];
 }
 
 export const getUserPreferences = async (req: AuthRequest, res: Response) => {
@@ -76,22 +39,33 @@ export const getUserPreferences = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Map translated industry names
-    const translatedIndustries = userPreferences.industries.map((ui) => {
-      const ind = ui.industry;
-      let translatedName = ind.name;
+    const translatedIndustries = userPreferences.industries.map(
+      (ui: {
+        industry: {
+          id: number;
+          name: string;
+          name_en?: string | null;
+          name_ms?: string | null;
+          name_ta?: string | null;
+          name_zh?: string | null;
+          slug?: string | null;
+        };
+      }) => {
+        const ind = ui.industry;
+        let translatedName = ind.name;
 
-      if (lang === 'ms' && ind.name_ms) translatedName = ind.name_ms;
-      else if (lang === 'zh' && ind.name_zh) translatedName = ind.name_zh;
-      else if (lang === 'ta' && ind.name_ta) translatedName = ind.name_ta;
-      else if (lang === 'en' && (ind as any).name_en)
-        translatedName = (ind as any).name_en as string;
+        if (lang === 'ms' && ind.name_ms) translatedName = ind.name_ms;
+        else if (lang === 'zh' && ind.name_zh) translatedName = ind.name_zh;
+        else if (lang === 'ta' && ind.name_ta) translatedName = ind.name_ta;
+        else if (lang === 'en' && ind.name_en)
+          translatedName = ind.name_en || ind.name;
 
-      return {
-        id: ind.id,
-        name: translatedName,
-      };
-    });
+        return {
+          id: ind.id,
+          name: translatedName,
+        };
+      }
+    );
 
     const response: UserPreferences = {
       industries: translatedIndustries,
@@ -117,7 +91,8 @@ export const updateUserPreferences = async (
 ) => {
   try {
     const userId = req.user!.userId;
-    const { industries, preferredLocation }: UpdatePreferencesBody = req.body;
+    const { industries, preferredLocation }: UpdateUserPreferencesRequest =
+      req.body;
 
     if (preferredLocation) {
       await prisma.userProfile.update({
@@ -497,133 +472,141 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     }
 
     // Start a transaction to update multiple tables
-    const result = await prisma.$transaction(async (tx) => {
-      // Update User table
-      if (updateData.fullName || updateData.phoneNumber) {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            ...(updateData.fullName && { fullName: updateData.fullName }),
-            ...(updateData.phoneNumber && {
-              phoneNumber: updateData.phoneNumber,
-            }),
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // Update User table
+        if (updateData.fullName || updateData.phoneNumber) {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              ...(updateData.fullName && { fullName: updateData.fullName }),
+              ...(updateData.phoneNumber && {
+                phoneNumber: updateData.phoneNumber,
+              }),
+            },
+          });
+        }
+
+        // Prepare UserProfile data
+        const profileData: any = {};
+
+        // Personal Information
+        if (updateData.dateOfBirth)
+          profileData.dateOfBirth = new Date(updateData.dateOfBirth);
+        if (updateData.gender) profileData.gender = updateData.gender;
+        if (updateData.nationality)
+          profileData.nationality = updateData.nationality;
+        if (updateData.address) profileData.address = updateData.address;
+        if (updateData.city) profileData.city = updateData.city;
+        if (updateData.state) profileData.state = updateData.state;
+        if (updateData.postcode) profileData.postcode = updateData.postcode;
+        if (updateData.profilePicture)
+          profileData.profilePicture = updateData.profilePicture;
+
+        // ADD COORDINATES IF GEOCODING WAS SUCCESSFUL
+        if (coordinates) {
+          profileData.latitude = coordinates.latitude;
+          profileData.longitude = coordinates.longitude;
+        }
+
+        // Job Preferences
+        if (updateData.preferredSalaryMin !== undefined)
+          profileData.preferredSalaryMin = updateData.preferredSalaryMin;
+        if (updateData.preferredSalaryMax !== undefined)
+          profileData.preferredSalaryMax = updateData.preferredSalaryMax;
+        if (updateData.availableFrom)
+          profileData.availableFrom = new Date(updateData.availableFrom);
+        if (updateData.workingHours)
+          profileData.workingHours = updateData.workingHours;
+        if (updateData.transportMode)
+          profileData.transportMode = updateData.transportMode;
+        if (updateData.maxTravelDistance !== undefined)
+          profileData.maxTravelDistance = updateData.maxTravelDistance;
+
+        // Skills and Experience
+        if (updateData.experienceYears !== undefined)
+          profileData.experienceYears = updateData.experienceYears;
+        if (updateData.certifications)
+          profileData.certifications = JSON.stringify(
+            updateData.certifications
+          );
+        // Resume URLs now managed by dedicated endpoints (AI and upload)
+
+        // Update or create UserProfile
+        const userProfile = await tx.userProfile.upsert({
+          where: { userId },
+          update: profileData,
+          create: {
+            userId,
+            ...profileData,
           },
         });
-      }
 
-      // Prepare UserProfile data
-      const profileData: any = {};
+        // Update industries if provided
+        if (updateData.industries && Array.isArray(updateData.industries)) {
+          await tx.userIndustry.deleteMany({
+            where: { userId },
+          });
 
-      // Personal Information
-      if (updateData.dateOfBirth)
-        profileData.dateOfBirth = new Date(updateData.dateOfBirth);
-      if (updateData.gender) profileData.gender = updateData.gender;
-      if (updateData.nationality)
-        profileData.nationality = updateData.nationality;
-      if (updateData.address) profileData.address = updateData.address;
-      if (updateData.city) profileData.city = updateData.city;
-      if (updateData.state) profileData.state = updateData.state;
-      if (updateData.postcode) profileData.postcode = updateData.postcode;
-      if (updateData.profilePicture)
-        profileData.profilePicture = updateData.profilePicture;
+          if (updateData.industries.length > 0) {
+            await tx.userIndustry.createMany({
+              data: updateData.industries.map((industryId: number) => ({
+                userId,
+                industryId,
+              })),
+            });
+          }
+        }
 
-      // ADD COORDINATES IF GEOCODING WAS SUCCESSFUL
-      if (coordinates) {
-        profileData.latitude = coordinates.latitude;
-        profileData.longitude = coordinates.longitude;
-      }
+        // Update skills if provided
+        if (updateData.skills && Array.isArray(updateData.skills)) {
+          await tx.userSkill.deleteMany({
+            where: { userId },
+          });
 
-      // Job Preferences
-      if (updateData.preferredSalaryMin !== undefined)
-        profileData.preferredSalaryMin = updateData.preferredSalaryMin;
-      if (updateData.preferredSalaryMax !== undefined)
-        profileData.preferredSalaryMax = updateData.preferredSalaryMax;
-      if (updateData.availableFrom)
-        profileData.availableFrom = new Date(updateData.availableFrom);
-      if (updateData.workingHours)
-        profileData.workingHours = updateData.workingHours;
-      if (updateData.transportMode)
-        profileData.transportMode = updateData.transportMode;
-      if (updateData.maxTravelDistance !== undefined)
-        profileData.maxTravelDistance = updateData.maxTravelDistance;
+          if (updateData.skills.length > 0) {
+            await tx.userSkill.createMany({
+              data: updateData.skills.map((skillId: number) => ({
+                userId,
+                skillId,
+              })),
+            });
+          }
+        }
 
-      // Skills and Experience
-      if (updateData.experienceYears !== undefined)
-        profileData.experienceYears = updateData.experienceYears;
-      if (updateData.certifications)
-        profileData.certifications = JSON.stringify(updateData.certifications);
-      // Resume URLs now managed by dedicated endpoints (AI and upload)
+        // Update languages if provided
+        if (updateData.languages && Array.isArray(updateData.languages)) {
+          await tx.userLanguage.deleteMany({
+            where: { userId },
+          });
 
-      // Update or create UserProfile
-      const userProfile = await tx.userProfile.upsert({
-        where: { userId },
-        update: profileData,
-        create: {
-          userId,
-          ...profileData,
-        },
-      });
+          if (updateData.languages.length > 0) {
+            await tx.userLanguage.createMany({
+              data: updateData.languages.map((languageId: number) => ({
+                userId,
+                languageId,
+              })),
+            });
+          }
+        }
 
-      // Update industries if provided
-      if (updateData.industries && Array.isArray(updateData.industries)) {
-        await tx.userIndustry.deleteMany({
+        // Check profile completion
+        const completedFields = await checkProfileCompletion(userId, tx);
+        const profileCompleted = completedFields >= 8;
+
+        // Update profile completion status
+        await tx.userProfile.update({
           where: { userId },
+          data: { profileCompleted },
         });
 
-        if (updateData.industries.length > 0) {
-          await tx.userIndustry.createMany({
-            data: updateData.industries.map((industryId) => ({
-              userId,
-              industryId,
-            })),
-          });
-        }
+        return {
+          userProfile,
+          profileCompleted,
+          geocoded: coordinates !== null,
+        };
       }
-
-      // Update skills if provided
-      if (updateData.skills && Array.isArray(updateData.skills)) {
-        await tx.userSkill.deleteMany({
-          where: { userId },
-        });
-
-        if (updateData.skills.length > 0) {
-          await tx.userSkill.createMany({
-            data: updateData.skills.map((skillId) => ({
-              userId,
-              skillId,
-            })),
-          });
-        }
-      }
-
-      // Update languages if provided
-      if (updateData.languages && Array.isArray(updateData.languages)) {
-        await tx.userLanguage.deleteMany({
-          where: { userId },
-        });
-
-        if (updateData.languages.length > 0) {
-          await tx.userLanguage.createMany({
-            data: updateData.languages.map((languageId) => ({
-              userId,
-              languageId,
-            })),
-          });
-        }
-      }
-
-      // Check profile completion
-      const completedFields = await checkProfileCompletion(userId, tx);
-      const profileCompleted = completedFields >= 8;
-
-      // Update profile completion status
-      await tx.userProfile.update({
-        where: { userId },
-        data: { profileCompleted },
-      });
-
-      return { userProfile, profileCompleted, geocoded: coordinates !== null };
-    });
+    );
 
     res.json({
       success: true,
@@ -643,7 +626,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
 export async function uploadResume(req: AuthRequest, res: Response) {
   try {
     const userId = req.user!.userId;
-    const file = (req as any).file as Express.Multer.File | undefined;
+    const file = req.file;
     const language = (req.body?.language as string) || 'en';
 
     if (!file) {
@@ -723,7 +706,7 @@ export async function uploadResume(req: AuthRequest, res: Response) {
 // Helper function to check profile completion
 async function checkProfileCompletion(
   userId: number,
-  tx: any
+  tx: Prisma.TransactionClient
 ): Promise<number> {
   const profile = await tx.userProfile.findUnique({
     where: { userId },

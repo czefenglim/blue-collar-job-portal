@@ -1,6 +1,7 @@
 // src/types/admin.types.ts
 
 import { Request } from 'express';
+import { UserRole, AccountStatus, ApprovalStatus } from '@prisma/client';
 
 export interface AdminAuthRequest extends Request {
   adminId?: string;
@@ -14,30 +15,25 @@ export interface AdminLoginRequest {
 }
 
 export interface UpdateUserStatusRequest {
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  status: AccountStatus;
   reason?: string;
 }
 
 export interface UpdateJobApprovalRequest {
-  approvalStatus: 'APPROVED' | 'REJECTED_FINAL';
+  approvalStatus: ApprovalStatus;
   reason?: string;
 }
 
 export interface UserFilters {
-  role?: 'JOB_SEEKER' | 'EMPLOYER' | 'ADMIN';
-  status?: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  role?: UserRole;
+  status?: AccountStatus;
   search?: string;
   page?: number;
   limit?: number;
 }
 
 export interface JobFilters {
-  approvalStatus?:
-    | 'PENDING'
-    | 'APPROVED'
-    | 'REJECTED_FINAL'
-    | 'REJECTED_AI'
-    | 'APPEALED';
+  approvalStatus?: ApprovalStatus;
   isActive?: boolean;
   search?: string;
   page?: number;

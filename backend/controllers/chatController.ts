@@ -1,7 +1,7 @@
 // src/controllers/chatController.ts
 
 import { Request, Response } from 'express';
-import { AuthRequest } from '../types/user';
+import { AuthRequest } from '../types/common';
 import * as chatService from '../services/chatService';
 import {
   uploadChatAttachment,
@@ -9,7 +9,7 @@ import {
   MAX_FILE_SIZE,
   isImageFile,
 } from '../services/s3Service';
-import { MessageType } from '@prisma/client';
+type MessageTypeLiteral = 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
 
 // ============================================
 // CONVERSATION ENDPOINTS
@@ -325,16 +325,16 @@ export const sendAttachment = async (req: AuthRequest, res: Response) => {
     );
 
     // Determine message type
-    const messageType = isImageFile(file.mimetype)
-      ? MessageType.IMAGE
-      : MessageType.FILE;
+    const messageType: MessageTypeLiteral = isImageFile(file.mimetype)
+      ? 'IMAGE'
+      : 'FILE';
 
     // Send message with attachment
     const message = await chatService.sendMessage(
       parseInt(id),
       userId,
       content || '',
-      messageType,
+      messageType as any,
       {
         url: uploadResult.url,
         name: uploadResult.fileName,

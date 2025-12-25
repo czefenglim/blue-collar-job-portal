@@ -1,5 +1,11 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  AdminActionType,
+  ReportStatus,
+  NotificationType,
+  AccountStatus,
+} from '@prisma/client';
 import { translateText } from '../services/googleTranslation';
 import { AdminAuthRequest } from '../types/admin';
 
@@ -153,7 +159,7 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
-        actionType: 'SUSPEND_JOB',
+        actionType: AdminActionType.SUSPEND_JOB,
         targetType: 'JOB',
         targetId: parseInt(jobId),
         reason: reasonText,
@@ -175,7 +181,7 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
       await prisma.report.update({
         where: { id: parseInt(reportId) },
         data: {
-          status: 'RESOLVED',
+          status: ReportStatus.RESOLVED,
           reviewedBy: adminUser?.id || null,
           reviewedAt: new Date(),
           reviewNotes: `Job suspended: ${reason}`,
@@ -204,7 +210,7 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
             message_ms: n_ms ?? undefined,
             message_ta: n_ta ?? undefined,
             message_zh: n_zh ?? undefined,
-            type: 'SYSTEM_UPDATE',
+            type: NotificationType.SYSTEM_UPDATE,
           },
         });
       }
@@ -226,7 +232,7 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
           message_ms: n_ms ?? undefined,
           message_ta: n_ta ?? undefined,
           message_zh: n_zh ?? undefined,
-          type: 'SYSTEM_UPDATE',
+          type: NotificationType.SYSTEM_UPDATE,
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
@@ -290,7 +296,7 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
-        actionType: 'DELETE_JOB',
+        actionType: AdminActionType.DELETE_JOB,
         targetType: 'JOB',
         targetId: parseInt(jobId),
         reason: reasonText,
@@ -315,7 +321,7 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
       await prisma.report.update({
         where: { id: parseInt(reportId) },
         data: {
-          status: 'RESOLVED',
+          status: ReportStatus.RESOLVED,
           reviewedBy: adminUser?.id || null,
           reviewedAt: new Date(),
           reviewNotes: `Job deleted: ${reasonText}`,
@@ -348,7 +354,7 @@ export const deleteJob = async (req: AdminAuthRequest, res: Response) => {
             message_ms: n_ms ?? undefined,
             message_ta: n_ta ?? undefined,
             message_zh: n_zh ?? undefined,
-            type: 'SYSTEM_UPDATE',
+            type: NotificationType.SYSTEM_UPDATE,
           },
         });
       }
@@ -418,7 +424,7 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
     const user = await prisma.user.update({
       where: { id: parseInt(userId) },
       data: {
-        status: 'SUSPENDED',
+        status: AccountStatus.SUSPENDED,
         suspendedAt: new Date(),
         suspensionReason: reasonText,
         suspensionReason_en: sr_en_user ?? undefined,
@@ -441,7 +447,7 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
-        actionType: 'SUSPEND_EMPLOYER',
+        actionType: AdminActionType.SUSPEND_EMPLOYER,
         targetType: 'EMPLOYER',
         targetId: parseInt(userId),
         reason: reasonText,
@@ -480,7 +486,7 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
       await prisma.report.update({
         where: { id: parseInt(reportId) },
         data: {
-          status: 'RESOLVED',
+          status: ReportStatus.RESOLVED,
           reviewedBy: adminUser?.id || null,
           reviewedAt: new Date(),
           reviewNotes: `Employer account suspended: ${reasonText}`,
@@ -507,7 +513,7 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
         message_ms: n_ms ?? undefined,
         message_ta: n_ta ?? undefined,
         message_zh: n_zh ?? undefined,
-        type: 'SYSTEM_UPDATE',
+        type: NotificationType.SYSTEM_UPDATE,
       },
     });
 
@@ -578,7 +584,7 @@ export const dismissReport = async (req: AdminAuthRequest, res: Response) => {
     const report = await prisma.report.update({
       where: { id: parseInt(reportId) },
       data: {
-        status: 'DISMISSED',
+        status: ReportStatus.DISMISSED,
         reviewedBy: adminUser?.id || null,
         reviewedAt: new Date(),
         reviewNotes: reasonText,
@@ -600,7 +606,7 @@ export const dismissReport = async (req: AdminAuthRequest, res: Response) => {
     await prisma.adminAction.create({
       data: {
         adminEmail: adminEmail!,
-        actionType: 'DISMISS_REPORT',
+        actionType: AdminActionType.DISMISS_REPORT,
         targetType: 'REPORT',
         targetId: parseInt(reportId),
         reason: reasonText,
@@ -627,7 +633,7 @@ export const dismissReport = async (req: AdminAuthRequest, res: Response) => {
         message_ms: n_ms ?? undefined,
         message_ta: n_ta ?? undefined,
         message_zh: n_zh ?? undefined,
-        type: 'SYSTEM_UPDATE',
+        type: NotificationType.SYSTEM_UPDATE,
       },
     });
 

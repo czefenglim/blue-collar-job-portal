@@ -1,5 +1,13 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  WorkingHours,
+  ExperienceLevel,
+  SalaryType,
+  ApprovalStatus,
+  NotificationType,
+} from '@prisma/client';
 import slugify from 'slugify';
 import {
   translateJobs,
@@ -19,6 +27,12 @@ import {
   uploadVerificationDocumentService,
   getSignedDownloadUrl,
 } from '../services/s3Service';
+import { AuthRequest } from '../types/common';
+import {
+  CreateCompanyRequest,
+  CreateFirstJobRequest,
+  MulterAuthRequest,
+} from '../types/employer';
 
 const prisma = new PrismaClient();
 
@@ -39,14 +53,10 @@ async function resolveTranslations(
   return { en: enVal, ms: msVal, ta: taVal, zh: zhVal };
 }
 
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-  };
-}
-
-export const uploadCompanyLogo = async (req: any, res: Response) => {
+export const uploadCompanyLogo = async (
+  req: MulterAuthRequest,
+  res: Response
+) => {
   try {
     const userId = req.user?.userId;
 
@@ -126,7 +136,7 @@ export const uploadCompanyLogo = async (req: any, res: Response) => {
       },
       message: 'Logo uploaded successfully',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error uploading logo:', error);
     res.status(500).json({
       success: false,
@@ -138,7 +148,7 @@ export const uploadCompanyLogo = async (req: any, res: Response) => {
 // ===================================================================
 // STEP 2: Create/Update Company Profile
 // ===================================================================
-export const createCompany = async (req: Request, res: Response) => {
+export const createCompany = async (req: AuthRequest, res: Response) => {
   try {
     const {
       userId,
@@ -160,8 +170,8 @@ export const createCompany = async (req: Request, res: Response) => {
       phone,
       email,
       website,
-      // ❌ REMOVED: logo - now handled separately
-    } = req.body;
+    }: // ❌ REMOVED: logo - now handled separately
+    CreateCompanyRequest = req.body;
 
     const industryId = Number(industry);
 
@@ -313,7 +323,7 @@ export const createCompany = async (req: Request, res: Response) => {
       // Update user role to EMPLOYER
       await prisma.user.update({
         where: { id: userId },
-        data: { role: 'EMPLOYER' },
+        data: { role: UserRole.EMPLOYER },
       });
 
       statusCode = 201;
@@ -348,10 +358,10 @@ export const createCompany = async (req: Request, res: Response) => {
         onboardingStep: company.onboardingStep,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
@@ -408,16 +418,19 @@ export const getCompanyByUser = async (req: Request, res: Response) => {
       success: true,
       ...company, // return full company object with signed URLs
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching company:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
 
-export const uploadVerificationDocument = async (req: any, res: Response) => {
+export const uploadVerificationDocument = async (
+  req: MulterAuthRequest,
+  res: Response
+) => {
   try {
     const userId = req.user?.userId;
 
@@ -504,7 +517,7 @@ export const uploadVerificationDocument = async (req: any, res: Response) => {
       },
       message: 'Verification document uploaded successfully',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error uploading verification document:', error);
     res.status(500).json({
       success: false,
@@ -610,10 +623,10 @@ export const submitVerification = async (req: Request, res: Response) => {
         onboardingStep: updatedCompany.onboardingStep,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
@@ -621,7 +634,7 @@ export const submitVerification = async (req: Request, res: Response) => {
 // ===================================================================
 // STEP 4: Create/Update First Job Post (UPSERT)
 // ===================================================================
-export const createFirstJob = async (req: Request, res: Response) => {
+export const createFirstJob = async (req: AuthRequest, res: Response) => {
   try {
     const {
       companyId,
@@ -639,7 +652,7 @@ export const createFirstJob = async (req: Request, res: Response) => {
       description,
       requirements,
       benefits,
-    } = req.body;
+    }: CreateFirstJobRequest = req.body;
 
     // ✅ UPDATED: Validate required fields with new structure
     if (
@@ -749,18 +762,18 @@ export const createFirstJob = async (req: Request, res: Response) => {
     });
 
     // ✅ DETERMINE APPROVAL STATUS BASED ON AI RESULT
-    let approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED_AI' = 'PENDING';
+    let approvalStatus: ApprovalStatus = ApprovalStatus.PENDING;
     let rejectionReason: string | null = null;
 
     if (verificationResult.autoApprove) {
-      approvalStatus = 'APPROVED';
+      approvalStatus = ApprovalStatus.APPROVED;
       console.log('✅ First job auto-approved by AI');
     } else if (verificationResult.riskScore > 70) {
-      approvalStatus = 'REJECTED_AI';
+      approvalStatus = ApprovalStatus.REJECTED_AI;
       rejectionReason = `Auto-rejected by AI verification (Risk Score: ${verificationResult.riskScore}/100):\n\n${verificationResult.flagReason}`;
       console.log('❌ First job auto-rejected by AI (high risk)');
     } else {
-      approvalStatus = 'PENDING';
+      approvalStatus = ApprovalStatus.PENDING;
       console.log('⚠️ First job flagged for human review');
     }
 
@@ -770,10 +783,10 @@ export const createFirstJob = async (req: Request, res: Response) => {
     console.log(`📍 Geocoding job location: ${cityTrimmed}, ${stateTrimmed}`);
 
     const geocodingResult = await geocodeAddress(
-      addressTrimmed,
-      cityTrimmed,
-      stateTrimmed,
-      postcodeTrimmed
+      addressTrimmed ?? '',
+      cityTrimmed || undefined,
+      stateTrimmed || undefined,
+      postcodeTrimmed ?? undefined
     );
 
     if (geocodingResult) {
@@ -794,13 +807,13 @@ export const createFirstJob = async (req: Request, res: Response) => {
     if (jobId) {
       // Update existing job
       job = await prisma.job.update({
-        where: { id: parseInt(jobId) },
+        where: { id: jobId as number },
         data: {
           title,
           industryId,
           jobType,
-          workingHours: 'FLEXIBLE',
-          experienceLevel: 'ENTRY_LEVEL',
+          workingHours: WorkingHours.FLEXIBLE,
+          experienceLevel: ExperienceLevel.ENTRY_LEVEL,
           city: cityTrimmed,
           state: stateTrimmed,
           address: addressTrimmed,
@@ -812,12 +825,14 @@ export const createFirstJob = async (req: Request, res: Response) => {
           benefits,
           salaryMin,
           salaryMax,
-          salaryType: salaryMin || salaryMax ? 'MONTHLY' : null,
+          salaryType: salaryMin || salaryMax ? SalaryType.MONTHLY : null,
           skills,
           approvalStatus,
-          isActive: approvalStatus === 'APPROVED',
-          approvedAt: approvalStatus === 'APPROVED' ? new Date() : null,
-          rejectedAt: approvalStatus === 'REJECTED_AI' ? new Date() : null,
+          isActive: approvalStatus === ApprovalStatus.APPROVED,
+          approvedAt:
+            approvalStatus === ApprovalStatus.APPROVED ? new Date() : null,
+          rejectedAt:
+            approvalStatus === ApprovalStatus.REJECTED_AI ? new Date() : null,
           rejectionReason,
         },
         include: {
@@ -852,8 +867,8 @@ export const createFirstJob = async (req: Request, res: Response) => {
           slug,
           industryId,
           jobType,
-          workingHours: 'FLEXIBLE',
-          experienceLevel: 'ENTRY_LEVEL',
+          workingHours: WorkingHours.FLEXIBLE,
+          experienceLevel: ExperienceLevel.ENTRY_LEVEL,
           city: cityTrimmed,
           state: stateTrimmed,
           address: addressTrimmed,
@@ -865,12 +880,14 @@ export const createFirstJob = async (req: Request, res: Response) => {
           benefits,
           salaryMin,
           salaryMax,
-          salaryType: salaryMin || salaryMax ? 'MONTHLY' : null,
+          salaryType: salaryMin || salaryMax ? SalaryType.MONTHLY : null,
           skills,
           approvalStatus,
-          isActive: approvalStatus === 'APPROVED',
-          approvedAt: approvalStatus === 'APPROVED' ? new Date() : null,
-          rejectedAt: approvalStatus === 'REJECTED_AI' ? new Date() : null,
+          isActive: approvalStatus === ApprovalStatus.APPROVED,
+          approvedAt:
+            approvalStatus === ApprovalStatus.APPROVED ? new Date() : null,
+          rejectedAt:
+            approvalStatus === ApprovalStatus.REJECTED_AI ? new Date() : null,
           rejectionReason,
           createdBy: company.userId,
         },
@@ -899,7 +916,7 @@ export const createFirstJob = async (req: Request, res: Response) => {
     });
 
     // ✅ SEND NOTIFICATIONS BASED ON APPROVAL STATUS
-    if (approvalStatus === 'APPROVED' && company.userId) {
+    if (approvalStatus === ApprovalStatus.APPROVED && company.userId) {
       await sendJobApprovedNotification(company.userId, job.title, job.id);
 
       const matchingUsers = await findMatchingJobSeekers(job);
@@ -915,7 +932,10 @@ export const createFirstJob = async (req: Request, res: Response) => {
       console.log(
         `✅ First job approved and notifications sent to ${matchingUsers.length} matching users`
       );
-    } else if (approvalStatus === 'REJECTED_AI' && company.userId) {
+    } else if (
+      approvalStatus === ApprovalStatus.REJECTED_AI &&
+      company.userId
+    ) {
       const notifMsg = `Your job post "${job.title}" was rejected by our automated review. You can appeal this decision if you believe this is a legitimate job posting.`;
       const n_ms = await translateText(notifMsg, 'ms');
       const n_ta = await translateText(notifMsg, 'ta');
@@ -929,7 +949,7 @@ export const createFirstJob = async (req: Request, res: Response) => {
           message_ms: n_ms ?? undefined,
           message_ta: n_ta ?? undefined,
           message_zh: n_zh ?? undefined,
-          type: 'SYSTEM_UPDATE',
+          type: NotificationType.SYSTEM_UPDATE,
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
@@ -950,7 +970,7 @@ export const createFirstJob = async (req: Request, res: Response) => {
           message_ms: n_ms ?? undefined,
           message_ta: n_ta ?? undefined,
           message_zh: n_zh ?? undefined,
-          type: 'SYSTEM_UPDATE',
+          type: NotificationType.SYSTEM_UPDATE,
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
@@ -958,7 +978,7 @@ export const createFirstJob = async (req: Request, res: Response) => {
     }
 
     // Trigger translation in background
-    if (approvalStatus === 'APPROVED') {
+    if (approvalStatus === ApprovalStatus.APPROVED) {
       translateJobs().catch((err) =>
         console.error('Translation error for job:', err)
       );
@@ -1124,13 +1144,15 @@ export const getEmployerProfile = async (req: AuthRequest, res: Response) => {
         company: localizedCompany,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
+
+import { Industry } from '../types/industry';
 
 // ===================================================================
 // GET: Industries (serves as job categories with multilingual support)
@@ -1155,6 +1177,7 @@ export const getIndustries = async (req: Request, res: Response) => {
         description_en: true,
         description_zh: true,
         description_ta: true,
+        isActive: true,
       },
       orderBy: {
         name: 'asc',
@@ -1162,33 +1185,40 @@ export const getIndustries = async (req: Request, res: Response) => {
     });
 
     // Map to return the appropriate language
-    const localizedIndustries = industries.map((ind) => {
-      let localizedName = ind.name;
-      let localizedDescription = ind.description;
+    const localizedIndustries = industries.map((ind: Industry) => {
+      const industry = ind as unknown as Industry;
+      let localizedName = industry.name;
+      let localizedDescription = industry.description;
 
       switch (lang) {
         case 'ms':
-          localizedName = ind.name_ms || ind.name_en || ind.name;
+          localizedName = industry.name_ms || industry.name_en || industry.name;
           localizedDescription =
-            ind.description_ms || ind.description_en || ind.description;
+            industry.description_ms ||
+            industry.description_en ||
+            industry.description;
           break;
         case 'zh':
-          localizedName = ind.name_zh || ind.name_en || ind.name;
+          localizedName = industry.name_zh || industry.name_en || industry.name;
           localizedDescription =
-            ind.description_zh || ind.description_en || ind.description;
+            industry.description_zh ||
+            industry.description_en ||
+            industry.description;
           break;
         case 'ta':
-          localizedName = ind.name_ta || ind.name_en || ind.name;
+          localizedName = industry.name_ta || industry.name_en || industry.name;
           localizedDescription =
-            ind.description_ta || ind.description_en || ind.description;
+            industry.description_ta ||
+            industry.description_en ||
+            industry.description;
           break;
       }
 
       return {
-        id: ind.id,
+        id: industry.id,
         name: localizedName,
-        slug: ind.slug,
-        icon: ind.icon,
+        slug: industry.slug,
+        icon: industry.icon,
         description: localizedDescription,
       };
     });
@@ -1197,10 +1227,10 @@ export const getIndustries = async (req: Request, res: Response) => {
       success: true,
       data: localizedIndustries,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
@@ -1413,7 +1443,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     });
 
     // Format recent jobs
-    const formattedRecentJobs = recentJobs.map((job) => ({
+    const formattedRecentJobs = recentJobs.map((job: any) => ({
       id: job.id,
       title: job.title,
       status: job.isActive ? 'ACTIVE' : 'CLOSED',
@@ -1434,11 +1464,11 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         companyName: user.company.name,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching dashboard stats:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Internal server error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };
@@ -1518,7 +1548,7 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
 
     // ✅ Generate signed URLs for company logos
     const jobsWithSignedLogos = await Promise.all(
-      jobs.map(async (job) => {
+      jobs.map(async (job: any) => {
         const jobData = { ...job };
 
         // Generate signed URL for company logo if exists
@@ -1744,7 +1774,7 @@ export const getApplicants = async (req: AuthRequest, res: Response) => {
 
     // ✅ Generate signed URLs for profile pictures
     const applicationsWithSignedUrls = await Promise.all(
-      applications.map(async (application) => {
+      applications.map(async (application: any) => {
         const appData = { ...application };
 
         // Generate signed URL for profile picture if exists
@@ -2210,7 +2240,7 @@ export const resubmitCompany = async (req: AuthRequest, res: Response) => {
 const findMatchingJobSeekers = async (job: any) => {
   const users = await prisma.user.findMany({
     where: {
-      role: 'JOB_SEEKER',
+      role: UserRole.JOB_SEEKER,
       isActive: true,
       profile: {
         industries: {

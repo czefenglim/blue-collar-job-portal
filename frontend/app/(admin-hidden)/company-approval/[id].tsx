@@ -177,7 +177,7 @@ export default function CompanyDetailScreen() {
         {
           text: 'Reject',
           style: 'destructive',
-          onPress: async (reason) => {
+          onPress: async (reason: any) => {
             if (!reason || reason.trim().length === 0) {
               Alert.alert('Error', 'Rejection reason is required');
               return;

@@ -7,7 +7,12 @@ import { validationResult } from 'express-validator';
 import { AdminAuthRequest, AdminLoginRequest } from '../types/admin';
 import { SupportedLang, labelEnum } from '../utils/enumLabels';
 import { adminService } from '../services/adminService';
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  AccountStatus,
+  ApprovalStatus,
+} from '@prisma/client';
 import { translateText } from '../services/googleTranslation';
 import { EmployerTrustScoreService } from '../services/employerTrustScoreService';
 import { getSignedDownloadUrl } from '../services/s3Service';
@@ -77,7 +82,7 @@ export class AdminController {
         data: {
           admin: {
             email: adminEmail,
-            role: 'ADMIN',
+            role: UserRole.ADMIN,
           },
           token,
         },
@@ -236,7 +241,9 @@ export class AdminController {
 
       if (
         !approvalStatus ||
-        !['APPROVED', 'REJECTED_FINAL'].includes(approvalStatus)
+        ![ApprovalStatus.APPROVED, ApprovalStatus.REJECTED_FINAL].includes(
+          approvalStatus
+        )
       ) {
         return res.status(400).json({
           success: false,
@@ -244,7 +251,7 @@ export class AdminController {
         });
       }
 
-      if (approvalStatus === 'REJECTED_FINAL' && !reason) {
+      if (approvalStatus === ApprovalStatus.REJECTED_FINAL && !reason) {
         return res.status(400).json({
           success: false,
           message: 'Rejection reason is required',
@@ -314,11 +321,21 @@ export class AdminController {
 
       const [pending, approved, rejectedAI, rejectedFinal, appeals] =
         await Promise.all([
-          prisma.job.count({ where: { approvalStatus: 'PENDING' } }),
-          prisma.job.count({ where: { approvalStatus: 'APPROVED' } }),
-          prisma.job.count({ where: { approvalStatus: 'REJECTED_AI' } }),
-          prisma.job.count({ where: { approvalStatus: 'REJECTED_FINAL' } }),
-          prisma.job.count({ where: { approvalStatus: 'APPEALED' } }),
+          prisma.job.count({
+            where: { approvalStatus: ApprovalStatus.PENDING },
+          }),
+          prisma.job.count({
+            where: { approvalStatus: ApprovalStatus.APPROVED },
+          }),
+          prisma.job.count({
+            where: { approvalStatus: ApprovalStatus.REJECTED_AI },
+          }),
+          prisma.job.count({
+            where: { approvalStatus: ApprovalStatus.REJECTED_FINAL },
+          }),
+          prisma.job.count({
+            where: { approvalStatus: ApprovalStatus.APPEALED },
+          }),
         ]);
 
       return res.status(200).json({
@@ -443,7 +460,7 @@ export class AdminController {
       });
 
       // Localize industry name and verification status
-      const localizedCompanies = companies.map((company) => {
+      const localizedCompanies = companies.map((company: any) => {
         const c: any = { ...company };
 
         if (c.industry) {
@@ -593,7 +610,7 @@ export class AdminController {
 
       // ✅ Generate signed URLs for logo and verification document
       const companiesWithSignedUrls = await Promise.all(
-        companies.map(async (company) => {
+        companies.map(async (company: any) => {
           const companyData = { ...company };
 
           // Generate signed URL for logo

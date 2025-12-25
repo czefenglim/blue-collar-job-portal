@@ -202,6 +202,42 @@ export default function ProfileEditPage() {
     return true;
   };
 
+  const uploadLogoImage = async (uri: string) => {
+    try {
+      const token = await AsyncStorage.getItem('jwtToken');
+      const formData = new FormData();
+
+      // Get filename from URI
+      const uriParts = uri.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+
+      formData.append('logo', {
+        uri,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
+
+      const response = await fetch(`${URL}/api/employer/uploadCompanyLogo`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload logo');
+      }
+
+      return data.data.key;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     if (!validateForm()) return;
 
@@ -217,6 +253,41 @@ export default function ProfileEditPage() {
               setSaving(true);
               const token = await AsyncStorage.getItem('jwtToken');
 
+              // Upload logo if it's a local file
+              let logoKey = undefined;
+              if (logo && logo.startsWith('file://')) {
+                logoKey = await uploadLogoImage(logo);
+              }
+
+              // Prepare update payload
+              // detailed logic:
+              // 1. If we uploaded a new logo, we don't necessarily need to send 'logo' field
+              //    because uploadLogoImage endpoint already updates the DB.
+              // 2. However, to be safe and consistent with the form state, we can include it if we have the key.
+              // 3. IMPORTANT: If logo is an existing URL (http...), DO NOT send it, otherwise we overwrite the key with a signed URL.
+
+              const payload: any = {
+                name: name.trim(),
+                industryId,
+                companySize,
+                description: description.trim(),
+                website: website.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                address: address.trim(),
+                city: city.trim(),
+                state,
+                postcode: postcode.trim(),
+              };
+
+              // Only include logo in payload if we have a new key (from upload) or if it was cleared (empty string)
+              // If it's a signed URL (starts with http), we omit it to preserve the existing key in DB
+              if (logoKey) {
+                payload.logo = logoKey;
+              } else if (logo === '') {
+                payload.logo = null; // Or empty string depending on DB schema, assuming null for removal
+              }
+
               const response = await fetch(
                 `${URL}/api/employer/company/${companyId}`,
                 {
@@ -225,20 +296,7 @@ export default function ProfileEditPage() {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({
-                    name: name.trim(),
-                    industryId,
-                    companySize,
-                    description: description.trim(),
-                    logo,
-                    website: website.trim(),
-                    email: email.trim(),
-                    phone: phone.trim(),
-                    address: address.trim(),
-                    city: city.trim(),
-                    state,
-                    postcode: postcode.trim(),
-                  }),
+                  body: JSON.stringify(payload),
                 }
               );
 

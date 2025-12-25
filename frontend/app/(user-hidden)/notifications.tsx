@@ -99,8 +99,6 @@ const NotificationsScreen: React.FC = () => {
     router.setParams({ unreadCount });
   }, [notifications, router]);
 
- 
-
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     setPagination((prev) => ({ ...prev, page: 1 }));

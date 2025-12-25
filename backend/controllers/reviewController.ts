@@ -1,17 +1,16 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { translateText } from '../services/googleTranslation';
 import { AdminAuthRequest } from '../types/admin';
+import { AuthRequest } from '../types/common';
+import {
+  ReviewWhereInput,
+  ReviewOrderByWithRelationInput,
+} from '../types/input';
+import { Review } from '../types/review';
+import { Company } from '../types/company';
 
 const prisma = new PrismaClient();
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role?: string;
-  };
-}
 
 // Create a review
 export const createReview = async (req: AuthRequest, res: Response) => {
@@ -124,12 +123,14 @@ export const createReview = async (req: AuthRequest, res: Response) => {
       message: 'Review submitted successfully',
       data: review,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to submit review';
     return res.status(500).json({
       success: false,
       message: 'Failed to submit review',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -137,31 +138,36 @@ export const createReview = async (req: AuthRequest, res: Response) => {
 // Get reviews for a company
 export const getCompanyReviews = async (req: Request, res: Response) => {
   try {
-    const { companyId } = req.params;
+    const { id } = req.params;
     const {
-      page = '1',
-      limit = '10',
-      sort = 'newest', // newest, highest, lowest
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const take = parseInt(limit as string);
-
-    // Build sort order
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'highest') {
-      orderBy = { rating: 'desc' };
-    } else if (sort === 'lowest') {
-      orderBy = { rating: 'asc' };
+    const idInt = parseInt(id);
+    if (isNaN(idInt)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid company ID',
+      });
+      return;
     }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const take = Number(limit);
+    const orderBy = { [sortBy as string]: sortOrder as string };
+
+    const where: Prisma.ReviewWhereInput = {
+      companyId: idInt,
+      isVisible: true,
+    };
 
     // Get reviews
     const [reviews, total, stats] = await Promise.all([
       prisma.review.findMany({
-        where: {
-          companyId: parseInt(companyId),
-          isVisible: true,
-        },
+        where,
         include: {
           user: {
             select: {
@@ -176,14 +182,16 @@ export const getCompanyReviews = async (req: Request, res: Response) => {
       }),
       prisma.review.count({
         where: {
-          companyId: parseInt(companyId),
+          //  companyId: parseInt(companyId),
+          companyId: idInt,
           isVisible: true,
         },
       }),
       prisma.review.groupBy({
         by: ['rating'],
         where: {
-          companyId: parseInt(companyId),
+          //companyId: parseInt(companyId),
+          companyId: idInt,
           isVisible: true,
         },
         _count: {
@@ -195,7 +203,7 @@ export const getCompanyReviews = async (req: Request, res: Response) => {
     // Calculate average rating
     const aggregateResult = await prisma.review.aggregate({
       where: {
-        companyId: parseInt(companyId),
+        companyId: idInt,
         isVisible: true,
       },
       _avg: {
@@ -214,18 +222,20 @@ export const getCompanyReviews = async (req: Request, res: Response) => {
       5: 0,
     };
 
-    stats.forEach((stat) => {
+    stats.forEach((stat: { rating: number; _count: { rating: number } }) => {
       ratingCounts[stat.rating as keyof typeof ratingCounts] =
         stat._count.rating;
     });
 
     // Format reviews (handle anonymous)
-    const formattedReviews = reviews.map((review) => ({
-      ...review,
-      user: review.isAnonymous
-        ? { id: null, fullName: 'Anonymous' }
-        : review.user,
-    }));
+    const formattedReviews = reviews.map(
+      (review: Review & { user: { id: number | null; fullName: string } }) => ({
+        ...review,
+        user: review.isAnonymous
+          ? { id: null, fullName: 'Anonymous' }
+          : review.user,
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -242,12 +252,14 @@ export const getCompanyReviews = async (req: Request, res: Response) => {
         },
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching reviews:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to fetch reviews';
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch reviews',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -326,12 +338,14 @@ export const updateReview = async (req: AuthRequest, res: Response) => {
       message: 'Review updated successfully',
       data: updatedReview,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to update review';
     return res.status(500).json({
       success: false,
       message: 'Failed to update review',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -371,12 +385,14 @@ export const deleteReview = async (req: AuthRequest, res: Response) => {
       success: true,
       message: 'Review deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to delete review';
     return res.status(500).json({
       success: false,
       message: 'Failed to delete review',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -411,12 +427,14 @@ export const getUserReviewForCompany = async (
       success: true,
       data: review,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching user review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to fetch review';
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch review',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -444,12 +462,14 @@ export const getUserReviews = async (req: AuthRequest, res: Response) => {
       success: true,
       data: reviews,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching user reviews:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to fetch reviews';
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch reviews',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -486,7 +506,7 @@ export const getEmployerCompanyReviews = async (
     const take = parseInt(limit as string);
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.ReviewWhereInput = {
       companyId: company.id,
       // isVisible: true, // Allow employers to see all reviews, including hidden ones
     };
@@ -496,13 +516,14 @@ export const getEmployerCompanyReviews = async (
     }
 
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate as string);
-      if (endDate) where.createdAt.lte = new Date(endDate as string);
+      const dateFilter: { gte?: Date; lte?: Date } = {};
+      if (startDate) dateFilter.gte = new Date(startDate as string);
+      if (endDate) dateFilter.lte = new Date(endDate as string);
+      where.createdAt = dateFilter;
     }
 
     // Build sort order
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: ReviewOrderByWithRelationInput = { createdAt: 'desc' };
     if (sort === 'highest') {
       orderBy = { rating: 'desc' };
     } else if (sort === 'lowest') {
@@ -559,18 +580,20 @@ export const getEmployerCompanyReviews = async (
       5: 0,
     };
 
-    stats.forEach((stat) => {
+    stats.forEach((stat: any) => {
       ratingCounts[stat.rating as keyof typeof ratingCounts] =
         stat._count.rating;
     });
 
     // Format reviews (handle anonymous)
-    const formattedReviews = reviews.map((review) => ({
-      ...review,
-      user: review.isAnonymous
-        ? { id: null, fullName: 'Anonymous' }
-        : review.user,
-    }));
+    const formattedReviews = reviews.map(
+      (review: Review & { user: { id: number | null; fullName: string } }) => ({
+        ...review,
+        user: review.isAnonymous
+          ? { id: null, fullName: 'Anonymous' }
+          : review.user,
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -587,12 +610,14 @@ export const getEmployerCompanyReviews = async (
         },
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching employer reviews:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to fetch reviews';
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch reviews',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -699,12 +724,14 @@ export const replyToReview = async (req: AuthRequest, res: Response) => {
       message: 'Reply posted successfully',
       data: updatedReview,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error replying to review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to post reply';
     return res.status(500).json({
       success: false,
       message: 'Failed to post reply',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -779,12 +806,14 @@ export const flagReview = async (req: AuthRequest, res: Response) => {
       message: 'Review flagged for admin review',
       data: flaggedReview,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error flagging review:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to flag review';
     return res.status(500).json({
       success: false,
       message: 'Failed to flag review',
-      error: error.message,
+      error: errorMessage,
     });
   }
 };
@@ -863,18 +892,22 @@ export const getEmployerCompanyStats = async (
       5: 0,
     };
 
-    ratingDistribution.forEach((stat) => {
-      ratingCounts[stat.rating as keyof typeof ratingCounts] =
-        stat._count.rating;
-    });
+    ratingDistribution.forEach(
+      (stat: { rating: number; _count: { rating: number } }) => {
+        ratingCounts[stat.rating as keyof typeof ratingCounts] =
+          stat._count.rating;
+      }
+    );
 
     // Format recent reviews
-    const formattedRecentReviews = recentReviews.map((review) => ({
-      ...review,
-      user: review.isAnonymous
-        ? { id: null, fullName: 'Anonymous' }
-        : review.user,
-    }));
+    const formattedRecentReviews = recentReviews.map(
+      (review: Review & { user: { id: number | null; fullName: string } }) => ({
+        ...review,
+        user: review.isAnonymous
+          ? { id: null, fullName: 'Anonymous' }
+          : review.user,
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -1155,12 +1188,13 @@ export const getReviewStatsAdmin = async (
 
     // Calculate company ratings
     const companiesWithRatings = topRatedCompanies
-      .map((company) => {
+      .map((company: Company & { reviews: Review[] }) => {
         const reviews = company.reviews;
         if (reviews.length === 0) return null;
 
         const avgRating =
-          reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+          reviews.reduce((sum: number, r: Review) => sum + r.rating, 0) /
+          reviews.length;
 
         return {
           id: company.id,
@@ -1169,14 +1203,58 @@ export const getReviewStatsAdmin = async (
           totalReviews: reviews.length,
         };
       })
-      .filter((c) => c !== null);
+      .filter(
+        (
+          c: {
+            id: number;
+            name: string;
+            averageRating: number;
+            totalReviews: number;
+          } | null
+        ): c is {
+          id: number;
+          name: string;
+          averageRating: number;
+          totalReviews: number;
+        } => c !== null
+      );
 
     const topRated = companiesWithRatings
-      .sort((a, b) => b!.averageRating - a!.averageRating)
+      .sort(
+        (
+          a: {
+            id: number;
+            name: string;
+            averageRating: number;
+            totalReviews: number;
+          },
+          b: {
+            id: number;
+            name: string;
+            averageRating: number;
+            totalReviews: number;
+          }
+        ) => b.averageRating - a.averageRating
+      )
       .slice(0, 5);
 
     const lowestRated = companiesWithRatings
-      .sort((a, b) => a!.averageRating - b!.averageRating)
+      .sort(
+        (
+          a: {
+            id: number;
+            name: string;
+            averageRating: number;
+            totalReviews: number;
+          },
+          b: {
+            id: number;
+            name: string;
+            averageRating: number;
+            totalReviews: number;
+          }
+        ) => a.averageRating - b.averageRating
+      )
       .slice(0, 5);
 
     return res.status(200).json({

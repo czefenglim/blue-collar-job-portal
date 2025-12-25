@@ -83,41 +83,7 @@ const AppliedJobsScreen: React.FC = () => {
     { key: 'REJECTED', label: t('applications.filters.rejected') },
   ];
 
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadApplications();
-    }, [])
-  );
-
-  const loadApplications = async () => {
-    try {
-      setIsLoading(true);
-      const userToken = await AsyncStorage.getItem('jwtToken');
-
-      if (!userToken) {
-        Alert.alert(
-          t('applications.authenticationRequired'),
-          t('applications.pleaseSignIn'),
-          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
-        );
-        return;
-      }
-
-      setToken(userToken);
-      await fetchApplications(userToken);
-    } catch (error) {
-      console.error('Error loading applications:', error);
-      Alert.alert(t('common.error'), t('applications.errors.loadFailed'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchApplications = async (userToken: string) => {
+  const fetchApplications = useCallback(async (userToken: string) => {
     try {
       const storedLang = await AsyncStorage.getItem('preferredLanguage');
       const lang = storedLang || 'en';
@@ -141,18 +107,54 @@ const AppliedJobsScreen: React.FC = () => {
       console.error('Error fetching applications:', error);
       throw error;
     }
-  };
+  }, []);
+
+  const loadApplications = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const userToken = await AsyncStorage.getItem('jwtToken');
+
+      if (!userToken) {
+        Alert.alert(
+          t('applications.authenticationRequired'),
+          t('applications.pleaseSignIn'),
+          [{ text: t('common.ok'), onPress: () => router.replace('/') }]
+        );
+        return;
+      }
+
+      setToken(userToken);
+      await fetchApplications(userToken);
+    } catch (error) {
+      console.error('Error loading applications:', error);
+      Alert.alert(t('common.error'), t('applications.errors.loadFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [t, router, fetchApplications]);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadApplications();
+    }, [loadApplications])
+  );
+
+  
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await fetchApplications(token);
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(t('common.error'), t('applications.errors.refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
-  }, [token]);
+  }, [token, t, fetchApplications]);
 
   const handleReport = (jobId: number, jobTitle: string) => {
     router.push({
@@ -298,14 +300,7 @@ const AppliedJobsScreen: React.FC = () => {
     return translationMap[formatted] || formatted;
   };
 
-  const formatAppliedDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
+  // removed unused formatAppliedDate
 
   const formatSalary = (min?: number, max?: number, type?: string) => {
     if (!min && !max) return t('home.notSpecified');

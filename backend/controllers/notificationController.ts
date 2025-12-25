@@ -1,18 +1,25 @@
 // src/controllers/notificationController.ts
 
 import { Request, Response } from 'express';
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
-import { AuthRequest } from '../types/user'; // ✅ Use proper type
+import { AuthRequest } from '../types/common'; // ✅ Use proper type
 import { translateText } from '../services/googleTranslation';
 
 const prisma = new PrismaClient();
 const expo = new Expo();
 
+type NotificationTypeLiteral =
+  | 'JOB_MATCH'
+  | 'APPLICATION_UPDATE'
+  | 'NEW_MESSAGE'
+  | 'PROFILE_UPDATE'
+  | 'SYSTEM_UPDATE';
+
 // ✅ FIXED: Register push token - Store in database
 export const registerPushToken = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId; // ✅ FIXED: Use userId from auth middleware
+    const userId = req.user?.userId; // FIXED: Use userId from auth middleware
     const { pushToken } = req.body;
 
     console.log('📱 Registering push token for user:', userId);
@@ -297,7 +304,7 @@ export const createAndSendNotification = async (
   userId: number,
   title: string,
   message: string,
-  type: NotificationType,
+  type: NotificationTypeLiteral,
   actionUrl?: string,
   metadata?: any
 ) => {
@@ -305,10 +312,18 @@ export const createAndSendNotification = async (
     console.log(`📤 Creating notification for user ${userId}: ${title}`);
 
     // Translate message into supported languages if not already provided
-    const message_en = metadata?.message_en ?? (message ? await translateText(message, 'en') : null);
-    const message_ms = metadata?.message_ms ?? (message ? await translateText(message, 'ms') : null);
-    const message_ta = metadata?.message_ta ?? (message ? await translateText(message, 'ta') : null);
-    const message_zh = metadata?.message_zh ?? (message ? await translateText(message, 'zh') : null);
+    const message_en =
+      metadata?.message_en ??
+      (message ? await translateText(message, 'en') : null);
+    const message_ms =
+      metadata?.message_ms ??
+      (message ? await translateText(message, 'ms') : null);
+    const message_ta =
+      metadata?.message_ta ??
+      (message ? await translateText(message, 'ta') : null);
+    const message_zh =
+      metadata?.message_zh ??
+      (message ? await translateText(message, 'zh') : null);
 
     // Create notification in database
     const notification = await prisma.notification.create({

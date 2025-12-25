@@ -38,40 +38,43 @@ export default function ReviewsList({ companyId }: ReviewsListProps) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchReviews = useCallback(async (pageNum = 1) => {
-    try {
-      const token = await AsyncStorage.getItem('jwtToken');
+  const fetchReviews = useCallback(
+    async (pageNum = 1) => {
+      try {
+        const token = await AsyncStorage.getItem('jwtToken');
 
-      const response = await fetch(
-        `${URL}/api/reviews/companies/${companyId}/reviews?page=${pageNum}&limit=10`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+        const response = await fetch(
+          `${URL}/api/reviews/companies/${companyId}/reviews?page=${pageNum}&limit=10`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
+        if (response.ok) {
+          const data = await response.json();
 
-        if (data.pagination) {
-          setHasMore(data.pagination.page < data.pagination.pages);
+          if (data.pagination) {
+            setHasMore(data.pagination.page < data.pagination.pages);
+            setPage(pageNum);
+          } else {
+            setHasMore(false);
+          }
+          if (pageNum === 1) {
+            setReviews(data.data.reviews);
+          } else {
+            setReviews((prev) => [...prev, ...data.data.reviews]);
+          }
+
           setPage(pageNum);
-        } else {
-          setHasMore(false);
         }
-        if (pageNum === 1) {
-          setReviews(data.data.reviews);
-        } else {
-          setReviews((prev) => [...prev, ...data.data.reviews]);
-        }
-
-        setPage(pageNum);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId]);
+    },
+    [companyId]
+  );
 
   useEffect(() => {
     fetchReviews();

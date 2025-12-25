@@ -22,6 +22,18 @@ export default function RootLayout() {
 
           {/* 👇 Keep your other routes below */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(employer)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(employer-hidden)"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(admin-hidden)"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="(shared)" options={{ headerShown: false }} />
+          <Stack.Screen name="(user-hidden)" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal"
             options={{ presentation: 'modal', title: 'Modal' }}
