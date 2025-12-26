@@ -1371,6 +1371,21 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     }
 
     const companyId = user.company.id;
+    const headerLang = (req.headers['x-language'] as string) || undefined;
+    const queryLang = (req.query as any)?.lang as string | undefined;
+    const supported = ['en', 'ms', 'zh', 'ta'];
+    let lang: 'en' | 'ms' | 'zh' | 'ta' = 'en';
+    if (queryLang && supported.includes(queryLang)) {
+      lang = queryLang as any;
+    } else if (headerLang && supported.includes(headerLang)) {
+      lang = headerLang as any;
+    } else {
+      const pref = (user as any).preferredLanguage;
+      if (pref === 'MALAY') lang = 'ms';
+      else if (pref === 'CHINESE') lang = 'zh';
+      else if (pref === 'TAMIL') lang = 'ta';
+      else lang = 'en';
+    }
 
     // Get total jobs count
     const totalJobs = await prisma.job.count({
@@ -1428,6 +1443,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       select: {
         id: true,
         title: true,
+        title_en: true,
+        title_ms: true,
+        title_ta: true,
+        title_zh: true,
         isActive: true,
         createdAt: true,
         _count: {
@@ -1445,7 +1464,14 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     // Format recent jobs
     const formattedRecentJobs = recentJobs.map((job: any) => ({
       id: job.id,
-      title: job.title,
+      title:
+        lang === 'en'
+          ? job.title_en || job.title
+          : lang === 'ms'
+          ? job.title_ms || job.title
+          : lang === 'zh'
+          ? job.title_zh || job.title
+          : job.title_ta || job.title,
       status: job.isActive ? 'ACTIVE' : 'CLOSED',
       applicants: job._count.applications,
       createdAt: job.createdAt.toISOString(),
@@ -1461,7 +1487,14 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         pendingApplicants,
         shortlistedApplicants,
         recentJobs: formattedRecentJobs,
-        companyName: user.company.name,
+        companyName:
+          lang === 'en'
+            ? user.company.name_en || user.company.name
+            : lang === 'ms'
+            ? user.company.name_ms || user.company.name
+            : lang === 'zh'
+            ? user.company.name_zh || user.company.name
+            : user.company.name_ta || user.company.name,
       },
     });
   } catch (error: unknown) {
@@ -1481,7 +1514,15 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
-    const lang = (req.query.lang as string) || 'en';
+    const queryLang = (req.query.lang as string) || undefined;
+    const headerLang = (req.headers['x-language'] as string) || undefined;
+    const supported = ['en', 'ms', 'zh', 'ta'];
+    let lang: 'en' | 'ms' | 'zh' | 'ta' = 'en';
+    if (queryLang && supported.includes(queryLang)) {
+      lang = queryLang as any;
+    } else if (headerLang && supported.includes(headerLang)) {
+      lang = headerLang as any;
+    }
 
     if (!userId) {
       return res.status(401).json({
@@ -1510,15 +1551,24 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
       select: {
         id: true,
         title: true,
+        title_en: true,
+        title_ms: true,
+        title_ta: true,
+        title_zh: true,
         slug: true,
         jobType: true,
         city: true,
         state: true,
         salaryMin: true,
         salaryMax: true,
+        salaryType: true,
         isActive: true,
         approvalStatus: true,
         rejectionReason: true,
+        rejectionReason_en: true,
+        rejectionReason_ms: true,
+        rejectionReason_ta: true,
+        rejectionReason_zh: true,
         approvedAt: true,
         rejectedAt: true,
         viewCount: true,
@@ -1579,22 +1629,44 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
         let rejectionReasonLocalized: string | null = null;
         if (job.rejectionReason) {
           if (lang === 'en') {
-            rejectionReasonLocalized = job.rejectionReason;
-          } else {
+            rejectionReasonLocalized =
+              job.rejectionReason_en || job.rejectionReason;
+          } else if (lang === 'ms') {
+            rejectionReasonLocalized =
+              job.rejectionReason_ms || job.rejectionReason;
+          } else if (lang === 'zh') {
+            rejectionReasonLocalized =
+              job.rejectionReason_zh || job.rejectionReason;
+          } else if (lang === 'ta') {
+            rejectionReasonLocalized =
+              job.rejectionReason_ta || job.rejectionReason;
+          }
+          // Fallback: attempt translation when localized field missing
+          if (
+            rejectionReasonLocalized === job.rejectionReason &&
+            lang !== 'en'
+          ) {
             try {
-              const tr = await translateText(
-                job.rejectionReason,
-                lang as string
-              );
+              const tr = await translateText(job.rejectionReason, lang);
               rejectionReasonLocalized = tr || job.rejectionReason;
-            } catch (e) {
-              rejectionReasonLocalized = job.rejectionReason;
+            } catch {
+              // keep original
             }
           }
         }
 
+        const resolvedTitle =
+          lang === 'en'
+            ? job.title_en || job.title
+            : lang === 'ms'
+            ? job.title_ms || job.title
+            : lang === 'zh'
+            ? job.title_zh || job.title
+            : job.title_ta || job.title;
+
         return {
           ...job,
+          title: resolvedTitle,
           jobTypeLabel: labelEnum('JobType', job.jobType as any, lang as any),
           // workingHours may not be selected here, but include if present in select/DB
           workingHoursLabel: labelEnum(
@@ -1605,6 +1677,11 @@ export const getEmployerJobs = async (req: AuthRequest, res: Response) => {
           experienceLevelLabel: labelEnum(
             'ExperienceLevel',
             (job as any).experienceLevel as any,
+            lang as any
+          ),
+          salaryTypeLabel: labelEnum(
+            'SalaryType',
+            (job as any).salaryType as any,
             lang as any
           ),
           rejectionReasonLocalized,

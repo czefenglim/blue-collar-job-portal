@@ -334,20 +334,6 @@ export default function ProfilePage() {
           {/* Header Section */}
           <LinearGradient colors={BLUE_GRADIENT} style={styles.headerGradient}>
             <View style={styles.headerContent}>
-              {/* Back Button */}
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-                activeOpacity={0.7}
-              >
-                <LinearGradient
-                  colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-                  style={styles.backButtonCircle}
-                >
-                  <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
-                </LinearGradient>
-              </TouchableOpacity>
-
               {/* Profile Avatar */}
               <View style={styles.avatarContainer}>
                 {profile.company.logo ? (

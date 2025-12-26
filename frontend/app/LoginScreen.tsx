@@ -75,6 +75,8 @@ const LoginScreen: React.FC = () => {
 
       const data = await response.json();
 
+      console.log('Login path: ', `${URL}/api/auth/login`);
+
       if (response.ok) {
         const token = data.data.token;
         const user = data.data.user;

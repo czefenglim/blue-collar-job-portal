@@ -2288,7 +2288,9 @@
     "reportDetails": "Butiran Laporan",
     "appealsForJobPost": "Rayuan Untuk Iklan Kerja",
     "approvalPending": "Menunggu Kelulusan",
-    "reviewsManagement": "Pengurusan Ulasan"
+    "reviewsManagement": "Pengurusan Ulasan",
+    "notificationsManagement": "Pengurusan Pemberitahuan",
+    "pricing": "Pricing"
   },
   "adminLayout": {
     "dashboard": "Papan Pemuka",

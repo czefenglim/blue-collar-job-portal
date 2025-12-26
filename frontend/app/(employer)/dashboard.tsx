@@ -33,6 +33,7 @@ interface DashboardStats {
   recentJobs: {
     id: number;
     title: string;
+    title_en?: string;
     status: string;
     applicants: number;
     createdAt: string;
@@ -431,7 +432,7 @@ export default function EmployerDashboard() {
               >
                 <View style={styles.jobCardHeader}>
                   <Text style={styles.jobTitle} numberOfLines={1}>
-                    {job.title}
+                    {job.title_en || job.title}
                   </Text>
                   <View
                     style={[

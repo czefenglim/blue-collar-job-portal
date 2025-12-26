@@ -2270,7 +2270,9 @@
     "reportDetails": "புகார் விவரங்கள்",
     "appealsForJobPost": "வேலை அறிவிப்புக்கான மேல்முறையீடுகள்",
     "approvalPending": "அங்கீகாரம் நிலுவையில்",
-    "reviewsManagement": "மதிப்பாய்வு மேலாண்மை"
+    "reviewsManagement": "மதிப்பாய்வு மேலாண்மை",
+    "notificationsManagement": "அறிவிப்பு மேலாண்மை",
+    "pricing": "விலை"
   },
   "adminLayout": {
     "dashboard": "டாஷ்போர்ட்",

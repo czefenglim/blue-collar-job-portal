@@ -41,7 +41,10 @@ export default function HiddenLayout() {
         name="job-post-details/[id]/edit"
         options={{ title: t('employerHiddenLayout.editJobPost') }}
       />
-      <Stack.Screen name="create-job" options={{ title: t('employerHiddenLayout.createJobPost') }} />
+      <Stack.Screen
+        name="create-job"
+        options={{ title: t('employerHiddenLayout.createJobPost') }}
+      />
       <Stack.Screen
         name="reports"
         options={{ title: t('employerHiddenLayout.reportsForJobPost') }}
@@ -58,7 +61,18 @@ export default function HiddenLayout() {
         name="pending-verification"
         options={{ title: t('employerHiddenLayout.approvalPending') }}
       />
-      <Stack.Screen name="reviews" options={{ title: t('employerHiddenLayout.reviewsManagement') }} />
+      <Stack.Screen
+        name="notifications"
+        options={{ title: t('employerHiddenLayout.notificationsManagement') }}
+      />
+      <Stack.Screen
+        name="reviews"
+        options={{ title: t('employerHiddenLayout.reviewsManagement') }}
+      />
+      <Stack.Screen
+        name="pricing"
+        options={{ title: t('employerHiddenLayout.pricing') }}
+      />
     </Stack>
   );
 }

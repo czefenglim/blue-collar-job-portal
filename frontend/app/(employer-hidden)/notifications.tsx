@@ -94,7 +94,7 @@ export default function EmployerNotifications() {
       const response = await fetch(
         `${URL}/api/notifications/${notificationId}/read`,
         {
-          method: 'PATCH',
+          method: 'PUT',
           headers: { Authorization: `Bearer ${token}` },
         }
       );
@@ -115,7 +115,7 @@ export default function EmployerNotifications() {
     try {
       const token = await AsyncStorage.getItem('jwtToken');
       const response = await fetch(`${URL}/api/notifications/read-all`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -278,14 +278,14 @@ export default function EmployerNotifications() {
         edges={['bottom', 'left', 'right']}
       >
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
-          <View style={{ width: 40 }} />
+          {unreadCount > 0 && (
+            <TouchableOpacity
+              onPress={markAllAsRead}
+              style={styles.markAllButton}
+            >
+              <Ionicons name="checkmark-done" size={20} color="#1E3A8A" />
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E3A8A" />
@@ -297,13 +297,6 @@ export default function EmployerNotifications() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
         {unreadCount > 0 && (
           <TouchableOpacity
             onPress={markAllAsRead}
@@ -385,7 +378,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: '#FFFFFF',

@@ -58,6 +58,8 @@ interface JobPost {
   state: string;
   salaryMin: number | null;
   salaryMax: number | null;
+  salaryType?: string;
+  salaryTypeLabel?: string;
   isActive: boolean;
   approvalStatus:
     | 'PENDING'
@@ -642,7 +644,22 @@ export default function JobPostsPage() {
               <Ionicons name="cash-outline" size={20} color={PRIMARY_BLUE} />
               <Text style={styles.salaryText}>
                 RM {item.salaryMin.toLocaleString()} - RM{' '}
-                {item.salaryMax.toLocaleString()}
+                {item.salaryMax.toLocaleString()}{' '}
+                {currentLanguage === 'en' && item.salaryType
+                  ? (() => {
+                      const map: Record<string, string> = {
+                        HOURLY: 'per hour',
+                        DAILY: 'per day',
+                        WEEKLY: 'per week',
+                        MONTHLY: 'per month',
+                        YEARLY: 'per year',
+                        PER_PROJECT: 'per project',
+                      };
+                      return map[item.salaryType] || '';
+                    })()
+                  : item.salaryTypeLabel
+                  ? item.salaryTypeLabel
+                  : ''}
               </Text>
             </View>
           )}

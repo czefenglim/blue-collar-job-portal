@@ -2258,7 +2258,9 @@
     "reportDetails": "举报详情",
     "appealsForJobPost": "职位发布申诉",
     "approvalPending": "等待审批",
-    "reviewsManagement": "评论管理"
+    "reviewsManagement": "评论管理",
+    "notificationsManagement": "通知管理",
+    "pricing": "定价"
   },
   "adminLayout": {
     "dashboard": "仪表板",

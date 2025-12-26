@@ -2311,7 +2311,9 @@
     "reportDetails": "Report Details",
     "appealsForJobPost": "Appeals For Job Post",
     "approvalPending": "Approval Pending",
-    "reviewsManagement": "Reviews Management"
+    "reviewsManagement": "Reviews Management",
+    "notificationsManagement": "Notifications Management",
+    "pricing": "Pricing"
   },
   "adminLayout": {
     "dashboard": "Dashboard",
