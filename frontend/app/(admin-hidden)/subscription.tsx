@@ -8,16 +8,12 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 

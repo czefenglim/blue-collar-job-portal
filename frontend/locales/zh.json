@@ -331,7 +331,8 @@
     "search": "搜索",
     "ok": "确定",
     "done": "完成",
-    "selectOption": "请选择一个选项"
+    "selectOption": "请选择一个选项",
+    "submit": "提交"
   },
   "adminLogin": {
     "headerTitle": "管理员登录",

@@ -3,7 +3,7 @@ import { AppealStatus, Prisma, PrismaClient } from '@prisma/client';
 import { JobAppealWhereInput } from '../types/input';
 import { translateText } from '../services/googleTranslation';
 import { AuthRequest } from '../types/common';
-import { uploadToS3 } from '../services/s3Service';
+import { getFileInfoFromUrl, uploadToS3 } from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
 
 const prisma = new PrismaClient();
@@ -91,7 +91,14 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
         try {
           // ✅ Use the same way as other functions: uploadToS3(file, folder)
           const fileUrl = await uploadToS3(file, 'appeals');
-          evidenceUrls.push(fileUrl);
+
+          // ✅ Extract key from URL to store in DB (avoid storing raw URLs)
+          const { key } = getFileInfoFromUrl(fileUrl);
+          if (key) {
+            evidenceUrls.push(key);
+          } else {
+            evidenceUrls.push(fileUrl);
+          }
         } catch (uploadError) {
           console.error('Error uploading evidence file:', uploadError);
           // Continue with other files even if one fails

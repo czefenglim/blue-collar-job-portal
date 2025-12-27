@@ -2,7 +2,10 @@
 
 import { PrismaClient } from '@prisma/client';
 import { UserFilters, JobFilters, DashboardAnalytics } from '../types/admin';
-import { getSignedDownloadUrl } from './s3Service';
+import {
+  getSignedDownloadUrl,
+  generatePresignedUrlsForEvidence,
+} from './s3Service';
 import { labelEnum, SupportedLang } from '../utils/enumLabels';
 
 const prisma = new PrismaClient();
@@ -573,6 +576,28 @@ export class AdminService {
       } catch (error) {
         console.error('Error generating signed URL for company logo:', error);
         job.company.logo = null;
+      }
+    }
+
+    // ✅ Generate signed URLs for appeal evidence
+    if (job.appeals && job.appeals.length > 0) {
+      for (const appeal of job.appeals) {
+        if (appeal.evidence) {
+          try {
+            const evidenceKeys = JSON.parse(appeal.evidence as string);
+            if (Array.isArray(evidenceKeys) && evidenceKeys.length > 0) {
+              const signedUrls = await generatePresignedUrlsForEvidence(
+                appeal.evidence
+              );
+              (appeal as any).evidenceUrls = signedUrls;
+            }
+          } catch (error) {
+            console.error(
+              'Error generating signed URLs for appeal evidence:',
+              error
+            );
+          }
+        }
       }
     }
 

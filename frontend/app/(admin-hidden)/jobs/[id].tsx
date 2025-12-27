@@ -915,6 +915,26 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontStyle: 'italic',
   },
+  evidenceContainer: {
+    marginTop: 12,
+  },
+  evidenceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  evidenceButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
   companyHeader: {
     flexDirection: 'row',
     alignItems: 'center',

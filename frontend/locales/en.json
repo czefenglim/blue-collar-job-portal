@@ -331,7 +331,8 @@
     "search": "Search",
     "ok": "OK",
     "done": "Done",
-    "selectOption": "Select an option"
+    "selectOption": "Select an option",
+    "submit": "Submit"
   },
   "adminLogin": {
     "headerTitle": "Admin Login",

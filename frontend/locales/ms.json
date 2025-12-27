@@ -331,7 +331,8 @@
     "search": "Cari",
     "ok": "OK",
     "done": "Selesai",
-    "selectOption": "Pilih satu pilihan"
+    "selectOption": "Pilih satu pilihan",
+    "submit": "Hantar"
   },
   "adminLogin": {
     "headerTitle": "Log Masuk Admin",

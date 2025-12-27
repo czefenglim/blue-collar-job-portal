@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+
 import {
   View,
   Text,
@@ -92,9 +94,11 @@ export default function AdminJobsScreen() {
   const { t, currentLanguage } = useLanguage();
   const fadeAnim = useState(new Animated.Value(0))[0];
 
-  useEffect(() => {
-    fetchJobsAndCounts();
-  }, [tabFilter, rejectedSubFilter, currentLanguage]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobsAndCounts();
+    }, [tabFilter, rejectedSubFilter, currentLanguage])
+  );
 
   const fetchCounts = async () => {
     try {

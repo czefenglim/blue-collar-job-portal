@@ -24,9 +24,25 @@ interface JobDetails {
   job: {
     id: number;
     title: string;
+    title_en?: string;
+    title_ms?: string;
+    title_zh?: string;
+    title_ta?: string;
     description: string;
+    description_en?: string;
+    description_ms?: string;
+    description_zh?: string;
+    description_ta?: string;
     requirements: string;
+    requirements_en?: string;
+    requirements_ms?: string;
+    requirements_zh?: string;
+    requirements_ta?: string;
     benefits: string;
+    benefits_en?: string;
+    benefits_ms?: string;
+    benefits_zh?: string;
+    benefits_ta?: string;
     jobType: string;
     workingHours: string;
     experienceLevel: string;
@@ -85,12 +101,43 @@ const JobReviewScreen: React.FC = () => {
   const [jobDetails, setJobDetails] = useState<JobDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showActionModal, setShowActionModal] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   const [actionType, setActionType] = useState<
     'suspend' | 'delete' | 'suspend-employer' | 'dismiss' | null
   >(null);
 
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchLanguage = async () => {
+      try {
+        const lang = await AsyncStorage.getItem('preferredLanguage');
+        if (lang) setCurrentLanguage(lang);
+      } catch (error) {
+        console.error('Error fetching language:', error);
+      }
+    };
+    fetchLanguage();
+  }, []);
+
+  const getLocalizedText = (
+    baseText: string,
+    fieldPrefix: 'title' | 'description' | 'requirements' | 'benefits'
+  ) => {
+    if (!jobDetails?.job) return baseText;
+
+    const job = jobDetails.job;
+    const langKey = `${fieldPrefix}_${currentLanguage}` as keyof typeof job;
+    const localizedText = job[langKey];
+
+    // Return localized text if available and not empty, otherwise return base text
+    return localizedText &&
+      typeof localizedText === 'string' &&
+      localizedText.trim()
+      ? localizedText
+      : baseText;
+  };
 
   const loadJobDetails = useCallback(async () => {
     try {
@@ -318,7 +365,9 @@ const JobReviewScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Job Information</Text>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Title:</Text>
-            <Text style={styles.detailValue}>{job.title}</Text>
+            <Text style={styles.detailValue}>
+              {getLocalizedText(job.title, 'title')}
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Company:</Text>
@@ -362,14 +411,18 @@ const JobReviewScreen: React.FC = () => {
         {/* Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.descriptionText}>{job.description}</Text>
+          <Text style={styles.descriptionText}>
+            {getLocalizedText(job.description, 'description')}
+          </Text>
         </View>
 
         {/* Requirements */}
         {job.requirements && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Requirements</Text>
-            <Text style={styles.descriptionText}>{job.requirements}</Text>
+            <Text style={styles.descriptionText}>
+              {getLocalizedText(job.requirements, 'requirements')}
+            </Text>
           </View>
         )}
 
