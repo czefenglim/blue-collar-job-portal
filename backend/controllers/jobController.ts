@@ -181,10 +181,6 @@ export const getAllJobs = async (
       const userLatitude = parseFloat(userLat as string);
       const userLongitude = parseFloat(userLon as string);
 
-      console.log(
-        `Filtering jobs within ${maxDistance}km of (${userLatitude}, ${userLongitude})`
-      );
-
       jobs = jobs.filter((job) => {
         if (job.latitude == null || job.longitude == null) {
           return false;
@@ -354,10 +350,6 @@ export const getJobBySlug = async (
     if (job.company?.logo) {
       try {
         signedLogoUrl = await getSignedDownloadUrl(job.company.logo, 3600);
-        console.log(
-          '✅ Signed URL generated for job details:',
-          signedLogoUrl.substring(0, 100)
-        );
       } catch (error) {
         console.error('Error generating signed URL for company logo:', error);
         signedLogoUrl = null;
@@ -430,19 +422,6 @@ export const getJobBySlug = async (
       savedJobs: undefined,
       applications: undefined,
     };
-
-    console.log('📦 Job details response:', {
-      lang: lang,
-      title: jobWithTranslated.title,
-      companyName: jobWithTranslated.company.name,
-      companySizeLabel: jobWithTranslated.company.companySizeLabel,
-      companyDescPreview: jobWithTranslated.company.description?.substring(
-        0,
-        50
-      ),
-      industryName: jobWithTranslated.industry.name,
-      hasLogo: !!jobWithTranslated.company.logo,
-    });
 
     res.json({ success: true, data: jobWithTranslated });
   } catch (error) {
@@ -998,9 +977,6 @@ export const createJob = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // ✅ RUN AI VERIFICATION WITH COHERE
-    console.log('🤖 Starting AI verification for job post...');
-
     const verificationResult: VerificationResult =
       await AIJobVerificationService.verifyJob({
         title,
@@ -1016,36 +992,25 @@ export const createJob = async (req: AuthRequest, res: Response) => {
         companyId: company.id,
       });
 
-    console.log('🤖 AI Verification Complete:', {
-      riskScore: verificationResult.riskScore,
-      autoApprove: verificationResult.autoApprove,
-      flags: verificationResult.flags,
-    });
-
-    // ✅ DETERMINE APPROVAL STATUS BASED ON AI RESULT
+    //  DETERMINE APPROVAL STATUS BASED ON AI RESULT
     let approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED_AI' = 'PENDING';
     let rejectionReason: string | null = null;
 
     if (verificationResult.autoApprove) {
       approvalStatus = 'APPROVED';
-      console.log('✅ Job auto-approved by AI');
     } else if (verificationResult.riskScore > 70) {
-      // ✅ Auto-reject high-risk jobs with REJECTED_AI status
+      //  Auto-reject high-risk jobs with REJECTED_AI status
       approvalStatus = 'REJECTED_AI';
       rejectionReason = `Auto-rejected by AI verification (Risk Score: ${verificationResult.riskScore}/100):\n\n${verificationResult.flagReason}`;
-      console.log('❌ Job auto-rejected by AI (high risk)');
     } else {
       // Flag for human review
       approvalStatus = 'PENDING';
-      console.log('⚠️ Job flagged for human review');
     }
 
     // GEOCODE JOB LOCATION
     let coordinates: { latitude: number; longitude: number } | null = null;
 
     if (address || city || state || postcode) {
-      console.log(`📍 Geocoding job location: ${city}, ${state}`);
-
       const geocodingResult = await geocodeAddress(
         address ?? '',
         city || undefined,
@@ -1058,9 +1023,6 @@ export const createJob = async (req: AuthRequest, res: Response) => {
           latitude: geocodingResult.latitude,
           longitude: geocodingResult.longitude,
         };
-        console.log(
-          `✅ Job geocoding successful: ${JSON.stringify(coordinates)}`
-        );
       } else {
         console.warn(`⚠️ Job geocoding failed, continuing without coordinates`);
       }
@@ -1203,10 +1165,6 @@ export const createJob = async (req: AuthRequest, res: Response) => {
           job.slug
         );
       }
-
-      console.log(
-        `✅ Job approved and notifications sent to ${matchingUsers.length} matching users`
-      );
     } else if (approvalStatus === 'REJECTED_AI') {
       // ✅ Notify employer with appeal option (with translations)
       const notifMsg = `Your job post "${job.title}" was rejected by our automated review. You can appeal this decision if you believe this is a legitimate job posting.`;
@@ -1226,9 +1184,6 @@ export const createJob = async (req: AuthRequest, res: Response) => {
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
-      console.log(
-        '❌ Job rejected by AI, employer notified with appeal option'
-      );
     } else {
       // Pending - notify that it's under review (with translations)
       const notifMsg = `Your job post "${job.title}" is being reviewed by our team. You'll be notified once it's approved.`;
@@ -1248,7 +1203,6 @@ export const createJob = async (req: AuthRequest, res: Response) => {
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
-      console.log('⚠️ Job pending review, employer notified');
     }
 
     // TRIGGER BACKGROUND TRANSLATION (Optional)
@@ -1408,8 +1362,6 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
     let verificationResult: VerificationResult | null = null;
 
     if (needsAIVerification) {
-      console.log('🤖 Running AI verification for edited job...');
-
       verificationResult = await AIJobVerificationService.verifyJob({
         title: title || existingJob.title,
         description: description || existingJob.description,
@@ -1422,12 +1374,6 @@ export const updateJob = async (req: AuthRequest, res: Response) => {
         state: state || existingJob.state,
         industryId: industryId || existingJob.industryId,
         companyId: user.company.id,
-      });
-
-      console.log('🤖 AI Verification Complete:', {
-        riskScore: verificationResult.riskScore,
-        autoApprove: verificationResult.autoApprove,
-        flags: verificationResult.flags,
       });
 
       // Determine new approval status based on AI result

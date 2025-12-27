@@ -31,9 +31,25 @@
       }
 
       body {
-        background-color: var(--background);
+        background-color: #eef2f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
         color: var(--text-main);
-        padding-bottom: 80px;
+      }
+
+      .mobile-frame {
+        width: 375px;
+        min-height: 812px;
+        background-color: var(--background);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
       }
 
       .header {
@@ -58,6 +74,10 @@
       .header-title {
         font-size: 18px;
         font-weight: 600;
+        flex: 1;
+      }
+
+      .scroll-content {
         flex: 1;
       }
 
@@ -128,16 +148,6 @@
         color: #475569;
       }
 
-      .text-line.green {
-        background: #dcfce7;
-        color: #166534;
-      }
-
-      .text-line.red {
-        background: #fee2e2;
-        color: #991b1b;
-      }
-
       .tabs {
         display: flex;
         background: var(--surface);
@@ -203,16 +213,12 @@
       }
 
       .action-footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
         background: var(--surface);
         padding: 16px;
         border-top: 1px solid var(--border);
         display: flex;
         gap: 12px;
-        z-index: 100;
+        flex-shrink: 0;
       }
 
       .btn {
@@ -222,6 +228,7 @@
         font-weight: 600;
         border: none;
         cursor: pointer;
+        font-size: 14px;
       }
 
       .btn-outline {
@@ -251,164 +258,120 @@
         <ion-icon name="ellipsis-vertical"></ion-icon>
       </div>
 
-      <div class="profile-header">
-        <div class="company-logo-large">
-          <ion-icon name="business"></ion-icon>
-          <span class="logo-label">Logo</span>
-      </div>
-        <div class="text-line large dark center" style="width: 60%">
-          Company Name
+      <div class="scroll-content">
+        <div class="profile-header">
+          <div class="company-logo-large">
+            <ion-icon name="business"></ion-icon>
+            <span class="logo-label">Logo</span>
+          </div>
+          <div class="text-line large dark center" style="width: 60%">
+            Tech Build Inc.
+          </div>
+          <div class="text-line center" style="width: 40%">Construction</div>
+          <div class="text-line center" style="width: 30%; margin-top: 8px">
+            San Francisco, CA
+          </div>
         </div>
-        <div class="text-line center" style="width: 40%">Industry / Sector</div>
-        <div class="text-line center" style="width: 30%; margin-top: 8px">
-          Location
-        </div>
-      </div>
-            </div>
-      <div class="tabs">
-        <div class="tab active">Overview</div>
-        <div class="tab">Jobs (12)</div>
-        <div class="tab">Reviews</div>
-      </div>
 
-      <div class="section">
-        <div class="section-title">Trust Score</div>
-        <div style="display: flex; align-items: center; gap: 16px">
-          <div
-            style="
-              width: 60px;
-              height: 60px;
-              border-radius: 50%;
-              border: 4px solid #10b981;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              color: #10b981;
-            "
-          >
-            98
-          </div>
-          <div style="flex: 1">
-            <div class="text-line dark" style="width: 40%">Trust Status</div>
-            <div class="text-line" style="width: 70%">Verification Date</div>
-          </div>
+        <div class="tabs">
+          <div class="tab active">Overview</div>
+          <div class="tab">Jobs (12)</div>
+          <div class="tab">Reviews</div>
         </div>
-      </div>
-              margin-top: 16px;
-      <div class="section">
-        <div class="section-title">Company Information</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>Industry</label>
-            <div class="text-line dark" style="width: 50%">Industry Name</div>
-          </div>
-          <div class="info-item">
-            <label>Location</label>
-            <div class="text-line dark" style="width: 70%">
-              City, State, Zip
-        <!-- Stats Row -->
-          </div>
-          <div class="info-item">
-            <label>Website</label>
-            <div class="text-line dark" style="width: 60%">Website URL</div>
-          </div>
-          <div class="info-item">
-            <label>Description</label>
-            <div class="text-line" style="width: 100%">
-              Description Text Line 1
-              Total Applications
-            <div class="text-line" style="width: 100%">
-              Description Text Line 2
+
+        <div class="section">
+          <div class="section-title">Trust Score</div>
+          <div style="display: flex; align-items: center; gap: 16px">
+            <div
+              style="
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                border: 4px solid #10b981;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: #10b981;
+                font-size: 18px;
+              "
+            >
+              98
             </div>
-            <div class="text-line" style="width: 80%">
-              Description Text Line 3
+            <div style="flex: 1">
+              <div class="text-line dark" style="width: 40%">Trust Status</div>
+              <div class="text-line" style="width: 70%">
+                Verified on Dec 12, 2023
+              </div>
             </div>
           </div>
         </div>
-      </div>
-          <div class="text-line" style="width: 90%">
-      <div class="section">
-        <div class="section-title">Documents</div>
-        <div class="document-item">
-          <div class="doc-icon">
-            <ion-icon name="document-text-outline"></ion-icon>
+
+        <div class="section">
+          <div class="section-title">Company Information</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Industry</label>
+              <div class="text-line dark" style="width: 50%">Construction</div>
+            </div>
+            <div class="info-item">
+              <label>Location</label>
+              <div class="text-line dark" style="width: 70%">
+                123 Market St, San Francisco, CA 94105
+              </div>
+            </div>
+            <div class="info-item">
+              <label>Website</label>
+              <div class="text-line dark" style="width: 60%">
+                www.techbuild.com
+              </div>
+            </div>
+            <div class="info-item">
+              <label>Description</label>
+              <div class="text-line" style="width: 100%">
+                Leading construction company specializing in commercial
+                projects.
+              </div>
+              <div class="text-line" style="width: 100%">
+                Established in 2010 with a focus on sustainable building.
+              </div>
+              <div class="text-line" style="width: 80%">
+                Employing over 500 skilled workers.
+              </div>
+            </div>
           </div>
-          <div style="flex: 1">
-            <div class="text-line dark" style="width: 60%">Document Title</div>
-            <div class="text-line" style="width: 30%">File Info</div>
-          </div>
-          <ion-icon name="eye-outline"></ion-icon>
         </div>
-        <div class="document-item">
-          <div class="doc-icon">
-            <ion-icon name="shield-checkmark-outline"></ion-icon>
+
+        <div class="section">
+          <div class="section-title">Documents</div>
+          <div class="document-item">
+            <div class="doc-icon">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <div style="flex: 1">
+              <div class="text-line dark" style="width: 60%">
+                Business License
+              </div>
+              <div class="text-line" style="width: 30%">PDF • 2.4 MB</div>
+            </div>
+            <ion-icon name="eye-outline"></ion-icon>
           </div>
-          <div style="flex: 1">
-            <div class="text-line dark" style="width: 50%">Document Title</div>
-            <div class="text-line" style="width: 30%">File Info</div>
+          <div class="document-item">
+            <div class="doc-icon">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <div style="flex: 1">
+              <div class="text-line dark" style="width: 50%">Tax Document</div>
+              <div class="text-line" style="width: 30%">PDF • 1.1 MB</div>
+            </div>
+            <ion-icon name="eye-outline"></ion-icon>
           </div>
-          <ion-icon name="eye-outline"></ion-icon>
         </div>
       </div>
 
       <div class="action-footer">
         <button class="btn btn-danger">Suspend</button>
         <button class="btn btn-outline">Message</button>
-      </div>
-          </div>
-          <div class="text-line" style="width: 80%">
-            Company Description Line 4
-          </div>
-        </div>
-
-        <!-- Documents -->
-        <div class="section-title">Documents</div>
-        <div class="card">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 12px;
-            "
-          >
-            <div class="text-line" style="width: 120px; margin-bottom: 0">
-              Business License
-            </div>
-            <div class="text-line dark" style="width: 60px; margin-bottom: 0">
-              View
-            </div>
-          </div>
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
-            <div class="text-line" style="width: 100px; margin-bottom: 0">
-              Tax Document
-            </div>
-            <div class="text-line dark" style="width: 60px; margin-bottom: 0">
-              View
-            </div>
-          </div>
-        </div>
-
-        <!-- Contact Info -->
-        <div class="section-title">Contact Information</div>
-        <div class="card">
-          <div class="text-line" style="width: 200px">Email Address</div>
-          <div class="text-line" style="width: 150px">Phone Number</div>
-          <div class="text-line" style="width: 180px">Website URL</div>
-          <div class="text-line" style="width: 220px">Headquarters Address</div>
-        </div>
-      </div>
-
-      <div class="footer-actions">
-        <button class="btn btn-outline">Reject</button>
-        <button class="btn btn-primary">Approve</button>
       </div>
     </div>
     <script>

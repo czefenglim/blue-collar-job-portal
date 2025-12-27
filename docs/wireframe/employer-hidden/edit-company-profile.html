@@ -65,30 +65,26 @@
         padding: 16px;
         background: #fff;
         flex: 1;
+        overflow-y: auto;
       }
-      .card {
-        border: 1px solid var(--border);
+
+      /* New Wireframe Block Style */
+      .wireframe-block {
+        width: 100%;
+        background: #eff6ff; /* Light Blue background */
+        border: 2px dashed #3b82f6; /* Blue dashed border */
         border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 12px;
-      }
-      .row {
         display: flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 16px;
+        text-align: center;
+        padding: 16px;
       }
-      .logo {
-        width: 64px;
-        height: 64px;
-        border-radius: 12px;
-        background: #e0e7ff;
-      }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
+
       .btn {
         height: 40px;
         border-radius: 12px;
@@ -96,19 +92,9 @@
         align-items: center;
         justify-content: center;
         font-weight: 600;
-        border: 1px solid var(--primary);
-        color: var(--primary);
-      }
-      .placeholder {
-        height: 60px;
-        background: #e5e7eb;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #334155;
-        font-weight: 600;
-        margin-bottom: 12px;
+        background: var(--primary);
+        color: #fff;
+        margin-top: auto;
       }
     </style>
   </head>
@@ -122,39 +108,20 @@
         <div class="title">Edit Company Profile</div>
       </div>
       <div class="content">
-        <div class="card">
-          <div class="row">
-            <div class="logo"></div>
-              class="text-line"
-              <div class="line" style="width: 60%"></div>
-              <div class="line" style="width: 40%"></div>
-              Logo
-            </div>
-            <div style="flex: 1">
-          <div class="title" style="font-size: 14px; margin-bottom: 8px">
-          <div class="line" style="width: 100%"></div>
-          <div class="line" style="width: 90%"></div>
-          <div class="line" style="width: 80%"></div>
-
-        <div class="placeholder">Company Info</div>
-        <div class="placeholder">Address</div>
-        <div class="placeholder">Contact</div>
-        <div class="placeholder">Gallery</div>
-          <div class="title" style="font-size: 14px; margin-bottom: 8px">
-            Contact
-          </div>
-          <div class="text-line" style="width: 100%">Email & Phone</div>
+        <div class="wireframe-block" style="height: 100px">
+          Company Logo Upload
         </div>
 
-        <div class="card">
-          <div class="title" style="font-size: 14px; margin-bottom: 8px">
-            Gallery
-          </div>
-          <div style="display: flex; gap: 8px">
-            <div class="text-line" style="width: 60px; height: 60px">Img 1</div>
-            <div class="text-line" style="width: 60px; height: 60px">Img 2</div>
-            <div class="text-line" style="width: 60px; height: 60px">Img 3</div>
-          </div>
+        <div class="wireframe-block" style="height: 160px">
+          Company Information Inputs<br />(Name, Industry, Size)
+        </div>
+
+        <div class="wireframe-block" style="height: 140px">
+          Address & Contact Details
+        </div>
+
+        <div class="wireframe-block" style="height: 120px">
+          Company Gallery / Media
         </div>
 
         <div class="btn">Save Changes</div>

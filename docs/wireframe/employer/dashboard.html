@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Employer Dashboard</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
       :root {
         --primary: #1e3a8a;
         --border: #e2e8f0;
@@ -71,11 +74,10 @@
         text-align: center;
       }
       .kpi-number {
-        height: 18px;
-        background: #d1fae5;
-        border-radius: 6px;
-        margin: 0 auto 6px;
-        width: 60%;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 4px;
       }
       .kpi-label {
         font-size: 12px;
@@ -118,90 +120,72 @@
       </div>
       <div class="header">Dashboard</div>
       <div class="content">
-            >
-              Welcome Back
-            <div class="kpi-number"></div>
+        <div class="title">Welcome Back</div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-number">5</div>
             <div class="kpi-label">Active Jobs</div>
-              Company Name
-            </div>
-            <div class="kpi-number"></div>
-            <div class="kpi-label">Applicants</div>
-            <div class="text-line" style="width: 60px; height: 30px">
-              Pricing
-            </div>
-            <div class="text-line" style="width: 30px; height: 30px">Notif</div>
-            <div class="kpi-number"></div>
-          <div class="kpi">
-            <div class="kpi-number">15</div>
-          <div class="kpi">
-            <div class="kpi-number"></div>
-            <div class="kpi-label">Reviews</div>
-            <div class="kpi-label">Total Applicants</div>
           </div>
-            <div class="kpi-label">Shortlisted</div>
+          <div class="kpi">
+            <div class="kpi-number">12</div>
+            <div class="kpi-label">Applicants</div>
           </div>
         </div>
-            <span
-              style="
-                height: 14px;
-                width: 60%;
-                background: #e5e7eb;
-                border-radius: 3px;
-              "
-            ></span
-            ><span
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
-            <div
-              class="text-line"
-              style="height: 40px; background: #dbeafe; color: var(--primary)"
-            >
-              View Applicants
-            ></span>
-              style="height: 40px; background: #fef3c7; color: #d97706"
-            >
-            <span
-              style="
-                height: 14px;
-                width: 50%;
-                background: #e5e7eb;
-                border-radius: 3px;
-              "
-            ></span
-            ><span
-              style="height: 40px; background: #f1f5f9; color: #64748b"
-            >
-              Settings
-            </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-number">4.5</div>
+            <div class="kpi-label">Avg Rating</div>
           </div>
-            <div class="text-line" style="width: 60%; margin-bottom: 0">
-            ></span>
-              style="
-                height: 20px;
-                border-radius: 8px;
+          <div class="kpi">
+            <div class="kpi-number">128</div>
+            <div class="kpi-label">Profile Views</div>
+          </div>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+          "
+        >
+          <div
+            class="text-line"
+            style="
+              height: 40px;
+              background: #dbeafe;
+              color: var(--primary);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              border-radius: 8px;
+            "
+          >
+            View Applicants
+          </div>
+          <div
+            class="text-line"
+            style="
+              height: 40px;
+              background: #f1f5f9;
+              color: #64748b;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              border-radius: 8px;
+            "
+          >
+            Settings
+          </div>
+        </div>
+
+        <div class="card">
           <div class="title">Recent Reviews</div>
-                width: 60px;
-                border: 1px solid var(--primary);
-              <div
-                style="
-                  height: 14px;
-                  width: 70%;
-                  background: #e5e7eb;
-                  border-radius: 3px;
-                "
-              ></div>
-                justify-content: center;
-                font-size: 10px;
-              <div
-                style="
-                  height: 14px;
-                  width: 60%;
-                  background: #e5e7eb;
-                  border-radius: 3px;
-                "
-              ></div>
-            >
-              Active
-            </div>
           <div
             style="
               display: flex;
@@ -213,62 +197,156 @@
           >
             <div style="width: 80px; text-align: center">
               <div
-                class="text-line"
                 style="
-                  height: 30px;
-                  font-size: 18px;
+                  font-size: 24px;
                   font-weight: bold;
+                  color: var(--primary);
                   margin-bottom: 4px;
                 "
               >
                 4.5
               </div>
-              <div class="text-line" style="height: 12px">Stars</div>
-              <div class="text-line" style="height: 12px">12 Reviews</div>
+              <div style="font-size: 10px; color: var(--muted)">Stars</div>
+              <div style="font-size: 10px; color: var(--muted)">12 Reviews</div>
             </div>
             <div style="flex: 1">
               <div
-                class="text-line"
-                style="height: 8px; width: 100%; margin-bottom: 4px"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  margin-bottom: 4px;
+                "
               >
-                5 Star Bar
+                <div style="font-size: 8px; width: 10px">5</div>
+                <div
+                  style="
+                    height: 4px;
+                    flex: 1;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="height: 100%; width: 100%; background: #fbbf24"
+                  ></div>
+                </div>
               </div>
               <div
-                class="text-line"
-                style="height: 8px; width: 80%; margin-bottom: 4px"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  margin-bottom: 4px;
+                "
               >
-                4 Star Bar
+                <div style="font-size: 8px; width: 10px">4</div>
+                <div
+                  style="
+                    height: 4px;
+                    flex: 1;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="height: 100%; width: 80%; background: #fbbf24"
+                  ></div>
+                </div>
               </div>
               <div
-                class="text-line"
-                style="height: 8px; width: 40%; margin-bottom: 4px"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  margin-bottom: 4px;
+                "
               >
-                3 Star Bar
+                <div style="font-size: 8px; width: 10px">3</div>
+                <div
+                  style="
+                    height: 4px;
+                    flex: 1;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="height: 100%; width: 40%; background: #fbbf24"
+                  ></div>
+                </div>
               </div>
               <div
-                class="text-line"
-                style="height: 8px; width: 10%; margin-bottom: 4px"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  margin-bottom: 4px;
+                "
               >
-                2 Star Bar
+                <div style="font-size: 8px; width: 10px">2</div>
+                <div
+                  style="
+                    height: 4px;
+                    flex: 1;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="height: 100%; width: 10%; background: #fbbf24"
+                  ></div>
+                </div>
               </div>
               <div
-                class="text-line"
-                style="height: 8px; width: 5%; margin-bottom: 4px"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  margin-bottom: 4px;
+                "
               >
-                1 Star Bar
+                <div style="font-size: 8px; width: 10px">1</div>
+                <div
+                  style="
+                    height: 4px;
+                    flex: 1;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="height: 100%; width: 5%; background: #fbbf24"
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="reviews">
             <div class="review">
-              <div class="text-line" style="width: 70%; margin-bottom: 0">
+              <div
+                style="font-weight: 600; font-size: 14px; margin-bottom: 4px"
+              >
                 Great workplace environment
+              </div>
+              <div style="font-size: 12px; color: var(--muted)">
+                "The management is very supportive..."
               </div>
             </div>
             <div class="review">
-              <div class="text-line" style="width: 60%; margin-bottom: 0">
+              <div
+                style="font-weight: 600; font-size: 14px; margin-bottom: 4px"
+              >
                 Good management team
+              </div>
+              <div style="font-size: 12px; color: var(--muted)">
+                "I learned a lot during my time here..."
               </div>
             </div>
           </div>
@@ -281,16 +359,27 @@
         >
           <div class="title" style="color: #b45309">Hiring Tips</div>
           <div
-            class="text-line"
-            style="width: 90%; background-color: #fef3c7; color: #92400e"
+            style="
+              padding: 8px;
+              background-color: #fef3c7;
+              color: #92400e;
+              border-radius: 8px;
+              font-size: 12px;
+              margin-bottom: 8px;
+            "
           >
-            Tip: Complete your company profile
+            Tip: Complete your company profile to attract more candidates.
           </div>
           <div
-            class="text-line"
-            style="width: 85%; background-color: #fef3c7; color: #92400e"
+            style="
+              padding: 8px;
+              background-color: #fef3c7;
+              color: #92400e;
+              border-radius: 8px;
+              font-size: 12px;
+            "
           >
-            Tip: Respond to applicants quickly
+            Tip: Respond to applicants quickly to secure top talent.
           </div>
         </div>
       </div>

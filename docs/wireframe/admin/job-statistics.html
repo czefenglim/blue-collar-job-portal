@@ -19,10 +19,12 @@
           Helvetica, Arial, sans-serif;
         color: var(--text);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         min-height: 100vh;
-        padding: 20px;
+        padding: 40px;
+        gap: 40px;
+        overflow-x: auto;
       }
       .mobile-frame {
         width: 375px;
@@ -35,6 +37,7 @@
         flex-direction: column;
         overflow: hidden;
         position: relative;
+        flex-shrink: 0;
       }
       .status-bar {
         height: 44px;
@@ -76,16 +79,19 @@
         flex: 1;
       }
 
-      .content {
+      .main-content {
         flex: 1;
-        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
-        overflow-y: auto;
+        /* No overflow hidden here to allow content to expand the frame */
       }
 
       /* Tabs */
+      .tabs-section {
+        padding: 16px;
+        background: var(--soft);
+        flex-shrink: 0;
+      }
       .stats-tabs {
         display: flex;
         background: white;
@@ -101,13 +107,23 @@
         font-weight: 600;
         color: var(--muted);
         border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
       }
       .stat-tab.active {
         background: #eff6ff;
         color: #2563eb;
       }
 
-      /* Main Chart Card */
+      .page-content {
+        padding: 0 16px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+      }
+
+      /* Chart Card */
       .chart-card {
         background: white;
         border-radius: 16px;
@@ -157,6 +173,16 @@
         opacity: 0.8;
         transition: height 0.3s ease;
       }
+      .bar:hover {
+        opacity: 1;
+        background: #2563eb;
+      }
+      .bar.purple {
+        background: #8b5cf6;
+      }
+      .bar.teal {
+        background: #14b8a6;
+      }
       .bar-label {
         font-size: 10px;
         color: #64748b;
@@ -181,7 +207,7 @@
         border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 4px;
       }
       .detail-head {
         display: flex;
@@ -190,66 +216,69 @@
         color: var(--muted);
         font-size: 12px;
       }
-
-      /* Lo-fi Placeholders */
-      .text-line {
-        height: 14px;
-        background: #e2e8f0;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        padding-left: 6px;
-        font-size: 9px;
-        color: #64748b;
-        white-space: nowrap;
-        overflow: hidden;
+      .detail-val {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
       }
-      .text-line.large {
-        height: 24px;
+      .trend {
+        font-size: 11px;
+        font-weight: 600;
       }
-      .text-line.dark {
-        background: #cbd5e1;
+      .trend.up {
+        color: #16a34a;
       }
-      .text-line.green {
-        background: #dcfce7;
-        color: #166534;
-      }
-      .text-line.red {
-        background: #fee2e2;
-        color: #991b1b;
+      .trend.down {
+        color: #dc2626;
       }
 
-      /* Top Categories */
+      /* Lists */
       .list-card {
         background: white;
         border-radius: 12px;
         border: 1px solid var(--border);
         padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
       }
       .list-item {
         display: flex;
         align-items: center;
-        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
       }
-      .item-icon-placeholder {
+      .list-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .list-item:first-child {
+        padding-top: 0;
+      }
+      .item-icon {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        background: #e2e8f0;
+        background: #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
-        color: #94a3b8;
+        margin-right: 12px;
+        color: #475569;
       }
       .item-info {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+      }
+      .item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+      .item-sub {
+        font-size: 11px;
+        color: #64748b;
+      }
+      .item-val {
+        font-weight: 600;
+        font-size: 13px;
+        color: #1e293b;
       }
     </style>
     <!-- Ionicons -->
@@ -263,6 +292,7 @@
     ></script>
   </head>
   <body>
+    <!-- FRAME 1: OVERVIEW -->
     <div class="mobile-frame">
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
@@ -276,126 +306,380 @@
         <div class="back-btn" style="opacity: 0"></div>
       </div>
 
-      <div class="content">
-        <div class="stats-tabs">
-          <div class="stat-tab active">Overview</div>
-          <div class="stat-tab">Demographics</div>
-          <div class="stat-tab">Trends</div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">Applications</div>
-            <div class="chart-period">Last 7 Days</div>
-          </div>
-          <div class="chart-area">
-            <div class="bar-group">
-              <div class="bar" style="height: 40%"></div>
-              <div class="bar-label">M</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 65%"></div>
-              <div class="bar-label">T</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 45%"></div>
-              <div class="bar-label">W</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 80%"></div>
-              <div class="bar-label">T</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 55%"></div>
-              <div class="bar-label">F</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 30%"></div>
-              <div class="bar-label">S</div>
-            </div>
-            <div class="bar-group">
-              <div class="bar" style="height: 25%"></div>
-              <div class="bar-label">S</div>
-            </div>
+      <div class="main-content">
+        <div class="tabs-section">
+          <div class="stats-tabs">
+            <div class="stat-tab active">Overview</div>
+            <div class="stat-tab">Demographics</div>
+            <div class="stat-tab">Trends</div>
           </div>
         </div>
 
-        <div>
-          <div class="grid-title">Key Metrics</div>
-          <div class="details-grid">
-            <div class="detail-card">
-              <div class="detail-head">
-                <ion-icon name="briefcase-outline"></ion-icon>
-                <span>Total Jobs</span>
-              </div>
-              <div class="text-line large dark" style="width: 60%">1,245</div>
-              <div class="text-line green" style="width: 80%">
-                +12% Increase
-              </div>
+        <div class="page-content">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Applications</div>
+              <div class="chart-period">Last 7 Days</div>
             </div>
-            <div class="detail-card">
-              <div class="detail-head">
-                <ion-icon name="checkmark-done-outline"></ion-icon>
-                <span>Filled</span>
+            <div class="chart-area">
+              <div class="bar-group">
+                <div class="bar" style="height: 40%"></div>
+                <div class="bar-label">M</div>
               </div>
-              <div class="text-line large dark" style="width: 60%">842</div>
-              <div class="text-line green" style="width: 80%">+5% Increase</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-head">
-                <ion-icon name="eye-outline"></ion-icon>
-                <span>Views</span>
+              <div class="bar-group">
+                <div class="bar" style="height: 65%"></div>
+                <div class="bar-label">T</div>
               </div>
-              <div class="text-line large dark" style="width: 70%">45.2k</div>
-              <div class="text-line red" style="width: 80%">-2% Decrease</div>
-            </div>
-            <div class="detail-card">
-              <div class="detail-head">
-                <ion-icon name="time-outline"></ion-icon>
-                <span>Avg Time</span>
+              <div class="bar-group">
+                <div class="bar" style="height: 45%"></div>
+                <div class="bar-label">W</div>
               </div>
-              <div class="text-line large dark" style="width: 50%">14d</div>
-              <div class="text-line green" style="width: 60%">Stable</div>
+              <div class="bar-group">
+                <div class="bar" style="height: 80%"></div>
+                <div class="bar-label">T</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height: 55%"></div>
+                <div class="bar-label">F</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height: 30%"></div>
+                <div class="bar-label">S</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height: 25%"></div>
+                <div class="bar-label">S</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div>
-          <div class="grid-title">Top Categories</div>
-          <div class="list-card">
-            <div class="list-item">
-              <div class="item-icon-placeholder">
-                <ion-icon name="construct"></ion-icon>
-              </div>
-              <div class="item-info">
-                <div class="text-line dark" style="width: 60%">
-                  Construction
+          <div>
+            <div class="grid-title">Key Metrics</div>
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="briefcase-outline"></ion-icon>
+                  <span>Total Jobs</span>
                 </div>
-                <div class="text-line" style="width: 40%">342 Jobs</div>
+                <div class="detail-val">1,245</div>
+                <span class="trend up">↑ 12% vs last week</span>
               </div>
-              <div class="text-line dark" style="width: 30px">28%</div>
-            </div>
-            <div class="list-item">
-              <div class="item-icon-placeholder">
-                <ion-icon name="car"></ion-icon>
-              </div>
-              <div class="item-info">
-                <div class="text-line dark" style="width: 70%">
-                  Transportation
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="checkmark-done-outline"></ion-icon>
+                  <span>Filled</span>
                 </div>
-                <div class="text-line" style="width: 45%">215 Jobs</div>
+                <div class="detail-val">842</div>
+                <span class="trend up">↑ 5% vs last week</span>
               </div>
-              <div class="text-line dark" style="width: 30px">18%</div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="eye-outline"></ion-icon>
+                  <span>Views</span>
+                </div>
+                <div class="detail-val">45.2k</div>
+                <span class="trend down">↓ 2% vs last week</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>Avg Time</span>
+                </div>
+                <div class="detail-val">14d</div>
+                <span class="trend up">↑ Stable</span>
+              </div>
             </div>
-            <div class="list-item">
-              <div class="item-icon-placeholder">
-                <ion-icon name="flash"></ion-icon>
+          </div>
+
+          <div>
+            <div class="grid-title">Top Categories</div>
+            <div class="list-card">
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="construct"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Construction</div>
+                  <div class="item-sub">342 active jobs</div>
+                </div>
+                <div class="item-val">28%</div>
               </div>
-              <div class="item-info">
-                <div class="text-line dark" style="width: 50%">Electrical</div>
-                <div class="text-line" style="width: 40%">189 Jobs</div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="car"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Transportation</div>
+                  <div class="item-sub">215 active jobs</div>
+                </div>
+                <div class="item-val">18%</div>
               </div>
-              <div class="text-line dark" style="width: 30px">15%</div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="flash"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Electrical</div>
+                  <div class="item-sub">189 active jobs</div>
+                </div>
+                <div class="item-val">15%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAME 2: DEMOGRAPHICS -->
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+
+      <div class="header">
+        <div class="back-btn">
+          <ion-icon name="arrow-back"></ion-icon>
+        </div>
+        <div class="header-title">Job Statistics</div>
+        <div class="back-btn" style="opacity: 0"></div>
+      </div>
+
+      <div class="main-content">
+        <div class="tabs-section">
+          <div class="stats-tabs">
+            <div class="stat-tab">Overview</div>
+            <div class="stat-tab active">Demographics</div>
+            <div class="stat-tab">Trends</div>
+          </div>
+        </div>
+
+        <div class="page-content">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Gender Distribution</div>
+              <div class="chart-period">Total</div>
+            </div>
+            <div class="chart-area">
+              <div class="bar-group">
+                <div class="bar purple" style="height: 60%"></div>
+                <div class="bar-label">Male</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar purple" style="height: 35%"></div>
+                <div class="bar-label">Female</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar purple" style="height: 5%"></div>
+                <div class="bar-label">Other</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="grid-title">Age Groups</div>
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span>18-24</span>
+                </div>
+                <div class="detail-val">25%</div>
+                <span class="trend up">Entry Level</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span>25-34</span>
+                </div>
+                <div class="detail-val">45%</div>
+                <span class="trend up">Mid Senior</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span>35-44</span>
+                </div>
+                <div class="detail-val">20%</div>
+                <span class="trend down">Senior</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span>45+</span>
+                </div>
+                <div class="detail-val">10%</div>
+                <span class="trend down">Expert</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="grid-title">Top Locations</div>
+            <div class="list-card">
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">New York, NY</div>
+                  <div class="item-sub">1,205 Candidates</div>
+                </div>
+                <div class="item-val">32%</div>
+              </div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Los Angeles, CA</div>
+                  <div class="item-sub">980 Candidates</div>
+                </div>
+                <div class="item-val">24%</div>
+              </div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Chicago, IL</div>
+                  <div class="item-sub">750 Candidates</div>
+                </div>
+                <div class="item-val">18%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAME 3: TRENDS -->
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span><span>Signal • Wifi • Battery</span>
+      </div>
+
+      <div class="header">
+        <div class="back-btn">
+          <ion-icon name="arrow-back"></ion-icon>
+        </div>
+        <div class="header-title">Job Statistics</div>
+        <div class="back-btn" style="opacity: 0"></div>
+      </div>
+
+      <div class="main-content">
+        <div class="tabs-section">
+          <div class="stats-tabs">
+            <div class="stat-tab">Overview</div>
+            <div class="stat-tab">Demographics</div>
+            <div class="stat-tab active">Trends</div>
+          </div>
+        </div>
+
+        <div class="page-content">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Hiring Velocity</div>
+              <div class="chart-period">Last 6 Months</div>
+            </div>
+            <div class="chart-area">
+              <div class="bar-group">
+                <div class="bar teal" style="height: 30%"></div>
+                <div class="bar-label">Jan</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar teal" style="height: 45%"></div>
+                <div class="bar-label">Feb</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar teal" style="height: 40%"></div>
+                <div class="bar-label">Mar</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar teal" style="height: 60%"></div>
+                <div class="bar-label">Apr</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar teal" style="height: 75%"></div>
+                <div class="bar-label">May</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar teal" style="height: 65%"></div>
+                <div class="bar-label">Jun</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="grid-title">Market Salary Trends</div>
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="cash-outline"></ion-icon>
+                  <span>General</span>
+                </div>
+                <div class="detail-val">$22/hr</div>
+                <span class="trend up">↑ 2%</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="cash-outline"></ion-icon>
+                  <span>Skilled</span>
+                </div>
+                <div class="detail-val">$35/hr</div>
+                <span class="trend up">↑ 5%</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="cash-outline"></ion-icon>
+                  <span>Expert</span>
+                </div>
+                <div class="detail-val">$55/hr</div>
+                <span class="trend up">↑ Stable</span>
+              </div>
+              <div class="detail-card">
+                <div class="detail-head">
+                  <ion-icon name="cash-outline"></ion-icon>
+                  <span>Manager</span>
+                </div>
+                <div class="detail-val">$75k/yr</div>
+                <span class="trend down">↓ 1%</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="grid-title">Churn Reasons</div>
+            <div class="list-card">
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Better Offer</div>
+                  <div class="item-sub">Found higher pay</div>
+                </div>
+                <div class="item-val">45%</div>
+              </div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="map-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Relocation</div>
+                  <div class="item-sub">Moved to new city</div>
+                </div>
+                <div class="item-val">20%</div>
+              </div>
+              <div class="list-item">
+                <div class="item-icon">
+                  <ion-icon name="briefcase-outline"></ion-icon>
+                </div>
+                <div class="item-info">
+                  <div class="item-name">Career Change</div>
+                  <div class="item-sub">Left industry</div>
+                </div>
+                <div class="item-val">15%</div>
+              </div>
             </div>
           </div>
         </div>
@@ -403,7 +687,3 @@
     </div>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page offers detailed analytics and data visualization regarding job market trends within the platform, including application rates and popular job categories. Administrators can view charts and graphs that break down engagement metrics over time, helping strategic decision-making. The flow allows admins to identify peak hiring seasons or underperforming sectors, enabling data-driven adjustments to platform marketing or feature development.
--->

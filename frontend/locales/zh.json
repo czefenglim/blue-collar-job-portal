@@ -42,7 +42,9 @@
       "pickImageFailed": "选择图片失败。请重试。",
       "pickDocumentFailed": "选择文件失败。请重试。",
       "submitFailed": "提交举报失败。请重试。"
-    },
+    }
+  },
+  "employerReports": {
     "list": {
       "errors": {
         "authRequiredTitle": "需要验证",
@@ -446,6 +448,7 @@
       "dateOptional": "YYYY-MM-DD（可选）"
     }
   },
+
   "employerJobDetails": {
     "errors": {
       "title": "错误",
@@ -1422,9 +1425,61 @@
       "flagTitle": "举报评价",
       "flagMessage": "请提供举报此评价的原因：",
       "submit": "提交"
+    },
+    "alerts": {
+      "flagDismissed": "此评论的标记已被驳回，您无法再次标记它"
     }
   },
   "employerReports": {
+    "details": {
+      "errors": {
+        "authRequiredTitle": "需要认证",
+        "authRequiredMessage": "请登录以继续",
+        "title": "错误",
+        "loadFail": "加载举报详情失败"
+      },
+      "loading": "正在加载举报详情...",
+      "notFound": "未找到举报",
+      "header": {
+        "title": "举报详情",
+        "subtitle": "举报 #{id}"
+      },
+      "action": {
+        "title": "已采取的措施",
+        "jobSuspended": "您的职位已被暂停。{reason}",
+        "jobDeleted": "您的职位已被删除。",
+        "appealHint": "如果您认为此措施有误，您可以提交申诉。"
+      },
+      "sections": {
+        "status": "举报状态",
+        "job": "被举报的职位",
+        "type": "举报类型",
+        "reportedBy": "举报人",
+        "description": "举报说明",
+        "evidence": "证据文件",
+        "adminReview": "管理员审核",
+        "appeals": "申诉"
+      },
+      "admin": {
+        "reviewDate": "审核日期",
+        "notes": "管理员备注"
+      },
+      "appeal": {
+        "title": "申诉 #{id}",
+        "submittedOn": "提交于 {date}",
+        "explanation": "您的说明：",
+        "evidence": "已附证据：",
+        "adminResponse": "管理员回复",
+        "reviewedOn": "审核于 {date}",
+        "accepted": "您的申诉已被接受，措施已撤回。",
+        "rejected": "您的申诉被驳回，原有措施维持。"
+      },
+      "appealAction": {
+        "title": "不同意此决定？",
+        "text": "您可提交申诉，说明情况并附上任何支持证据。",
+        "submit": "提交申诉"
+      }
+    },
     "appeal": {
       "headerTitle": "提交申诉",
       "headerSubtitle": "举报 #{id}",
@@ -1629,6 +1684,13 @@
       "fetchFailed": "获取申请者失败",
       "loadFailed": "加载申请者失败",
       "startChatFailed": "无法开始聊天。请重试。"
+    },
+    "quality": {
+      "level": {
+        "high": "高质量",
+        "medium": "中质量",
+        "low": "低质量"
+      }
     }
   },
   "employerApplicantDetails": {
@@ -1731,16 +1793,29 @@
       "rejectionReason": "拒绝原因：",
       "noReason": "未提供原因",
       "explanation": "说明",
+      "explanationLabel": "说明",
       "explanationPlaceholder": "解释为什么此职位发布是合法的并应被批准…",
       "supportingDocs": "支持文件（可选）",
+      "evidenceLabel": "支持文件（可选）",
       "uploadHelper": "上传公司注册、执照或其他证明材料",
       "uploadFiles": "上传文件",
+      "uploadButton": "上传文件",
       "cancel": "取消",
       "submit": "提交申诉",
       "aiRejectedNotice": "此职位已被AI拒绝。点击查看详情。",
       "appealedNotice": "您的申诉正在审核中，我们会尽快通知您结果。",
       "finalRejectedNotice": "此职位已完成审核，拒绝决定为最终结果。",
-      "rejectedTitle": "职位被拒绝"
+      "rejectedTitle": "职位被拒绝",
+      "validation": {
+        "explanationRequired": "请为您的申诉提供解释"
+      },
+      "success": {
+        "title": "申诉已提交",
+        "message": "您的申诉已提交，我们的团队将进行审核。"
+      },
+      "errors": {
+        "submitFailed": "提交申诉失败"
+      }
     },
     "stats": {
       "views": "浏览",
@@ -1749,6 +1824,12 @@
     },
     "errors": {
       "pickDocumentFailed": "选择文件失败"
+    },
+    "actions": {
+      "close": "关闭",
+      "activate": "启用",
+      "edit": "编辑",
+      "delete": "删除"
     },
     "pendingAiNotice": "您的职位发布正在由我们的AI系统审核。批准后我们会通知您。"
   },
@@ -2278,6 +2359,7 @@
     "reviewModeration": "评论审核",
     "companyApprovalDetails": "公司审批详情",
     "companies": "公司",
-    "companyDetails": "公司详情"
+    "companyDetails": "公司详情",
+    "jobStatistics": "职位统计"
   }
 }

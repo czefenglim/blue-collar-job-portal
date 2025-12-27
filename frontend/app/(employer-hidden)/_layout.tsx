@@ -1,7 +1,6 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function HiddenLayout() {
@@ -46,7 +45,7 @@ export default function HiddenLayout() {
         options={{ title: t('employerHiddenLayout.createJobPost') }}
       />
       <Stack.Screen
-        name="reports"
+        name="reports/index"
         options={{ title: t('employerHiddenLayout.reportsForJobPost') }}
       />
       <Stack.Screen

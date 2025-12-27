@@ -50,53 +50,76 @@
         flex-direction: column;
         justify-content: center;
       }
-      .logo-placeholder {
-        width: 80px;
-        height: 80px;
-        background: var(--primary);
-        border-radius: 20px;
-        margin: 0 auto 32px;
+      .header {
+        align-items: center;
+        margin-bottom: 48px;
+        text-align: center;
       }
-      .title-line {
-        height: 24px;
-        width: 60%;
-        background: #1e293b;
-        border-radius: 6px;
-        margin: 0 auto 8px;
+      .shield-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        display: block;
       }
-      .subtitle-line {
-        height: 14px;
-        width: 40%;
-        background: #94a3b8;
-        border-radius: 4px;
-        margin: 0 auto 48px;
+      .title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1e293b;
+        margin: 0 0 8px 0;
       }
-      .input-group {
-        margin-bottom: 20px;
+      .subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
       }
-      .label-line {
-        height: 12px;
-        width: 80px;
-        background: #64748b;
-        border-radius: 3px;
-        margin-bottom: 8px;
-      }
-      .input-box {
-        height: 48px;
-        border: 1px solid var(--border);
-        background: var(--soft);
+      .input-container {
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
+        padding: 0 16px;
+        margin-bottom: 16px;
+        height: 56px;
+      }
+      .input-icon {
+        font-size: 20px;
+        color: #64748b;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+      }
+      .input-text {
+        flex: 1;
+        color: #94a3b8;
+        font-size: 16px;
       }
       .btn-primary {
-        height: 50px;
+        height: 56px;
         background: var(--primary);
         border-radius: 12px;
-        margin-top: 24px;
+        margin-top: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: 600;
+        gap: 8px;
+        font-size: 16px;
+      }
+      .warning-container {
+        display: flex;
+        align-items: center;
+        background: #fff7ed;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 32px;
+        gap: 8px;
+      }
+      .warning-text {
+        font-size: 12px;
+        color: #f97316;
+        line-height: 1.5;
+        flex: 1;
       }
     </style>
   </head>
@@ -106,21 +129,41 @@
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="content">
-        <div class="logo-placeholder"></div>
-        <div class="title-line"></div>
-        <div class="subtitle-line"></div>
-
-        <div class="input-group">
-          <div class="label-line"></div>
-          <div class="input-box"></div>
+        <!-- Header -->
+        <div class="header">
+          <div class="shield-icon">🛡️</div>
+          <h1 class="title">Admin Portal</h1>
+          <p class="subtitle">Sign in to manage the platform</p>
         </div>
 
-        <div class="input-group">
-          <div class="label-line"></div>
-          <div class="input-box"></div>
+        <!-- Email Input -->
+        <div class="input-container">
+          <div class="input-icon">✉️</div>
+          <div class="input-text">admin@company.com</div>
         </div>
 
-        <div class="btn-primary">Login</div>
+        <!-- Password Input -->
+        <div class="input-container">
+          <div class="input-icon">🔒</div>
+          <div class="input-text">••••••••</div>
+          <div
+            class="input-icon"
+            style="margin-right: 0; margin-left: auto; cursor: pointer"
+          >
+            👁️
+          </div>
+        </div>
+
+        <!-- Login Button -->
+        <div class="btn-primary"><span>➜</span> Sign In</div>
+
+        <!-- Warning Notice -->
+        <div class="warning-container">
+          <span style="color: #f97316; font-size: 16px">⚠️</span>
+          <div class="warning-text">
+            Restricted access: This area is for authorized administrators only.
+          </div>
+        </div>
       </div>
     </div>
   </body>

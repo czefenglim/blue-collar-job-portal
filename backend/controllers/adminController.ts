@@ -941,10 +941,6 @@ export class AdminController {
         },
       });
 
-      console.log(
-        `[EMAIL NOTIFICATION] Company approved: ${company.name} (${company.user?.email})`
-      );
-
       res.json({
         success: true,
         message: 'Company approved successfully',
@@ -1038,10 +1034,6 @@ export class AdminController {
           notes: `Rejected company: ${company.name}`,
         },
       });
-
-      console.log(
-        `[EMAIL NOTIFICATION] Company rejected: ${company.name} (${company.user?.email}) - Reason: ${reason}`
-      );
 
       res.json({
         success: true,

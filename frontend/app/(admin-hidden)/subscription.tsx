@@ -10,12 +10,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
@@ -107,205 +109,317 @@ export default function SubscriptionManagementScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007BFF" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+        <Text style={styles.loadingText}>Loading plans...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Manage Subscription Plans</Text>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.content}>
+          {plans.map((plan) => (
+            <View key={plan.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View>
+                  <Text style={styles.planName}>{plan.name}</Text>
+                  <View style={styles.planTypeContainer}>
+                    <Text style={styles.planType}>{plan.type}</Text>
+                  </View>
+                </View>
+                {plan.isActive && (
+                  <View style={styles.activeBadge}>
+                    <Text style={styles.activeBadgeText}>Active</Text>
+                  </View>
+                )}
+              </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {plans.map((plan) => (
-          <View key={plan.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <Text style={styles.planType}>{plan.type}</Text>
+              {editingPlan?.id === plan.id ? (
+                <View style={styles.editContainer}>
+                  <Text style={styles.label}>Price ({plan.currency})</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={priceInput}
+                    onChangeText={setPriceInput}
+                    keyboardType="numeric"
+                    placeholder="Enter price"
+                    placeholderTextColor="#94A3B8"
+                  />
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.cancelButton]}
+                      onPress={() => setEditingPlan(null)}
+                    >
+                      <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.saveButton]}
+                      onPress={handleSave}
+                    >
+                      <Text style={styles.saveButtonText}>Save Changes</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.price}>
+                    <Text style={styles.currency}>{plan.currency}</Text>{' '}
+                    {plan.price}
+                    <Text style={styles.period}> / month</Text>
+                  </Text>
+
+                  <View style={styles.divider} />
+
+                  <View style={styles.features}>
+                    {Array.isArray(plan.features) &&
+                      plan.features.map((feature, index) => (
+                        <View key={index} style={styles.featureItem}>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={18}
+                            color="#15803D"
+                          />
+                          <Text style={styles.featureText}>{feature}</Text>
+                        </View>
+                      ))}
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEdit(plan)}
+                  >
+                    <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+                    <Text style={styles.editButtonText}>Edit Price</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-
-            {editingPlan?.id === plan.id ? (
-              <View style={styles.editContainer}>
-                <Text style={styles.label}>Price ({plan.currency})</Text>
-                <TextInput
-                  style={styles.input}
-                  value={priceInput}
-                  onChangeText={setPriceInput}
-                  keyboardType="numeric"
-                />
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.cancelButton]}
-                    onPress={() => setEditingPlan(null)}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, styles.saveButton]}
-                    onPress={handleSave}
-                  >
-                    <Text style={styles.saveButtonText}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <View>
-                <Text style={styles.price}>
-                  {plan.currency} {plan.price}
-                </Text>
-                <View style={styles.features}>
-                  {Array.isArray(plan.features) &&
-                    plan.features.map((feature, index) => (
-                      <Text key={index} style={styles.feature}>
-                        • {feature}
-                      </Text>
-                    ))}
-                </View>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => handleEdit(plan)}
-                >
-                  <Text style={styles.editButtonText}>Edit Price</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
+          ))}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
-  center: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F8FAFC',
   },
-  header: {
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  scrollContent: {
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    gap: 16,
   },
   backButton: {
-    marginRight: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   content: {
-    padding: 16,
+    paddingHorizontal: 20,
+    gap: 16,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  planName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  planType: {
-    fontSize: 14,
-    color: '#666',
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  price: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007BFF',
-    marginBottom: 12,
-  },
-  features: {
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  feature: {
-    fontSize: 14,
-    color: '#555',
+  planName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 6,
+  },
+  planTypeContainer: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  planType: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E3A8A',
+    textTransform: 'uppercase',
+  },
+  activeBadge: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  activeBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#15803D',
+  },
+  price: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1E293B',
     marginBottom: 4,
   },
-  editButton: {
-    backgroundColor: '#007BFF',
-    padding: 12,
-    borderRadius: 8,
+  currency: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  period: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 16,
+  },
+  features: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  featureItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E3A8A',
+    padding: 14,
+    borderRadius: 12,
+    gap: 8,
   },
   editButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   editContainer: {
     marginTop: 8,
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   label: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
     padding: 12,
     fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    color: '#1E293B',
     marginBottom: 16,
   },
   actionButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
     gap: 12,
   },
   button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   saveButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#1E3A8A',
   },
   cancelButtonText: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '600',
+    color: '#64748B',
   },
   saveButtonText: {
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

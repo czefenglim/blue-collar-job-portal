@@ -1,12 +1,9 @@
 import { TranslationServiceClient } from '@google-cloud/translate';
 
-// Path to your service account JSON
-const client = new TranslationServiceClient({
-  keyFilename: './omega-terrain-457507-n1-a662ff7ad9cc.json',
-});
+const client = new TranslationServiceClient();
 
 const projectId = 'omega-terrain-457507-n1';
-const location = 'global'; // use 'us-central1' or other if needed
+const location = 'global';
 
 export async function translateText(
   text: string,

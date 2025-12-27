@@ -265,7 +265,7 @@ export default function AdminDashboardScreen() {
 
         <TouchableOpacity
           style={styles.manageButton}
-          onPress={() => router.push('/(admin)/companies')}
+          onPress={() => router.push('/(admin-hidden)/companies/page')}
         >
           <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
           <Text style={styles.manageButtonText}>

@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -18,7 +17,6 @@ import Constants from 'expo-constants';
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
 // Color Palette
@@ -51,8 +49,6 @@ const TABS = [
 export default function JobStatisticsDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('ranking');
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   // State for fetched data
   const [overviewStats, setOverviewStats] = useState({
@@ -62,7 +58,7 @@ export default function JobStatisticsDashboard() {
     rejected: 0,
   });
   const [jobRanking, setJobRanking] = useState([]);
-  const [trendData, setTrendData] = useState([]);
+
   const [languageUsage, setLanguageUsage] = useState([]);
   const [shortageAnalysis, setShortageAnalysis] = useState([]);
   const [highlights, setHighlights] = useState({
@@ -108,7 +104,6 @@ export default function JobStatisticsDashboard() {
   };
 
   const fetchAllData = async () => {
-    setIsLoading(true);
     try {
       const [overview, ranking, languages, shortage, highlightData] =
         await Promise.all([
@@ -129,9 +124,6 @@ export default function JobStatisticsDashboard() {
       await fetchTrendData();
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -139,7 +131,6 @@ export default function JobStatisticsDashboard() {
     const data = await fetchWithAuth(
       `/api/statistics/trends?type=${trendType}&filter=${trendFilter}&date=${trendDate.toISOString()}`
     );
-    if (data) setTrendData(data);
   };
 
   useEffect(() => {
@@ -151,34 +142,8 @@ export default function JobStatisticsDashboard() {
   }, [trendType, trendFilter, trendDate]);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
     fetchAllData();
   }, []);
-
-  // Header Component
-  const Header = () => (
-    <LinearGradient
-      colors={[COLORS.primary, '#2563EB']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.headerGradient}
-    >
-      <View style={styles.headerContent}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Job Statistics</Text>
-          <Text style={styles.headerSubtitle}>
-            Real-time analytics & insights
-          </Text>
-        </View>
-      </View>
-    </LinearGradient>
-  );
 
   // Overview Cards Component
   const OverviewCards = () => (
@@ -1087,7 +1052,6 @@ export default function JobStatisticsDashboard() {
 
   return (
     <View style={styles.container}>
-      <Header />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -1141,6 +1105,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   headerGradient: {
     paddingTop: 60,

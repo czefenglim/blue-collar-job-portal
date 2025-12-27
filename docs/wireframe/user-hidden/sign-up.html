@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up Screen</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text);
+      }
+      .mobile-frame {
+        width: 100%;
+        max-width: 375px;
+        background-color: #f8fafc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
+        height: 960px;
+      }
+      .status-bar {
+        height: 44px;
+        background-color: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        font-size: 10px;
+        color: #333;
+        font-weight: 700;
+      }
+      .content {
+        padding: 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: visible;
+      }
+      .logo-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+        margin-top: 20px;
+      }
+      .logo-box {
+        width: 60px;
+        height: 60px;
+        background: var(--primary);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e293b;
+        margin-bottom: 4px;
+        text-align: center;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+      }
+      .input-field {
+        width: 100%;
+        height: 50px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+      }
+      .text-line {
+        height: 12px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        width: 60%;
+      }
+      .btn-primary {
+        width: 100%;
+        height: 50px;
+        background: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 8px;
+        margin-bottom: 16px;
+      }
+      .btn-text {
+        height: 14px;
+        width: 100px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 4px;
+      }
+      .terms {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+      .terms-text {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .terms-link {
+        color: var(--primary);
+        font-weight: 600;
+      }
+    </style>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+  </head>
+  <body>
+    <div class="mobile-frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span
+          ><ion-icon name="wifi"></ion-icon>
+          <ion-icon name="battery-full"></ion-icon
+        ></span>
+      </div>
+      <div class="content">
+        <div class="logo-section">
+          <div class="logo-box">BC</div>
+          <div class="title">Create Account</div>
+          <div class="subtitle">Join thousands of job seekers today</div>
+        </div>
+
+        <div class="form-card">
+          <span class="label">Full Name</span>
+          <div class="input-field">
+            <div class="text-line" style="width: 120px"></div>
+          </div>
+
+          <span class="label">Email Address</span>
+          <div class="input-field">
+            <div class="text-line" style="width: 150px"></div>
+          </div>
+
+          <span class="label">Phone Number</span>
+          <div class="input-field">
+            <div class="text-line" style="width: 100px"></div>
+          </div>
+
+          <span class="label">Password</span>
+          <div class="input-field" style="justify-content: space-between">
+            <div class="text-line" style="width: 80px"></div>
+            <ion-icon
+              name="eye-off-outline"
+              style="color: var(--muted); font-size: 20px"
+            ></ion-icon>
+          </div>
+
+          <span class="label">Confirm Password</span>
+          <div class="input-field" style="justify-content: space-between">
+            <div class="text-line" style="width: 80px"></div>
+            <ion-icon
+              name="eye-off-outline"
+              style="color: var(--muted); font-size: 20px"
+            ></ion-icon>
+          </div>
+
+          <div class="terms">
+            <div class="checkbox"></div>
+            <div class="terms-text">
+              I agree to the
+              <span class="terms-link">Terms of Service</span> and
+              <span class="terms-link">Privacy Policy</span>
+            </div>
+          </div>
+
+          <div class="btn-primary">
+            <div class="btn-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<!--
+Page Description:
+This is the registration screen for new users. For the complete Authentication Flow description, please refer to login.html.
+-->

@@ -104,16 +104,12 @@ export const uploadCompanyLogo = async (
       });
     }
 
-    console.log(`🏢 Uploading company logo for company ${company.id}`);
-
     // Upload to S3
     const uploadResult = await uploadCompanyLogoService(
       company.id,
       req.file.buffer,
       req.file.mimetype
     );
-
-    console.log(`✅ Company logo uploaded to S3:`, uploadResult.url);
 
     // ✅ Update database with KEY only (not full URL)
     await prisma.company.update({
@@ -228,7 +224,6 @@ export const createCompany = async (req: AuthRequest, res: Response) => {
 
     if (existingUser.company) {
       // ✅ Update existing company (preserve existing logo)
-      console.log('Updating company with ID:', existingUser.company.id);
 
       // Resolve translations (use provided if present, otherwise auto-translate)
       const nameTr = await resolveTranslations(
@@ -272,9 +267,6 @@ export const createCompany = async (req: AuthRequest, res: Response) => {
       statusCode = 200;
       message = 'Company updated successfully';
     } else {
-      // ✅ Create new company (without logo initially)
-      console.log('Creating new company with slug:', slug);
-
       // Resolve translations for new company
       const nameTr = await resolveTranslations(
         companyName,
@@ -483,8 +475,6 @@ export const uploadVerificationDocument = async (
       });
     }
 
-    console.log(`📄 Uploading verification document for company ${company.id}`);
-
     // Upload to S3
     const uploadResult = await uploadVerificationDocumentService(
       company.id,
@@ -492,8 +482,6 @@ export const uploadVerificationDocument = async (
       req.file.originalname,
       req.file.mimetype
     );
-
-    console.log(`✅ Verification document uploaded to S3:`, uploadResult.url);
 
     // ✅ Update database with KEY only (not full URL)
     await prisma.company.update({
@@ -738,9 +726,6 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
     const addressTrimmed = address?.trim() || null;
     const postcodeTrimmed = postcode?.trim() || null;
 
-    // ✅ RUN AI VERIFICATION WITH COHERE
-    console.log('🤖 Starting AI verification for first job post...');
-
     const verificationResult = await AIJobVerificationService.verifyJob({
       title,
       description,
@@ -755,32 +740,21 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
       companyId: company.id,
     });
 
-    console.log('🤖 AI Verification Complete:', {
-      riskScore: verificationResult.riskScore,
-      autoApprove: verificationResult.autoApprove,
-      flags: verificationResult.flags,
-    });
-
     // ✅ DETERMINE APPROVAL STATUS BASED ON AI RESULT
     let approvalStatus: ApprovalStatus = ApprovalStatus.PENDING;
     let rejectionReason: string | null = null;
 
     if (verificationResult.autoApprove) {
       approvalStatus = ApprovalStatus.APPROVED;
-      console.log('✅ First job auto-approved by AI');
     } else if (verificationResult.riskScore > 70) {
       approvalStatus = ApprovalStatus.REJECTED_AI;
       rejectionReason = `Auto-rejected by AI verification (Risk Score: ${verificationResult.riskScore}/100):\n\n${verificationResult.flagReason}`;
-      console.log('❌ First job auto-rejected by AI (high risk)');
     } else {
       approvalStatus = ApprovalStatus.PENDING;
-      console.log('⚠️ First job flagged for human review');
     }
 
     // ✅ GEOCODE JOB LOCATION with all fields
     let coordinates: { latitude: number; longitude: number } | null = null;
-
-    console.log(`📍 Geocoding job location: ${cityTrimmed}, ${stateTrimmed}`);
 
     const geocodingResult = await geocodeAddress(
       addressTrimmed ?? '',
@@ -794,9 +768,6 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
         latitude: geocodingResult.latitude,
         longitude: geocodingResult.longitude,
       };
-      console.log(
-        `✅ Job geocoding successful: ${JSON.stringify(coordinates)}`
-      );
     } else {
       console.warn(`⚠️ Job geocoding failed, continuing without coordinates`);
     }
@@ -928,10 +899,6 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
           job.slug
         );
       }
-
-      console.log(
-        `✅ First job approved and notifications sent to ${matchingUsers.length} matching users`
-      );
     } else if (
       approvalStatus === ApprovalStatus.REJECTED_AI &&
       company.userId
@@ -953,9 +920,6 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
-      console.log(
-        '❌ First job rejected by AI, employer notified with appeal option'
-      );
     } else if (company.userId) {
       const notifMsg = `Your job post "${job.title}" is being reviewed by our team. You'll be notified once it's approved.`;
       const n_ms = await translateText(notifMsg, 'ms');
@@ -974,7 +938,6 @@ export const createFirstJob = async (req: AuthRequest, res: Response) => {
           actionUrl: `/(employer-hidden)/job-post-details/${job.id}`,
         },
       });
-      console.log('⚠️ First job pending review, employer notified');
     }
 
     // Trigger translation in background
@@ -2293,11 +2256,6 @@ export const resubmitCompany = async (req: AuthRequest, res: Response) => {
         verifiedDate: true,
       },
     });
-
-    // Log the resubmission
-    console.log(
-      `[RESUBMISSION] Company ${company.name} (ID: ${company.id}) resubmitted for verification`
-    );
 
     res.json({
       success: true,

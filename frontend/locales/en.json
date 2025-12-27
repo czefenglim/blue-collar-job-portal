@@ -42,7 +42,9 @@
       "pickImageFailed": "Failed to pick image. Please try again.",
       "pickDocumentFailed": "Failed to pick document. Please try again.",
       "submitFailed": "Failed to submit report. Please try again."
-    },
+    }
+  },
+  "employerReports": {
     "list": {
       "errors": {
         "authRequiredTitle": "Authentication Required",
@@ -446,6 +448,7 @@
       "dateOptional": "YYYY-MM-DD (optional)"
     }
   },
+
   "employerJobDetails": {
     "errors": {
       "title": "Error",
@@ -1422,9 +1425,56 @@
       "flagTitle": "Flag Review",
       "flagMessage": "Please provide a reason for flagging this review:",
       "submit": "Submit"
+    },
+    "alerts": {
+      "flagDismissed": "The flag for this review is dismissed, you can not flagged it again"
     }
   },
   "employerReports": {
+    "details": {
+      "errors": {
+        "authRequiredTitle": "Authentication Required",
+        "authRequiredMessage": "Please sign in to continue",
+        "title": "Error",
+        "loadFail": "Failed to load report details"
+      },
+      "loading": "Loading report details...",
+      "notFound": "Report not found",
+      "header": {
+        "title": "Report Details",
+        "subtitle": "Report #{id}"
+      },
+      "sections": {
+        "evidence": "Evidence",
+        "status": "Status",
+        "job": "Job",
+        "type": "Report Type",
+        "reportedBy": "Reported By",
+        "description": "Description",
+        "adminReview": "Admin Review",
+        "appeals": "Appeals History"
+      },
+      "action": {
+        "title": "Action Taken",
+        "jobSuspended": "Job suspended: {reason}",
+        "jobDeleted": "Job has been deleted",
+        "appealHint": "You can appeal this decision."
+      },
+      "admin": {
+        "reviewDate": "Review Date",
+        "notes": "Admin Notes"
+      },
+      "appeal": {
+        "title": "Appeal #{id}",
+        "submittedOn": "Submitted on {date}",
+        "explanation": "Explanation",
+        "evidence": "Evidence",
+        "adminResponse": "Admin Response",
+        "reviewedOn": "Reviewed on {date}",
+        "accepted": "Appeal Accepted",
+        "rejected": "Appeal Rejected"
+      }
+    },
     "appeal": {
       "headerTitle": "Submit Appeal",
       "headerSubtitle": "Report #{id}",
@@ -1662,6 +1712,13 @@
       "fetchFailed": "Failed to fetch applicants",
       "loadFailed": "Failed to load applicants",
       "startChatFailed": "Failed to start chat. Please try again."
+    },
+    "quality": {
+      "level": {
+        "high": "High Quality",
+        "medium": "Medium Quality",
+        "low": "Low Quality"
+      }
     }
   },
   "employerApplicantDetails": {
@@ -1763,16 +1820,29 @@
       "rejectionReason": "Rejection Reason:",
       "noReason": "No reason provided",
       "explanation": "Explanation",
+      "explanationLabel": "Explanation",
       "explanationPlaceholder": "Explain why this job post is legitimate and should be approved...",
       "supportingDocs": "Supporting Documents (Optional)",
+      "evidenceLabel": "Supporting Documents (Optional)",
       "uploadHelper": "Upload company registration, licenses, or other proof",
       "uploadFiles": "Upload Files",
+      "uploadButton": "Upload Files",
       "cancel": "Cancel",
       "submit": "Submit Appeal",
       "aiRejectedNotice": "This job post was rejected by AI. Tap to view details.",
       "appealedNotice": "Your appeal is being reviewed by our team. We'll notify you of the decision soon.",
       "finalRejectedNotice": "This job post has been reviewed and the rejection decision is final.",
-      "rejectedTitle": "Job Rejected"
+      "rejectedTitle": "Job Rejected",
+      "validation": {
+        "explanationRequired": "Please provide an explanation for your appeal"
+      },
+      "success": {
+        "title": "Appeal Submitted",
+        "message": "Your appeal has been submitted and will be reviewed by our team."
+      },
+      "errors": {
+        "submitFailed": "Failed to submit appeal"
+      }
     },
     "stats": {
       "views": "views",
@@ -1781,6 +1851,12 @@
     },
     "errors": {
       "pickDocumentFailed": "Failed to pick document"
+    },
+    "actions": {
+      "close": "Close",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate"
     },
     "pendingAiNotice": "Your job post is being reviewed by our AI system. You'll be notified once approved."
   },
@@ -2331,7 +2407,8 @@
     "reviewModeration": "Review Moderation",
     "companyApprovalDetails": "Company Approval Details",
     "companies": "Companies",
-    "companyDetails": "Company Details"
+    "companyDetails": "Company Details",
+    "jobStatistics": "Job Statistics"
   },
 
   "adminReports": {

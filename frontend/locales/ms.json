@@ -42,7 +42,9 @@
       "pickImageFailed": "Gagal memilih gambar. Sila cuba lagi.",
       "pickDocumentFailed": "Gagal memilih dokumen. Sila cuba lagi.",
       "submitFailed": "Gagal menghantar laporan. Sila cuba lagi."
-    },
+    }
+  },
+  "employerReports": {
     "list": {
       "errors": {
         "authRequiredTitle": "Pengesahan Diperlukan",
@@ -446,6 +448,7 @@
       "dateOptional": "YYYY-MM-DD (pilihan)"
     }
   },
+
   "employerJobDetails": {
     "errors": {
       "title": "Ralat",
@@ -1409,6 +1412,9 @@
       "postReply": "Hantar Balasan",
       "posting": "Menghantar..."
     },
+    "alerts": {
+      "flagDismissed": "Tanda untuk ulasan ini telah dibatalkan, anda tidak boleh menandainya lagi"
+    },
     "success": {
       "replyPosted": "Balasan berjaya dihantar",
       "reviewFlagged": "Ulasan ditandakan untuk semakan admin"
@@ -1427,6 +1433,50 @@
     }
   },
   "employerReports": {
+    "details": {
+      "errors": {
+        "authRequiredTitle": "Pengesahan Diperlukan",
+        "authRequiredMessage": "Sila log masuk untuk meneruskan",
+        "title": "Ralat",
+        "loadFail": "Gagal memuatkan butiran laporan"
+      },
+      "loading": "Memuatkan butiran laporan...",
+      "notFound": "Laporan tidak ditemui",
+      "header": {
+        "title": "Butiran Laporan",
+        "subtitle": "Laporan #{id}"
+      },
+      "sections": {
+        "evidence": "Bukti",
+        "status": "Status",
+        "job": "Kerja",
+        "type": "Jenis Laporan",
+        "reportedBy": "Dilaporkan Oleh",
+        "description": "Penerangan",
+        "adminReview": "Semakan Admin",
+        "appeals": "Sejarah Rayuan"
+      },
+      "action": {
+        "title": "Tindakan Diambil",
+        "jobSuspended": "Kerja digantung: {reason}",
+        "jobDeleted": "Kerja telah dipadam",
+        "appealHint": "Anda boleh merayu keputusan ini."
+      },
+      "admin": {
+        "reviewDate": "Tarikh Semakan",
+        "notes": "Nota Admin"
+      },
+      "appeal": {
+        "title": "Rayuan #{id}",
+        "submittedOn": "Dihantar pada {date}",
+        "explanation": "Penjelasan",
+        "evidence": "Bukti",
+        "adminResponse": "Maklum Balas Admin",
+        "reviewedOn": "Disemak pada {date}",
+        "accepted": "Rayuan Diterima",
+        "rejected": "Rayuan Ditolak"
+      }
+    },
     "appeal": {
       "headerTitle": "Hantar Rayuan",
       "headerSubtitle": "Laporan #{id}",
@@ -1631,6 +1681,13 @@
       "fetchFailed": "Gagal mendapatkan pemohon",
       "loadFailed": "Gagal memuatkan pemohon",
       "startChatFailed": "Gagal memulakan sembang. Sila cuba lagi."
+    },
+    "quality": {
+      "level": {
+        "high": "Pesat Kualiti",
+        "medium": "Cukup Kualiti",
+        "low": "Rendah Kualiti"
+      }
     }
   },
   "employerApplicantDetails": {
@@ -1732,16 +1789,29 @@
       "rejectionReason": "Sebab Penolakan:",
       "noReason": "Tiada sebab diberikan",
       "explanation": "Penjelasan",
+      "explanationLabel": "Penjelasan",
       "explanationPlaceholder": "Jelaskan mengapa iklan kerja ini sah dan patut diluluskan…",
       "supportingDocs": "Dokumen Sokongan (Pilihan)",
+      "evidenceLabel": "Dokumen Sokongan (Pilihan)",
       "uploadHelper": "Muat naik pendaftaran syarikat, lesen, atau bukti lain",
       "uploadFiles": "Muat Naik Fail",
+      "uploadButton": "Muat Naik Fail",
       "cancel": "Batal",
       "submit": "Hantar Rayuan",
       "aiRejectedNotice": "Iklan kerja ini ditolak oleh AI. Ketik untuk lihat butiran.",
       "appealedNotice": "Rayuan anda sedang disemak. Kami akan maklumkan keputusan sebaik sahaja siap.",
       "finalRejectedNotice": "Iklan kerja ini telah dinilai dan penolakan adalah muktamad.",
-      "rejectedTitle": "Iklan kerja ditolak"
+      "rejectedTitle": "Iklan kerja ditolak",
+      "validation": {
+        "explanationRequired": "Sila berikan penjelasan bagi rayuan anda"
+      },
+      "success": {
+        "title": "Rayuan Dihantar",
+        "message": "Rayuan anda telah dihantar dan akan disemak oleh pasukan kami."
+      },
+      "errors": {
+        "submitFailed": "Gagal menghantar rayuan"
+      }
     },
     "stats": {
       "views": "lihat",
@@ -1750,6 +1820,12 @@
     },
     "errors": {
       "pickDocumentFailed": "Gagal memilih dokumen"
+    },
+    "actions": {
+      "close": "Tutup",
+      "activate": "Aktifkan",
+      "edit": "Edit",
+      "delete": "Padam"
     },
     "pendingAiNotice": "Iklan kerja anda sedang disemak oleh sistem AI kami. Anda akan dimaklumkan apabila diluluskan."
   },
@@ -2308,6 +2384,7 @@
     "reviewModeration": "Moderasi Ulasan",
     "companyApprovalDetails": "Butiran Kelulusan Syarikat",
     "companies": "Syarikat",
-    "companyDetails": "Butiran Syarikat"
+    "companyDetails": "Butiran Syarikat",
+    "jobStatistics": "Statistik Kerja"
   }
 }

@@ -23,6 +23,11 @@
       }
       .container {
         display: flex;
+        flex-direction: column;
+        gap: 60px;
+      }
+      .row {
+        display: flex;
         gap: 40px;
         width: max-content;
       }
@@ -264,310 +269,320 @@
   </head>
   <body>
     <div class="container">
-      <!-- Step 1: Welcome -->
-      <div class="frame-wrapper">
-        <div class="screen-label">1. Welcome</div>
-        <div class="mobile-frame">
-          <div class="content center-content">
-            <div class="illustration-box">IMG</div>
-            <div class="title-line">Welcome to JobPortal</div>
-            <div class="subtitle-line">Find your dream job today</div>
-            <div style="flex: 1"></div>
-            <div class="btn-primary">Get Started</div>
+      <div class="row">
+        <!-- Step 1: Welcome -->
+        <div class="frame-wrapper">
+          <div class="screen-label">1. Welcome</div>
+          <div class="mobile-frame">
+            <div class="content center-content">
+              <div class="illustration-box">IMG</div>
+              <div class="title-line">Welcome to JobPortal</div>
+              <div class="subtitle-line">Find your dream job today</div>
+              <div style="flex: 1"></div>
+              <div class="btn-primary">Get Started</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Step 2: How It Works -->
-      <div class="frame-wrapper">
-        <div class="screen-label">2. How It Works</div>
-        <div class="mobile-frame">
-          <div class="header">
-            <div class="header-title">How It Works</div>
-          </div>
-          <div class="content center-content">
-            <div class="card">
-              <div class="body-line" style="width: 40%">Step 1</div>
-              <div
-                class="illustration-box"
-                style="
-                  width: 100px;
-                  height: 100px;
-                  margin: 0 auto;
-                  font-size: 32px;
-                "
-              >
-                👤
-              </div>
-              <div class="body-line">Create your profile</div>
-              <div class="body-line">Upload resume & skills</div>
+        <!-- Step 2: How It Works -->
+        <div class="frame-wrapper">
+          <div class="screen-label">2. How It Works</div>
+          <div class="mobile-frame">
+            <div class="header">
+              <div class="header-title">How It Works</div>
             </div>
-            <div class="card" style="margin-top: 16px">
-              <div class="body-line" style="width: 40%">Step 2</div>
-              <div
-                class="illustration-box"
-                style="
-                  width: 100px;
-                  height: 100px;
-                  margin: 0 auto;
-                  font-size: 32px;
-                "
-              >
-                🤝
-              </div>
-              <div class="body-line">Get matched with jobs</div>
-              <div class="body-line">Connect with employers</div>
-            </div>
-            <div class="btn-primary">Next</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: Complete Profile -->
-      <div class="frame-wrapper">
-        <div class="screen-label">3. Complete Profile</div>
-        <div class="mobile-frame">
-          <div class="header">
-            <div class="header-title">Complete Profile</div>
-            <div class="header-sub">Tell us about you</div>
-          </div>
-          <div class="content">
-            <div
-              style="
-                display: flex;
-                justify-content: center;
-                margin-bottom: 16px;
-              "
-            >
-              <div
-                style="
-                  width: 80px;
-                  height: 80px;
-                  background: #e2e8f0;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  font-size: 24px;
-                  color: #64748b;
-                "
-              >
-                📷
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="input-group">
-                <div class="input-label">Full Name</div>
-                <div class="input-field">John Doe</div>
-              </div>
-              <div class="input-group">
-                <div class="input-label">Email Address</div>
-                <div class="input-field">john@example.com</div>
-              </div>
-              <div class="input-group">
-                <div class="input-label">Phone Number</div>
-                <div class="input-field">(555) 123-4567</div>
-              </div>
-              <div class="input-group">
-                <div class="input-label">Location</div>
-                <div class="input-field">New York, NY</div>
-              </div>
-            </div>
-            <div class="btn-primary">Continue</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 4: Choose Industries -->
-      <div class="frame-wrapper">
-        <div class="screen-label">4. Choose Industries</div>
-        <div class="mobile-frame">
-          <div class="header">
-            <div class="header-title">Select Industries</div>
-            <div class="header-sub">Pick at least one</div>
-          </div>
-          <div class="content">
-            <div class="grid-container">
-              <div class="grid-item">
-                <div class="grid-icon">🏗️</div>
-                <div class="grid-label">Construction</div>
-              </div>
-              <div class="grid-item">
-                <div class="grid-icon">🔧</div>
-                <div class="grid-label">Plumbing</div>
-              </div>
-              <div class="grid-item">
-                <div class="grid-icon">⚡</div>
-                <div class="grid-label">Electrical</div>
-              </div>
-              <div class="grid-item">
-                <div class="grid-icon">🚚</div>
-                <div class="grid-label">Transport</div>
-              </div>
-              <div class="grid-item">
-                <div class="grid-icon">🧹</div>
-                <div class="grid-label">Cleaning</div>
-              </div>
-              <div class="grid-item">
-                <div class="grid-icon">🏭</div>
-                <div class="grid-label">Factory</div>
-              </div>
-            </div>
-            <div class="btn-primary">Continue (3)</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 5: Build Resume -->
-      <div class="frame-wrapper">
-        <div class="screen-label">5. Build Resume</div>
-        <div class="mobile-frame">
-          <div class="header">
-            <div class="header-title">Build Resume</div>
-            <div class="header-sub">Answer a few questions</div>
-          </div>
-          <div class="content">
-            <div class="card">
-              <div
-                class="text-line"
-                style="
-                  width: 80%;
-                  height: 16px;
-                  margin-bottom: 12px;
-                  background: #334155;
-                  color: white;
-                  font-size: 10px;
-                  display: flex;
-                  align-items: center;
-                  padding-left: 4px;
-                "
-              >
-                Years of Experience?
-              </div>
-              <div class="input-field">3 Years</div>
-            </div>
-            <div class="card">
-              <div
-                class="text-line"
-                style="
-                  width: 60%;
-                  height: 16px;
-                  margin-bottom: 12px;
-                  background: #334155;
-                  color: white;
-                  font-size: 10px;
-                  display: flex;
-                  align-items: center;
-                  padding-left: 4px;
-                "
-              >
-                Education Level?
-              </div>
-              <div class="grid-container">
-                <div class="grid-item" style="height: 40px; font-size: 10px">
-                  High School
-                </div>
-                <div class="grid-item" style="height: 40px; font-size: 10px">
-                  College
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div
-                class="text-line"
-                style="
-                  width: 70%;
-                  height: 16px;
-                  margin-bottom: 12px;
-                  background: #334155;
-                  color: white;
-                  font-size: 10px;
-                  display: flex;
-                  align-items: center;
-                  padding-left: 4px;
-                "
-              >
-                Previous Job Title?
-              </div>
-              <div
-                class="input-field"
-                style="height: 80px; align-items: flex-start; padding-top: 8px"
-              >
-                Junior Welder at ABC Corp...
-              </div>
-            </div>
-            <div class="btn-primary">Generate Resume</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 6: Preview Resume -->
-      <div class="frame-wrapper">
-        <div class="screen-label">6. Preview Resume</div>
-        <div class="mobile-frame">
-          <div class="header">
-            <div class="header-title">Preview Resume</div>
-          </div>
-          <div class="content">
-            <div class="preview-doc">
-              <div class="title-line" style="width: 40%; background: #334155">
-                John Doe
-              </div>
-              <div class="body-line" style="margin-top: 20px">
-                Experienced Welder with 5 years...
-              </div>
-              <div class="body-line">Specialized in TIG and MIG welding...</div>
-              <div class="body-line">Certified in safety procedures...</div>
-              <div class="body-line" style="width: 80%">
-                Available immediately.
-              </div>
-
-              <div style="margin-top: 30px">
+            <div class="content center-content">
+              <div class="card">
+                <div class="body-line" style="width: 40%">Step 1</div>
                 <div
-                  class="subtitle-line"
-                  style="margin-bottom: 10px; background: #334155"
+                  class="illustration-box"
+                  style="
+                    width: 100px;
+                    height: 100px;
+                    margin: 0 auto;
+                    font-size: 32px;
+                  "
                 >
-                  Experience
+                  👤
                 </div>
-                <div class="body-line">
-                  Senior Welder - BuildIt Inc (2020-2023)
+                <div class="body-line">Create your profile</div>
+                <div class="body-line">Upload resume & skills</div>
+              </div>
+              <div class="card" style="margin-top: 16px">
+                <div class="body-line" style="width: 40%">Step 2</div>
+                <div
+                  class="illustration-box"
+                  style="
+                    width: 100px;
+                    height: 100px;
+                    margin: 0 auto;
+                    font-size: 32px;
+                  "
+                >
+                  🤝
                 </div>
-                <div class="body-line">
-                  Junior Welder - MetalWorks (2018-2020)
+                <div class="body-line">Get matched with jobs</div>
+                <div class="body-line">Connect with employers</div>
+              </div>
+              <div class="btn-primary">Next</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Complete Profile -->
+        <div class="frame-wrapper">
+          <div class="screen-label">3. Complete Profile</div>
+          <div class="mobile-frame">
+            <div class="header">
+              <div class="header-title">Complete Profile</div>
+              <div class="header-sub">Tell us about you</div>
+            </div>
+            <div class="content">
+              <div
+                style="
+                  display: flex;
+                  justify-content: center;
+                  margin-bottom: 16px;
+                "
+              >
+                <div
+                  style="
+                    width: 80px;
+                    height: 80px;
+                    background: #e2e8f0;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    color: #64748b;
+                  "
+                >
+                  📷
                 </div>
               </div>
+
+              <div class="card">
+                <div class="input-group">
+                  <div class="input-label">Full Name</div>
+                  <div class="input-field">John Doe</div>
+                </div>
+                <div class="input-group">
+                  <div class="input-label">Email Address</div>
+                  <div class="input-field">john@example.com</div>
+                </div>
+                <div class="input-group">
+                  <div class="input-label">Phone Number</div>
+                  <div class="input-field">(555) 123-4567</div>
+                </div>
+                <div class="input-group">
+                  <div class="input-label">Location</div>
+                  <div class="input-field">New York, NY</div>
+                </div>
+              </div>
+              <div class="btn-primary">Continue</div>
             </div>
-            <div class="btn-secondary" style="margin-bottom: 12px">
-              Edit / Regenerate
+          </div>
+        </div>
+
+        <!-- Step 4: Choose Industries -->
+        <div class="frame-wrapper">
+          <div class="screen-label">4. Choose Industries</div>
+          <div class="mobile-frame">
+            <div class="header">
+              <div class="header-title">Select Industries</div>
+              <div class="header-sub">Pick at least one</div>
             </div>
-            <div class="btn-primary" style="margin-top: 0">
-              Confirm & Finish
+            <div class="content">
+              <div class="grid-container">
+                <div class="grid-item">
+                  <div class="grid-icon">🏗️</div>
+                  <div class="grid-label">Construction</div>
+                </div>
+                <div class="grid-item">
+                  <div class="grid-icon">🔧</div>
+                  <div class="grid-label">Plumbing</div>
+                </div>
+                <div class="grid-item">
+                  <div class="grid-icon">⚡</div>
+                  <div class="grid-label">Electrical</div>
+                </div>
+                <div class="grid-item">
+                  <div class="grid-icon">🚚</div>
+                  <div class="grid-label">Transport</div>
+                </div>
+                <div class="grid-item">
+                  <div class="grid-icon">🧹</div>
+                  <div class="grid-label">Cleaning</div>
+                </div>
+                <div class="grid-item">
+                  <div class="grid-icon">🏭</div>
+                  <div class="grid-label">Factory</div>
+                </div>
+              </div>
+              <div class="btn-primary">Continue (3)</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Step 7: Completion -->
-      <div class="frame-wrapper">
-        <div class="screen-label">7. Completion</div>
-        <div class="mobile-frame">
-          <div class="content center-content">
-            <div
-              class="illustration-box"
-              style="background: #dcfce7; color: #16a34a; margin-top: 100px"
-            >
-              ✓
+      <div class="row">
+        <!-- Step 5: Build Resume -->
+        <div class="frame-wrapper">
+          <div class="screen-label">5. Build Resume</div>
+          <div class="mobile-frame">
+            <div class="header">
+              <div class="header-title">Build Resume</div>
+              <div class="header-sub">Answer a few questions</div>
             </div>
-            <div
-              class="title-line"
-              style="margin-bottom: 12px; background: #334155"
-            >
-              All Set!
+            <div class="content">
+              <div class="card">
+                <div
+                  class="text-line"
+                  style="
+                    width: 80%;
+                    height: 16px;
+                    margin-bottom: 12px;
+                    background: #334155;
+                    color: white;
+                    font-size: 10px;
+                    display: flex;
+                    align-items: center;
+                    padding-left: 4px;
+                  "
+                >
+                  Years of Experience?
+                </div>
+                <div class="input-field">3 Years</div>
+              </div>
+              <div class="card">
+                <div
+                  class="text-line"
+                  style="
+                    width: 60%;
+                    height: 16px;
+                    margin-bottom: 12px;
+                    background: #334155;
+                    color: white;
+                    font-size: 10px;
+                    display: flex;
+                    align-items: center;
+                    padding-left: 4px;
+                  "
+                >
+                  Education Level?
+                </div>
+                <div class="grid-container">
+                  <div class="grid-item" style="height: 40px; font-size: 10px">
+                    High School
+                  </div>
+                  <div class="grid-item" style="height: 40px; font-size: 10px">
+                    College
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div
+                  class="text-line"
+                  style="
+                    width: 70%;
+                    height: 16px;
+                    margin-bottom: 12px;
+                    background: #334155;
+                    color: white;
+                    font-size: 10px;
+                    display: flex;
+                    align-items: center;
+                    padding-left: 4px;
+                  "
+                >
+                  Previous Job Title?
+                </div>
+                <div
+                  class="input-field"
+                  style="
+                    height: 80px;
+                    align-items: flex-start;
+                    padding-top: 8px;
+                  "
+                >
+                  Junior Welder at ABC Corp...
+                </div>
+              </div>
+              <div class="btn-primary">Generate Resume</div>
             </div>
-            <div class="subtitle-line">Your profile is ready.</div>
-            <div style="flex: 1"></div>
-            <div class="btn-primary">Go to Dashboard</div>
+          </div>
+        </div>
+
+        <!-- Step 6: Preview Resume -->
+        <div class="frame-wrapper">
+          <div class="screen-label">6. Preview Resume</div>
+          <div class="mobile-frame">
+            <div class="header">
+              <div class="header-title">Preview Resume</div>
+            </div>
+            <div class="content">
+              <div class="preview-doc">
+                <div class="title-line" style="width: 40%; background: #334155">
+                  John Doe
+                </div>
+                <div class="body-line" style="margin-top: 20px">
+                  Experienced Welder with 5 years...
+                </div>
+                <div class="body-line">
+                  Specialized in TIG and MIG welding...
+                </div>
+                <div class="body-line">Certified in safety procedures...</div>
+                <div class="body-line" style="width: 80%">
+                  Available immediately.
+                </div>
+
+                <div style="margin-top: 30px">
+                  <div
+                    class="subtitle-line"
+                    style="margin-bottom: 10px; background: #334155"
+                  >
+                    Experience
+                  </div>
+                  <div class="body-line">
+                    Senior Welder - BuildIt Inc (2020-2023)
+                  </div>
+                  <div class="body-line">
+                    Junior Welder - MetalWorks (2018-2020)
+                  </div>
+                </div>
+              </div>
+              <div class="btn-secondary" style="margin-bottom: 12px">
+                Edit / Regenerate
+              </div>
+              <div class="btn-primary" style="margin-top: 0">
+                Confirm & Finish
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7: Completion -->
+        <div class="frame-wrapper">
+          <div class="screen-label">7. Completion</div>
+          <div class="mobile-frame">
+            <div class="content center-content">
+              <div
+                class="illustration-box"
+                style="background: #dcfce7; color: #16a34a; margin-top: 100px"
+              >
+                ✓
+              </div>
+              <div
+                class="title-line"
+                style="margin-bottom: 12px; background: #334155"
+              >
+                All Set!
+              </div>
+              <div class="subtitle-line">Your profile is ready.</div>
+              <div style="flex: 1"></div>
+              <div class="btn-primary">Go to Dashboard</div>
+            </div>
           </div>
         </div>
       </div>

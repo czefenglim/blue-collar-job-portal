@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Report Details</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
       :root {
         --primary: #1e3a8a;
         --border: #e2e8f0;
@@ -13,198 +16,413 @@
         --text: #334155;
         --danger: #ef4444;
         --success: #10b981;
+        --warning: #f59e0b;
       }
       body {
-        background: #eef2f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
         margin: 0;
-        font-family: Segoe UI, Tahoma, sans-serif;
-        color: var(--text);
+        padding: 20px;
+        background-color: #f4f4f4;
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
         min-height: 100vh;
+        color: var(--text);
       }
       .mobile-frame {
-        width: 375px;
+        width: 100%;
+        max-width: 375px;
         min-height: 812px;
-        background: #fff;
-        border-radius: 30px;
-        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-        border: 8px solid #1e293b;
+        background-color: #f8fafc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
       }
       .status-bar {
-        height: 20px;
-        background: #fff;
+        height: 44px;
+        background-color: #fff;
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         padding: 0 16px;
         font-size: 10px;
+        color: #333;
         font-weight: 700;
+        flex-shrink: 0;
       }
       .header {
-        background: #fff;
-        border-bottom: 1px solid var(--border);
-        padding: 12px 16px;
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        padding: 16px;
+        color: white;
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-shrink: 0;
       }
-      .back {
-        width: 24px;
-        height: 24px;
-        background: var(--primary);
-        border-radius: 6px;
+      .back-btn {
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        backdrop-filter: blur(4px);
+        cursor: pointer;
+        color: white;
+        border: none;
       }
-      .title {
+      .header-title {
+        font-size: 18px;
         font-weight: 700;
-        font-size: 16px;
-        color: #000;
+        flex: 1;
       }
       .content {
         padding: 16px;
-        background: #fff;
         flex: 1;
-      }
-      .alert {
+        overflow-y: auto;
         display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px;
-        border-radius: 10px;
-        background: #fef3c7;
-        color: #92400e;
+        flex-direction: column;
+        gap: 16px;
       }
-      .section {
-        border: 1px solid var(--border);
+
+      /* Cards */
+      .detail-card {
+        background: white;
         border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
       }
       .section-title {
+        font-size: 14px;
         font-weight: 700;
-        color: var(--primary);
-        margin-bottom: 8px;
+        color: #1e293b;
       }
-      .badge {
+
+      /* Status Pills */
+      .status-pill {
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 6px;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 8px;
-        border-radius: 12px;
+        justify-content: center;
         font-size: 11px;
+        font-weight: 600;
       }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
+      .status-resolved {
+        background-color: #d1fae5;
+        color: #065f46;
       }
-      .actions {
+      .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .status-suspended {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      /* Alert Box */
+      .alert-box {
         display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #fff7ed;
+        border: 1px solid #ffedd5;
+        color: #9a3412;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      /* Text Lines / Placeholders */
+      .info-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .info-label {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .info-value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 500;
+      }
+
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      /* Evidence Placeholder */
+      .evidence-box {
+        height: 120px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        border: 2px dashed #cbd5e1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         gap: 8px;
+        color: var(--muted);
+      }
+
+      /* Timeline */
+      .timeline-item {
+        display: flex;
+        gap: 12px;
+        position: relative;
+        padding-bottom: 20px;
+      }
+      .timeline-item:last-child {
+        padding-bottom: 0;
+      }
+      .timeline-line {
+        position: absolute;
+        left: 10px;
+        top: 24px;
+        bottom: 0;
+        width: 2px;
+        background: #e2e8f0;
+      }
+      .timeline-item:last-child .timeline-line {
+        display: none;
+      }
+      .timeline-dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #bfdbfe;
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+        z-index: 1;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px #bfdbfe;
+      }
+      .timeline-content {
+        flex: 1;
+      }
+      .timeline-date {
+        font-size: 10px;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .timeline-text {
+        font-size: 12px;
+        color: #334155;
+      }
+
+      /* Actions */
+      .action-buttons {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
       .btn {
-        flex: 1;
-        height: 36px;
+        height: 44px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
-      }
-      .btn-outline {
-        border: 1px solid var(--border);
-        color: var(--muted);
-        background: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
       }
       .btn-primary {
-        background: var(--success);
-        color: #fff;
+        background: #2563eb;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
       }
-      .placeholder {
-        height: 60px;
-        background: #e5e7eb;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #334155;
-        font-weight: 600;
-        margin-bottom: 12px;
+      .btn-primary:active {
+        background: #1d4ed8;
+      }
+      .btn-outline {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+      }
+      .btn-outline:active {
+        background: #f8fafc;
       }
     </style>
+    <!-- Ionicons -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
   </head>
   <body>
     <div class="mobile-frame">
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
+
       <div class="header">
-        <div class="back"></div>
-        <div class="title">Report Details</div>
+        <button class="back-btn">
+          <ion-icon name="arrow-back"></ion-icon>
+        </button>
+        <div class="header-title">Report Details</div>
+        <div class="back-btn" style="opacity: 0; pointer-events: none"></div>
       </div>
+
       <div class="content">
-        <div class="section">
-          <div class="section-title">Status</div>
-          <div class="badge" style="background: #d1fae5; color: #10b981">
-            Resolved
+        <!-- Overview Card -->
+        <div class="detail-card">
+          <div class="section-header">
+            <div class="section-title">Case #R-2023-892</div>
+            <div class="status-pill status-resolved">
+              <ion-icon
+                name="checkmark-circle"
+                style="margin-right: 4px"
+              ></ion-icon>
+              RESOLVED
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Report Type</div>
+            <div style="display: flex; align-items: center; gap: 6px">
+              <ion-icon
+                name="alert-circle"
+                style="color: var(--danger)"
+              ></ion-icon>
+              <span class="info-value">Fake Job Posting</span>
+            </div>
+          </div>
+
+          <div class="alert-box">
+            <ion-icon
+              name="warning"
+              style="font-size: 16px; flex-shrink: 0; margin-top: 2px"
+            ></ion-icon>
+            <div>
+              <strong>Job Suspended</strong><br />
+              This job post has been temporarily suspended pending
+              investigation.
+            </div>
           </div>
         </div>
-        <div class="section">
-          <div class="section-title">Report Type</div>
-          <div style="display: flex; align-items: center; gap: 8px">
+
+        <!-- Details Card -->
+        <div class="detail-card">
+          <div class="section-title" style="margin-bottom: 8px">
+            Investigation Details
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Reporter</div>
+            <div class="info-value">User123 (Applicant)</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Reason</div>
+            <div class="info-value" style="font-size: 13px; color: #475569">
+              "The employer asked for payment before the interview. This seems
+              like a scam."
+            </div>
+          </div>
+
+          <div class="info-label">Evidence</div>
+          <div class="evidence-box">
+            <ion-icon name="image-outline" style="font-size: 24px"></ion-icon>
+            <span style="font-size: 12px">Screenshot_2023.jpg</span>
+          </div>
+        </div>
+
+        <!-- Timeline/Notes -->
+        <div class="detail-card">
+          <div class="section-title" style="margin-bottom: 12px">History</div>
+
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
+            <div class="timeline-dot">
+              <ion-icon name="checkmark"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-date">Today, 9:30 AM</div>
+              <div class="timeline-text">Case marked as Resolved by Admin</div>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
             <div
-              style="
-                width: 20px;
-                height: 20px;
-                background: #ef4444;
-                border-radius: 6px;
-              "
-            ></div>
-            <span style="font-weight: 600">Fake Job</span>
+              class="timeline-dot"
+              style="background: #e2e8f0; color: #64748b"
+            >
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-date">Yesterday, 2:15 PM</div>
+              <div class="timeline-text">
+                Admin requested additional evidence
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="section">
-          <div class="section-title">Reported Job</div>
-          <div class="line" style="width: 70%"></div>
-          <div class="alert">
+
+          <div class="timeline-item">
             <div
-              style="
-                width: 16px;
-                height: 16px;
-                background: #f59e0b;
-                border-radius: 6px;
-              "
-            ></div>
-            <span>This job has been suspended</span>
+              class="timeline-dot"
+              style="background: #fee2e2; color: #ef4444"
+            >
+              <ion-icon name="flag"></ion-icon>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-date">Oct 24, 10:00 AM</div>
+              <div class="timeline-text">Report submitted by User123</div>
+            </div>
           </div>
         </div>
-        <div class="section">
-          <div class="section-title">Reporter Details</div>
-          <div class="line" style="width: 60%"></div>
-          <div class="line" style="width: 50%"></div>
-            Evidence Attachment (Image/Video Placeholder)
-        </div>
-          <div class="section-title">Admin Notes</div>
-          <div class="line" style="width: 90%"></div>
-          <div class="text-line">Previous Appeals List</div>
-        <div class="placeholder">Evidence</div>
-        <div class="placeholder">Timeline</div>
-        <div class="placeholder">Actions Required</div>
-        </div>
-          <div class="btn btn-outline">Back</div>
-          <div class="btn btn-primary">Close Case</div>
-          <div class="btn">Back Button</div>
-          <div class="btn">Submit Appeal / Respond</div>
+
+        <!-- Actions -->
+        <div class="action-buttons">
+          <div class="btn btn-primary">Respond / Appeal</div>
+          <div class="btn btn-outline">Back to Reports</div>
         </div>
       </div>
     </div>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page allows an employer to view the specifics of a report they have filed against a user, or conversely, a report filed against them (if transparency is allowed). It provides a record of the incident description and status, useful for tracking dispute resolutions.
--->

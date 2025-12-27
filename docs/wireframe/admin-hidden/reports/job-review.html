@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Job Review Wireframe</title>
     <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
           Helvetica, Arial, sans-serif;
@@ -13,6 +20,10 @@
         padding: 20px;
         display: flex;
         justify-content: center;
+        color: var(--text);
+      }
+      * {
+        box-sizing: border-box;
       }
       .mobile-frame {
         width: 375px;
@@ -23,6 +34,8 @@
         position: relative;
         display: flex;
         flex-direction: column;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
       }
       .header {
         background-color: white;
@@ -35,6 +48,9 @@
       }
       .back-button {
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .header-title {
         font-size: 20px;
@@ -47,129 +63,68 @@
       }
       .content {
         padding: 16px;
-        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 16px;
+        flex: 1;
         overflow-y: auto;
       }
-      .alert-box {
-        display: flex;
-        background-color: #fef3c7;
-        border-left: 4px solid #f59e0b;
-        padding: 16px;
-        border-radius: 8px;
-        gap: 12px;
-      }
-      .alert-content {
-        flex: 1;
-      }
-      .alert-title {
-        font-size: 16px;
-        font-weight: bold;
-        color: #92400e;
-        margin-bottom: 4px;
-      }
-      .alert-text {
-        font-size: 14px;
-        color: #78350f;
-      }
-      .stats-container {
-        display: flex;
-        gap: 12px;
-      }
-      .stat-card {
-        flex: 1;
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 16px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-      .stat-number {
-        font-size: 24px;
-        font-weight: bold;
-        color: #1e293b;
-        margin-bottom: 4px;
-      }
-      .stat-label {
-        font-size: 11px;
-        color: #64748b;
-        line-height: 1.2;
-      }
-      .section {
-        background: #fff;
-        padding: 16px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      }
+
       .section-title {
         font-size: 18px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 16px;
-      }
-      .detail-row {
-        display: flex;
+        font-weight: 700;
+        color: var(--primary);
         margin-bottom: 8px;
       }
-      .detail-label {
-        width: 100px;
-        font-size: 14px;
-        color: #64748b;
-        flex-shrink: 0;
-      }
-      .detail-value {
-        flex: 1;
-        font-size: 14px;
-        color: #334155;
-        font-weight: 500;
-      }
-      .description-text {
-        font-size: 14px;
-        color: #334155;
-        line-height: 1.5;
-      }
-      .report-card {
+
+      /* Card Style */
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         border: 1px solid #e2e8f0;
-        background-color: #f8fafc;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 12px;
-      }
-      .report-header {
         display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
+        flex-direction: column;
+        gap: 12px;
       }
-      .report-type {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 14px;
-      }
-      .report-status {
-        font-size: 12px;
-        font-weight: 600;
-      }
-      .status-resolved {
-        color: #10b981;
-      }
-      .status-dismissed {
+
+      /* Text Line / Skeleton Styles */
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
         color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 6px;
       }
-      .status-pending {
-        color: #f59e0b;
+      .text-line:last-child {
+        margin-bottom: 0;
       }
-      .report-description {
-        font-size: 14px;
-        color: #334155;
-        margin-bottom: 8px;
+      .text-line.large {
+        height: 18px;
       }
-      .report-meta {
-        font-size: 12px;
-        color: #64748b;
+      .text-line.dark {
+        background: #cbd5e1;
       }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .text-line.orange {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+
       .action-section {
         background: #fff;
         padding: 16px;
@@ -301,137 +256,103 @@
 
       <div class="content">
         <!-- Status Alerts -->
-        <div class="alert-box" style="display: none" id="suspendedAlert">
-          <span>⚠️</span>
-          <div class="alert-content">
-            <div class="alert-title">Job is Suspended</div>
-            <div class="alert-text">Suspicious activity detected.</div>
+        <div class="card" style="display: none" id="suspendedAlert">
+          <div class="text-line orange large" style="width: 100%">
+            ⚠️ Job is Suspended
+          </div>
+          <div class="text-line" style="width: 80%">
+            Suspicious activity detected.
           </div>
         </div>
 
         <!-- Report Stats -->
-        <div class="stats-container">
-          <div class="stat-card">
-            <div style="color: #ef4444; margin-bottom: 4px">🚩</div>
-            <div class="stat-number">3</div>
-            <div class="stat-label">Reports on Job</div>
+        <div class="card">
+          <div class="section-title">Overview</div>
+          <div class="text-line red large" style="width: 70%">
+            Reports on Job: 3
           </div>
-          <div class="stat-card">
-            <div style="color: #f59e0b; margin-bottom: 4px">⚠️</div>
-            <div class="stat-number">1</div>
-            <div class="stat-label">Reports on Employer</div>
+          <div class="text-line orange" style="width: 60%">
+            Reports on Employer: 1
           </div>
-          <div class="stat-card">
-            <div style="color: #3b82f6; margin-bottom: 4px">👥</div>
-            <div class="stat-number">12</div>
-            <div class="stat-label">Applications</div>
-          </div>
+          <div class="text-line dark" style="width: 50%">Applications: 12</div>
         </div>
 
         <!-- Job Details -->
-        <div class="section">
+        <div class="card">
           <div class="section-title">Job Information</div>
-          <div class="detail-row">
-            <div class="detail-label">Title:</div>
-            <div class="detail-value">Warehouse Manager</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Company:</div>
-            <div class="detail-value">Logistics Pro Inc.</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Industry:</div>
-            <div class="detail-value">Logistics</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Type:</div>
-            <div class="detail-value">Full Time</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Location:</div>
-            <div class="detail-value">Dallas, TX</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Salary:</div>
-            <div class="detail-value">RM 3,000 - RM 4,500 Monthly</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Posted:</div>
-            <div class="detail-value">Dec 18, 2023</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Views:</div>
-            <div class="detail-value">450</div>
-          </div>
+          <div class="text-line dark large" style="width: 70%">Job Title</div>
+          <div class="text-line" style="width: 50%">Location: New York</div>
+          <div class="text-line" style="width: 50%">Salary: $20/hr</div>
         </div>
 
         <!-- Description -->
-        <div class="section">
+        <div class="card">
           <div class="section-title">Description</div>
-          <div class="description-text">
-            Oversee daily warehouse operations, manage inventory, and supervise
-            staff. Ensure safety protocols are followed.
-          </div>
+          <div class="text-line" style="width: 100%"></div>
+          <div class="text-line" style="width: 95%"></div>
+          <div class="text-line" style="width: 90%"></div>
+          <div class="text-line" style="width: 80%"></div>
         </div>
 
         <!-- Requirements -->
-        <div class="section">
+        <div class="card">
           <div class="section-title">Requirements</div>
-          <div class="description-text">
-            - 3+ years warehouse experience<br />
-            - Leadership skills<br />
-            - Forklift certification
-          </div>
+          <div class="text-line" style="width: 90%">• Requirement 1</div>
+          <div class="text-line" style="width: 85%">• Requirement 2</div>
+          <div class="text-line" style="width: 80%">• Requirement 3</div>
         </div>
 
         <!-- Employer Info -->
-        <div class="section">
+        <div class="card">
           <div class="section-title">Employer Information</div>
-          <div class="detail-row">
-            <div class="detail-label">Name:</div>
-            <div class="detail-value">John Smith</div>
+          <div class="text-line dark large" style="width: 60%">
+            Company Name
           </div>
-          <div class="detail-row">
-            <div class="detail-label">Email:</div>
-            <div class="detail-value">john@logisticspro.com</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Phone:</div>
-            <div class="detail-value">+1 234 567 890</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-label">Account Status:</div>
-            <div class="detail-value" style="color: #10b981">ACTIVE</div>
-          </div>
+          <div class="text-line" style="width: 80%">Industry: Construction</div>
+          <div class="text-line" style="width: 70%">Member since: 2020</div>
         </div>
 
         <!-- Recent Reports -->
-        <div class="section">
+        <div class="card">
           <div class="section-title">Recent Reports</div>
-          <!-- Report 1 -->
-          <div class="report-card">
-            <div class="report-header">
-              <div class="report-type">Scam / Fake Job</div>
-              <div class="report-status status-pending">PENDING</div>
+          <div
+            class="card"
+            style="
+              background: #f8fafc;
+              margin-bottom: 8px;
+              padding: 12px;
+              box-shadow: none;
+              border: 1px solid #e2e8f0;
+            "
+          >
+            <div
+              class="text-line red large"
+              style="width: 60%; margin-bottom: 6px"
+            >
+              Spam Content
             </div>
-            <div class="report-description">
-              This job asks for payment before interview.
-            </div>
-            <div class="report-meta">
-              Reported by Alice Doe • Dec 20, 2023, 10:00 AM
+            <div class="text-line" style="width: 90%">
+              User reported spam...
             </div>
           </div>
-          <!-- Report 2 -->
-          <div class="report-card">
-            <div class="report-header">
-              <div class="report-type">Inappropriate Content</div>
-              <div class="report-status status-resolved">RESOLVED</div>
+          <div
+            class="card"
+            style="
+              background: #f8fafc;
+              margin-bottom: 0;
+              padding: 12px;
+              box-shadow: none;
+              border: 1px solid #e2e8f0;
+            "
+          >
+            <div
+              class="text-line red large"
+              style="width: 60%; margin-bottom: 6px"
+            >
+              Inappropriate
             </div>
-            <div class="report-description">
-              Job description contains offensive language.
-            </div>
-            <div class="report-meta">
-              Reported by Bob Ross • Dec 19, 2023, 2:30 PM
+            <div class="text-line" style="width: 90%">
+              Offensive language...
             </div>
           </div>
         </div>
@@ -510,21 +431,6 @@
     <script>
       let currentAction = null;
 
-      function adjustHeight() {
-        const frame = document.getElementById('mobileFrame');
-        const content = frame.querySelector('.content');
-
-        // Reset height to minimum
-        frame.style.height = '812px';
-
-        if (frame.scrollHeight > 812) {
-          frame.style.height = frame.scrollHeight + 'px';
-        }
-      }
-
-      window.addEventListener('load', adjustHeight);
-      setInterval(adjustHeight, 1000);
-
       function openModal(actionType) {
         currentAction = actionType;
         const modal = document.getElementById('actionModal');
@@ -572,7 +478,3 @@
     </script>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page allows administrators to investigate a specific job posting that has been flagged by users for potential violations. It displays the full job description along with the reason for the report, providing a side-by-side view for context. The flow concludes with the admin making a judgment call to dismiss the report, warn the employer, or remove the listing entirely to protect job seekers from scams or inappropriate content.
--->

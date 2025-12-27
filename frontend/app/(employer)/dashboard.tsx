@@ -57,6 +57,10 @@ interface ReviewStats {
     rating: number;
     title: string | null;
     comment: string | null;
+    comment_ms: string | null;
+    comment_ta: string | null;
+    comment_zh: string | null;
+    comment_en: string | null;
     createdAt: string;
     user: {
       fullName: string;
@@ -65,7 +69,7 @@ interface ReviewStats {
 }
 
 export default function EmployerDashboard() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -107,12 +111,15 @@ export default function EmployerDashboard() {
         return;
       }
 
-      const response = await fetch(`${URL}/api/employer/dashboard`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${URL}/api/employer/dashboard?lang=${currentLanguage}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -129,7 +136,7 @@ export default function EmployerDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [router]);
+  }, [router, currentLanguage]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -432,7 +439,7 @@ export default function EmployerDashboard() {
               >
                 <View style={styles.jobCardHeader}>
                   <Text style={styles.jobTitle} numberOfLines={1}>
-                    {job.title_en || job.title}
+                    {job.title}
                   </Text>
                   <View
                     style={[

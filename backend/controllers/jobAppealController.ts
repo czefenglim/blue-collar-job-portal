@@ -146,12 +146,6 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    console.log(`✅ Appeal submitted for job #${jobId} by user #${userId}`);
-    if (evidenceUrls.length > 0) {
-      console.log(`📎 ${evidenceUrls.length} evidence files uploaded to S3`);
-      console.log(`📂 Files:`, evidenceUrls);
-    }
-
     return res.status(201).json({
       success: true,
       message:

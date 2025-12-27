@@ -256,24 +256,6 @@ const EmployerReportDetailsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerBackButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>
-            {t('employerReports.details.header.title')}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {t('employerReports.details.header.subtitle', { id: report.id })}
-          </Text>
-        </View>
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Action Taken Alert */}
         {(report.job.isSuspended || !report.job.isActive) && (

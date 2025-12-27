@@ -3,219 +3,488 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Review Moderation Wireframe</title>
+    <title>Admin - Review Moderation</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
       body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 20px;
+        background-color: #f4f4f4;
         display: flex;
         justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text);
       }
       .mobile-frame {
-        width: 375px;
-        min-height: 812px;
-        background-color: #ffffff;
-        border: 1px solid #ddd;
+        width: 100%;
+        max-width: 375px;
+        background-color: #f8fafc;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
         position: relative;
-        display: flex;
-        flex-direction: column;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
       }
-      .header {
-        background: linear-gradient(90deg, #1e3a8a, #3b82f6);
-        color: white;
-        padding: 20px;
-        padding-top: 40px;
-      }
-      .header h1 {
-        margin: 0;
-        font-size: 20px;
-      }
-      .search-bar {
-        padding: 15px;
-        background-color: white;
-        border-bottom: 1px solid #eee;
-      }
-      .search-input {
-        width: 100%;
-        height: 40px;
-        background-color: #f1f5f9;
-        border-radius: 8px;
-        border: none;
-      }
-      .filters {
-        display: flex;
-        padding: 10px 15px;
-        gap: 10px;
-        overflow-x: auto;
-        border-bottom: 1px solid #eee;
-        background-color: white;
-      }
-      .filter-chip {
-        padding: 6px 12px;
-        background-color: #f1f5f9;
-        border-radius: 15px;
-        font-size: 12px;
-        white-space: nowrap;
-      }
-      .filter-chip.active {
-        background-color: #3b82f6;
-        color: white;
-      }
-      .content {
-        padding: 15px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        background-color: #f8fafc;
-      }
-      .review-card {
-        background-color: white;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-      }
-      .review-header {
+      .status-bar {
+        height: 44px;
+        background-color: #fff;
         display: flex;
         justify-content: space-between;
-        margin-bottom: 10px;
-      }
-      .user-info {
-        display: flex;
         align-items: center;
-        gap: 10px;
-      }
-      .avatar {
-        width: 30px;
-        height: 30px;
-        background-color: #cbd5e1;
-        border-radius: 50%;
-      }
-      .username {
-        width: 80px;
-        height: 12px;
-        background-color: #333;
-        border-radius: 4px;
-      }
-      .rating {
-        color: #f59e0b;
-        font-weight: bold;
-      }
-      .review-title {
-        font-weight: bold;
-        margin-bottom: 5px;
+        padding: 0 16px;
+        font-size: 10px;
         color: #333;
+        font-weight: 700;
       }
-      .review-body {
-        font-size: 14px;
-        color: #64748b;
-        line-height: 1.4;
-        margin-bottom: 10px;
-      }
-      .flag-alert {
-        background-color: #fef2f2;
-        border: 1px solid #fee2e2;
-        border-radius: 4px;
-        padding: 8px;
-        font-size: 12px;
-        color: #991b1b;
+      .header {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        padding: 16px;
+        color: white;
         display: flex;
         align-items: center;
-        gap: 5px;
+        justify-content: space-between;
       }
-      .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 10px;
+      .header-content {
+        flex: 1;
       }
-      .btn-sm {
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 12px;
+      .header-title {
+        font-size: 20px;
         font-weight: bold;
+        margin-bottom: 2px;
+      }
+      .header-subtitle {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .search-section {
+        padding: 16px;
+        background-color: white;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .search-container {
+        display: flex;
+        align-items: center;
+        background-color: #f1f5f9;
+        border-radius: 8px;
+        padding: 8px 12px;
+        height: 36px;
+      }
+
+      .filter-section {
+        padding: 12px 0 12px 16px;
+        background-color: white;
+        border-bottom: 1px solid #e2e8f0;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        display: flex;
+        gap: 8px;
+      }
+      .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        min-width: 80px;
+        padding: 0 12px;
+        border-radius: 20px;
+        background-color: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        font-size: 11px;
+        font-weight: 500;
+        color: #64748b;
+      }
+      .filter-chip.active {
+        background-color: #eff6ff;
+        border-color: #2563eb;
+        color: #1e3a8a;
+      }
+
+      .content {
+        padding: 16px;
+      }
+      .review-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .review-meta {
+        flex: 1;
+      }
+      .status-pill {
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 4px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .status-flagged {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .status-hidden {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.yellow {
+        background: #fef3c7;
+        color: #d97706;
+      }
+
+      .rating-row {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-btn {
+        height: 24px;
+        padding: 0 12px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-primary {
+        background: #eff6ff;
+        color: #1e3a8a;
+      }
+      .btn-danger {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .btn-success {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .tab-bar {
+        height: 60px;
+        background-color: #fff;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: 20px;
+        z-index: 100;
+      }
+      .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #94a3b8;
         cursor: pointer;
       }
-      .btn-hide {
-        background-color: #e2e8f0;
-        color: #333;
+      .tab-item.active {
+        color: #1e3a8a;
       }
-      .btn-delete {
-        background-color: #ef4444;
-        color: white;
+      .tab-icon {
+        font-size: 24px;
+      }
+      .tab-label {
+        font-size: 10px;
+        font-weight: 500;
       }
     </style>
+    <!-- Ionicons for Icons -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
   </head>
   <body>
     <div class="mobile-frame" id="mobileFrame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>Signal • Wifi • Battery</span>
+      </div>
+
       <div class="header">
-        <h1>Review Moderation</h1>
+        <div class="header-text">
+          <div class="header-title">Reviews</div>
+          <div class="header-subtitle">Moderate user feedback</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <ion-icon
+            name="notifications-outline"
+            style="font-size: 24px"
+          ></ion-icon>
+        </div>
       </div>
-      <div class="search-bar">
-        <div class="search-input"></div>
+
+      <div class="search-section">
+        <div class="search-container">
+          <ion-icon name="search-outline" style="color: #64748b"></ion-icon>
+          <div
+            class="text-line"
+            style="width: 40%; background: transparent; margin-left: 8px"
+          >
+            Search Reviews...
+          </div>
+        </div>
       </div>
-      <div class="filters">
+
+      <div class="filter-section">
         <div class="filter-chip active">All Reviews</div>
         <div class="filter-chip">Flagged</div>
         <div class="filter-chip">Hidden</div>
         <div class="filter-chip">Low Rating</div>
       </div>
+
       <div class="content">
-        <!-- Review Card 1 -->
+        <!-- Review Card 1 (Flagged) -->
         <div class="review-card">
-          <div class="review-header">
-            <div class="user-info">
-              <div class="avatar"></div>
-              <div class="username"></div>
+          <div class="card-header">
+            <div class="review-meta">
+              <div
+                class="text-line dark large"
+                style="width: 50%; margin-bottom: 8px"
+              >
+                Fake Job Posting
+              </div>
+              <div class="text-line" style="width: 70%">
+                By John Doe • For ABC Construction
+              </div>
             </div>
-            <div class="rating">★ 1.0</div>
+            <div class="status-pill status-flagged">FLAGGED</div>
           </div>
-          <div class="review-title">Fake Job Posting</div>
-          <div class="review-body">
-            This company asked for money upfront. Do not apply!
+          <div class="review-body" style="margin-top: 12px">
+            <div class="rating-row">
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+            </div>
+            <div class="text-line" style="width: 100%; margin-bottom: 6px">
+              This company asked for money upfront. Do not apply!
+            </div>
+            <div
+              class="text-line"
+              style="width: 40%; background: #fee2e2; color: #991b1b"
+            >
+              Reason: Scam / Fraud
+            </div>
           </div>
-          <div class="flag-alert">⚠ Flagged: Scam / Fraud</div>
-          <div class="actions">
-            <div class="btn-sm btn-hide">Hide</div>
-            <div class="btn-sm btn-delete">Delete</div>
+          <div class="card-footer">
+            <div class="text-line" style="width: 25%">2 hours ago</div>
+            <div class="action-buttons">
+              <div class="action-btn btn-danger">Hide</div>
+              <div class="action-btn btn-success">Dismiss</div>
+            </div>
           </div>
         </div>
 
-        <!-- Review Card 2 -->
+        <!-- Review Card 2 (Hidden) -->
         <div class="review-card">
-          <div class="review-header">
-            <div class="user-info">
-              <div class="avatar"></div>
-              <div class="username"></div>
+          <div class="card-header">
+            <div class="review-meta">
+              <div
+                class="text-line dark large"
+                style="width: 40%; margin-bottom: 8px"
+              >
+                Bad Experience
+              </div>
+              <div class="text-line" style="width: 60%">
+                By Jane Smith • For XYZ Logistics
+              </div>
             </div>
-            <div class="rating">★ 4.5</div>
+            <div class="status-pill status-hidden">HIDDEN</div>
           </div>
-          <div class="review-title">Great Experience</div>
-          <div class="review-body">Good work environment and fair pay.</div>
-          <div class="actions">
-            <div class="btn-sm btn-hide">Hide</div>
+          <div class="review-body" style="margin-top: 12px">
+            <div class="rating-row">
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star-outline"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+            </div>
+            <div class="text-line" style="width: 90%; margin-bottom: 6px">
+              Rude manager and unsafe working conditions...
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="text-line" style="width: 25%">Yesterday</div>
+            <div class="action-buttons">
+              <div class="action-btn btn-primary">Show</div>
+              <div class="action-btn btn-danger">Delete</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Card 3 (Normal) -->
+        <div class="review-card">
+          <div class="card-header">
+            <div class="review-meta">
+              <div
+                class="text-line dark large"
+                style="width: 45%; margin-bottom: 8px"
+              >
+                Great Opportunity
+              </div>
+              <div class="text-line" style="width: 65%">
+                By Mike Johnson • For City Movers
+              </div>
+            </div>
+            <!-- No status pill for normal/approved if needed, or maybe just recent ones -->
+          </div>
+          <div class="review-body" style="margin-top: 12px">
+            <div class="rating-row">
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+              <ion-icon
+                name="star"
+                style="color: #f59e0b; font-size: 12px"
+              ></ion-icon>
+            </div>
+            <div class="text-line" style="width: 95%; margin-bottom: 6px">
+              Good pay and friendly team. Highly recommend.
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="text-line" style="width: 25%">3 days ago</div>
+            <div class="action-buttons">
+              <div class="action-btn btn-danger">Hide</div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <div class="tab-item">
+          <ion-icon name="home-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Dashboard</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="briefcase-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Jobs</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="people-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Users</span>
+        </div>
+        <div class="tab-item active">
+          <ion-icon name="alert-circle" class="tab-icon"></ion-icon>
+          <span class="tab-label">Reports</span>
+        </div>
+        <div class="tab-item">
+          <ion-icon name="checkmark-circle-outline" class="tab-icon"></ion-icon>
+          <span class="tab-label">Companies</span>
+        </div>
+      </div>
     </div>
-    <script>
-      function adjustHeight() {
-        const frame = document.getElementById('mobileFrame');
-        frame.style.height = '812px'; // Reset to min-height
-        if (frame.scrollHeight > 812) {
-          frame.style.height = frame.scrollHeight + 'px';
-        }
-      }
-      window.addEventListener('load', adjustHeight);
-      setInterval(adjustHeight, 1000);
-    </script>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page functions as a dedicated console for moderating user-generated reviews, ensuring that all feedback left on the platform adheres to community guidelines. Admins can filter reviews by reported status or low ratings, reading the content to check for hate speech, spam, or irrelevance. The typical action involves either approving a review to make it public or deleting it to maintain a constructive environment for both job seekers and employers.
--->

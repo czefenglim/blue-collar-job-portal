@@ -42,7 +42,7 @@ interface Review {
 
 export default function ReviewsManagementScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -282,8 +282,16 @@ export default function ReviewsManagementScreen() {
         </View>
       </View>
 
-      {item.title && <Text style={styles.reviewTitle}>{item.title}</Text>}
-      {item.comment && <Text style={styles.reviewComment}>{item.comment}</Text>}
+      {item.title && (
+        <Text style={styles.reviewTitle}>
+          {(item as any)[`title_${currentLanguage}`] || item.title}
+        </Text>
+      )}
+      {item.comment && (
+        <Text style={styles.reviewComment}>
+          {(item as any)[`comment_${currentLanguage}`] || item.comment}
+        </Text>
+      )}
 
       {/* Employer Reply */}
       {item.employerReply && (
@@ -306,7 +314,7 @@ export default function ReviewsManagementScreen() {
       {/* Dismissed Flag Message */}
       {!item.isFlagged && item.flagReason && (
         <Text style={styles.dismissedMessage}>
-          The flag for this review is dismissed, you can not flagged it again
+          {t('employerReviews.alerts.flagDismissed')}
         </Text>
       )}
 
@@ -564,7 +572,9 @@ export default function ReviewsManagementScreen() {
                     </View>
                     {selectedReview.comment && (
                       <Text style={styles.modalReviewComment} numberOfLines={3}>
-                        {selectedReview.comment}
+                        {(selectedReview as any)[
+                          `comment_${currentLanguage}`
+                        ] || selectedReview.comment}
                       </Text>
                     )}
                   </View>

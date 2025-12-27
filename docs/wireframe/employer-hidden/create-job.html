@@ -65,27 +65,30 @@
         padding: 16px;
         background: #fff;
         flex: 1;
+        overflow-y: auto;
       }
-      .section {
-        border: 1px solid var(--border);
+
+      /* New Wireframe Block Style */
+      .wireframe-block {
+        width: 100%;
+        background: #eff6ff; /* Light Blue background */
+        border: 2px dashed #3b82f6; /* Blue dashed border */
         border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 12px;
-      }
-      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
         font-weight: 700;
-        color: var(--primary);
-        margin-bottom: 8px;
+        font-size: 14px;
+        margin-bottom: 16px;
+        text-align: center;
+        padding: 16px;
       }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
+
       .actions {
         display: flex;
         gap: 8px;
+        margin-top: auto;
       }
       .btn {
         flex: 1;
@@ -117,50 +120,28 @@
         <div class="title">Create Job</div>
       </div>
       <div class="content">
-        <div class="section">
-          <div class="section-title">Basic Info</div>
-          <div class="line" style="width: 60%"></div>
-          <div class="line" style="width: 80%"></div>
-          </div>
-          <div class="text-line" style="width: 90%">
-            Required Skills (Multi-select)
-          <div class="line" style="width: 100%"></div>
-          <div class="line" style="width: 95%"></div>
-          <div class="line" style="width: 90%"></div>
-        <!-- Details -->
-          <div class="text-line" style="width: 100%">Job Description</div>
-          <div class="text-line" style="width: 100%">Requirements</div>
-          <div class="line" style="width: 70%"></div>
-          <div class="line" style="width: 50%"></div>
-          </div>
-
-        <!-- Timeline -->
-        <div class="section">
-          <div class="section-title">Timeline</div>
-          <div class="text-line" style="width: 60%">Application Deadline</div>
-          <div class="text-line" style="width: 60%">Target Start Date</div>
+        <div class="wireframe-block" style="height: 100px">
+          Basic Info & Job Title
         </div>
 
-        <!-- AI Prediction Feature (Representation) -->
+        <div class="wireframe-block" style="height: 140px">
+          Job Description & Requirements<br />(Skills, Experience)
+        </div>
+
+        <div class="wireframe-block" style="height: 80px">
+          Timeline<br />(Deadline & Start Date)
+        </div>
+
         <div
-          class="section"
-          style="border-color: #8b5cf6; background-color: #f5f3ff"
+          class="wireframe-block"
+          style="
+            height: 100px;
+            background: #f5f3ff;
+            border-color: #8b5cf6;
+            color: #7c3aed;
+          "
         >
-          <div class="section-title" style="color: #7c3aed">
-            AI Recruitment Prediction
-          </div>
-          <div
-            class="text-line"
-            style="width: 90%; background: #ede9fe; color: #6d28d9"
-          >
-            Estimated Time to Hire: 5-10 Days
-          </div>
-          <div
-            class="text-line"
-            style="width: 85%; background: #ede9fe; color: #6d28d9"
-          >
-            Salary Competitiveness Analysis
-          </div>
+          AI Recruitment Prediction<br />(Time to Hire, Salary Analysis)
         </div>
 
         <div class="actions">

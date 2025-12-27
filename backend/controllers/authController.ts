@@ -508,9 +508,6 @@ export class AuthController {
         },
       });
 
-      console.log(`📤 Sending Email OTP to: ${user.email}`);
-      console.log(`🔐 OTP code (for testing): ${otp}`);
-
       // Send via SMTP Email
       const result = await sendEmailOtp(user.email, otp, preferredLanguage);
       if (!result.success) {

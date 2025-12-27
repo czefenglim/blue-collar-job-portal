@@ -13,34 +13,41 @@
         --text: #334155;
         --success: #10b981;
       }
+      * {
+        box-sizing: border-box;
+      }
       body {
         background: #eef2f6;
         margin: 0;
         font-family: Segoe UI, Tahoma, sans-serif;
         color: var(--text);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         min-height: 100vh;
-        padding: 20px;
+        padding: 40px;
+        gap: 40px;
+        overflow-x: auto;
       }
       .mobile-frame {
         width: 375px;
-        height: 812px;
+        min-height: 812px;
+        height: auto;
         background: #f8fafc;
         border-radius: 30px;
         box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         position: relative;
+        flex-shrink: 0;
       }
 
       .header {
         padding: 50px 20px 20px;
         background: white;
         border-bottom: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
       }
 
       .header-title {
@@ -74,7 +81,6 @@
         justify-content: center;
         font-weight: bold;
         font-size: 14px;
-        transition: all 0.3s;
       }
       .step-dot.active {
         background: var(--primary);
@@ -87,7 +93,6 @@
         background: #e2e8f0;
         margin: 0 8px;
         border-radius: 2px;
-        position: relative;
       }
       .step-line.active {
         background: var(--primary);
@@ -97,7 +102,6 @@
       .content {
         flex: 1;
         padding: 20px;
-        overflow-y: auto;
       }
 
       .card {
@@ -131,7 +135,6 @@
         border-radius: 10px;
         font-size: 14px;
         color: var(--text);
-        box-sizing: border-box;
       }
       .input-field:focus {
         outline: none;
@@ -169,6 +172,8 @@
         padding: 20px;
         background: white;
         border-top: 1px solid var(--border);
+        border-radius: 0 0 20px 20px;
+        margin-top: auto;
       }
       .btn-primary {
         width: 100%;
@@ -184,194 +189,159 @@
         align-items: center;
         justify-content: center;
       }
-
-      .hidden {
-        display: none;
+      .btn-success {
+        background: var(--success);
       }
     </style>
   </head>
   <body>
+    <!-- Step 1 Frame -->
     <div class="mobile-frame">
       <div class="header">
-        <div class="header-title" id="header-title">Company Details</div>
-        <div class="header-subtitle" id="header-subtitle">
-          Tell us about your business
-        </div>
+        <div class="header-title">Company Details</div>
+        <div class="header-subtitle">Tell us about your business</div>
         <div class="progress-row">
-          <div class="step-dot active" id="dot-1">1</div>
-          <div class="step-line" id="line-1"></div>
-          <div class="step-dot" id="dot-2">2</div>
-          <div class="step-line" id="line-2"></div>
-          <div class="step-dot" id="dot-3">3</div>
+          <div class="step-dot active">1</div>
+          <div class="step-line"></div>
+          <div class="step-dot">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot">3</div>
         </div>
       </div>
 
       <div class="content">
-        <!-- Step 1: Company Details -->
-        <div id="step-1">
-          <div class="card">
-            <div class="section-title">Basic Information</div>
-            <div class="input-group">
-              <div class="label">Company Name</div>
-              <input
-                class="input-field"
-                type="text"
-                value="BuildIt Construction Sdn Bhd"
-              />
-            </div>
-            <div class="input-group">
-              <div class="label">Industry</div>
-              <input
-                class="input-field"
-                type="text"
-                value="Construction & Engineering"
-              />
-            </div>
-            <div class="input-group">
-              <div class="label">Company Size</div>
-              <input class="input-field" type="text" value="Small (1-50)" />
-            </div>
+        <div class="card">
+          <div class="section-title">Basic Information</div>
+          <div class="input-group">
+            <div class="label">Company Name</div>
+            <input
+              class="input-field"
+              type="text"
+              value="BuildIt Construction Sdn Bhd"
+            />
           </div>
-
-          <div class="card">
-            <div class="section-title">Location & Contact</div>
-            <div class="input-group">
-              <div class="label">Address</div>
-              <input
-                class="input-field"
-                type="text"
-                placeholder="Search address..."
-              />
-            </div>
-            <div class="input-group">
-              <div class="label">Website (Optional)</div>
-              <input class="input-field" type="text" placeholder="https://" />
-            </div>
+          <div class="input-group">
+            <div class="label">Industry</div>
+            <input
+              class="input-field"
+              type="text"
+              value="Construction & Engineering"
+            />
           </div>
-
-          <div class="card">
-            <div class="section-title">Company Logo</div>
-            <div class="upload-box">
-              <div class="upload-icon">📷</div>
-              <div class="upload-text">Upload Logo</div>
-            </div>
+          <div class="input-group">
+            <div class="label">Company Size</div>
+            <input class="input-field" type="text" value="Small (1-50)" />
           </div>
         </div>
 
-        <!-- Step 2: Verification -->
-        <div id="step-2" class="hidden">
-          <div class="card">
-            <div class="section-title">Contact Verification</div>
-            <div class="input-group">
-              <div class="label">Business Phone</div>
-              <input class="input-field" type="text" value="+60 3-1234 5678" />
-            </div>
-            <div class="input-group">
-              <div class="label">Business Email</div>
-              <input
-                class="input-field"
-                type="text"
-                value="admin@buildit.com"
-              />
-            </div>
+        <div class="card">
+          <div class="section-title">Location & Contact</div>
+          <div class="input-group">
+            <div class="label">Address</div>
+            <input
+              class="input-field"
+              type="text"
+              placeholder="Search address..."
+            />
           </div>
-
-          <div class="card">
-            <div class="section-title">Business Registration</div>
-            <div class="upload-box">
-              <div class="upload-icon">📄</div>
-              <div class="upload-text">Upload SSM / License</div>
-            </div>
+          <div class="input-group">
+            <div class="label">Website (Optional)</div>
+            <input class="input-field" type="text" placeholder="https://" />
           </div>
         </div>
 
-        <!-- Step 3: Review -->
-        <div id="step-3" class="hidden">
-          <div class="card">
-            <div class="section-title">Summary</div>
-            <div class="input-group">
-              <div class="label">Company</div>
-              <div style="font-size: 14px">BuildIt Construction Sdn Bhd</div>
-            </div>
-            <div class="input-group">
-              <div class="label">Industry</div>
-              <div style="font-size: 14px">Construction & Engineering</div>
-            </div>
-            <div class="input-group">
-              <div class="label">Verification</div>
-              <div style="font-size: 14px; color: var(--success)">
-                Document Uploaded ✅
-              </div>
+        <div class="card">
+          <div class="section-title">Company Logo</div>
+          <div class="upload-box">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Upload Logo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="btn-primary">Continue</div>
+      </div>
+    </div>
+
+    <!-- Step 2 Frame -->
+    <div class="mobile-frame">
+      <div class="header">
+        <div class="header-title">Verification</div>
+        <div class="header-subtitle">Verify your identity</div>
+        <div class="progress-row">
+          <div class="step-dot active">1</div>
+          <div class="step-line active"></div>
+          <div class="step-dot active">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot">3</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="section-title">Contact Verification</div>
+          <div class="input-group">
+            <div class="label">Business Phone</div>
+            <input class="input-field" type="text" value="+60 3-1234 5678" />
+          </div>
+          <div class="input-group">
+            <div class="label">Business Email</div>
+            <input class="input-field" type="text" value="admin@buildit.com" />
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Business Registration</div>
+          <div class="upload-box">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Upload SSM / License</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="btn-primary">Continue</div>
+      </div>
+    </div>
+
+    <!-- Step 3 Frame -->
+    <div class="mobile-frame">
+      <div class="header">
+        <div class="header-title">Review</div>
+        <div class="header-subtitle">Confirm your details</div>
+        <div class="progress-row">
+          <div class="step-dot active">1</div>
+          <div class="step-line active"></div>
+          <div class="step-dot active">2</div>
+          <div class="step-line active"></div>
+          <div class="step-dot active">3</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="section-title">Summary</div>
+          <div class="input-group">
+            <div class="label">Company</div>
+            <div style="font-size: 14px">BuildIt Construction Sdn Bhd</div>
+          </div>
+          <div class="input-group">
+            <div class="label">Industry</div>
+            <div style="font-size: 14px">Construction & Engineering</div>
+          </div>
+          <div class="input-group">
+            <div class="label">Verification</div>
+            <div style="font-size: 14px; color: var(--success)">
+              Document Uploaded ✅
             </div>
           </div>
         </div>
       </div>
 
       <div class="footer">
-        <div class="btn-primary" id="btn-action" onclick="nextStep()">
-          Continue
-        </div>
+        <div class="btn-primary btn-success">Complete Setup</div>
       </div>
     </div>
-
-    <script>
-      let currentStep = 1;
-
-      function nextStep() {
-        if (currentStep < 3) {
-          showStep(currentStep + 1);
-        } else {
-          alert('Onboarding Completed!');
-        }
-      }
-
-      function showStep(step) {
-        currentStep = step;
-
-        // Toggle Content
-        document
-          .getElementById('step-1')
-          .classList.toggle('hidden', step !== 1);
-        document
-          .getElementById('step-2')
-          .classList.toggle('hidden', step !== 2);
-        document
-          .getElementById('step-3')
-          .classList.toggle('hidden', step !== 3);
-
-        // Update Header
-        const titles = ['Company Details', 'Verification', 'Review'];
-        const subtitles = [
-          'Tell us about your business',
-          'Verify your identity',
-          'Confirm your details',
-        ];
-        document.getElementById('header-title').innerText = titles[step - 1];
-        document.getElementById('header-subtitle').innerText =
-          subtitles[step - 1];
-
-        // Update Progress Bar
-        document.getElementById('dot-1').classList.toggle('active', step >= 1);
-        document.getElementById('line-1').classList.toggle('active', step >= 2);
-        document.getElementById('dot-2').classList.toggle('active', step >= 2);
-        document.getElementById('line-2').classList.toggle('active', step >= 3);
-        document.getElementById('dot-3').classList.toggle('active', step >= 3);
-
-        // Update Button
-        const btn = document.getElementById('btn-action');
-        if (step === 3) {
-          btn.innerText = 'Complete Setup';
-          btn.style.background = '#10b981';
-        } else {
-          btn.innerText = 'Continue';
-          btn.style.background = '#1e3a8a';
-        }
-      }
-    </script>
   </body>
 </html>
-<!-- 
-Page Description: 
-This multi-step wizard guides new business users through the initial account setup, collecting essential verification documents and company details. It ensures that all necessary legal and profile information is gathered upfront to expedite the admin approval process.
--->
-```

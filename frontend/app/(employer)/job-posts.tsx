@@ -11,7 +11,6 @@ import {
   Alert,
   Modal,
   Image,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 // import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,7 +34,6 @@ const LIGHT_BACKGROUND = '#F8FAFC';
 const CARD_BACKGROUND = '#FFFFFF';
 const BORDER_COLOR = '#E2E8F0';
 
-const { width } = Dimensions.get('window');
 const SPACING = 16;
 const CARD_PADDING = 20;
 
@@ -122,6 +120,11 @@ export default function JobPostsPage() {
     fetchJobs();
     fetchSubscriptionInfo();
   }, []);
+
+  useEffect(() => {
+    fetchJobs();
+    fetchSubscriptionInfo();
+  }, [currentLanguage]);
 
   useEffect(() => {
     filterJobs();
@@ -816,7 +819,9 @@ export default function JobPostsPage() {
                     color={PRIMARY_BLUE}
                   />
                   <Text style={[styles.actionButtonText, styles.toggleText]}>
-                    {item.isActive ? 'Close' : 'Activate'}
+                    {item.isActive
+                      ? t('employerJobPosts.actions.close')
+                      : t('employerJobPosts.actions.activate')}
                   </Text>
                 </TouchableOpacity>
 
@@ -834,7 +839,7 @@ export default function JobPostsPage() {
                     color={ACCENT_ORANGE}
                   />
                   <Text style={[styles.actionButtonText, styles.editText]}>
-                    Edit
+                    {t('employerJobPosts.actions.edit')}
                   </Text>
                 </TouchableOpacity>
 
@@ -844,7 +849,7 @@ export default function JobPostsPage() {
                 >
                   <Ionicons name="trash-outline" size={20} color={ACCENT_RED} />
                   <Text style={[styles.actionButtonText, styles.deleteText]}>
-                    Delete
+                    {t('employerJobPosts.actions.delete')}
                   </Text>
                 </TouchableOpacity>
               </View>

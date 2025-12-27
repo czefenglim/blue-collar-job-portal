@@ -5,237 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Company Approval Detail Wireframe</title>
     <style>
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
         background-color: #f5f5f5;
         margin: 0;
         padding: 20px;
         display: flex;
         justify-content: center;
+        color: var(--text);
       }
       .mobile-frame {
         width: 375px;
         min-height: 812px;
         background-color: #f8fafc;
-        border: 1px solid #ddd;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         overflow: hidden;
         position: relative;
         display: flex;
         flex-direction: column;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
       }
       .header {
-        background-color: white;
+        background: linear-gradient(to right, #2563eb, #1e40af);
         padding: 16px;
-        padding-top: 50px;
-        border-bottom: 1px solid #e2e8f0;
+        color: white;
         display: flex;
         align-items: center;
-        gap: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        gap: 15px;
+        flex-shrink: 0;
       }
       .back-button {
-        width: 24px;
-        height: 24px;
-        background-color: #3b82f6;
-        border-radius: 4px;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 16px;
       }
       .header-title {
         font-size: 20px;
-        font-weight: 700;
-        color: #0f172a;
+        font-weight: bold;
       }
       .content {
         padding: 16px;
-        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 16px;
-      }
-      .status-container {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 8px;
-      }
-      .status-badge {
-        padding: 8px 16px;
-        background-color: #fef3c7;
-        color: #d97706;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-      }
-      .card {
-        background-color: white;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #0f172a;
-        margin-bottom: 8px;
-      }
-      .company-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-      }
-      .logo-placeholder {
-        width: 64px;
-        height: 64px;
-        background-color: #e2e8f0;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #94a3b8;
-        font-size: 24px;
-      }
-      .company-info {
         flex: 1;
+        overflow-y: auto;
       }
-      .company-name {
+
+      .section-title {
         font-size: 18px;
         font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 4px;
-      }
-      .industry-badge {
-        display: inline-block;
-        background-color: #f1f5f9;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        color: #475569;
-      }
-      .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #334155;
+        color: var(--primary);
         margin-bottom: 8px;
       }
-      .description {
-        font-size: 14px;
-        color: #475569;
-        line-height: 1.5;
-      }
-      .info-grid {
+
+      /* Card Style */
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
         display: flex;
         flex-direction: column;
-        gap: 8px;
-      }
-      .info-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-      }
-      .info-icon {
-        width: 20px;
-        height: 20px;
-        background-color: #e2e8f0;
-        border-radius: 50%;
-      }
-      .info-label {
-        color: #64748b;
-        width: 80px;
-      }
-      .info-value {
-        color: #0f172a;
-        flex: 1;
-      }
-      .link-text {
-        color: #3b82f6;
-        text-decoration: underline;
-      }
-      .document-card {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
         gap: 12px;
       }
-      .doc-icon {
-        width: 24px;
+
+      /* Status Pill */
+      .status-pill {
         height: 24px;
-        background-color: #3b82f6;
-        border-radius: 4px;
-      }
-      .document-name {
-        flex: 1;
-        font-size: 14px;
-        font-weight: 500;
-        color: #0f172a;
-      }
-      .job-card {
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 8px;
-      }
-      .job-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-      }
-      .job-title {
-        font-weight: 600;
-        color: #0f172a;
-      }
-      .job-type {
-        font-size: 12px;
-        color: #64748b;
-        background-color: #f1f5f9;
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
-      .job-status-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .job-badge {
-        font-size: 12px;
-        padding: 2px 8px;
+        padding: 0 12px;
         border-radius: 12px;
-        background-color: #fef3c7;
-        color: #d97706;
+        background: #f1f5f9;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        align-self: flex-start;
       }
-      .fixed-actions {
-        background-color: white;
+      .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+
+      /* Text Line / Skeleton Styles */
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      .text-line:last-child {
+        margin-bottom: 0;
+      }
+      .text-line.large {
+        height: 18px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .text-line.orange {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+
+      /* Action Section */
+      .action-section {
+        background: #fff;
         padding: 16px;
         border-top: 1px solid #e2e8f0;
         display: flex;
         flex-direction: row;
         gap: 12px;
-        position: sticky;
-        bottom: 0;
       }
       .action-button {
         flex: 1;
         padding: 12px;
         border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        text-align: center;
         font-weight: 600;
-        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        border: none;
       }
       .reject-button {
         background-color: #ef4444;
@@ -243,187 +169,246 @@
       .approve-button {
         background-color: #10b981;
       }
-      .spacer {
+
+      /* Modal Styles */
+      .modal-overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background-color: white;
+        width: 85%;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        max-height: 80%;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+      .modal-description {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 16px;
+      }
+      .modal-textarea {
+        width: 100%;
         height: 100px;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        resize: none;
+        font-family: inherit;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+      }
+      .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        border: none;
+      }
+      .btn-cancel {
+        background-color: #f1f5f9;
+        color: #64748b;
+      }
+      .btn-confirm-success {
+        background-color: #10b981;
+        color: white;
+      }
+      .btn-confirm-danger {
+        background-color: #ef4444;
+        color: white;
       }
     </style>
   </head>
   <body>
     <div class="mobile-frame" id="mobileFrame">
       <div class="header">
-        <div class="back-button">&larr;</div>
+        <div class="back-button" onclick="history.back()">
+          <!-- Simple Arrow SVG -->
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </div>
         <div class="header-title">Company Details</div>
       </div>
 
       <div class="content">
         <!-- Status Badge -->
-        <div class="status-container">
-          <div class="status-badge">PENDING</div>
+        <div style="display: flex; justify-content: center; margin-bottom: 8px">
+          <div class="status-pill status-pending">PENDING APPROVAL</div>
         </div>
 
         <!-- Company Info Card -->
         <div class="card">
-          <div class="company-header">
-            <div class="logo-placeholder">Img</div>
-            <div class="company-info">
-              <div class="company-name">Acme Construction</div>
-              <div class="industry-badge">Construction</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">About</div>
-            <div class="description">
-              Leading construction company specializing in commercial and
-              residential projects. Established in 2010.
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Contact Information</div>
-            <div class="info-grid">
-              <div class="info-row">
-                <div class="info-icon"></div>
-                <div class="info-label">Email:</div>
-                <div class="info-value">contact@acme.com</div>
+          <div style="display: flex; gap: 12px; margin-bottom: 4px">
+            <div
+              style="
+                width: 48px;
+                height: 48px;
+                background: #e2e8f0;
+                border-radius: 8px;
+              "
+            ></div>
+            <div style="flex: 1">
+              <div class="text-line dark large" style="width: 70%">
+                Acme Construction
               </div>
-              <div class="info-row">
-                <div class="info-icon"></div>
-                <div class="info-label">Phone:</div>
-                <div class="info-value">+1 234 567 8900</div>
-              </div>
-              <div class="info-row">
-                <div class="info-icon"></div>
-                <div class="info-label">Website:</div>
-                <div class="info-value link-text">www.acme.com</div>
+              <div class="text-line" style="width: 50%">
+                Construction • New York
               </div>
             </div>
           </div>
 
-          <div class="section">
-            <div class="section-title">Location</div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-value">123 Build St, New York, NY, 10001</div>
-            </div>
+          <div style="margin-top: 8px">
+            <div class="section-title" style="font-size: 14px">About</div>
+            <div class="text-line" style="width: 100%"></div>
+            <div class="text-line" style="width: 90%"></div>
+            <div class="text-line" style="width: 80%"></div>
           </div>
 
-          <div class="section">
-            <div class="section-title">Company Size</div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-value">50-100 Employees</div>
-            </div>
+          <div style="margin-top: 8px">
+            <div class="section-title" style="font-size: 14px">Contact</div>
+            <div class="text-line" style="width: 60%">contact@acme.com</div>
+            <div class="text-line" style="width: 50%">+1 555-0123</div>
           </div>
         </div>
 
         <!-- Employer Account Card -->
         <div class="card">
-          <div class="card-title">Employer Account</div>
-          <div class="info-grid">
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Name:</div>
-              <div class="info-value">John Doe</div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Email:</div>
-              <div class="info-value">john.doe@acme.com</div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Phone:</div>
-              <div class="info-value">+1 987 654 3210</div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Registered:</div>
-              <div class="info-value">12/20/2024</div>
-            </div>
-          </div>
+          <div class="section-title">Employer Account</div>
+          <div class="text-line dark large" style="width: 60%">John Smith</div>
+          <div class="text-line" style="width: 50%">HR Manager</div>
+          <div class="text-line" style="width: 70%">john.smith@acme.com</div>
         </div>
 
         <!-- Verification Documents -->
         <div class="card">
-          <div class="card-title">Verification Documents</div>
-          <div class="document-card">
-            <div class="doc-icon"></div>
-            <div class="document-name">Business Document</div>
-            <div class="doc-icon" style="background-color: #cbd5e1"></div>
-          </div>
-          <div class="info-grid" style="margin-top: 8px">
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Type:</div>
-              <div class="info-value">Business License</div>
-            </div>
-            <div class="info-row">
-              <div class="info-icon"></div>
-              <div class="info-label">Submitted:</div>
-              <div class="info-value">12/21/2024</div>
+          <div class="section-title">Documents</div>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              align-items: center;
+              border: 1px solid #e2e8f0;
+              padding: 8px;
+              border-radius: 8px;
+            "
+          >
+            <div
+              style="
+                width: 24px;
+                height: 24px;
+                background: #3b82f6;
+                border-radius: 4px;
+              "
+            ></div>
+            <div class="text-line dark" style="width: 60%; margin: 0">
+              Business License.pdf
             </div>
           </div>
         </div>
 
         <!-- Jobs Posted -->
         <div class="card">
-          <div class="card-title">Jobs Posted (2)</div>
-
-          <div class="job-card">
-            <div class="job-header">
-              <div class="job-title">Site Manager</div>
-              <div class="job-type">FULL TIME</div>
+          <div class="section-title">Jobs Posted (2)</div>
+          <div
+            style="
+              border: 1px solid #e2e8f0;
+              padding: 8px;
+              border-radius: 8px;
+              margin-bottom: 8px;
+            "
+          >
+            <div class="text-line dark" style="width: 70%">
+              Senior Carpenter
             </div>
-            <div class="job-status-row">
-              <div class="job-badge">PENDING</div>
-              <div class="info-icon" style="background-color: #10b981"></div>
-            </div>
+            <div class="text-line" style="width: 40%">Full-time</div>
           </div>
-
-          <div class="job-card">
-            <div class="job-header">
-              <div class="job-title">Laborer</div>
-              <div class="job-type">CONTRACT</div>
-            </div>
-            <div class="job-status-row">
-              <div
-                class="job-badge"
-                style="background-color: #d1fae5; color: #047857"
-              >
-                APPROVED
-              </div>
-              <div class="info-icon" style="background-color: #10b981"></div>
-            </div>
+          <div
+            style="border: 1px solid #e2e8f0; padding: 8px; border-radius: 8px"
+          >
+            <div class="text-line dark" style="width: 70%">Site Manager</div>
+            <div class="text-line" style="width: 40%">Full-time</div>
           </div>
         </div>
-
-        <div class="spacer"></div>
       </div>
 
-      <div class="fixed-actions">
-        <div class="action-button reject-button" onclick="openRejectModal()">
-          <span>Reject</span>
-        </div>
-        <div class="action-button approve-button" onclick="openApproveModal()">
-          <span>Approve</span>
-        </div>
+      <!-- Action Buttons -->
+      <div class="action-section">
+        <button
+          class="action-button reject-button"
+          onclick="openModal('reject')"
+        >
+          Reject
+        </button>
+        <button
+          class="action-button approve-button"
+          onclick="openModal('approve')"
+        >
+          Approve
+        </button>
       </div>
 
       <!-- Approve Modal -->
       <div class="modal-overlay" id="approveModal">
         <div class="modal-content">
-          <div class="modal-title">Approve Company</div>
-          <div class="modal-message">
+          <div class="modal-header">
+            <div class="modal-title">Approve Company</div>
+            <div
+              style="cursor: pointer; font-size: 24px; color: #64748b"
+              onclick="closeModal('approve')"
+            >
+              ×
+            </div>
+          </div>
+          <div class="modal-description">
             Are you sure you want to approve "Acme Construction"? The employer
             will be notified and can start posting jobs.
           </div>
           <div class="modal-actions">
-            <button class="modal-button cancel" onclick="closeApproveModal()">
+            <button
+              class="modal-btn btn-cancel"
+              onclick="closeModal('approve')"
+            >
               Cancel
             </button>
             <button
-              class="modal-button confirm-success"
+              class="modal-btn btn-confirm-success"
               onclick="confirmApprove()"
             >
               Approve
@@ -435,23 +420,30 @@
       <!-- Reject Modal -->
       <div class="modal-overlay" id="rejectModal">
         <div class="modal-content">
-          <div class="modal-title">Reject Company</div>
-          <div class="modal-message">
-            Please provide a detailed reason for rejecting "Acme Construction".
-            This will be sent to the employer.
+          <div class="modal-header">
+            <div class="modal-title">Reject Company</div>
+            <div
+              style="cursor: pointer; font-size: 24px; color: #64748b"
+              onclick="closeModal('reject')"
+            >
+              ×
+            </div>
           </div>
-          <input
-            type="text"
-            class="modal-input"
+          <div class="modal-description">
+            Please provide a reason for rejection. This will be sent to the
+            employer.
+          </div>
+          <textarea
             id="rejectReason"
+            class="modal-textarea"
             placeholder="Reason for rejection (min 10 chars)"
-          />
+          ></textarea>
           <div class="modal-actions">
-            <button class="modal-button cancel" onclick="closeRejectModal()">
+            <button class="modal-btn btn-cancel" onclick="closeModal('reject')">
               Cancel
             </button>
             <button
-              class="modal-button confirm-danger"
+              class="modal-btn btn-confirm-danger"
               onclick="confirmReject()"
             >
               Reject
@@ -461,53 +453,33 @@
       </div>
     </div>
     <script>
-      function adjustHeight() {
-        const frame = document.getElementById('mobileFrame');
-        frame.style.height = '812px'; // Reset to min-height
-        if (frame.scrollHeight > 812) {
-          frame.style.height = frame.scrollHeight + 'px';
+      function openModal(type) {
+        document.getElementById(type + 'Modal').style.display = 'flex';
+      }
+
+      function closeModal(type) {
+        document.getElementById(type + 'Modal').style.display = 'none';
+        if (type === 'reject') {
+          document.getElementById('rejectReason').value = '';
         }
-      }
-      window.addEventListener('load', adjustHeight);
-      setInterval(adjustHeight, 500);
-
-      // Modal Logic
-      function openApproveModal() {
-        document.getElementById('approveModal').style.display = 'flex';
-      }
-
-      function closeApproveModal() {
-        document.getElementById('approveModal').style.display = 'none';
       }
 
       function confirmApprove() {
         alert('Company approved!');
-        closeApproveModal();
-      }
-
-      function openRejectModal() {
-        document.getElementById('rejectModal').style.display = 'flex';
-      }
-
-      function closeRejectModal() {
-        document.getElementById('rejectModal').style.display = 'none';
-        document.getElementById('rejectReason').value = '';
+        closeModal('approve');
       }
 
       function confirmReject() {
         const reason = document.getElementById('rejectReason').value;
         if (reason.length < 10) {
-          alert('Please provide a more detailed reason (at least 10 characters)');
+          alert(
+            'Please provide a more detailed reason (at least 10 characters)'
+          );
           return;
         }
         alert('Company rejected with reason: ' + reason);
-        closeRejectModal();
+        closeModal('reject');
       }
     </script>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page is the workspace for verifying a single company's registration request, displaying high-resolution copies of submitted business licenses and tax documents. The administrator painstakingly reviews these artifacts to confirm legal entity status before authorizing the account. This step is the primary filter against fraudulent employers, ensuring that every company on the platform is a verified, legal operating entity.
--->
-```

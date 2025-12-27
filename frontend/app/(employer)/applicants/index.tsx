@@ -350,6 +350,8 @@ export default function ApplicantsPage() {
         return ACCENT_RED;
       case 'HIRED':
         return ACCENT_GREEN;
+      case 'OFFER_ACCEPTED':
+        return ACCENT_GREEN;
       default:
         return GRAY_TEXT;
     }
@@ -367,6 +369,8 @@ export default function ApplicantsPage() {
         return t('employerApplicants.status.rejected');
       case 'HIRED':
         return t('employerApplicants.status.hired');
+      case 'OFFER_ACCEPTED':
+        return t('employerApplicants.status.offerAccepted');
       default:
         return status;
     }
@@ -391,6 +395,17 @@ export default function ApplicantsPage() {
         return 'star-half';
       case 'LOW':
         return 'star-outline';
+    }
+  };
+
+  const getQualityLabel = (quality: 'HIGH' | 'MEDIUM' | 'LOW') => {
+    switch (quality) {
+      case 'HIGH':
+        return t('employerApplicants.quality.level.high');
+      case 'MEDIUM':
+        return t('employerApplicants.quality.level.medium');
+      case 'LOW':
+        return t('employerApplicants.quality.level.low');
     }
   };
 
@@ -479,7 +494,7 @@ export default function ApplicantsPage() {
                         { color: getQualityColor(item.qualityScore.quality) },
                       ]}
                     >
-                      {item.qualityScore.quality}
+                      {getQualityLabel(item.qualityScore.quality)}
                     </Text>
                   </View>
                 )}
@@ -590,7 +605,9 @@ export default function ApplicantsPage() {
                   router.push(`/(employer-hidden)/hire/${item.id}` as Href);
                 }}
               >
-                <View style={styles.actionIconContainer}>
+                <View
+                  style={[styles.actionIconContainer, styles.hireIconContainer]}
+                >
                   <Ionicons
                     name="briefcase-outline"
                     size={20}
@@ -614,7 +631,12 @@ export default function ApplicantsPage() {
                   );
                 }}
               >
-                <View style={styles.actionIconContainer}>
+                <View
+                  style={[
+                    styles.actionIconContainer,
+                    styles.verifyIconContainer,
+                  ]}
+                >
                   <Ionicons
                     name="shield-checkmark-outline"
                     size={20}
@@ -638,7 +660,12 @@ export default function ApplicantsPage() {
                   );
                 }}
               >
-                <View style={styles.actionIconContainer}>
+                <View
+                  style={[
+                    styles.actionIconContainer,
+                    styles.shortlistIconContainer,
+                  ]}
+                >
                   <Ionicons name="star-outline" size={20} color="#FFFFFF" />
                 </View>
                 <Text style={[styles.actionButtonText, styles.shortlistText]}>
@@ -1130,6 +1157,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
+  hireIconContainer: {
+    backgroundColor: ACCENT_GREEN,
+    borderColor: ACCENT_GREEN,
+  },
   actionButtonText: {
     fontSize: 13,
     fontWeight: '600',
@@ -1138,8 +1169,16 @@ const styles = StyleSheet.create({
   hireText: {
     color: '#FFFFFF',
   },
+  verifyIconContainer: {
+    backgroundColor: ACCENT_PURPLE,
+    borderColor: ACCENT_PURPLE,
+  },
   verifyText: {
     color: '#FFFFFF',
+  },
+  shortlistIconContainer: {
+    backgroundColor: PRIMARY_BLUE,
+    borderColor: PRIMARY_BLUE,
   },
   shortlistText: {
     color: '#FFFFFF',
