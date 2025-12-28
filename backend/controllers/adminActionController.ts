@@ -140,6 +140,7 @@ export const suspendJob = async (req: AdminAuthRequest, res: Response) => {
         suspensionReason_ta: sr_ta ?? undefined,
         suspensionReason_zh: sr_zh ?? undefined,
         isActive: false,
+        approvalStatus: 'SUSPENDED',
       },
       include: {
         company: {
@@ -539,6 +540,7 @@ export const suspendEmployer = async (req: AdminAuthRequest, res: Response) => {
           suspensionReason_ms: jsr_ms ?? undefined,
           suspensionReason_ta: jsr_ta ?? undefined,
           suspensionReason_zh: jsr_zh ?? undefined,
+          approvalStatus: 'SUSPENDED',
         },
       });
     }

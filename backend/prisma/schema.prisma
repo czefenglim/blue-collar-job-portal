@@ -938,6 +938,7 @@ enum OfferStatus {
     REJECTED_AI
     APPEALED
     REJECTED_FINAL
+    SUSPENDED
   }
   
   enum MessageType {

@@ -2190,7 +2190,8 @@
       "submitted": "提交时间",
       "explanationLabel": "雇主说明：",
       "evidenceLabel": "证据文件：",
-      "filesAttached": "个文件已附加"
+      "filesAttached": "个文件已附加",
+      "viewEvidence": "查看证据"
     },
     "company": { "verified": "已认证企业" },
     "sections": {

@@ -213,6 +213,7 @@ export class AdminService {
             | 'REJECTED_AI'
             | 'REJECTED_FINAL'
             | 'APPEALED'
+            | 'SUSPENDED'
           >,
         };
       } else {
@@ -221,7 +222,8 @@ export class AdminService {
           | 'APPROVED'
           | 'REJECTED_AI'
           | 'REJECTED_FINAL'
-          | 'APPEALED';
+          | 'APPEALED'
+          | 'SUSPENDED';
       }
     }
 

@@ -64,7 +64,8 @@ interface JobPost {
     | 'APPROVED'
     | 'REJECTED_AI'
     | 'APPEALED'
-    | 'REJECTED_FINAL';
+    | 'REJECTED_FINAL'
+    | 'SUSPENDED';
   rejectionReason: string | null;
   rejectionReasonLocalized?: string;
   viewCount: number;
@@ -99,6 +100,7 @@ export default function JobPostsPage() {
     | 'REJECTED_AI'
     | 'APPEALED'
     | 'REJECTED_FINAL'
+    | 'SUSPENDED'
   >('all');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'closed'>(
     'all'
@@ -250,8 +252,17 @@ export default function JobPostsPage() {
       | 'REJECTED_AI'
       | 'APPEALED'
       | 'REJECTED_FINAL'
+      | 'SUSPENDED'
   ) => {
     switch (status) {
+      case 'SUSPENDED':
+        return {
+          bg: '#f3f4f6',
+          color: '#4b5563',
+          icon: 'pause-circle' as const,
+          text: t('employerJobPosts.filters.suspended'),
+          borderColor: '#e5e7eb',
+        };
       case 'APPROVED':
         return {
           bg: '#d1fae5',
@@ -493,7 +504,8 @@ export default function JobPostsPage() {
       | 'PENDING'
       | 'REJECTED_AI'
       | 'APPEALED'
-      | 'REJECTED_FINAL',
+      | 'REJECTED_FINAL'
+      | 'SUSPENDED',
     count: number
   ) => (
     <TouchableOpacity

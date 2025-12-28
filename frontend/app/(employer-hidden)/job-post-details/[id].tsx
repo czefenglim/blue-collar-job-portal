@@ -124,7 +124,8 @@ export default function JobDetailPage() {
 
     if (
       job.approvalStatus === 'REJECTED_AI' ||
-      job.approvalStatus === 'PENDING_REVIEW'
+      job.approvalStatus === 'PENDING_REVIEW' ||
+      job.approvalStatus === 'SUSPENDED'
     ) {
       Alert.alert(
         t('employerJobDetails.actions.cannotActivate'),

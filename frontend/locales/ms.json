@@ -2065,7 +2065,7 @@
     "jobCard": {
       "verified": "Disahkan",
       "views": "Paparan",
-      "applications": "Permohonan",
+      "applications": "Permohon",
       "daysAgo": "Hari lalu",
       "appeal": "rayuan",
       "appeals": "rayuan",
@@ -2215,7 +2215,8 @@
       "submitted": "Dihantar",
       "explanationLabel": "Penjelasan Majikan:",
       "evidenceLabel": "Fail Bukti:",
-      "filesAttached": "fail dilampirkan"
+      "filesAttached": "fail dilampirkan",
+      "viewEvidence": "Lihat Bukti"
     },
     "company": { "verified": "Syarikat Disahkan" },
     "sections": {

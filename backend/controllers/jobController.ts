@@ -339,6 +339,22 @@ export const getJobBySlug = async (
       return;
     }
 
+    // Check visibility permissions
+    if (job.approvalStatus !== 'APPROVED' || !job.isActive) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true, company: { select: { id: true } } },
+      });
+
+      const isOwner = user?.company?.id === job.companyId;
+      const isAdmin = user?.role === UserRole.ADMIN;
+
+      if (!isOwner && !isAdmin) {
+        res.status(404).json({ success: false, message: 'Job not found' });
+        return;
+      }
+    }
+
     await prisma.job.update({
       where: { id: job.id },
       data: { viewCount: { increment: 1 } },

@@ -248,6 +248,13 @@ export default function AdminJobsScreen() {
           gradient: ['#DC2626', '#991B1B'],
           icon: 'shield-checkmark-outline',
         };
+      case 'SUSPENDED':
+        return {
+          bg: '#4B5563',
+          text: t('adminJobManagement.status.suspended'),
+          gradient: ['#4B5563', '#374151'],
+          icon: 'pause-circle-outline',
+        };
       default:
         return {
           bg: '#64748B',
@@ -616,24 +623,6 @@ export default function AdminJobsScreen() {
                 </LinearGradient>
               </View>
             )}
-
-          {item.approvalStatus === 'APPEALED' && (
-            <View style={styles.infoBox}>
-              <LinearGradient
-                colors={['#E0F2FE', '#BAE6FD']}
-                style={styles.infoBoxGradient}
-              >
-                <Ionicons
-                  name="document-text-outline"
-                  size={18}
-                  color="#0EA5E9"
-                />
-                <Text style={[styles.infoBoxText, { color: '#0369A1' }]}>
-                  {t('adminJobManagement.jobCard.appealPrompt')}
-                </Text>
-              </LinearGradient>
-            </View>
-          )}
         </TouchableOpacity>
       </Animated.View>
     );

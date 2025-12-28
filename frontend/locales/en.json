@@ -2018,7 +2018,8 @@
       "pendingReview": "Pending Review",
       "aiRejected": "AI Rejected",
       "appealPending": "Appeal Pending",
-      "finalRejection": "Final Rejection"
+      "finalRejection": "Final Rejection",
+      "suspended": "Suspended"
     },
     "tabs": {
       "pending": "Pending",
@@ -2037,7 +2038,7 @@
     "jobCard": {
       "verified": "Verified",
       "views": "Views",
-      "applications": "Applications",
+      "applications": "Applicant",
       "daysAgo": "Days ago",
       "appeal": "appeal",
       "appeals": "appeals",
@@ -2238,7 +2239,8 @@
       "submitted": "Submitted",
       "explanationLabel": "Employer's Explanation:",
       "evidenceLabel": "Evidence Files:",
-      "filesAttached": "file(s) attached"
+      "filesAttached": "file(s) attached",
+      "viewEvidence": "View Evidence"
     },
     "company": { "verified": "Verified Company" },
     "sections": {
@@ -2293,7 +2295,9 @@
       "failApprove": "Failed to approve",
       "failReject": "Failed to reject",
       "loadFailed": "Failed to load job details",
-      "missingReason": "Please provide a rejection reason"
+      "missingReason": "Please provide a rejection reason",
+      "noEvidence": "No evidence found",
+      "evidenceOpenFailed": "Failed to open evidence"
     }
   },
   "adminCompanyDetails": {

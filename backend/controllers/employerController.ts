@@ -1712,6 +1712,15 @@ export const toggleJobStatus = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Check if job is suspended
+    if (job.approvalStatus === 'SUSPENDED') {
+      return res.status(403).json({
+        success: false,
+        message:
+          'Cannot modify status of a suspended job. Please contact support.',
+      });
+    }
+
     // Toggle the status
     const updatedJob = await prisma.job.update({
       where: { id: parseInt(jobId) },

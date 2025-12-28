@@ -19,6 +19,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -78,6 +79,7 @@ interface JobDetails {
     createdAt: string;
     reviewedAt?: string;
     reviewNotes?: string;
+    evidenceUrls?: string[];
   }[];
 }
 
@@ -135,6 +137,27 @@ export default function AdminJobDetailsScreen() {
   useEffect(() => {
     fetchJobDetails();
   }, [fetchJobDetails]);
+
+  // ✅ NEW: Open evidence in browser
+  const openEvidence = async (appeal: any) => {
+    try {
+      if (!appeal.evidenceUrls || appeal.evidenceUrls.length === 0) {
+        Alert.alert(t('common.error'), t('adminJobDetails.errors.noEvidence'));
+        return;
+      }
+
+      // Open all evidence URLs
+      for (const url of appeal.evidenceUrls) {
+        await WebBrowser.openBrowserAsync(url);
+      }
+    } catch (err) {
+      console.error('Open evidence error:', err);
+      Alert.alert(
+        t('common.error'),
+        t('adminJobDetails.errors.evidenceOpenFailed')
+      );
+    }
+  };
 
   // ✅ UPDATED: Handle both regular approval and appeal approval
   const handleApprove = () => {
@@ -435,10 +458,20 @@ export default function AdminJobDetailsScreen() {
                   <Text style={styles.appealLabel}>
                     {t('adminJobDetails.appeal.evidenceLabel')}
                   </Text>
-                  <Text style={styles.appealEvidence}>
-                    {JSON.parse(job.appeals[0].evidence).length}{' '}
-                    {t('adminJobDetails.appeal.filesAttached')}
-                  </Text>
+                  <TouchableOpacity
+                    style={styles.evidenceButton}
+                    onPress={() => openEvidence(job.appeals![0])}
+                  >
+                    <Ionicons
+                      name="document-attach-outline"
+                      size={18}
+                      color="#3B82F6"
+                    />
+                    <Text style={styles.evidenceButtonText}>
+                      {t('adminJobDetails.appeal.viewEvidence')} (
+                      {JSON.parse(job.appeals[0].evidence).length})
+                    </Text>
+                  </TouchableOpacity>
                 </>
               )}
             </View>
