@@ -393,12 +393,6 @@ const ProfileScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={28} color={PRIMARY_BLUE} />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('profile.title')}</Text>
         <TouchableOpacity
           style={styles.editButton}
@@ -1027,6 +1021,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: TEXT_PRIMARY,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
   },
   editButton: {
     flexDirection: 'row',

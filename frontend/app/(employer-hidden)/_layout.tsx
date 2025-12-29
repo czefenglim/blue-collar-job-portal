@@ -72,6 +72,14 @@ export default function HiddenLayout() {
         name="pricing"
         options={{ title: t('employerHiddenLayout.pricing') }}
       />
+      <Stack.Screen
+        name="hire/[id]"
+        options={{ title: t('employerHiddenLayout.hireApplicant') }}
+      />
+      <Stack.Screen
+        name="hire/verify/[id]"
+        options={{ title: t('employerHiddenLayout.confirmHire') }}
+      />
     </Stack>
   );
 }

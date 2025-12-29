@@ -13,7 +13,6 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -188,7 +187,6 @@ export default function JobPostsPage() {
       );
 
       const data = await response.json();
-      console.log('Fetched jobs:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch jobs');
@@ -216,7 +214,9 @@ export default function JobPostsPage() {
   const filterJobs = () => {
     let filtered = jobs;
 
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'all') {
+      filtered = filtered.filter((job) => job.approvalStatus !== 'SUSPENDED');
+    } else {
       filtered = filtered.filter((job) => job.approvalStatus === statusFilter);
     }
 
@@ -749,6 +749,24 @@ export default function JobPostsPage() {
             </View>
           )}
 
+          {item.approvalStatus === 'SUSPENDED' && (
+            <View style={styles.statusSection}>
+              <TouchableOpacity
+                style={styles.appealButton}
+                onPress={() => handleOpenAppealModal(item)}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.appealButtonText}>
+                  {t('employerJobPosts.appeal.button')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {item.approvalStatus === 'APPEALED' && (
             <View style={styles.statusSection}>
               <View style={styles.appealedInfo}>
@@ -761,6 +779,19 @@ export default function JobPostsPage() {
                   {t('employerJobPosts.appeal.appealedNotice')}
                 </Text>
               </View>
+              <TouchableOpacity
+                style={[styles.appealButton, styles.appealButtonDisabled]}
+                disabled
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={18}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.appealButtonText}>
+                  {t('employerJobPosts.appeal.appealSubmitted')}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -885,26 +916,30 @@ export default function JobPostsPage() {
     );
   }
 
-  const approvedCount = jobs.filter(
+  const visibleJobs = jobs.filter((j) => j.approvalStatus !== 'SUSPENDED');
+  const approvedCount = visibleJobs.filter(
     (j) => j.approvalStatus === 'APPROVED'
   ).length;
-  const pendingCount = jobs.filter(
+  const pendingCount = visibleJobs.filter(
     (j) => j.approvalStatus === 'PENDING'
   ).length;
-  const rejectedAICount = jobs.filter(
+  const rejectedAICount = visibleJobs.filter(
     (j) => j.approvalStatus === 'REJECTED_AI'
   ).length;
-  const appealedCount = jobs.filter(
+  const appealedCount = visibleJobs.filter(
     (j) => j.approvalStatus === 'APPEALED'
   ).length;
-  const rejectedFinalCount = jobs.filter(
+  const rejectedFinalCount = visibleJobs.filter(
     (j) => j.approvalStatus === 'REJECTED_FINAL'
   ).length;
-  const activeCount = jobs.filter(
+  const activeCount = visibleJobs.filter(
     (j) => j.isActive && j.approvalStatus === 'APPROVED'
   ).length;
-  const closedCount = jobs.filter(
+  const closedCount = visibleJobs.filter(
     (j) => !j.isActive && j.approvalStatus === 'APPROVED'
+  ).length;
+  const suspendedCount = jobs.filter(
+    (j) => j.approvalStatus === 'SUSPENDED'
   ).length;
 
   return (
@@ -943,7 +978,7 @@ export default function JobPostsPage() {
           {renderStatusFilterButton(
             t('employerJobPosts.filters.all'),
             'all',
-            jobs.length
+            visibleJobs.length
           )}
           {renderStatusFilterButton(
             t('employerJobPosts.filters.pending'),
@@ -969,6 +1004,11 @@ export default function JobPostsPage() {
             t('employerJobPosts.filters.finalRejected'),
             'REJECTED_FINAL',
             rejectedFinalCount
+          )}
+          {renderStatusFilterButton(
+            t('employerJobPosts.filters.suspended'),
+            'SUSPENDED',
+            suspendedCount
           )}
         </View>
 
@@ -1494,7 +1534,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
+    marginTop: 10,
     gap: 10,
+  },
+  appealButtonDisabled: {
+    backgroundColor: '#94A3B8',
   },
   appealButtonText: {
     color: '#FFFFFF',

@@ -450,6 +450,24 @@
     }
   },
 
+  "employerJobPosts": {
+    "suspendedNotice": "您的职位已被暂停",
+    "appeal": {
+      "button": "申诉决定",
+      "appealSubmitted": "已提交申诉",
+      "title": "申诉决定",
+      "explanationLabel": "解释为什么此决定不正确",
+      "explanationPlaceholder": "请提供详细信息...",
+      "evidenceLabel": "支持证据（可选）",
+      "uploadButton": "上传文件",
+      "validation": {
+        "explanationRequired": "请提供解释"
+      },
+      "errors": {
+        "pickDocumentFailed": "选择文件失败"
+      }
+    }
+  },
   "employerJobDetails": {
     "errors": {
       "title": "错误",
@@ -462,6 +480,7 @@
       "toggleActivateMessage": "确定要启用此职位吗？",
       "active": "启用",
       "closed": "已关闭",
+      "suspended": "您的招聘已暂停",
       "rejectedAi": "该职位已被AI拒绝",
       "pendingReview": "该职位正在审核中"
     },
@@ -1315,7 +1334,8 @@
     "job": "工作",
     "typing": "正在输入...",
     "loadingMessages": "正在加载消息...",
-    "messages": "消息"
+    "messages": "消息",
+    "loadingConversations": "正在加载对话..."
   },
   "companies": {
     "title": "公司",
@@ -1345,7 +1365,8 @@
       "website": "网站",
       "email": "邮箱",
       "phone": "电话",
-      "address": "地址"
+      "address": "地址",
+      "reviewHidden": "评价已被隐藏"
     }
   },
   "employerDashboard": {
@@ -1672,7 +1693,8 @@
       "shortlisted": "入围",
       "interviewed": "已面试",
       "rejected": "已拒绝",
-      "hired": "已录用"
+      "hired": "已录用",
+      "offerAccepted": "已接受报价"
     },
     "actions": {
       "chat": "聊天",
@@ -1776,8 +1798,10 @@
       "appealed": "已申诉",
       "finalRejected": "最终拒绝",
       "active": "进行中",
-      "closed": "已关闭"
+      "closed": "已关闭",
+      "suspended": "已暂停"
     },
+    "suspendedNotice": "由于收到举报，您的招聘已被暂停。请查看您的举报页面以了解详情。",
     "errorTryAgain": "再试一次",
     "empty": {
       "found": "未找到职位",
@@ -2329,7 +2353,8 @@
     "reportHistory": "举报历史",
     "companyProfile": "公司资料",
     "updateLocation": "更新位置",
-    "notifications": "通知"
+    "notifications": "通知",
+    "offerDetails": "报价详情"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "编辑公司资料",
@@ -2343,7 +2368,9 @@
     "approvalPending": "等待审批",
     "reviewsManagement": "评论管理",
     "notificationsManagement": "通知管理",
-    "pricing": "定价"
+    "pricing": "定价",
+    "confirmHire": "雇佣确认",
+    "hireApplicant": "雇佣"
   },
   "adminLayout": {
     "dashboard": "仪表板",

@@ -143,8 +143,6 @@ const AppliedJobsScreen: React.FC = () => {
     }, [loadApplications])
   );
 
-  
-
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -548,12 +546,6 @@ const AppliedJobsScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} color={PRIMARY_BLUE} />
-          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('applications.title')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
@@ -568,12 +560,6 @@ const AppliedJobsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color={PRIMARY_BLUE} />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('applications.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
@@ -701,7 +687,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,

@@ -34,6 +34,7 @@ export interface UserFilters {
 
 export interface JobFilters {
   approvalStatus?: ApprovalStatus;
+  appealType?: string;
   isActive?: boolean;
   search?: string;
   page?: number;

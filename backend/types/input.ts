@@ -4,6 +4,7 @@ import {
   ReportType,
   ReportStatus,
   AppealStatus,
+  AppealType,
 } from '@prisma/client';
 
 export interface StringFilter {
@@ -97,6 +98,7 @@ export interface JobAppealWhereInput {
   status?: AppealStatus;
   jobId?: number;
   employerId?: number;
+  appealType?: AppealType;
 }
 
 export interface AppealWhereInput {

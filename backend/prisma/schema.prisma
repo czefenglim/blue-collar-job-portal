@@ -607,6 +607,7 @@ model JobAppeal {
   
   // Status tracking
   status      AppealStatus @default(PENDING)
+  appealType  AppealType   @default(JOB_VERIFICATION)
   
   // Admin review
   reviewedBy  Int?
@@ -629,7 +630,13 @@ model JobAppeal {
   @@index([jobId])
   @@index([employerId])
   @@index([status])
+  @@index([appealType])
   @@map("job_appeals")
+}
+
+enum AppealType {
+  JOB_VERIFICATION
+  REPORT_SUSPENSION
 }
 
 // Conversation model

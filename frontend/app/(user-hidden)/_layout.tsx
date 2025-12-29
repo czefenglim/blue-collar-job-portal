@@ -82,6 +82,12 @@ export default function TabsLayout() {
           headerShown: true,
         })}
       />
+      <Stack.Screen
+        name="offer/[id]"
+        options={{
+          title: t('userHiddenLayout.offerDetails'),
+        }}
+      />
     </Stack>
   );
 }

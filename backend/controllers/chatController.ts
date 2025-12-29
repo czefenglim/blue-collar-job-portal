@@ -336,7 +336,7 @@ export const sendAttachment = async (req: AuthRequest, res: Response) => {
       content || '',
       messageType as any,
       {
-        url: uploadResult.url,
+        url: uploadResult.key, // Store key only, not full URL
         name: uploadResult.fileName,
         size: uploadResult.fileSize,
         type: uploadResult.mimeType,

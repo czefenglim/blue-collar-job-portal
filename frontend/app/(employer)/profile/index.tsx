@@ -621,12 +621,7 @@ export default function ProfilePage() {
 
               <TouchableOpacity
                 style={styles.settingItem}
-                onPress={() =>
-                  Alert.alert(
-                    t('employerProfile.comingSoon'),
-                    t('employerProfile.notifications')
-                  )
-                }
+                onPress={() => router.push('/(employer-hidden)/notifications')}
                 activeOpacity={0.7}
               >
                 <View
@@ -647,39 +642,6 @@ export default function ProfilePage() {
                   </Text>
                   <Text style={styles.settingDescription}>
                     Manage your notification preferences
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.settingItem}
-                onPress={() =>
-                  Alert.alert(
-                    t('employerProfile.comingSoon'),
-                    t('employerProfile.privacySettings')
-                  )
-                }
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.settingIcon,
-                    { backgroundColor: LIGHT_BLUE_BG },
-                  ]}
-                >
-                  <Ionicons
-                    name="shield-outline"
-                    size={20}
-                    color={PRIMARY_BLUE}
-                  />
-                </View>
-                <View style={styles.settingContent}>
-                  <Text style={styles.settingText}>
-                    {t('employerProfile.privacySettings')}
-                  </Text>
-                  <Text style={styles.settingDescription}>
-                    Control your privacy and data
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
@@ -708,39 +670,6 @@ export default function ProfilePage() {
                   </Text>
                   <Text style={styles.settingDescription}>
                     View analytics and reports
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.settingItem}
-                onPress={() =>
-                  Alert.alert(
-                    t('employerProfile.comingSoon'),
-                    t('employerProfile.helpSupport')
-                  )
-                }
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.settingIcon,
-                    { backgroundColor: LIGHT_BLUE_BG },
-                  ]}
-                >
-                  <Ionicons
-                    name="help-circle-outline"
-                    size={20}
-                    color={PRIMARY_BLUE}
-                  />
-                </View>
-                <View style={styles.settingContent}>
-                  <Text style={styles.settingText}>
-                    {t('employerProfile.helpSupport')}
-                  </Text>
-                  <Text style={styles.settingDescription}>
-                    Get help and support
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />

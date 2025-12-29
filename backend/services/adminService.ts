@@ -194,7 +194,14 @@ export class AdminService {
   // ==========================================
 
   async getJobs(filters: JobFilters, lang: SupportedLang = 'en') {
-    const { approvalStatus, isActive, search, page = 1, limit = 20 } = filters;
+    const {
+      approvalStatus,
+      isActive,
+      search,
+      page = 1,
+      limit = 20,
+      appealType,
+    } = filters;
 
     const skip = (page - 1) * limit;
 
@@ -224,6 +231,19 @@ export class AdminService {
           | 'REJECTED_FINAL'
           | 'APPEALED'
           | 'SUSPENDED';
+
+        // ✅ If filtering by APPEALED, handle appeal types
+        if (approvalStatus === 'APPEALED') {
+          // If appealType is provided, use it. Otherwise default to JOB_VERIFICATION (legacy behavior for Job Management)
+          const targetAppealType = appealType || 'JOB_VERIFICATION';
+
+          where.appeals = {
+            some: {
+              status: 'PENDING',
+              appealType: targetAppealType as any,
+            },
+          };
+        }
       }
     }
 

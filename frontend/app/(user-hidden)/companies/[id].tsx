@@ -50,6 +50,7 @@ export default function CompanyProfileScreen() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [userReview, setUserReview] = useState<any>(null);
   const [reviewsKey, setReviewsKey] = useState(0);
+  const [lastReviewStatus, setLastReviewStatus] = useState<'hidden' | 'deleted' | null>(null);
 
   const fetchCompanyData = useCallback(async () => {
     try {
@@ -93,6 +94,11 @@ export default function CompanyProfileScreen() {
       if (response.ok) {
         const data = await response.json();
         setUserReview(data.data);
+        if (data.data && data.data.isVisible === false) {
+          setLastReviewStatus('hidden');
+        } else if (data.data) {
+          setLastReviewStatus(null);
+        }
       }
     } catch (error) {
       console.error('Error checking user review:', error);
@@ -141,6 +147,7 @@ export default function CompanyProfileScreen() {
                   t('companies.detail.successReviewDeleted')
                 );
                 setUserReview(null);
+                setLastReviewStatus('deleted');
                 fetchCompanyData();
                 setReviewsKey((prev) => prev + 1);
               }
@@ -242,12 +249,34 @@ export default function CompanyProfileScreen() {
 
         {/* User's Review Status */}
         {userReview ? (
-          <View style={styles.userReviewCard}>
+          <View
+            style={[
+              styles.userReviewCard,
+              (lastReviewStatus === 'hidden' || userReview.isVisible === false) &&
+                styles.userReviewCardHidden,
+            ]}
+          >
             <View style={styles.userReviewHeader}>
-              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-              <Text style={styles.userReviewTitle}>
-                {t('companies.detail.yourReview')}
-              </Text>
+              {lastReviewStatus === 'hidden' || userReview.isVisible === false ? (
+                <>
+                  <Ionicons name="alert-circle" size={24} color="#92400E" />
+                  <Text style={[styles.userReviewTitle, { color: '#92400E' }]}>
+                    {t('companies.detail.yourReview') || 'Your Review'}
+                  </Text>
+                  <View style={styles.userReviewStatusPill}>
+                    <Text style={styles.userReviewStatusText}>
+                      {t('companies.detail.reviewHidden') || 'Hidden by admin'}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                  <Text style={styles.userReviewTitle}>
+                    {t('companies.detail.yourReview')}
+                  </Text>
+                </>
+              )}
             </View>
             <View style={styles.userReviewContent}>
               <View style={styles.starsContainer}>
@@ -271,39 +300,58 @@ export default function CompanyProfileScreen() {
                 </Text>
               )}
             </View>
-            <View style={styles.userReviewActions}>
-              <TouchableOpacity
-                style={styles.userReviewActionButton}
-                onPress={handleEditReview}
-              >
-                <Ionicons name="create-outline" size={18} color="#1E3A8A" />
-                <Text style={styles.userReviewActionText}>
-                  {t('common.edit')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.userReviewActionButton}
-                onPress={handleDeleteReview}
-              >
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                <Text
-                  style={[styles.userReviewActionText, { color: '#EF4444' }]}
+            {lastReviewStatus !== 'hidden' && userReview.isVisible !== false && (
+              <View style={styles.userReviewActions}>
+                <TouchableOpacity
+                  style={styles.userReviewActionButton}
+                  onPress={handleEditReview}
                 >
-                  {t('common.delete')}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <Ionicons name="create-outline" size={18} color="#1E3A8A" />
+                  <Text style={styles.userReviewActionText}>
+                    {t('common.edit')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.userReviewActionButton}
+                  onPress={handleDeleteReview}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  <Text
+                    style={[styles.userReviewActionText, { color: '#EF4444' }]}
+                  >
+                    {t('common.delete')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.writeReviewButton}
-            onPress={() => setShowReviewModal(true)}
-          >
-            <Ionicons name="create-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.writeReviewButtonText}>
-              {t('companies.detail.writeReview')}
-            </Text>
-          </TouchableOpacity>
+          lastReviewStatus === 'deleted' ? (
+            <View style={[styles.userReviewCard, styles.userReviewCardDeleted]}>
+              <View style={styles.userReviewHeader}>
+                <Ionicons name="trash-outline" size={24} color="#B91C1C" />
+                <Text style={[styles.userReviewTitle, { color: '#B91C1C' }]}>
+                  {t('companies.detail.reviewDeleted') || 'Your review was deleted'}
+                </Text>
+              </View>
+              <View style={styles.userReviewContent}>
+                <Text style={styles.userReviewComment}>
+                  {t('companies.detail.reviewDeletedHint') ||
+                    'You can write a new review at any time.'}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.writeReviewButton}
+              onPress={() => setShowReviewModal(true)}
+            >
+              <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.writeReviewButtonText}>
+                {t('companies.detail.writeReview')}
+              </Text>
+            </TouchableOpacity>
+          )
         )}
 
         {/* Company Details */}
@@ -491,6 +539,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BBF7D0',
   },
+  userReviewCardHidden: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FDE68A',
+  },
+  userReviewCardDeleted: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
+  },
   userReviewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -501,6 +557,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#059669',
+  },
+  userReviewStatusPill: {
+    marginLeft: 'auto',
+    backgroundColor: 'rgba(250, 204, 21, 0.2)',
+    borderColor: '#FDE68A',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  userReviewStatusText: {
+    fontSize: 12,
+    color: '#92400E',
+    fontWeight: '600',
   },
   userReviewContent: {
     marginBottom: 12,

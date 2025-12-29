@@ -462,6 +462,7 @@
       "toggleActivateMessage": "Adakah anda mahu mengaktifkan iklan kerja ini?",
       "active": "Aktif",
       "closed": "Ditutup",
+      "suspended": "Iklan kerja anda digantung",
       "rejectedAi": "Iklan kerja ditolak oleh AI",
       "pendingReview": "Iklan kerja sedang disahkan"
     },
@@ -1317,7 +1318,8 @@
     "job": "Pekerjaan",
     "typing": "sedang menaip...",
     "loadingMessages": "Memuatkan mesej...",
-    "messages": "Pesan"
+    "messages": "Pesan",
+    "loadingConversations": "Memuatkan percakapan..."
   },
   "companies": {
     "title": "Syarikat",
@@ -1347,7 +1349,8 @@
       "website": "Laman web",
       "email": "E-mel",
       "phone": "Telefon",
-      "address": "Alamat"
+      "address": "Alamat",
+      "reviewHidden": "Ulasan anda telah disembunyikan"
     }
   },
   "employerDashboard": {
@@ -1669,7 +1672,8 @@
       "shortlisted": "Disenarai Pendek",
       "interviewed": "Ditemuduga",
       "rejected": "Ditolak",
-      "hired": "Diambil Bekerja"
+      "hired": "Diambil Bekerja",
+      "offerAccepted": "Pemberitahuan diterima"
     },
     "actions": {
       "chat": "Sembang",
@@ -1772,8 +1776,10 @@
       "appealed": "Dirayu",
       "finalRejected": "Ditolak Sepenuhnya",
       "active": "Aktif",
-      "closed": "Ditutup"
+      "closed": "Ditutup",
+      "suspended": "Digantung"
     },
+    "suspendedNotice": "Iklan kerja anda digantung kerana laporan. Sila semak halaman laporan anda untuk maklumat lanjut.",
     "errorTryAgain": "Cuba Lagi",
     "empty": {
       "found": "Tiada kerja ditemui",
@@ -1787,6 +1793,7 @@
     "appeal": {
       "title": "Rayuan Penolakan Kerja",
       "button": "Hantar Rayuan",
+      "appealSubmitted": "Rayuan Telah Dihantar",
       "rejectionReason": "Sebab Penolakan:",
       "noReason": "Tiada sebab diberikan",
       "explanation": "Penjelasan",
@@ -2354,7 +2361,8 @@
     "reportHistory": "Sejarah Laporan",
     "companyProfile": "Profil Syarikat",
     "updateLocation": "Kemaskini Lokasi",
-    "notifications": "Pemberitahuan"
+    "notifications": "Pemberitahuan",
+    "offerDetails": "Butiran Pemberitahuan"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "Edit Profil Syarikat",
@@ -2368,7 +2376,9 @@
     "approvalPending": "Menunggu Kelulusan",
     "reviewsManagement": "Pengurusan Ulasan",
     "notificationsManagement": "Pengurusan Pemberitahuan",
-    "pricing": "Pricing"
+    "pricing": "Pricing",
+    "confirmHire": "Pengesahan Pekerjaan",
+    "hireApplicant": "Pekerjaaan"
   },
   "adminLayout": {
     "dashboard": "Papan Pemuka",

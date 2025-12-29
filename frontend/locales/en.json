@@ -462,6 +462,7 @@
       "toggleActivateMessage": "Do you want to activate this job post?",
       "active": "Active",
       "closed": "Closed",
+      "suspended": "Your job post is suspended",
       "rejectedAi": "Your job post is rejected by AI",
       "pendingReview": "Your job post is pending review"
     },
@@ -1315,7 +1316,8 @@
     "typing": "typing...",
     "loadingMessages": "Loading messages...",
     "connecting": "Connecting...",
-    "messages": "Messages"
+    "messages": "Messages",
+    "loadingConversations": "Loading conversations..."
   },
   "companies": {
     "title": "Companies",
@@ -1345,7 +1347,8 @@
       "website": "Website",
       "email": "Email",
       "phone": "Phone",
-      "address": "Address"
+      "address": "Address",
+      "reviewHidden": "Your review has been hidden"
     }
   },
   "employerDashboard": {
@@ -1700,7 +1703,8 @@
       "shortlisted": "Shortlisted",
       "interviewed": "Interviewed",
       "rejected": "Rejected",
-      "hired": "Hired"
+      "hired": "Hired",
+      "offerAccepted": "Offer Accepted"
     },
     "actions": {
       "chat": "Chat",
@@ -1801,10 +1805,12 @@
       "approved": "Approved",
       "aiRejected": "AI Rejected",
       "appealed": "Appealed",
-      "finalRejected": "Final Rejection",
+      "finalRejected": "Final Rejected",
+      "suspended": "Suspended",
       "active": "Active",
       "closed": "Closed"
     },
+    "suspendedNotice": "Your job post is suspended due to reports. Please check your reports page for details.",
     "errorTryAgain": "Try Again",
     "empty": {
       "found": "No jobs found",
@@ -1818,6 +1824,7 @@
     "appeal": {
       "title": "Appeal Job Rejection",
       "button": "Appeal Decision",
+      "appealSubmitted": "Appeal Submitted",
       "rejectionReason": "Rejection Reason:",
       "noReason": "No reason provided",
       "explanation": "Explanation",
@@ -2380,7 +2387,8 @@
     "reportHistory": "Report History",
     "companyProfile": "Company Profile",
     "updateLocation": "Update Location",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "offerDetails": "Offer Details"
   },
   "employerHiddenLayout": {
     "editCompanyProfile": "Edit Company Profile",
@@ -2394,7 +2402,9 @@
     "approvalPending": "Approval Pending",
     "reviewsManagement": "Reviews Management",
     "notificationsManagement": "Notifications Management",
-    "pricing": "Pricing"
+    "pricing": "Pricing",
+    "confirmHire": "Hire Confirmation",
+    "hireApplicant": "Hire"
   },
   "adminLayout": {
     "dashboard": "Dashboard",

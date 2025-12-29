@@ -280,7 +280,7 @@ export async function getSignedUrlForReport(
  * @param url - Full S3 URL
  * @returns string | null - Extracted key or null if invalid
  */
-function extractKeyFromUrl(url: string): string | null {
+export function extractKeyFromUrl(url: string): string | null {
   try {
     // Handle different S3 URL formats
     // Format 1: https://bucket-name.s3.region.amazonaws.com/folder/file

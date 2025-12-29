@@ -3,7 +3,14 @@ import { AppealStatus, Prisma, PrismaClient } from '@prisma/client';
 import { JobAppealWhereInput } from '../types/input';
 import { translateText } from '../services/googleTranslation';
 import { AuthRequest } from '../types/common';
-import { getFileInfoFromUrl, uploadToS3 } from '../services/s3Service';
+import {
+  deleteFromS3,
+  extractKeyFromUrl,
+  generatePresignedUrlsForEvidence,
+  getFileInfoFromUrl,
+  getSignedDownloadUrl,
+  uploadToS3,
+} from '../services/s3Service';
 import { AdminAuthRequest } from '../types/admin';
 
 const prisma = new PrismaClient();
@@ -60,28 +67,16 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (job.approvalStatus !== 'REJECTED_AI') {
+    const canAppealStatuses = ['REJECTED_AI', 'SUSPENDED', 'APPEALED'];
+    if (!canAppealStatuses.includes(job.approvalStatus as any)) {
       return res.status(400).json({
         success: false,
         message:
-          'This job cannot be appealed. Only AI-rejected jobs can be appealed.',
+          'This job cannot be appealed. Only AI-rejected or suspended jobs can be appealed.',
       });
     }
 
-    // ✅ Check if appeal already exists
-    const existingAppeal = await prisma.jobAppeal.findFirst({
-      where: {
-        jobId: parseInt(jobId),
-        employerId: userId,
-      },
-    });
-
-    if (existingAppeal) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already submitted an appeal for this job',
-      });
-    }
+    // ✅ Allow multiple appeals for the same job by the same employer
 
     // ✅ Upload evidence files to S3 - FIXED!
     const evidenceUrls: string[] = [];
@@ -106,6 +101,13 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // ✅ Determine appeal type based on job status
+    let appealType: 'JOB_VERIFICATION' | 'REPORT_SUSPENSION' =
+      'JOB_VERIFICATION';
+    if (job.approvalStatus === 'SUSPENDED') {
+      appealType = 'REPORT_SUSPENSION';
+    }
+
     // ✅ Create appeal
     const e_en = await translateText(explanation.trim(), 'en');
     const e_ms = await translateText(explanation.trim(), 'ms');
@@ -122,6 +124,7 @@ export const submitJobAppeal = async (req: AuthRequest, res: Response) => {
         explanation_zh: e_zh ?? undefined,
         evidence: evidenceUrls.length > 0 ? JSON.stringify(evidenceUrls) : null,
         status: 'PENDING',
+        appealType,
       },
     });
 
@@ -347,7 +350,7 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
       });
     }
 
-    const { status, page = '1', limit = '20' } = req.query;
+    const { status, appealType, page = '1', limit = '20' } = req.query;
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
@@ -357,6 +360,10 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
 
     if (status && status !== 'all') {
       where.status = status as AppealStatus;
+    }
+
+    if (appealType) {
+      where.appealType = appealType as any;
     }
 
     const [appeals, total] = await Promise.all([
@@ -420,9 +427,9 @@ export const getAllAppeals = async (req: AdminAuthRequest, res: Response) => {
  * ✅ Get a single appeal details
  * GET /api/admin/appeals/:appealId
  */
-export const getAppealById = async (req: AuthRequest, res: Response) => {
+export const getAppealById = async (req: AdminAuthRequest, res: Response) => {
   try {
-    const adminEmail = req.user?.email;
+    const adminEmail = req.adminEmail;
     const { appealId } = req.params;
 
     if (!adminEmail) {
@@ -466,9 +473,48 @@ export const getAppealById = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // ✅ Generate signed URLs for evidence
+    let evidenceJson = appeal.evidence;
+    if (evidenceJson) {
+      // If it's a JSON array of keys/URLs
+      try {
+        const urls = await generatePresignedUrlsForEvidence(evidenceJson);
+        evidenceJson = JSON.stringify(urls);
+      } catch (e) {
+        console.error('Error generating evidence URLs:', e);
+        // Keep original if failed
+      }
+    }
+
+    // ✅ Generate signed URL for company logo
+    let logoUrl = appeal.job.company.logo;
+    if (logoUrl) {
+      try {
+        const key = extractKeyFromUrl(logoUrl);
+        if (key) {
+          logoUrl = await getSignedDownloadUrl(key);
+        }
+      } catch (e) {
+        console.error('Error generating logo URL:', e);
+      }
+    }
+
+    // Construct response with signed URLs
+    const responseData = {
+      ...appeal,
+      evidence: evidenceJson,
+      job: {
+        ...appeal.job,
+        company: {
+          ...appeal.job.company,
+          logo: logoUrl,
+        },
+      },
+    };
+
     return res.status(200).json({
       success: true,
-      data: appeal,
+      data: responseData,
     });
   } catch (error) {
     console.error('❌ Error fetching appeal:', error);

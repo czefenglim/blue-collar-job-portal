@@ -342,6 +342,9 @@ export default function EmployerLoginScreen() {
                   } else if (status === 'REJECTED') {
                     router.replace('/(employer)/rejected-verification');
                     return;
+                  } else if (status === 'DISABLED') {
+                    router.replace('/suspended');
+                    return;
                   }
 
                   // ✅ If APPROVED, check subscription status

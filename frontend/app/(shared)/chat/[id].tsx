@@ -23,13 +23,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import { format, isToday, isYesterday } from 'date-fns';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import useChat from '@/hooks/useChat';
+import { useChat } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  useSafeAreaInsets,
-  SafeAreaView,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import VoiceTextInput from '@/components/VoiceTextInput';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -71,7 +68,7 @@ const ChatScreen: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { id, name, jobTitle } = params;
+  const { id } = params;
   const conversationId = parseInt(id as string);
 
   const [token, setToken] = useState<string>('');
@@ -84,11 +81,16 @@ const ChatScreen: React.FC = () => {
   const [conversation, setConversation] = useState<any>(null);
   const [typingUsers, setTypingUsers] = useState<number[]>([]);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<{
+    uri: string;
+    name: string;
+    mimeType: string;
+    type: 'image' | 'file';
+  } | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const insets = useSafeAreaInsets();
 
   const flatListRef = useRef<FlatList>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -384,14 +386,14 @@ const ChatScreen: React.FC = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!inputText.trim() && !editingMessage) return;
+    if (!inputText.trim() && !selectedAttachment && !editingMessage) return;
     if (!token) return;
 
     const text = inputText.trim();
-    setInputText('');
-    stopTyping(conversationId);
 
     if (editingMessage) {
+      setInputText('');
+      stopTyping(conversationId);
       try {
         const response = await fetch(
           `${URL}/api/chat/messages/${editingMessage.id}`,
@@ -414,24 +416,33 @@ const ChatScreen: React.FC = () => {
       } catch (error) {
         console.error('Error editing message:', error);
         Alert.alert(t('common.error'), t('chat.editError'));
+        setInputText(text); // Restore text on error
       } finally {
         setEditingMessage(null);
       }
     } else {
       setSending(true);
       try {
-        if (isConnected) {
-          socketSendMessage(conversationId, text);
-        } else {
+        if (selectedAttachment) {
+          const formData = new FormData();
+          formData.append('file', {
+            uri: selectedAttachment.uri,
+            name: selectedAttachment.name,
+            type: selectedAttachment.mimeType,
+          } as any);
+
+          if (text) {
+            formData.append('content', text);
+          }
+
           const response = await fetch(
-            `${URL}/api/chat/conversations/${conversationId}/messages`,
+            `${URL}/api/chat/conversations/${conversationId}/messages/attachment`,
             {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify({ content: text }),
+              body: formData,
             }
           );
 
@@ -440,12 +451,49 @@ const ChatScreen: React.FC = () => {
             if (data.success && data.data) {
               setMessages((prev) => [...prev, data.data]);
               scrollToBottom();
+              setSelectedAttachment(null);
+              setInputText('');
+              stopTyping(conversationId);
+            }
+          } else {
+            const errorData = await response.json();
+            Alert.alert(
+              t('common.error'),
+              errorData.message || t('chat.uploadError')
+            );
+          }
+        } else {
+          setInputText('');
+          stopTyping(conversationId);
+
+          if (isConnected) {
+            socketSendMessage(conversationId, text);
+          } else {
+            const response = await fetch(
+              `${URL}/api/chat/conversations/${conversationId}/messages`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ content: text }),
+              }
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.data) {
+                setMessages((prev) => [...prev, data.data]);
+                scrollToBottom();
+              }
             }
           }
         }
       } catch (error) {
         console.error('Error sending message:', error);
         Alert.alert(t('common.error'), t('chat.sendError'));
+        if (!selectedAttachment) setInputText(text); // Restore text if simple message failed
       } finally {
         setSending(false);
       }
@@ -502,7 +550,13 @@ const ChatScreen: React.FC = () => {
     });
 
     if (!result.canceled && result.assets[0]) {
-      uploadFile(result.assets[0]);
+      const asset = result.assets[0];
+      setSelectedAttachment({
+        uri: asset.uri,
+        name: asset.fileName || `photo_${Date.now()}.jpg`,
+        mimeType: asset.mimeType || 'image/jpeg',
+        type: 'image',
+      });
     }
   };
 
@@ -519,7 +573,13 @@ const ChatScreen: React.FC = () => {
     });
 
     if (!result.canceled && result.assets[0]) {
-      uploadFile(result.assets[0]);
+      const asset = result.assets[0];
+      setSelectedAttachment({
+        uri: asset.uri,
+        name: asset.fileName || `image_${Date.now()}.jpg`,
+        mimeType: asset.mimeType || 'image/jpeg',
+        type: 'image',
+      });
     }
   };
 
@@ -531,48 +591,16 @@ const ChatScreen: React.FC = () => {
       });
 
       if (result.canceled === false && result.assets[0]) {
-        uploadFile(result.assets[0]);
+        const asset = result.assets[0];
+        setSelectedAttachment({
+          uri: asset.uri,
+          name: asset.name,
+          mimeType: asset.mimeType || 'application/octet-stream',
+          type: 'file',
+        });
       }
     } catch (error) {
       console.error('Error picking document:', error);
-    }
-  };
-
-  const uploadFile = async (file: any) => {
-    if (!token) return;
-
-    setSending(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', {
-        uri: file.uri,
-        name: file.fileName || file.name || 'attachment',
-        type: file.mimeType || file.type || 'application/octet-stream',
-      } as any);
-
-      const response = await fetch(
-        `${URL}/api/chat/conversations/${conversationId}/messages/attachment`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setMessages((prev) => [...prev, data.data]);
-          scrollToBottom();
-        }
-      }
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      Alert.alert(t('common.error'), t('chat.uploadError'));
-    } finally {
-      setSending(false);
     }
   };
 
@@ -973,10 +1001,6 @@ const ChatScreen: React.FC = () => {
                 </Text>
               </View>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.headerActionButton}>
-              <Ionicons name="ellipsis-vertical" size={20} color="#4f46e5" />
-            </TouchableOpacity>
           </BlurView>
 
           {/* Job Info Banner */}
@@ -1070,68 +1094,104 @@ const ChatScreen: React.FC = () => {
 
           {/* Enhanced Input Container */}
           <BlurView intensity={90} tint="light" style={styles.inputContainer}>
-            <TouchableOpacity
-              style={styles.attachButton}
-              onPress={handleAttachment}
-              disabled={sending}
-            >
-              <LinearGradient
-                colors={['#f3f4f6', '#e5e7eb']}
-                style={styles.attachButtonCircle}
-              >
-                <Ionicons name="add" size={24} color="#4b5563" />
-              </LinearGradient>
-            </TouchableOpacity>
+            {selectedAttachment && (
+              <View style={styles.attachmentPreviewContainer}>
+                <View style={styles.attachmentPreviewContent}>
+                  {selectedAttachment.type === 'image' ? (
+                    <Image
+                      source={{ uri: selectedAttachment.uri }}
+                      style={styles.attachmentPreviewImage}
+                    />
+                  ) : (
+                    <View style={styles.attachmentPreviewFile}>
+                      <Ionicons
+                        name="document-text"
+                        size={24}
+                        color="#6B7280"
+                      />
+                      <Text
+                        style={styles.attachmentPreviewName}
+                        numberOfLines={1}
+                      >
+                        {selectedAttachment.name}
+                      </Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.removeAttachmentButton}
+                    onPress={() => setSelectedAttachment(null)}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
 
-            <View style={styles.inputWrapper}>
-              <VoiceTextInput
-                ref={inputRef}
-                style={styles.voiceInputContainer}
-                inputStyle={styles.voiceInput}
-                value={inputText}
-                onChangeText={handleTextChange}
-                placeholder={t('chat.typeMessage')}
-                placeholderTextColor="#9ca3af"
-                multiline
-                language={
-                  currentLanguage === 'zh'
-                    ? 'zh-CN'
-                    : currentLanguage === 'ms'
-                    ? 'ms-MY'
-                    : currentLanguage === 'ta'
-                    ? 'ta-IN'
-                    : 'en-US'
-                }
-              />
+            <View style={styles.inputRow}>
+              <TouchableOpacity
+                style={styles.attachButton}
+                onPress={handleAttachment}
+                disabled={sending}
+              >
+                <LinearGradient
+                  colors={['#f3f4f6', '#e5e7eb']}
+                  style={styles.attachButtonCircle}
+                >
+                  <Ionicons name="add" size={24} color="#4b5563" />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <View style={styles.inputWrapper}>
+                <VoiceTextInput
+                  ref={inputRef}
+                  style={styles.voiceInputContainer}
+                  inputStyle={styles.voiceInput}
+                  value={inputText}
+                  onChangeText={handleTextChange}
+                  placeholder={t('chat.typeMessage')}
+                  placeholderTextColor="#9ca3af"
+                  multiline
+                  language={
+                    currentLanguage === 'zh'
+                      ? 'zh-CN'
+                      : currentLanguage === 'ms'
+                      ? 'ms-MY'
+                      : currentLanguage === 'ta'
+                      ? 'ta-IN'
+                      : 'en-US'
+                  }
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  ((!inputText.trim() && !selectedAttachment) || sending) &&
+                    styles.sendButtonDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={(!inputText.trim() && !selectedAttachment) || sending}
+              >
+                <LinearGradient
+                  colors={
+                    (!inputText.trim() && !selectedAttachment) || sending
+                      ? ['#9ca3af', '#6b7280']
+                      : ['#6366f1', '#4f46e5']
+                  }
+                  style={styles.sendButtonGradient}
+                >
+                  {sending ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons
+                      name={editingMessage ? 'checkmark' : 'send'}
+                      size={20}
+                      color="#fff"
+                    />
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!inputText.trim() || sending) && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSend}
-              disabled={!inputText.trim() || sending}
-            >
-              <LinearGradient
-                colors={
-                  !inputText.trim() || sending
-                    ? ['#9ca3af', '#6b7280']
-                    : ['#6366f1', '#4f46e5']
-                }
-                style={styles.sendButtonGradient}
-              >
-                {sending ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Ionicons
-                    name={editingMessage ? 'checkmark' : 'send'}
-                    size={20}
-                    color="#fff"
-                  />
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
           </BlurView>
         </KeyboardAvoidingView>
       </LinearGradient>
@@ -1497,11 +1557,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: 'column',
+    alignItems: 'stretch',
     padding: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
   attachButton: {
     marginRight: 8,
@@ -1558,6 +1622,46 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  attachmentPreviewContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 8,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  attachmentPreviewContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  attachmentPreviewImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+  },
+  attachmentPreviewFile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  attachmentPreviewName: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  removeAttachmentButton: {
+    marginLeft: 'auto',
+    padding: 4,
   },
   scrollButton: {
     position: 'absolute',

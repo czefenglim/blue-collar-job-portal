@@ -200,6 +200,7 @@ export class AdminController {
         search,
         page = '1',
         limit = '20',
+        appealType,
       } = req.query;
 
       const langParam = (req.query.lang as SupportedLang) || 'en';
@@ -216,6 +217,7 @@ export class AdminController {
           search: search as string,
           page: parseInt(page as string),
           limit: parseInt(limit as string),
+          appealType: appealType as string,
         },
         langParam
       );
@@ -319,22 +321,46 @@ export class AdminController {
         });
       }
 
+      const { appealType } = req.query;
+      const targetAppealType = (appealType as string) || 'JOB_VERIFICATION';
+
       const [pending, approved, rejectedAI, rejectedFinal, appeals] =
         await Promise.all([
           prisma.job.count({
-            where: { approvalStatus: ApprovalStatus.PENDING },
+            where: {
+              approvalStatus: ApprovalStatus.PENDING,
+              company: { verificationStatus: 'APPROVED' },
+            },
           }),
           prisma.job.count({
-            where: { approvalStatus: ApprovalStatus.APPROVED },
+            where: {
+              approvalStatus: ApprovalStatus.APPROVED,
+              company: { verificationStatus: 'APPROVED' },
+            },
           }),
           prisma.job.count({
-            where: { approvalStatus: ApprovalStatus.REJECTED_AI },
+            where: {
+              approvalStatus: ApprovalStatus.REJECTED_AI,
+              company: { verificationStatus: 'APPROVED' },
+            },
           }),
           prisma.job.count({
-            where: { approvalStatus: ApprovalStatus.REJECTED_FINAL },
+            where: {
+              approvalStatus: ApprovalStatus.REJECTED_FINAL,
+              company: { verificationStatus: 'APPROVED' },
+            },
           }),
           prisma.job.count({
-            where: { approvalStatus: ApprovalStatus.APPEALED },
+            where: {
+              approvalStatus: ApprovalStatus.APPEALED,
+              company: { verificationStatus: 'APPROVED' },
+              appeals: {
+                some: {
+                  status: 'PENDING',
+                  appealType: targetAppealType as any,
+                },
+              },
+            },
           }),
         ]);
 

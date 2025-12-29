@@ -7,7 +7,7 @@ import {
   sendNewChatMessageToEmployer,
   sendAttachmentNotification,
 } from '../utils/chatNotifications';
-import { getSignedDownloadUrl } from './s3Service';
+import { getSignedDownloadUrl, extractKeyFromUrl } from './s3Service';
 
 const prisma = new PrismaClient();
 
@@ -535,6 +535,20 @@ export const sendMessage = async (
     },
   });
 
+  // If attachment exists, generate a presigned URL for the response
+  if (
+    message.attachmentUrl &&
+    (messageType === MessageType.IMAGE || messageType === MessageType.FILE)
+  ) {
+    try {
+      const signedUrl = await getSignedDownloadUrl(message.attachmentUrl, 3600);
+      (message as any).attachmentUrl = signedUrl;
+    } catch (error) {
+      console.error('Error generating signed URL for attachment:', error);
+      (message as any).attachmentUrl = null;
+    }
+  }
+
   // Update conversation lastMessageAt
   await prisma.conversation.update({
     where: { id: conversationId },
@@ -639,8 +653,29 @@ export const getMessages = async (
     }),
   ]);
 
+  // Map attachment keys to presigned URLs
+  const messagesWithSignedUrls = await Promise.all(
+    messages.map(async (msg) => {
+      if (
+        msg.attachmentUrl &&
+        (msg.messageType === MessageType.IMAGE ||
+          msg.messageType === MessageType.FILE)
+      ) {
+        try {
+          const key = extractKeyFromUrl(msg.attachmentUrl) || msg.attachmentUrl;
+          const signedUrl = await getSignedDownloadUrl(key, 3600);
+          return { ...msg, attachmentUrl: signedUrl };
+        } catch (error) {
+          console.error('Error generating signed URL for attachment:', error);
+          return { ...msg, attachmentUrl: null };
+        }
+      }
+      return msg;
+    })
+  );
+
   return {
-    messages: messages.reverse(), // Return in chronological order
+    messages: messagesWithSignedUrls.reverse(),
     pagination: {
       total,
       page,

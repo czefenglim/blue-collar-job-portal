@@ -4,7 +4,6 @@ import {
   Alert,
   FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { Href, useRouter } from 'expo-router';
+import { Href, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 const URL = Constants.expoConfig?.extra?.API_BASE_URL;
@@ -27,15 +26,11 @@ interface Appeal {
     fullName: string;
     email: string;
   };
-  report: {
+  job: {
     id: number;
-    reportType: string;
-    job: {
-      id: number;
-      title: string;
-      company: {
-        name: string;
-      };
+    title: string;
+    company: {
+      name: string;
     };
   };
 }
@@ -48,11 +43,7 @@ const AdminAppealsScreen: React.FC = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    loadAppeals();
-  }, [filter]);
-
-  const loadAppeals = async () => {
+  const loadAppeals = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('adminToken');
       if (!token) {
@@ -65,10 +56,11 @@ const AdminAppealsScreen: React.FC = () => {
         return;
       }
 
-      const url =
-        filter === 'all'
-          ? `${URL}/api/appeals/admin/appeals`
-          : `${URL}/api/appeals/admin/appeals?status=${filter}`;
+      // Fetch appeals with REPORT_SUSPENSION type
+      let url = `${URL}/api/job-appeals/admin/appeals?appealType=REPORT_SUSPENSION`;
+      if (filter !== 'all') {
+        url += `&status=${filter}`;
+      }
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -76,8 +68,9 @@ const AdminAppealsScreen: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setAppeals(data.data);
+        setAppeals(data.data.appeals || []);
       } else {
+        console.error('Failed to load appeals:', response.status);
         Alert.alert('Error', 'Failed to load appeals');
       }
     } catch (error) {
@@ -87,28 +80,27 @@ const AdminAppealsScreen: React.FC = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [filter, router]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAppeals();
+    }, [loadAppeals])
+  );
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
     loadAppeals();
-  }, [filter]);
-
-  const formatReportType = (type: string) => {
-    return type
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
+  }, [loadAppeals]);
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       PENDING: '#F59E0B',
       UNDER_REVIEW: '#3B82F6',
       ACCEPTED: '#10B981',
+      APPROVED: '#10B981',
       REJECTED: '#EF4444',
+      REJECTED_FINAL: '#EF4444',
     };
     return colors[status] || '#64748B';
   };
@@ -130,7 +122,7 @@ const AdminAppealsScreen: React.FC = () => {
     >
       <View style={styles.cardHeader}>
         <View style={styles.appealIdContainer}>
-          <Ionicons name="chatbox-ellipses" size={20} color="#8B5CF6" />
+          <Ionicons name="alert-circle" size={20} color="#8B5CF6" />
           <Text style={styles.appealId}>Appeal #{item.id}</Text>
         </View>
         <View
@@ -147,21 +139,14 @@ const AdminAppealsScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.reportInfo}>
-        <Ionicons name="flag" size={16} color="#EF4444" />
-        <Text style={styles.reportType}>
-          {formatReportType(item.report.reportType)}
-        </Text>
-      </View>
-
       <View style={styles.jobInfo}>
         <Ionicons name="briefcase-outline" size={16} color="#1E3A8A" />
         <Text style={styles.jobTitle} numberOfLines={1}>
-          {item.report.job.title}
+          {item.job.title}
         </Text>
       </View>
 
-      <Text style={styles.companyName}>{item.report.job.company.name}</Text>
+      <Text style={styles.companyName}>{item.job.company.name}</Text>
 
       <Text style={styles.explanation} numberOfLines={2}>
         {item.explanation}
@@ -180,10 +165,10 @@ const AdminAppealsScreen: React.FC = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="chatbox-ellipses-outline" size={80} color="#CBD5E1" />
-      <Text style={styles.emptyTitle}>No Appeals</Text>
+      <Text style={styles.emptyTitle}>No Suspended Job Appeals</Text>
       <Text style={styles.emptyText}>
-        There are no {filter !== 'all' ? filter.toLowerCase() : ''} appeals at
-        this time.
+        There are no {filter !== 'all' ? filter.toLowerCase() : ''} appeals for
+        suspended jobs at this time.
       </Text>
     </View>
   );
@@ -204,109 +189,83 @@ const AdminAppealsScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Appeals</Text>
+          <Text style={styles.headerTitle}>Job Appeals</Text>
           <Text style={styles.headerSubtitle}>
-            {appeals.length} {appeals.length === 1 ? 'appeal' : 'appeals'}
+            Suspended Jobs ({appeals.length})
           </Text>
         </View>
       </View>
 
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity
+        <TouchableOpacity
+          style={[styles.filterTab, filter === 'all' && styles.activeFilterTab]}
+          onPress={() => setFilter('all')}
+        >
+          <Text
             style={[
-              styles.filterTab,
-              filter === 'all' && styles.filterTabActive,
+              styles.filterText,
+              filter === 'all' && styles.activeFilterText,
             ]}
-            onPress={() => setFilter('all')}
           >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'all' && styles.filterTabTextActive,
-              ]}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            All
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            filter === 'PENDING' && styles.activeFilterTab,
+          ]}
+          onPress={() => setFilter('PENDING')}
+        >
+          <Text
             style={[
-              styles.filterTab,
-              filter === 'PENDING' && styles.filterTabActive,
+              styles.filterText,
+              filter === 'PENDING' && styles.activeFilterText,
             ]}
-            onPress={() => setFilter('PENDING')}
           >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'PENDING' && styles.filterTabTextActive,
-              ]}
-            >
-              Pending
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            Pending
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            filter === 'ACCEPTED' && styles.activeFilterTab,
+          ]}
+          onPress={() => setFilter('ACCEPTED')}
+        >
+          <Text
             style={[
-              styles.filterTab,
-              filter === 'UNDER_REVIEW' && styles.filterTabActive,
+              styles.filterText,
+              filter === 'ACCEPTED' && styles.activeFilterText,
             ]}
-            onPress={() => setFilter('UNDER_REVIEW')}
           >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'UNDER_REVIEW' && styles.filterTabTextActive,
-              ]}
-            >
-              Under Review
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            Approved
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            filter === 'REJECTED' && styles.activeFilterTab,
+          ]}
+          onPress={() => setFilter('REJECTED')}
+        >
+          <Text
             style={[
-              styles.filterTab,
-              filter === 'ACCEPTED' && styles.filterTabActive,
+              styles.filterText,
+              filter === 'REJECTED' && styles.activeFilterText,
             ]}
-            onPress={() => setFilter('ACCEPTED')}
           >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'ACCEPTED' && styles.filterTabTextActive,
-              ]}
-            >
-              Accepted
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              filter === 'REJECTED' && styles.filterTabActive,
-            ]}
-            onPress={() => setFilter('REJECTED')}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === 'REJECTED' && styles.filterTabTextActive,
-              ]}
-            >
-              Rejected
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+            Rejected
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Appeals List */}
       <FlatList
         data={appeals}
         renderItem={renderAppealCard}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={
-          appeals.length === 0
-            ? styles.emptyListContainer
-            : styles.listContainer
-        }
+        contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
@@ -321,25 +280,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#64748B',
-  },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 15,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
   headerContent: {
-    flex: 1,
+    flexDirection: 'column',
   },
   headerTitle: {
     fontSize: 24,
@@ -352,8 +301,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   filterContainer: {
-    paddingVertical: 12,
+    flexDirection: 'row',
     paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
@@ -362,37 +312,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F1F5F9',
+    marginRight: 10,
   },
-  filterTabActive: {
-    backgroundColor: '#1E3A8A',
+  activeFilterTab: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#3B82F6',
   },
-  filterTabText: {
+  filterText: {
     fontSize: 14,
-    fontWeight: '600',
     color: '#64748B',
+    fontWeight: '500',
   },
-  filterTabTextActive: {
-    color: '#FFFFFF',
+  activeFilterText: {
+    color: '#3B82F6',
+    fontWeight: '600',
   },
-  listContainer: {
+  listContent: {
     padding: 20,
+    paddingBottom: 40,
   },
-  emptyListContainer: {
-    flexGrow: 1,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#64748B',
+    fontSize: 16,
   },
   appealCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -403,73 +365,68 @@ const styles = StyleSheet.create({
   appealIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   appealId: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginLeft: 6,
   },
   statusBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 6,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  reportInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  reportType: {
-    fontSize: 14,
-    color: '#EF4444',
-    fontWeight: '500',
   },
   jobInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#EFF6FF',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   jobTitle: {
-    fontSize: 15,
-    color: '#1E3A8A',
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginLeft: 8,
     flex: 1,
   },
   companyName: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#64748B',
-    marginBottom: 8,
+    marginBottom: 12,
+    marginLeft: 24, // Align with job title
   },
   explanation: {
     fontSize: 14,
-    color: '#475569',
+    color: '#334155',
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: '#F8FAFC',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 12,
   },
   employerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
   },
   employerName: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#64748B',
+    marginLeft: 6,
+    fontWeight: '500',
   },
   dateText: {
     fontSize: 12,
@@ -478,20 +435,20 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
+    paddingTop: 60,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1E293B',
+    color: '#334155',
     marginTop: 16,
-    marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 20,
+    marginTop: 8,
+    maxWidth: 260,
   },
 });
 
