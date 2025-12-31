@@ -375,28 +375,34 @@ export async function generateResumePDF(
     </html>
   `;
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  console.log('Launching Puppeteer...');
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+    console.log('Puppeteer launched successfully');
 
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
 
-  const pdfUint8 = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: {
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    },
-  });
+    const pdfUint8 = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      },
+    });
 
-  const pdfBuffer = Buffer.from(pdfUint8);
+    const pdfBuffer = Buffer.from(pdfUint8);
 
-  await browser.close();
-
-  return pdfBuffer;
+    await browser.close();
+    return pdfBuffer;
+  } catch (error) {
+    console.error('Error in Puppeteer launch or PDF generation:', error);
+    throw error;
+  }
 }
