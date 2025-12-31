@@ -1744,14 +1744,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         nestedScrollEnabled={true}
       >
         {currentStepData.isProfileForm ? (
-          // ✅ ScrollView now directly inside KeyboardAvoidingView
-          <ScrollView
-            style={styles.formContainer}
-            contentContainerStyle={styles.formContentContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentInsetAdjustmentBehavior="automatic"
-          >
+          // ✅ View now directly inside KeyboardAvoidingView
+          <View style={[styles.formContentContainer, styles.formContainer]}>
             {/* Logo */}
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>BC</Text>
@@ -1763,7 +1757,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
               {renderProfileForm()}
             </View>
-          </ScrollView>
+          </View>
         ) : (
           // 🧭 Other screens that don't need scrolling
           <TouchableWithoutFeedback onPress={dismissKeyboard}>

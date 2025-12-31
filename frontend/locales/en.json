@@ -1113,6 +1113,7 @@
     "subtitle": "Please review our Terms of Service and Privacy Policy.",
     "lastUpdated": "Last updated: Jan 1, 2025",
     "agreeButton": "I Agree",
+    "disagreeButton": "I Disagree",
     "section": {
       "introduction": "Introduction",
       "introductionText": "By using this app, you agree to abide by our terms and policies designed to keep users safe and experiences fair.",

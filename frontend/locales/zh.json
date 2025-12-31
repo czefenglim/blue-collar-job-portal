@@ -1131,6 +1131,7 @@
     "subtitle": "请阅读我们的服务条款和隐私政策。",
     "lastUpdated": "最后更新：2025年1月1日",
     "agreeButton": "我同意",
+    "disagreeButton": "我不同意",
     "section": {
       "introduction": "简介",
       "introductionText": "使用本应用即表示您同意遵守我们的条款与政策，以保障用户安全并确保公平使用。",

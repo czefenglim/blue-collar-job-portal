@@ -37,7 +37,7 @@ export async function refineAnswers(answers: Answer[]) {
 
     try {
       const response = await cohere.chat({
-        model: 'command-r-plus',
+        model: 'command',
         messages: [
           {
             role: 'system',
