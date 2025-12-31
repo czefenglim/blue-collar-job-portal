@@ -84,6 +84,7 @@ export default function JobDetailPage() {
   const [appealExplanation, setAppealExplanation] = useState('');
   const [appealEvidence, setAppealEvidence] = useState<any[]>([]);
   const [submittingAppeal, setSubmittingAppeal] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchJobDetail = useCallback(async () => {
     try {

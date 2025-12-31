@@ -2074,7 +2074,7 @@
     "success": "Success",
     "freePlanActivated": "Free plan activated successfully!",
     "footerText": "All plans include access to our job seeker database and application management tools.",
-
+    "period": "per month",
     "free": {
       "name": "Free",
       "period": "per month",

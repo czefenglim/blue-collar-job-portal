@@ -2093,7 +2093,7 @@
     "success": "成功",
     "freePlanActivated": "免费计划已成功激活！",
     "footerText": "所有计划均包含访问求职者数据库和申请管理工具。",
-
+    "period": "每月",
     "free": {
       "name": "免费",
       "period": "每月",

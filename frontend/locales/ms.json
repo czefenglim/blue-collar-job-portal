@@ -2101,7 +2101,7 @@
     "success": "Berjaya",
     "freePlanActivated": "Pelan percuma diaktifkan dengan jayanya!",
     "footerText": "Semua pelan termasuk akses ke pangkalan data pencari kerja dan alat pengurusan permohonan.",
-
+    "period": "sebulan",
     "free": {
       "name": "Percuma",
       "period": "sebulan",
