@@ -342,7 +342,8 @@
       "password": "Masukkan kata laluan"
     },
     "actions": {
-      "signIn": "Log Masuk"
+      "signIn": "Log Masuk",
+      "cancel": "Batal"
     },
     "success": {
       "login": "Berjaya log masuk"

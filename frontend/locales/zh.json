@@ -342,7 +342,8 @@
       "password": "输入密码"
     },
     "actions": {
-      "signIn": "登录"
+      "signIn": "登录",
+      "cancel": "取消"
     },
     "success": {
       "login": "登录成功"

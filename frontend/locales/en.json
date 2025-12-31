@@ -342,7 +342,8 @@
       "password": "Enter password"
     },
     "actions": {
-      "signIn": "Sign In"
+      "signIn": "Sign In",
+      "cancel": "Cancel"
     },
     "success": {
       "login": "Logged in successfully"
