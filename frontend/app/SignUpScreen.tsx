@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -360,9 +361,18 @@ const SignUpScreen: React.FC = () => {
         >
           {/* Logo Section */}
           <View style={styles.logoSection}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>BC</Text>
-            </View>
+            <Image
+              source={require('../assets/images/Logo.png')}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                borderWidth: 2,
+                borderColor: '#1E3A8A',
+                marginBottom: 16,
+              }}
+              resizeMode="cover"
+            />
             <Text style={styles.appTitle}>{t('signUp.appTitle')}</Text>
             <Text style={styles.appSubtitle}>{t('signUp.appSubtitle')}</Text>
           </View>

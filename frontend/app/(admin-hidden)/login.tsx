@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -64,11 +65,17 @@ export default function AdminLoginScreen() {
           },
         ]);
       } else {
-        Alert.alert(t('adminLogin.errors.loginFailedTitle'), data.message || t('adminLogin.errors.invalidCredentials'));
+        Alert.alert(
+          t('adminLogin.errors.loginFailedTitle'),
+          data.message || t('adminLogin.errors.invalidCredentials')
+        );
       }
     } catch (error) {
       console.error('Admin login error:', error);
-      Alert.alert(t('common.error'), t('adminLogin.errors.serverConnectionFailed'));
+      Alert.alert(
+        t('common.error'),
+        t('adminLogin.errors.serverConnectionFailed')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +89,17 @@ export default function AdminLoginScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Ionicons name="shield-checkmark" size={64} color="#1E3A8A" />
+          <Image
+            source={require('../../assets/images/Logo.png')}
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              borderWidth: 2,
+              borderColor: '#1E3A8A',
+            }}
+            resizeMode="cover"
+          />
           <Text style={styles.title}>{t('adminLogin.headerTitle')}</Text>
           <Text style={styles.subtitle}>{t('adminLogin.headerSubtitle')}</Text>
         </View>
@@ -152,7 +169,9 @@ export default function AdminLoginScreen() {
             ) : (
               <>
                 <Ionicons name="log-in-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.loginButtonText}>{t('adminLogin.actions.signIn')}</Text>
+                <Text style={styles.loginButtonText}>
+                  {t('adminLogin.actions.signIn')}
+                </Text>
               </>
             )}
           </TouchableOpacity>
