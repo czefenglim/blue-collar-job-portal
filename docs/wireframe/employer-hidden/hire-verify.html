@@ -33,6 +33,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -62,91 +63,57 @@
         background: #fff;
         flex: 1;
       }
+      .text-line {
+        background-color: #e2e8f0;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 8px;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 500;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .text-line.large {
+        height: 24px;
+        font-size: 12px;
+      }
+      .text-line.dark {
+        background-color: #cbd5e1;
+        color: #475569;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        color: white;
+        height: 40px;
+        font-size: 12px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 12px;
+      }
+      .text-line.btn-outline {
+        border: 1px solid #2563eb;
+        background: white;
+        color: #2563eb;
+        height: 40px;
+        font-size: 12px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 12px;
+      }
       .card {
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 12px;
         background: #fff;
-      }
-      .row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .label {
-        font-size: 12px;
-        color: #94a3b8;
-        margin-bottom: 4px;
-        font-weight: 600;
-      }
-      .value {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-      }
-      .contract-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        height: 40px;
-        background: #eff6ff;
-        border: 1px dashed #bfdbfe;
-        border-radius: 12px;
-        color: var(--primary);
-        font-weight: 600;
-      }
-      .signature-box {
-        background: #f8fafc;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        height: 72px;
-        margin-bottom: 8px;
-      }
-      .verified-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        color: var(--success);
-        font-weight: 600;
-        font-size: 12px;
-      }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      .btn {
-        flex: 1;
-        height: 40px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-      }
-      .btn-outline {
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        background: #fff;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
       }
       .disclaimer {
         text-align: center;
@@ -164,45 +131,134 @@
       </div>
       <div class="header">
         <div
+          class="text-line center"
           style="
             width: 24px;
             height: 24px;
-            background: var(--primary);
             border-radius: 6px;
+            background: #1e3a8a;
+            color: white;
           "
-        ></div>
+        >
+          &lt;
+        </div>
         <div class="title">Verify Hire</div>
         <div style="width: 24px; height: 24px"></div>
       </div>
       <div class="content">
         <div class="card">
-          <div class="label">Job Details</div>
-          <div class="line" style="width: 70%"></div>
-          <div class="line" style="width: 40%"></div>
           <div
-            style="height: 1px; background: var(--border); margin: 12px 0"
-          ></div>
-          <div class="label">Offer Terms</div>
+            class="text-line large"
+            style="
+              margin-bottom: 8px;
+              background: transparent;
+              color: #94a3b8;
+              font-weight: 600;
+            "
+          >
+            Job Details
+          </div>
+          <div
+            class="text-line"
+            style="height: 14px; width: 70%; margin-bottom: 6px"
+          >
+            Job Title
+          </div>
+          <div
+            class="text-line"
+            style="height: 14px; width: 40%; margin-bottom: 6px"
+          >
+            Company
+          </div>
+          <div style="height: 1px; background: #e2e8f0; margin: 12px 0"></div>
+          <div
+            class="text-line large"
+            style="
+              margin-bottom: 8px;
+              background: transparent;
+              color: #94a3b8;
+              font-weight: 600;
+            "
+          >
+            Offer Terms
+          </div>
           <div style="display: flex; gap: 12px; margin-bottom: 8px">
             <div style="flex: 1">
-              <div class="label">Start Date</div>
-              <div class="value" style="width: 80%"></div>
+              <div
+                class="text-line"
+                style="margin-bottom: 4px; background: transparent"
+              >
+                Start Date
+              </div>
+              <div class="text-line" style="height: 14px; width: 80%">
+                2024-02-01
+              </div>
             </div>
             <div style="flex: 1">
-              <div class="label">Salary</div>
-              <div class="value" style="width: 80%"></div>
+              <div
+                class="text-line"
+                style="margin-bottom: 4px; background: transparent"
+              >
+                Salary
+              </div>
+              <div class="text-line" style="height: 14px; width: 80%">
+                $3,000/mo
+              </div>
             </div>
           </div>
-          <div class="contract-btn">View Contract PDF</div>
+          <div
+            class="text-line center"
+            style="
+              height: 40px;
+              background: #eff6ff;
+              border: 1px dashed #bfdbfe;
+              color: #1e3a8a;
+              font-weight: 600;
+              border-radius: 12px;
+            "
+          >
+            View Contract PDF
+          </div>
         </div>
 
         <div class="card">
-          <div class="label">Applicant Signature</div>
-          <div class="signature-box"></div>
-          <div class="verified-row">Signed electronically</div>
+          <div
+            class="text-line large"
+            style="
+              margin-bottom: 8px;
+              background: transparent;
+              color: #94a3b8;
+              font-weight: 600;
+            "
+          >
+            Applicant Signature
+          </div>
+          <div
+            class="text-line center"
+            style="
+              height: 72px;
+              margin-bottom: 8px;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+            "
+          >
+            Signature Placeholder
+          </div>
+          <div
+            class="text-line center"
+            style="
+              background: transparent;
+              color: #10b981;
+              font-weight: 600;
+              font-size: 12px;
+            "
+          >
+            Signed electronically
+          </div>
         </div>
 
-        <div class="btn btn-primary">Confirm & Hire</div>
+        <div class="text-line btn-primary">Confirm & Hire</div>
         <div class="disclaimer">
           By clicking "Confirm & Hire", you acknowledge the signed contract and
           accept the applicant.

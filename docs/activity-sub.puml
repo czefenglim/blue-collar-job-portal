@@ -18,7 +18,10 @@ if (Upgrade/Renew?) then (yes)
     :Update Subscription Status;
     :Unlock Features;
     :Show Success Message;
+  else (no)
+    :Show Payment Error;
   endif
+else (no)
 endif
 |Employer|
 if (Cancel?) then (yes)
@@ -28,7 +31,7 @@ if (Cancel?) then (yes)
   :Process Cancellation;
   :Set Expiry Date at Period End;
   :Show Confirmation;
+else (no)
 endif
 stop
 @enduml
-

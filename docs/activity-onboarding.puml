@@ -5,25 +5,28 @@ title Activity: Job Seeker Onboarding
 |Job Seeker|
 start
 repeat
-  if (Skip Personal Profile?) then (no)
+  if (Skip Personal Profile?) then (yes)
+  else (no)
     :Complete Personal Profile;
     |System|
     :Validate & Save Profile;
-    |Job Seeker|
   endif
-  if (Skip Preferred Industries?) then (no)
+  |Job Seeker|
+  if (Skip Preferred Industries?) then (yes)
+  else (no)
     :Select Preferred Industries;
     |System|
     :Save Preferences;
-    |Job Seeker|
   endif
-  if (Skip Resume Generation?) then (no)
+  |Job Seeker|
+  if (Skip Resume Generation?) then (yes)
+  else (no)
     :Initiate Resume Generation;
     |System|
     :Generate Resume (AI/Template);
     :Save Resume;
-    |Job Seeker|
   endif
+  |Job Seeker|
   |System|
   :Display Summary;
   |Job Seeker|

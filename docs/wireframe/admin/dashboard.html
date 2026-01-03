@@ -64,46 +64,10 @@
       .header-text {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-      }
-      .header-title {
-        font-size: 24px;
-        font-weight: 800;
-      }
-      .header-subtitle {
-        font-size: 14px;
-        opacity: 0.9;
-      }
-      .profile-btn {
-        width: 40px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: white;
-        backdrop-filter: blur(4px);
-      }
-
-      .content {
-        flex: 1;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        overflow-y: auto;
-      }
-
-      .section-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--primary);
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
         gap: 8px;
+      }
+      .section-title {
+        margin-bottom: 8px;
       }
 
       /* Card Style */
@@ -199,10 +163,39 @@
 
       <div class="header">
         <div class="header-text">
-          <div class="header-title">Dashboard</div>
-          <div class="header-subtitle">Welcome back, Admin</div>
+          <div
+            class="text-line large"
+            style="
+              width: 150px;
+              height: 24px;
+              background: rgba(255, 255, 255, 0.2);
+              color: white;
+            "
+          >
+            Dashboard
+          </div>
+          <div
+            class="text-line"
+            style="
+              width: 200px;
+              background: rgba(255, 255, 255, 0.1);
+              color: rgba(255, 255, 255, 0.9);
+            "
+          >
+            Welcome back, Admin
+          </div>
         </div>
-        <div class="profile-btn">
+        <div
+          class="text-line"
+          style="
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            justify-content: center;
+            color: white;
+          "
+        >
           <ion-icon name="log-out-outline"></ion-icon>
         </div>
       </div>
@@ -211,7 +204,18 @@
         <!-- Quick Navigation -->
         <div>
           <div class="section-title">
-            <span>Quick Access</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 120px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Quick Access
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark large" style="width: 60%">
@@ -227,7 +231,18 @@
         <!-- User Statistics -->
         <div>
           <div class="section-title">
-            <span>User Statistics</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 140px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              User Statistics
+            </div>
           </div>
           <div class="card">
             <div class="text-line green large" style="width: 50%">
@@ -242,7 +257,18 @@
         <!-- Company Statistics -->
         <div>
           <div class="section-title">
-            <span>Company Statistics</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 160px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Company Statistics
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark large" style="width: 70%">
@@ -257,7 +283,18 @@
         <!-- Job Statistics -->
         <div>
           <div class="section-title">
-            <span>Job Statistics</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 130px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Job Statistics
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark large" style="width: 60%">
@@ -272,7 +309,18 @@
         <!-- Recent Activity -->
         <div>
           <div class="section-title">
-            <span>Recent Activity</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 140px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Recent Activity
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark" style="width: 100%">
@@ -293,7 +341,18 @@
         <!-- Review Statistics -->
         <div>
           <div class="section-title">
-            <span>Review Statistics</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 150px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Review Statistics
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark large" style="width: 50%">Ratings</div>
@@ -305,7 +364,18 @@
         <!-- Subscription Plans -->
         <div>
           <div class="section-title">
-            <span>Subscription Plans</span>
+            <div
+              class="text-line large dark"
+              style="
+                width: 160px;
+                background: transparent;
+                color: var(--primary);
+                font-size: 18px;
+                padding-left: 0;
+              "
+            >
+              Subscription Plans
+            </div>
           </div>
           <div class="card">
             <div class="text-line dark large" style="width: 80%">

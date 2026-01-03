@@ -11,7 +11,6 @@
         --soft: #f8fafc;
         --muted: #64748b;
         --text: #334155;
-        --success: #10b981;
       }
       * {
         box-sizing: border-box;
@@ -35,7 +34,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow: visible;
       }
       .status-bar {
         height: 20px;
@@ -63,113 +62,214 @@
         color: #000;
       }
       .content {
-        padding: 16px;
+        padding: 24px 16px;
         background: #fff;
         flex: 1;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
       }
 
-      /* New Wireframe Block Style */
-      .wireframe-block {
-        width: 100%;
-        background: #eff6ff; /* Light Blue background */
-        border: 2px dashed #3b82f6; /* Blue dashed border */
-        border-radius: 12px;
+      /* Report.html style text-line */
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
         display: flex;
         align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.center {
         justify-content: center;
-        color: #1e3a8a;
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 16px;
-        text-align: center;
-        padding: 16px;
+        padding-left: 0;
       }
-
-      .actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 20px;
-        margin-bottom: 20px;
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
       }
-      .btn {
-        flex: 1;
+      .text-line.input {
         height: 40px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        cursor: pointer;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+      .text-line.btn-primary {
+        background: #1e3a8a;
+        color: white;
+        height: 44px;
         font-size: 14px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 8px;
       }
-      .btn-outline {
-        border: 1px solid var(--primary);
-        color: var(--primary);
+      .text-line.btn-outline {
         background: #fff;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        height: 44px;
+        font-size: 14px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 8px;
       }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
       }
     </style>
   </head>
   <body>
-    <div class="mobile-frame">
+    <div
+      class="mobile-frame"
+      style="height: auto; overflow: visible; padding-bottom: 20px"
+    >
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
         <div
+          class="text-line center"
           style="
             width: 24px;
             height: 24px;
-            background: var(--primary);
             border-radius: 6px;
-          "
-        ></div>
-        <div class="title">Hire</div>
-        <div style="width: 24px; height: 24px"></div>
-      </div>
-      <div class="content">
-        <!-- Simplified Sections -->
-
-        <div class="wireframe-block" style="height: 80px">
-          Start Date Selection
-        </div>
-
-        <div class="wireframe-block" style="height: 120px">
-          Contract Duration & Type<br />(Fixed/Permanent)
-        </div>
-
-        <div class="wireframe-block" style="height: 140px">
-          Salary Details<br />(Amount & Frequency)
-        </div>
-
-        <div class="wireframe-block" style="height: 80px">
-          Contract File Upload
-        </div>
-
-        <div class="wireframe-block" style="height: 100px">
-          Employer Confirmation & Compliance Checkboxes
-        </div>
-
-        <div
-          class="wireframe-block"
-          style="
-            height: 60px;
-            background: #f8fafc;
-            border-color: #94a3b8;
-            color: #475569;
+            background: #1e3a8a;
+            color: white;
           "
         >
-          Terms & Identity Verification Links
+          &lt;
+        </div>
+        <div class="title">Hire Candidate</div>
+        <div style="width: 24px"></div>
+      </div>
+
+      <div class="content">
+        <!-- Candidate Info Summary -->
+        <div
+          style="
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+          "
+        >
+          <div
+            class="text-line center"
+            style="width: 50px; height: 50px; border-radius: 25px"
+          >
+            Img
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div class="text-line large" style="width: 120px">
+              Candidate Name
+            </div>
+            <div class="text-line" style="width: 100px">Job Title</div>
+          </div>
+        </div>
+
+        <!-- Start Date -->
+        <div class="form-group">
+          <div class="text-line" style="width: 80px">Start Date</div>
+          <div class="text-line input" style="width: 100%">
+            Select start date...
+          </div>
+        </div>
+
+        <!-- Contract Type -->
+        <div class="form-group">
+          <div class="text-line" style="width: 100px">Contract Type</div>
+          <div class="text-line input" style="width: 100%">
+            Full-time / Part-time
+          </div>
+        </div>
+
+        <!-- Salary -->
+        <div class="form-group">
+          <div class="text-line" style="width: 60px">Salary</div>
+          <div style="display: flex; gap: 10px">
+            <div class="text-line input" style="flex: 2">Amount</div>
+            <div class="text-line input" style="flex: 1">Per Hour</div>
+          </div>
+        </div>
+
+        <!-- Contract File -->
+        <div class="form-group">
+          <div class="text-line" style="width: 120px">Contract Document</div>
+          <div
+            class="text-line center"
+            style="
+              width: 100%;
+              height: 80px;
+              border: 1px dashed #cbd5e1;
+              background: #f8fafc;
+              flex-direction: column;
+              gap: 4px;
+            "
+          >
+            <span style="font-size: 10px; color: #64748b">Upload PDF</span>
+            <div
+              class="text-line center"
+              style="width: 60px; height: 20px; background: #e2e8f0"
+            >
+              Choose
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="checkbox-row">
+          <div
+            class="text-line center"
+            style="width: 16px; height: 16px; flex-shrink: 0"
+          ></div>
+          <div
+            class="text-line"
+            style="
+              width: 100%;
+              height: auto;
+              white-space: normal;
+              line-height: 1.4;
+              padding: 4px;
+            "
+          >
+            I confirm that I have read and agreed to the hiring terms and
+            conditions.
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <div
+            class="text-line center"
+            style="width: 16px; height: 16px; flex-shrink: 0"
+          ></div>
+          <div
+            class="text-line"
+            style="
+              width: 100%;
+              height: auto;
+              white-space: normal;
+              line-height: 1.4;
+              padding: 4px;
+            "
+          >
+            I verify that the employment details provided above are accurate.
+          </div>
         </div>
 
         <!-- Actions -->
-        <div class="actions">
-          <div class="btn btn-outline">Cancel</div>
-          <div class="btn btn-primary">Send Job Offer</div>
+        <div style="display: flex; gap: 12px; margin-top: 10px">
+          <div class="text-line btn-outline" style="flex: 1">Cancel</div>
+          <div class="text-line btn-primary" style="flex: 1">Send Offer</div>
         </div>
       </div>
     </div>

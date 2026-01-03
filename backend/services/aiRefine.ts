@@ -35,13 +35,24 @@ export async function refineAnswers(answers: Answer[]) {
     const context =
       questionContext[ans.questionId] || 'general resume information';
 
-    try {
-      const response = await cohere.chat({
-        model: 'command-r-plus-08-2024',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a professional Resume Expert. Your task is to take a user's raw, informal, or simple answers and elaborate on them to create a professional, detailed resume description.
+    let retries = 0;
+    let success = false;
+    const MAX_RETRIES = 5;
+    let retryDelay = 2000; // Start with 2 seconds
+
+    while (retries < MAX_RETRIES && !success) {
+      try {
+        // Add a small delay before each request to prevent burst rate limiting
+        if (retries === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+
+        const response = await cohere.chat({
+          model: 'command-r-plus-08-2024',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a professional Resume Expert. Your task is to take a user's raw, informal, or simple answers and elaborate on them to create a professional, detailed resume description.
             
             GUIDELINES:
             1. Professional Tone: Convert "Manglish" (Malay-style English) or limited-literacy input into formal, high-quality resume language.
@@ -56,43 +67,62 @@ export async function refineAnswers(answers: Answer[]) {
             Refined Output: "Dedicated Professional Driver (2021–2025) providing reliable transportation and delivery services across Kuala Lumpur. Responsible for safe passenger transit, proficient navigation using GPS systems to ensure timely arrivals, and managing multi-tasking demands including food delivery services while maintaining high safety standards."
             
             Output only the final refined text with no extra explanation.`,
-          },
-          {
-            role: 'user',
-            content: `Question category: ${context}\nUser's raw answer: ${ans.answer}`,
-          },
-        ],
-      });
+            },
+            {
+              role: 'user',
+              content: `Question category: ${context}\nUser's raw answer: ${ans.answer}`,
+            },
+          ],
+        });
 
-      const text = response.message?.content
-        ?.filter(
-          (
-            c
-          ): c is Extract<
-            AssistantMessageResponseContentItem,
-            { type: 'text' }
-          > => c.type === 'text'
-        )
-        .map((c) => c.text)
-        .join(' ')
-        .trim();
+        const text = response.message?.content
+          ?.filter(
+            (
+              c
+            ): c is Extract<
+              AssistantMessageResponseContentItem,
+              { type: 'text' }
+            > => c.type === 'text'
+          )
+          .map((c) => c.text)
+          .join(' ')
+          .trim();
 
-      // Post-cleaning to ensure no AI-generated labels or bolding
-      const cleanedText = text
-        ?.replace(
-          /^(Education( Level)?|Experience|Achievement|Reference)[:\-]?\s*/i,
-          ''
-        )
-        ?.replace(/\*\*(.*?)\*\*/g, '$1')
-        ?.trim();
+        // Post-cleaning to ensure no AI-generated labels or bolding
+        const cleanedText = text
+          ?.replace(
+            /^(Education( Level)?|Experience|Achievement|Reference)[:\-]?\s*/i,
+            ''
+          )
+          ?.replace(/\*\*(.*?)\*\*/g, '$1')
+          ?.trim();
 
-      refined.push({
-        questionId: ans.questionId,
-        answer: cleanedText || ans.answer,
-      });
-    } catch (error) {
-      console.error('Cohere refinement error:', error);
-      refined.push(ans); // Fallback to original answer on error
+        refined.push({
+          questionId: ans.questionId,
+          answer: cleanedText || ans.answer,
+        });
+        success = true;
+      } catch (error: any) {
+        if (error.statusCode === 429 || error.message?.includes('429')) {
+          retries++;
+          console.warn(
+            `Cohere rate limit hit (429). Retrying in ${retryDelay}ms... (Attempt ${retries}/${MAX_RETRIES})`
+          );
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          retryDelay *= 2; // Exponential backoff
+        } else {
+          console.error('Cohere refinement error:', error);
+          refined.push(ans); // Fallback to original answer on non-429 error
+          break; // Don't retry for other errors
+        }
+      }
+    }
+
+    if (!success && retries >= MAX_RETRIES) {
+      console.error(
+        'Max retries reached for Cohere refinement. Using original answer.'
+      );
+      refined.push(ans);
     }
   }
 

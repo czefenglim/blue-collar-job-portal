@@ -34,6 +34,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -63,306 +64,286 @@
         background: #fff;
         flex: 1;
       }
-      .banner {
-        height: 40px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: #ffffff;
-      }
-      .banner-active {
-        background: var(--success);
-      }
-      .banner-closed {
-        background: var(--danger);
-      }
-      .banner-warn {
-        background: var(--warning);
-      }
       .box {
-        background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 12px;
         margin-bottom: 12px;
       }
-      .section-title {
-        font-weight: 700;
-        font-size: 14px;
-        color: #1e293b;
-        margin: 12px 0 8px;
-      }
-      .detail-row {
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 8px 12px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: var(--soft);
-        margin-bottom: 8px;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
       }
-      .label {
-        font-size: 12px;
-        color: var(--muted);
-        font-weight: 600;
-      }
-      .value {
-        width: 50%;
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 3px;
-      }
-      .meta-row {
-        display: flex;
-        gap: 12px;
-        margin-top: 8px;
-      }
-      .meta-pill {
-        flex: 1;
-        height: 28px;
-        border-radius: 8px;
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
-      }
-      .company-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .logo {
-        width: 56px;
-        height: 56px;
-        border-radius: 12px;
-        background: #e5e7eb;
-      }
-      .name-lines {
-        flex: 1;
-      }
-      .line {
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .stat-grid {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .stat-card {
-        flex: 1;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
-      }
-      .stat-title {
-        font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 6px;
-      }
-      .stat-bar {
-        height: 16px;
-        background: #e5e7eb;
-        border-radius: 6px;
-      }
-      .location-card {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
-        background: var(--soft);
-        margin-bottom: 8px;
-      }
-      .location-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        background: #e0e7ff;
-      }
-      .location-lines {
-        flex: 1;
-      }
-      .location-actions {
-        display: flex;
-        gap: 8px;
-      }
-      .action-pill {
-        flex: 1;
-        height: 32px;
-        border-radius: 8px;
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
-      }
-      .dates-row {
-        display: flex;
-        gap: 8px;
-      }
-      .date-card {
-        flex: 1;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 10px;
-        background: var(--soft);
-      }
-      .actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      .btn {
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
+      .text-line.center {
         justify-content: center;
-        font-weight: 600;
+        padding-left: 0;
+      }
+      .text-line.large {
+        height: 18px;
         font-size: 12px;
-        padding: 0 12px;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
-      }
-      .btn-outline {
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        background: #fff;
-      }
-      .action-bar {
-        position: sticky;
-        bottom: 0;
-        background: #fff;
-        border-top: 1px solid var(--border);
-        padding: 10px 16px;
-        display: flex;
-        gap: 8px;
-      }
-      .placeholder {
-        height: 60px;
-        background: #e5e7eb;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #334155;
-        font-weight: 600;
-        margin-bottom: 12px;
       }
     </style>
   </head>
   <body>
-    <div class="mobile-frame">
+    <div
+      class="mobile-frame"
+      style="height: auto; overflow: visible; padding-bottom: 20px"
+    >
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
         <div
+          class="text-line center"
           style="
             width: 24px;
             height: 24px;
-            background: var(--primary);
             border-radius: 6px;
+            background: #1e3a8a;
+            color: white;
           "
-        ></div>
+        >
+          &lt;
+        </div>
         <div class="title">Job Post Details</div>
         <div style="width: 24px"></div>
       </div>
       <div class="content">
-        <div class="banner banner-active">Active</div>
-        <div class="banner banner-warn">Pending Review</div>
-        <div class="banner banner-warn">AI Rejected</div>
+        <div class="text-line banner center" style="background: #10b981">
+          Active
+        </div>
+        <div class="text-line banner center" style="background: #f59e0b">
+          Pending Review
+        </div>
+        <div class="text-line banner center" style="background: #ef4444">
+          AI Rejected
+        </div>
 
         <div class="box">
-          <div class="company-header">
-            <div class="logo"></div>
-            <div class="name-lines">
-              <div class="line" style="width: 70%"></div>
-              <div class="line" style="width: 40%"></div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div class="text-line logo center">Logo</div>
+            <div style="flex: 1">
+              <div
+                class="text-line large"
+                style="width: 70%; margin-bottom: 6px"
+              >
+                Company Name
+              </div>
+              <div class="text-line" style="width: 40%">Location</div>
             </div>
           </div>
-          <div class="meta-row">
-            <div class="meta-pill"></div>
-            <div class="meta-pill"></div>
+          <div style="display: flex; gap: 12px; margin-top: 8px">
+            <div class="text-line pill center" style="flex: 1">Full-time</div>
+            <div class="text-line pill center" style="flex: 1">On-site</div>
           </div>
         </div>
 
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-title">Views</div>
-            <div class="stat-bar"></div>
+        <div style="display: flex; gap: 12px; margin-bottom: 12px">
+          <div class="box" style="flex: 1; margin-bottom: 0">
+            <div
+              class="text-line"
+              style="margin-bottom: 6px; background: transparent"
+            >
+              Views
+            </div>
+            <div class="text-line large center">1,234</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Applications</div>
-            <div class="stat-bar"></div>
-          </div>
-        </div>
-
-        <div class="section-title">Details</div>
-        <div class="detail-row">
-          <div class="label">Industry</div>
-          <div class="value"></div>
-        </div>
-        <div class="detail-row">
-          <div class="label">Working Hours</div>
-          <div class="value"></div>
-        </div>
-        <div class="detail-row">
-          <div class="label">Experience Level</div>
-          <div class="value"></div>
-        </div>
-        <div class="detail-row">
-          <div class="label">Salary</div>
-          <div class="value"></div>
-        </div>
-
-        <div class="section-title">Description</div>
-        <div class="placeholder">Job Description</div>
-
-        <div class="section-title">Requirements</div>
-        <div class="placeholder">Job Requirements</div>
-
-        <div class="section-title">Benefits</div>
-        <div class="placeholder">Job Benefits</div>
-
-        <div class="section-title">Location</div>
-        <div class="location-card">
-          <div class="location-icon"></div>
-          <div class="location-lines">
-            <div class="line" style="width: 60%"></div>
-            <div class="line" style="width: 40%"></div>
-            <div class="line" style="width: 50%"></div>
+          <div class="box" style="flex: 1; margin-bottom: 0">
+            <div
+              class="text-line"
+              style="margin-bottom: 6px; background: transparent"
+            >
+              Applications
+            </div>
+            <div class="text-line large center">56</div>
           </div>
         </div>
-        <div class="location-actions">
-          <div class="action-pill"></div>
-          <div class="action-pill"></div>
+
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Details
+        </div>
+        <div class="box">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+            "
+          >
+            <div class="text-line" style="background: transparent">
+              Industry
+            </div>
+            <div class="text-line center" style="width: 50%">Construction</div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+            "
+          >
+            <div class="text-line" style="background: transparent">
+              Working Hours
+            </div>
+            <div class="text-line center" style="width: 50%">9am - 6pm</div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+            "
+          >
+            <div class="text-line" style="background: transparent">
+              Experience Level
+            </div>
+            <div class="text-line center" style="width: 50%">Entry Level</div>
+          </div>
+          <div style="display: flex; justify-content: space-between">
+            <div class="text-line" style="background: transparent">Salary</div>
+            <div class="text-line center" style="width: 50%">$2,500/mo</div>
+          </div>
         </div>
 
-        <div class="section-title">Dates</div>
-        <div class="dates-row">
-          <div class="date-card">
-            <div class="label">Application Deadline</div>
-            <div class="line" style="width: 70%"></div>
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Description
+        </div>
+        <div class="text-line center" style="height: 60px; margin-bottom: 12px">
+          Job Description Placeholder
+        </div>
+
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Requirements
+        </div>
+        <div class="text-line center" style="height: 60px; margin-bottom: 12px">
+          Job Requirements Placeholder
+        </div>
+
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Benefits
+        </div>
+        <div class="text-line center" style="height: 60px; margin-bottom: 12px">
+          Job Benefits Placeholder
+        </div>
+
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Location
+        </div>
+        <div class="box">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 8px;
+            "
+          >
+            <div class="text-line icon center">Map</div>
+            <div style="flex: 1">
+              <div class="text-line" style="width: 80%; margin-bottom: 4px">
+                Address Line 1
+              </div>
+              <div class="text-line" style="width: 50%">City, State</div>
+            </div>
           </div>
-          <div class="date-card">
-            <div class="label">Expected Start Date</div>
-            <div class="line" style="width: 60%"></div>
+          <div style="display: flex; gap: 8px">
+            <div class="text-line pill center" style="flex: 1">
+              Get Directions
+            </div>
+            <div class="text-line pill center" style="flex: 1">
+              Copy Address
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="text-line large"
+          style="
+            margin: 12px 0 8px;
+            background: transparent;
+            color: #1e293b;
+            font-weight: 700;
+          "
+        >
+          Dates
+        </div>
+        <div style="display: flex; gap: 8px">
+          <div class="box" style="flex: 1; margin-bottom: 0">
+            <div
+              class="text-line"
+              style="margin-bottom: 6px; background: transparent"
+            >
+              Deadline
+            </div>
+            <div class="text-line center">2023-12-31</div>
+          </div>
+          <div class="box" style="flex: 1; margin-bottom: 0">
+            <div
+              class="text-line"
+              style="margin-bottom: 6px; background: transparent"
+            >
+              Start Date
+            </div>
+            <div class="text-line center">2024-01-15</div>
           </div>
         </div>
 
         <div style="height: 80px"></div>
       </div>
       <div class="action-bar">
-        <div class="btn btn-primary" style="flex: 1">Activate / Close</div>
-        <div class="btn btn-primary" style="flex: 1">Edit</div>
-        <div class="btn btn-outline" style="flex: 1">Delete</div>
+        <div class="text-line btn-primary" style="flex: 1">
+          Activate / Close
+        </div>
+        <div class="text-line btn-primary" style="flex: 1">Edit</div>
+        <div class="text-line btn-outline" style="flex: 1">Delete</div>
       </div>
     </div>
   </body>

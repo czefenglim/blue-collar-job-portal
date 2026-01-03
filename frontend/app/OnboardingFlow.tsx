@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Alert,
   Dimensions,
@@ -23,7 +23,10 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as WebBrowser from 'expo-web-browser';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAwareScrollView,
+  KeyboardAwareFlatList,
+} from 'react-native-keyboard-aware-scroll-view';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 const { width } = Dimensions.get('window');
@@ -129,6 +132,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   const [selectedLanguages, setSelectedLanguages] = useState<number[]>([]); // Change to numbe
   const [isGeneratingResume, setIsGeneratingResume] = useState(false);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+
+  const addressInputRef = useRef<GooglePlacesAutocomplete>(null);
 
   const [uploadingImage, setUploadingImage] = useState(false);
   // Autocomplete: track auto-filled state to default fields as read-only
@@ -951,598 +956,626 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     </Modal>
   );
 
-  const renderProfileForm = () => (
-    <View>
-      {/* Profile Picture Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.profilePicture')}
-        </Text>
-        <View style={styles.profilePictureContainer}>
-          <TouchableOpacity
-            style={styles.profilePictureButton}
-            onPress={handlePickImage}
-            disabled={uploadingImage} // ✅ Disable during upload
-          >
-            {uploadingImage ? (
-              // ✅ Show loading spinner during upload
-              <View style={styles.profilePicturePlaceholder}>
-                <ActivityIndicator size="large" color="#1E3A8A" />
-                <Text style={styles.profilePictureLabel}>Uploading...</Text>
-              </View>
-            ) : userProfile.profilePicture ? (
-              <Image
-                source={{ uri: userProfile.profilePicture }}
-                style={styles.profilePictureImage}
-              />
-            ) : (
-              <View style={styles.profilePicturePlaceholder}>
-                <Text style={styles.profilePicturePlaceholderText}>+</Text>
-                <Text style={styles.profilePictureLabel}>
-                  {t('onboarding.profileForm.addPhoto')}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Skills Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.skills')}
-        </Text>
-        <Text style={styles.inputLabel}>
-          {t('onboarding.profileForm.selectSkills')}
-        </Text>
-        <View style={styles.multiselectContainer}>
-          {skills.map((skill) => (
-            <TouchableOpacity
-              key={skill.id}
-              style={[
-                styles.multiselectItem,
-                selectedSkills.includes(skill.id) &&
-                  styles.multiselectItemSelected,
-              ]}
-              onPress={() => handleSkillToggle(skill.id)}
-            >
-              <Text
-                style={[
-                  styles.multiselectItemText,
-                  selectedSkills.includes(skill.id) &&
-                    styles.multiselectItemTextSelected,
-                ]}
-              >
-                {skill.name}
-              </Text>
-              {selectedSkills.includes(skill.id) && (
-                <Text style={styles.multiselectCheckmark}>✓</Text>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Languages Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.languages')}
-        </Text>
-        <Text style={styles.inputLabel}>
-          {t('onboarding.profileForm.selectLanguages')}
-        </Text>
-        <View style={styles.multiselectContainer}>
-          {languages.map((language) => (
-            <TouchableOpacity
-              key={language.id}
-              style={[
-                styles.multiselectItem,
-                selectedLanguages.includes(language.id) &&
-                  styles.multiselectItemSelected,
-              ]}
-              onPress={() => handleLanguageToggle(language.id)}
-            >
-              <Text
-                style={[
-                  styles.multiselectItemText,
-                  selectedLanguages.includes(language.id) &&
-                    styles.multiselectItemTextSelected,
-                ]}
-              >
-                {language.name}
-              </Text>
-              {selectedLanguages.includes(language.id) && (
-                <Text style={styles.multiselectCheckmark}>✓</Text>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Certification Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.certifications')}
-        </Text>
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.addCertifications')}
-          </Text>
-          <TextInput
-            style={[styles.textInput, styles.multilineInput]}
-            value={userProfile.certifications || ''}
-            onChangeText={(text) =>
-              handleProfileInputChange('certifications', text)
-            }
-            placeholder={t('onboarding.profileForm.certificationsPlaceholder')}
-            multiline
-            numberOfLines={3}
-            returnKeyType="done"
-            blurOnSubmit={true}
-          />
-          <Text style={styles.helperText}>
-            {t('onboarding.profileForm.certificationsHelper')}
-          </Text>
-        </View>
-      </View>
-
-      {/* Personal Information Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.personalInfo')}
-        </Text>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.dateOfBirth')}
-          </Text>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowDatePicker('dob')}
-          >
-            <Text style={styles.dateInputText}>
-              {userProfile.dateOfBirth
-                ? userProfile.dateOfBirth.toDateString()
-                : t('onboarding.profileForm.selectDate')}
+  const renderProfileItem = ({ item }: { item: string }) => {
+    switch (item) {
+      case 'profilePicture':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.profilePicture')}
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.gender')}
-          </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={userProfile.gender}
-              onValueChange={(value) =>
-                handleProfileInputChange('gender', value)
-              }
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              <Picker.Item
-                label={t('onboarding.profileForm.selectGender')}
-                value=""
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.male')}
-                value="MALE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.female')}
-                value="FEMALE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.other')}
-                value="OTHER"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.preferNotToSay')}
-                value="PREFER_NOT_TO_SAY"
-              />
-            </Picker>
+            <View style={styles.profilePictureContainer}>
+              <TouchableOpacity
+                style={styles.profilePictureButton}
+                onPress={handlePickImage}
+                disabled={uploadingImage} // ✅ Disable during upload
+              >
+                {uploadingImage ? (
+                  // ✅ Show loading spinner during upload
+                  <View style={styles.profilePicturePlaceholder}>
+                    <ActivityIndicator size="large" color="#1E3A8A" />
+                    <Text style={styles.profilePictureLabel}>Uploading...</Text>
+                  </View>
+                ) : userProfile.profilePicture ? (
+                  <Image
+                    source={{ uri: userProfile.profilePicture }}
+                    style={styles.profilePictureImage}
+                  />
+                ) : (
+                  <View style={styles.profilePicturePlaceholder}>
+                    <Text style={styles.profilePicturePlaceholderText}>+</Text>
+                    <Text style={styles.profilePictureLabel}>
+                      {t('onboarding.profileForm.addPhoto')}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        );
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.nationality')}
-          </Text>
-          <TextInput
-            style={styles.textInput}
-            value={userProfile.nationality || ''}
-            onChangeText={(text) =>
-              handleProfileInputChange('nationality', text)
-            }
-            placeholder={t('onboarding.profileForm.nationalityPlaceholder')}
-            returnKeyType="next"
-          />
-        </View>
-      </View>
+      case 'skills':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.skills')}
+            </Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.selectSkills')}
+            </Text>
+            <View style={styles.multiselectContainer}>
+              {skills.map((skill) => (
+                <TouchableOpacity
+                  key={skill.id}
+                  style={[
+                    styles.multiselectItem,
+                    selectedSkills.includes(skill.id) &&
+                      styles.multiselectItemSelected,
+                  ]}
+                  onPress={() => handleSkillToggle(skill.id)}
+                >
+                  <Text
+                    style={[
+                      styles.multiselectItemText,
+                      selectedSkills.includes(skill.id) &&
+                        styles.multiselectItemTextSelected,
+                    ]}
+                  >
+                    {skill.name}
+                  </Text>
+                  {selectedSkills.includes(skill.id) && (
+                    <Text style={styles.multiselectCheckmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
 
-      {/* Address Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.addressSection')}
-        </Text>
+      case 'languages':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.languages')}
+            </Text>
+            <Text style={styles.inputLabel}>
+              {t('onboarding.profileForm.selectLanguages')}
+            </Text>
+            <View style={styles.multiselectContainer}>
+              {languages.map((language) => (
+                <TouchableOpacity
+                  key={language.id}
+                  style={[
+                    styles.multiselectItem,
+                    selectedLanguages.includes(language.id) &&
+                      styles.multiselectItemSelected,
+                  ]}
+                  onPress={() => handleLanguageToggle(language.id)}
+                >
+                  <Text
+                    style={[
+                      styles.multiselectItemText,
+                      selectedLanguages.includes(language.id) &&
+                        styles.multiselectItemTextSelected,
+                    ]}
+                  >
+                    {language.name}
+                  </Text>
+                  {selectedLanguages.includes(language.id) && (
+                    <Text style={styles.multiselectCheckmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.address')}
-          </Text>
-          <GooglePlacesAutocomplete
-            placeholder={t('onboarding.profileForm.streetAddress')}
-            fetchDetails
-            enablePoweredByContainer={false}
-            debounce={300}
-            onFail={(error) => {
-              console.error('Places API error:', error);
-              Alert.alert(
-                t('common.error'),
-                'Failed to fetch address suggestions. You can type manually.'
-              );
-            }}
-            onPress={(data, details) => {
-              const parsed = parsePlaceDetails(details as PlaceDetails);
-              // Fill address
-              handleProfileInputChange('address', parsed.formatted);
-
-              // Auto-fill city/state/postcode and mark read-only by default
-              if (parsed.city) {
-                handleProfileInputChange('city', parsed.city);
-                setCityAutoFilled(true);
-              } else {
-                setCityAutoFilled(false);
-              }
-              if (parsed.stateName) {
-                handleProfileInputChange('state', parsed.stateName);
-                setStateAutoFilled(true);
-              } else {
-                setStateAutoFilled(false);
-              }
-              if (parsed.postcode) {
-                handleProfileInputChange('postcode', parsed.postcode);
-                setPostcodeAutoFilled(true);
-              } else {
-                setPostcodeAutoFilled(false);
-              }
-            }}
-            query={{
-              key: GOOGLE_MAPS_AUTOCOMPLETE_KEY,
-              language: 'en',
-              components: 'country:my',
-              types: 'address',
-            }}
-            textInputProps={{
-              style: styles.textInput,
-              placeholderTextColor: '#94A3B8',
-              value: userProfile.address || '',
-              multiline: false,
-              numberOfLines: 1,
-              onChangeText: (text: string) => {
-                handleProfileInputChange('address', text);
-                if (!text || text.trim() === '') {
-                  // Clear dependent fields when address is cleared manually
-                  handleProfileInputChange('city', '');
-                  handleProfileInputChange('state', '');
-                  handleProfileInputChange('postcode', '');
-                  setCityAutoFilled(false);
-                  setStateAutoFilled(false);
-                  setPostcodeAutoFilled(false);
+      case 'certifications':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.certifications')}
+            </Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.addCertifications')}
+              </Text>
+              <TextInput
+                style={[styles.textInput, styles.multilineInput]}
+                value={userProfile.certifications || ''}
+                onChangeText={(text) =>
+                  handleProfileInputChange('certifications', text)
                 }
-              },
-            }}
-            styles={{
-              container: {
-                flex: 0,
-                width: '100%',
-                alignSelf: 'stretch',
-              },
-              textInputContainer: {
-                paddingHorizontal: 0,
-                width: '100%',
-                backgroundColor: 'transparent',
-              },
-              textInput: {
-                height: 50,
-                width: '100%',
-                borderWidth: 1,
-                borderColor: '#D1D5DB',
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                fontSize: 16,
-                color: '#1F2937',
-                backgroundColor: '#FFFFFF',
-                marginBottom: 0,
-                textAlign: 'left',
-              },
-              listView: {
-                backgroundColor: '#FFFFFF',
-                borderRadius: 8,
-                maxHeight: 160,
-                shadowColor: '#000',
-                shadowOpacity: 0.08,
-                shadowRadius: 6,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 3,
-                marginTop: 4,
-                marginBottom: 36,
-              },
-              row: {
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-              },
-              separator: { height: 1, backgroundColor: '#E2E8F0' },
-              description: { color: '#0F172A' },
-            }}
-          />
-        </View>
+                placeholder={t(
+                  'onboarding.profileForm.certificationsPlaceholder'
+                )}
+                multiline
+                numberOfLines={3}
+                returnKeyType="done"
+                blurOnSubmit={true}
+              />
+              <Text style={styles.helperText}>
+                {t('onboarding.profileForm.certificationsHelper')}
+              </Text>
+            </View>
+          </View>
+        );
 
-        <View style={styles.rowInputs}>
-          <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>
-              {t('onboarding.profileForm.city')} *
+      case 'personalInfo':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.personalInfo')}
             </Text>
-            <TextInput
-              style={styles.textInput}
-              value={userProfile.city || ''}
-              onChangeText={(text) => {
-                handleProfileInputChange('city', text);
-                setCityAutoFilled(false);
-              }}
-              placeholder={t('onboarding.profileForm.cityPlaceholder')}
-              returnKeyType="next"
-              editable={!cityAutoFilled}
-              onPressIn={() => setCityAutoFilled(false)}
-            />
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.dateOfBirth')}
+              </Text>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowDatePicker('dob')}
+              >
+                <Text style={styles.dateInputText}>
+                  {userProfile.dateOfBirth
+                    ? userProfile.dateOfBirth.toDateString()
+                    : t('onboarding.profileForm.selectDate')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.gender')}
+              </Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={userProfile.gender}
+                  onValueChange={(value) =>
+                    handleProfileInputChange('gender', value)
+                  }
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                >
+                  <Picker.Item
+                    label={t('onboarding.profileForm.selectGender')}
+                    value=""
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.male')}
+                    value="MALE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.female')}
+                    value="FEMALE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.other')}
+                    value="OTHER"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.preferNotToSay')}
+                    value="PREFER_NOT_TO_SAY"
+                  />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.nationality')}
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                value={userProfile.nationality || ''}
+                onChangeText={(text) =>
+                  handleProfileInputChange('nationality', text)
+                }
+                placeholder={t('onboarding.profileForm.nationalityPlaceholder')}
+                returnKeyType="next"
+              />
+            </View>
           </View>
-          <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>
-              {t('onboarding.profileForm.state')} *
+        );
+
+      case 'address':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.addressSection')}
             </Text>
-            <TextInput
-              style={styles.textInput}
-              value={userProfile.state || ''}
-              onChangeText={(text) => {
-                handleProfileInputChange('state', text);
-                setStateAutoFilled(false);
-              }}
-              placeholder={t('onboarding.profileForm.statePlaceholder')}
-              returnKeyType="next"
-              editable={!stateAutoFilled}
-              onPressIn={() => setStateAutoFilled(false)}
-            />
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.address')}
+              </Text>
+              <GooglePlacesAutocomplete
+                ref={addressInputRef}
+                placeholder={t('onboarding.profileForm.streetAddress')}
+                fetchDetails
+                enablePoweredByContainer={false}
+                debounce={300}
+                onFail={(error) => {
+                  console.error('Places API error:', error);
+                  Alert.alert(
+                    t('common.error'),
+                    'Failed to fetch address suggestions. You can type manually.'
+                  );
+                }}
+                onPress={(data, details) => {
+                  // Collapse dropdown
+                  Keyboard.dismiss();
+
+                  const parsed = parsePlaceDetails(details as PlaceDetails);
+
+                  // Update internal text to ensure sync
+                  addressInputRef.current?.setAddressText(parsed.formatted);
+
+                  // Fill address
+                  handleProfileInputChange('address', parsed.formatted);
+
+                  // Auto-fill city/state/postcode and mark read-only by default
+                  if (parsed.city) {
+                    handleProfileInputChange('city', parsed.city);
+                    setCityAutoFilled(true);
+                  } else {
+                    setCityAutoFilled(false);
+                  }
+                  if (parsed.stateName) {
+                    handleProfileInputChange('state', parsed.stateName);
+                    setStateAutoFilled(true);
+                  } else {
+                    setStateAutoFilled(false);
+                  }
+                  if (parsed.postcode) {
+                    handleProfileInputChange('postcode', parsed.postcode);
+                    setPostcodeAutoFilled(true);
+                  } else {
+                    setPostcodeAutoFilled(false);
+                  }
+                }}
+                query={{
+                  key: GOOGLE_MAPS_AUTOCOMPLETE_KEY,
+                  language: 'en',
+                  components: 'country:my',
+                  types: 'address',
+                }}
+                textInputProps={{
+                  style: styles.textInput,
+                  placeholderTextColor: '#94A3B8',
+                  value: userProfile.address || '',
+                  multiline: false,
+                  numberOfLines: 1,
+                  onChangeText: (text: string) => {
+                    handleProfileInputChange('address', text);
+                    if (!text || text.trim() === '') {
+                      // Clear dependent fields when address is cleared manually
+                      handleProfileInputChange('city', '');
+                      handleProfileInputChange('state', '');
+                      handleProfileInputChange('postcode', '');
+                      setCityAutoFilled(false);
+                      setStateAutoFilled(false);
+                      setPostcodeAutoFilled(false);
+                    }
+                  },
+                }}
+                styles={{
+                  container: {
+                    flex: 0,
+                    width: '100%',
+                    alignSelf: 'stretch',
+                  },
+                  textInputContainer: {
+                    paddingHorizontal: 0,
+                    width: '100%',
+                    backgroundColor: 'transparent',
+                  },
+                  textInput: {
+                    height: 50,
+                    width: '100%',
+                    borderWidth: 1,
+                    borderColor: '#D1D5DB',
+                    borderRadius: 8,
+                    paddingHorizontal: 16,
+                    fontSize: 16,
+                    color: '#1F2937',
+                    backgroundColor: '#FFFFFF',
+                    marginBottom: 0,
+                    textAlign: 'left',
+                  },
+                  listView: {
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 8,
+                    maxHeight: 160,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.08,
+                    shadowRadius: 6,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 3,
+                    marginTop: 4,
+                    marginBottom: 36,
+                  },
+                  row: {
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                  },
+                  separator: { height: 1, backgroundColor: '#E2E8F0' },
+                  description: { color: '#0F172A' },
+                }}
+              />
+            </View>
+
+            <View style={styles.rowInputs}>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>
+                  {t('onboarding.profileForm.city')} *
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userProfile.city || ''}
+                  onChangeText={(text) => {
+                    handleProfileInputChange('city', text);
+                    setCityAutoFilled(false);
+                  }}
+                  placeholder={t('onboarding.profileForm.cityPlaceholder')}
+                  returnKeyType="next"
+                  editable={!cityAutoFilled}
+                  onPressIn={() => setCityAutoFilled(false)}
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>
+                  {t('onboarding.profileForm.state')} *
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userProfile.state || ''}
+                  onChangeText={(text) => {
+                    handleProfileInputChange('state', text);
+                    setStateAutoFilled(false);
+                  }}
+                  placeholder={t('onboarding.profileForm.statePlaceholder')}
+                  returnKeyType="next"
+                  editable={!stateAutoFilled}
+                  onPressIn={() => setStateAutoFilled(false)}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.postcode')}
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                value={userProfile.postcode || ''}
+                onChangeText={(text) => {
+                  handleProfileInputChange('postcode', text);
+                  setPostcodeAutoFilled(false);
+                }}
+                placeholder={t('onboarding.profileForm.postcodePlaceholder')}
+                keyboardType="numeric"
+                returnKeyType="next"
+                editable={!postcodeAutoFilled}
+                onPressIn={() => setPostcodeAutoFilled(false)}
+              />
+            </View>
           </View>
-        </View>
+        );
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.postcode')}
-          </Text>
-          <TextInput
-            style={styles.textInput}
-            value={userProfile.postcode || ''}
-            onChangeText={(text) => {
-              handleProfileInputChange('postcode', text);
-              setPostcodeAutoFilled(false);
-            }}
-            placeholder={t('onboarding.profileForm.postcodePlaceholder')}
-            keyboardType="numeric"
-            returnKeyType="next"
-            editable={!postcodeAutoFilled}
-            onPressIn={() => setPostcodeAutoFilled(false)}
-          />
-        </View>
-      </View>
-
-      {/* Job Preferences Section */}
-      <View style={styles.formSection}>
-        <Text style={styles.sectionTitle}>
-          {t('onboarding.profileForm.jobPreferences')}
-        </Text>
-
-        <View style={styles.rowInputs}>
-          <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>
-              {t('onboarding.profileForm.minSalary')}
+      case 'jobPreferences':
+        return (
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>
+              {t('onboarding.profileForm.jobPreferences')}
             </Text>
-            <TextInput
-              style={styles.textInput}
-              value={userProfile.preferredSalaryMin?.toString() || ''}
-              onChangeText={(text) =>
-                handleProfileInputChange(
-                  'preferredSalaryMin',
-                  parseInt(text) || undefined
-                )
-              }
-              placeholder={t('onboarding.profileForm.minSalaryPlaceholder')}
-              keyboardType="numeric"
-              returnKeyType="next"
-            />
+
+            <View style={styles.rowInputs}>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>
+                  {t('onboarding.profileForm.minSalary')}
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userProfile.preferredSalaryMin?.toString() || ''}
+                  onChangeText={(text) =>
+                    handleProfileInputChange(
+                      'preferredSalaryMin',
+                      parseInt(text) || undefined
+                    )
+                  }
+                  placeholder={t('onboarding.profileForm.minSalaryPlaceholder')}
+                  keyboardType="numeric"
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <Text style={styles.inputLabel}>
+                  {t('onboarding.profileForm.maxSalary')}
+                </Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={userProfile.preferredSalaryMax?.toString() || ''}
+                  onChangeText={(text) =>
+                    handleProfileInputChange(
+                      'preferredSalaryMax',
+                      parseInt(text) || undefined
+                    )
+                  }
+                  placeholder={t('onboarding.profileForm.maxSalaryPlaceholder')}
+                  keyboardType="numeric"
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.availableFrom')}
+              </Text>
+              <TouchableOpacity
+                style={styles.dateInput}
+                onPress={() => setShowDatePicker('available')}
+              >
+                <Text style={styles.dateInputText}>
+                  {userProfile.availableFrom
+                    ? userProfile.availableFrom.toDateString()
+                    : t('onboarding.profileForm.selectDate')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.workingHours')}
+              </Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={userProfile.workingHours}
+                  onValueChange={(value) =>
+                    handleProfileInputChange('workingHours', value)
+                  }
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                >
+                  <Picker.Item
+                    label={t('onboarding.profileForm.selectWorkingHours')}
+                    value=""
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.dayShift')}
+                    value="DAY_SHIFT"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.nightShift')}
+                    value="NIGHT_SHIFT"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.rotatingShift')}
+                    value="ROTATING_SHIFT"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.flexible')}
+                    value="FLEXIBLE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.weekendOnly')}
+                    value="WEEKEND_ONLY"
+                  />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.transportMode')}
+              </Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={userProfile.transportMode}
+                  onValueChange={(value) =>
+                    handleProfileInputChange('transportMode', value)
+                  }
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                >
+                  <Picker.Item
+                    label={t('onboarding.profileForm.selectTransport')}
+                    value=""
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.ownVehicle')}
+                    value="OWN_VEHICLE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.publicTransport')}
+                    value="PUBLIC_TRANSPORT"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.companyTransport')}
+                    value="COMPANY_TRANSPORT"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.motorcycle')}
+                    value="MOTORCYCLE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.bicycle')}
+                    value="BICYCLE"
+                  />
+                  <Picker.Item
+                    label={t('onboarding.profileForm.walking')}
+                    value="WALKING"
+                  />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.maxTravelDistance')}
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                value={userProfile.maxTravelDistance?.toString() || ''}
+                onChangeText={(text) =>
+                  handleProfileInputChange(
+                    'maxTravelDistance',
+                    parseInt(text) || undefined
+                  )
+                }
+                placeholder={t('onboarding.profileForm.maxTravelPlaceholder')}
+                keyboardType="numeric"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                {t('onboarding.profileForm.experienceYears')}
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                value={userProfile.experienceYears?.toString() || ''}
+                onChangeText={(text) =>
+                  handleProfileInputChange(
+                    'experienceYears',
+                    parseInt(text) || 0
+                  )
+                }
+                placeholder={t('onboarding.profileForm.experiencePlaceholder')}
+                keyboardType="numeric"
+                returnKeyType="done"
+              />
+            </View>
           </View>
-          <View style={styles.halfInput}>
-            <Text style={styles.inputLabel}>
-              {t('onboarding.profileForm.maxSalary')}
-            </Text>
-            <TextInput
-              style={styles.textInput}
-              value={userProfile.preferredSalaryMax?.toString() || ''}
-              onChangeText={(text) =>
-                handleProfileInputChange(
-                  'preferredSalaryMax',
-                  parseInt(text) || undefined
-                )
-              }
-              placeholder={t('onboarding.profileForm.maxSalaryPlaceholder')}
-              keyboardType="numeric"
-              returnKeyType="next"
-            />
-          </View>
-        </View>
+        );
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.availableFrom')}
-          </Text>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowDatePicker('available')}
-          >
-            <Text style={styles.dateInputText}>
-              {userProfile.availableFrom
-                ? userProfile.availableFrom.toDateString()
-                : t('onboarding.profileForm.selectDate')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+      default:
+        return null;
+    }
+  };
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.workingHours')}
-          </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={userProfile.workingHours}
-              onValueChange={(value) =>
-                handleProfileInputChange('workingHours', value)
-              }
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              <Picker.Item
-                label={t('onboarding.profileForm.selectWorkingHours')}
-                value=""
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.dayShift')}
-                value="DAY_SHIFT"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.nightShift')}
-                value="NIGHT_SHIFT"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.rotatingShift')}
-                value="ROTATING_SHIFT"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.flexible')}
-                value="FLEXIBLE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.weekendOnly')}
-                value="WEEKEND_ONLY"
-              />
-            </Picker>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.transportMode')}
-          </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={userProfile.transportMode}
-              onValueChange={(value) =>
-                handleProfileInputChange('transportMode', value)
-              }
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              <Picker.Item
-                label={t('onboarding.profileForm.selectTransport')}
-                value=""
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.ownVehicle')}
-                value="OWN_VEHICLE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.publicTransport')}
-                value="PUBLIC_TRANSPORT"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.companyTransport')}
-                value="COMPANY_TRANSPORT"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.motorcycle')}
-                value="MOTORCYCLE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.bicycle')}
-                value="BICYCLE"
-              />
-              <Picker.Item
-                label={t('onboarding.profileForm.walking')}
-                value="WALKING"
-              />
-            </Picker>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.maxTravelDistance')}
-          </Text>
-          <TextInput
-            style={styles.textInput}
-            value={userProfile.maxTravelDistance?.toString() || ''}
-            onChangeText={(text) =>
-              handleProfileInputChange(
-                'maxTravelDistance',
-                parseInt(text) || undefined
-              )
-            }
-            placeholder={t('onboarding.profileForm.maxTravelPlaceholder')}
-            keyboardType="numeric"
-            returnKeyType="next"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>
-            {t('onboarding.profileForm.experienceYears')}
-          </Text>
-          <TextInput
-            style={styles.textInput}
-            value={userProfile.experienceYears?.toString() || ''}
-            onChangeText={(text) =>
-              handleProfileInputChange('experienceYears', parseInt(text) || 0)
-            }
-            placeholder={t('onboarding.profileForm.experiencePlaceholder')}
-            keyboardType="numeric"
-            returnKeyType="done"
-          />
-        </View>
-      </View>
-
-      {/* Bottom spacer for better scrolling */}
-      <View style={{ height: 100 }} />
-
-      {showDatePicker && (
-        <DateTimePickerModal
-          isVisible={showDatePicker !== null}
-          mode="date"
-          date={
-            showDatePicker === 'dob'
-              ? userProfile.dateOfBirth || new Date()
-              : userProfile.availableFrom || new Date()
-          }
-          onConfirm={(selectedDate) => {
-            handleProfileInputChange(
-              showDatePicker === 'dob' ? 'dateOfBirth' : 'availableFrom',
-              selectedDate
-            );
-            setShowDatePicker(null);
-          }}
-          onCancel={() => setShowDatePicker(null)}
-        />
-      )}
-    </View>
-  );
+  const renderDatePicker = () =>
+    showDatePicker && (
+      <DateTimePickerModal
+        isVisible={showDatePicker !== null}
+        mode="date"
+        date={
+          showDatePicker === 'dob'
+            ? userProfile.dateOfBirth || new Date()
+            : userProfile.availableFrom || new Date()
+        }
+        onConfirm={(selectedDate) => {
+          handleProfileInputChange(
+            showDatePicker === 'dob' ? 'dateOfBirth' : 'availableFrom',
+            selectedDate
+          );
+          setShowDatePicker(null);
+        }}
+        onCancel={() => setShowDatePicker(null)}
+      />
+    );
 
   const renderIndustrySelection = () => (
     <View style={styles.industriesContainer}>
@@ -1737,29 +1770,40 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       )}
 
       {/* ✅ Fixed layout for keyboard behavior */}
-      <KeyboardAwareScrollView
-        extraScrollHeight={60}
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}
-      >
-        {currentStepData.isProfileForm ? (
-          // ✅ View now directly inside KeyboardAvoidingView
-          <View style={[styles.formContentContainer, styles.formContainer]}>
-            {/* Logo */}
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>BC</Text>
-            </View>
-
-            {/* Content */}
+      {currentStepData.isProfileForm ? (
+        <KeyboardAwareFlatList
+          data={[
+            'profilePicture',
+            'skills',
+            'languages',
+            'certifications',
+            'personalInfo',
+            'address',
+            'jobPreferences',
+          ]}
+          renderItem={renderProfileItem}
+          keyExtractor={(item) => item}
+          ListHeaderComponent={
             <View style={styles.textContainer}>
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>BC</Text>
+              </View>
               <Text style={styles.title}>{currentStepData.title}</Text>
               <Text style={styles.subtitle}>{currentStepData.subtitle}</Text>
-              {renderProfileForm()}
             </View>
-          </View>
-        ) : (
-          // 🧭 Other screens that don't need scrolling
+          }
+          contentContainerStyle={styles.formContainer}
+          extraScrollHeight={60}
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+        />
+      ) : (
+        <KeyboardAwareScrollView
+          extraScrollHeight={60}
+          enableOnAndroid
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+        >
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <View style={styles.content}>
               {/* Logo */}
@@ -1787,8 +1831,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
                 )}
                 {currentStepData.isResumePreview && renderResumePreview()}
 
-                {!currentStepData.isProfileForm &&
-                  !currentStepData.isIndustrySelection &&
+                {!currentStepData.isIndustrySelection &&
                   !currentStepData.isResumeQuestions &&
                   !currentStepData.isResumePreview && (
                     <Text style={styles.description}>
@@ -1798,8 +1841,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
               </View>
             </View>
           </TouchableWithoutFeedback>
-        )}
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+      )}
+
+      {renderDatePicker()}
 
       {/* Bottom Buttons */}
       {currentStepData.isResumePreview ? (

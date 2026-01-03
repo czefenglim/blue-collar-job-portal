@@ -31,6 +31,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -110,10 +111,25 @@
         color: var(--primary);
         background: #fff;
       }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
     </style>
   </head>
   <body>
-    <div class="mobile-frame">
+    <div
+      class="mobile-frame"
+      style="height: auto; overflow: visible; padding-bottom: 20px"
+    >
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
@@ -126,14 +142,7 @@
         </div>
         <div class="card">
           <div class="row">
-            <div
-              style="
-                height: 14px;
-                width: 60%;
-                background: #e5e7eb;
-                border-radius: 3px;
-              "
-            ></div>
+            <div class="text-line" style="width: 60%">Job Title</div>
             <div class="meta">3 applicants</div>
           </div>
           <div class="actions">
@@ -143,14 +152,7 @@
         </div>
         <div class="card">
           <div class="row">
-            <div
-              style="
-                height: 14px;
-                width: 50%;
-                background: #e5e7eb;
-                border-radius: 3px;
-              "
-            ></div>
+            <div class="text-line" style="width: 50%">Job Title</div>
             <div class="meta">0 applicants</div>
           </div>
           <div class="actions">

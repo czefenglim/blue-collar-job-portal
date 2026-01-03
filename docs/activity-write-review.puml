@@ -7,18 +7,22 @@ start
 :View Company List;
 if (Search needed?) then (yes)
   :Search Company Keyword;
+else (no)
 endif
 :Select Company;
 :Click "Write Review";
 :Rate (1-5 Stars);
 if (Add Title?) then (yes)
   :Input Review Title;
+else (no)
 endif
 if (Add Content?) then (yes)
   :Input Review Content;
+else (no)
 endif
 if (Post Anonymously?) then (yes)
   :Check "Post Anonymously";
+else (no)
 endif
 :Click Submit;
 |System|
@@ -26,4 +30,3 @@ endif
 :Show Success Message;
 stop
 @enduml
-

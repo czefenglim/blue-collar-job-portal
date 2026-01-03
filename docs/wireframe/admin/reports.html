@@ -31,6 +31,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -54,6 +55,11 @@
         height: 24px;
         background: #cbd5e1;
         border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
       }
       .title {
         font-weight: 700;
@@ -67,18 +73,30 @@
         overflow-y: auto;
       }
 
-      .date-picker {
-        height: 40px;
-        background: var(--soft);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        margin-bottom: 16px;
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        color: var(--muted);
-        font-size: 12px;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
         font-weight: 600;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #334155;
+      }
+      .text-line.blue {
+        background: #eff6ff;
+        color: #1e3a8a;
       }
 
       .chart-card {
@@ -127,29 +145,17 @@
         height: 32px;
         background: #e0e7ff;
         border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
       }
       .report-info {
         flex: 1;
         margin-left: 12px;
-      }
-      .line-lg {
-        height: 12px;
-        width: 70%;
-        background: #334155;
-        border-radius: 3px;
-        margin-bottom: 4px;
-      }
-      .line-sm {
-        height: 10px;
-        width: 40%;
-        background: #94a3b8;
-        border-radius: 2px;
-      }
-      .download-icon {
-        width: 24px;
-        height: 24px;
-        background: #f1f5f9;
-        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
     </style>
   </head>
@@ -159,12 +165,25 @@
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
-        <div class="back-btn"></div>
+        <div class="back-btn">←</div>
         <div class="title">Reports</div>
         <div style="width: 24px"></div>
       </div>
       <div class="content">
-        <div class="date-picker">Last 30 Days</div>
+        <div
+          class="text-line"
+          style="
+            height: 40px;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--soft);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+          "
+        >
+          Last 30 Days
+        </div>
 
         <div class="chart-card">
           <div class="chart-title">Revenue Overview</div>
@@ -196,20 +215,34 @@
 
         <div style="font-weight: 700; margin-bottom: 8px">Recent Reports</div>
         <div class="report-list-item">
-          <div class="report-icon"></div>
+          <div class="report-icon">⚠️</div>
           <div class="report-info">
-            <div class="line-lg"></div>
-            <div class="line-sm"></div>
+            <div class="text-line dark large" style="width: 70%">
+              Harassment Report
+            </div>
+            <div class="text-line" style="width: 40%">ID: #12345</div>
           </div>
-          <div class="download-icon"></div>
+          <div
+            class="text-line"
+            style="width: 24px; height: 24px; justify-content: center"
+          >
+            ⬇️
+          </div>
         </div>
         <div class="report-list-item">
-          <div class="report-icon"></div>
+          <div class="report-icon">🚫</div>
           <div class="report-info">
-            <div class="line-lg"></div>
-            <div class="line-sm"></div>
+            <div class="text-line dark large" style="width: 70%">
+              Fake Job Posting
+            </div>
+            <div class="text-line" style="width: 40%">ID: #67890</div>
           </div>
-          <div class="download-icon"></div>
+          <div
+            class="text-line"
+            style="width: 24px; height: 24px; justify-content: center"
+          >
+            ⬇️
+          </div>
         </div>
       </div>
     </div>

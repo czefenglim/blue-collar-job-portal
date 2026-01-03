@@ -10,23 +10,25 @@ start
 |Employer|
 if (Edit Company Info?) then (yes)
   :Edit Company Info;
+else (no)
 endif
 :Upload Logo / Banner;
 if (Update Contact Information?) then (yes)
   :Update Contact Information;
+else (no)
 endif
 if (Update Location?) then (yes)
   :Update Location;
+else (no)
 endif
 :Click Save;
 |System|
 :Validate Input;
 if (Sensitive Changes?) then (yes)
   :Flag for Verification;
+else (no)
 endif
 :Update Company Record;
 :Show Success Message;
 stop
 @enduml
-
-

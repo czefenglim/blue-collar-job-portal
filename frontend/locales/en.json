@@ -68,6 +68,20 @@
       },
       "reportedBy": "Reported by {name}"
     },
+    "tabs": {
+      "pending": "Pending",
+      "history": "History"
+    },
+    "status": {
+      "underReview": "Under Review",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "listItems": {
+      "reportedLabel": "Reported: {name}",
+      "jobLabel": "Job: {title}",
+      "dateLabel": "{date}"
+    },
     "details": {
       "errors": {
         "authRequiredTitle": "Authentication Required",
@@ -94,8 +108,12 @@
         "reportedBy": "Reported By",
         "description": "Report Description",
         "evidence": "Evidence Files",
+        "reason": "Reason",
         "adminReview": "Admin Review",
         "appeals": "Appeals"
+      },
+      "actions": {
+        "cancel": "Cancel Report"
       },
       "admin": {
         "reviewDate": "Review Date",

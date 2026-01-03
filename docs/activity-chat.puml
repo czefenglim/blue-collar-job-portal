@@ -31,9 +31,9 @@ repeat
     :Broadcast to Recipient;
     :Send Push Notification (if offline);
     :Update Chat View;
+  else (no)
   endif
 |User|
 repeat while (Continue chatting?)
 stop
 @enduml
-

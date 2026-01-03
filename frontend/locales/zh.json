@@ -68,6 +68,20 @@
       },
       "reportedBy": "举报人：{name}"
     },
+    "tabs": {
+      "pending": "待处理",
+      "history": "历史记录"
+    },
+    "status": {
+      "underReview": "审核中",
+      "resolved": "已解决",
+      "dismissed": "已驳回"
+    },
+    "listItems": {
+      "reportedLabel": "举报人：{name}",
+      "jobLabel": "职位：{title}",
+      "dateLabel": "{date}"
+    },
     "details": {
       "errors": {
         "authRequiredTitle": "需要验证",
@@ -94,8 +108,12 @@
         "reportedBy": "举报人",
         "description": "举报说明",
         "evidence": "证据文件",
+        "reason": "原因",
         "adminReview": "管理员审核",
         "appeals": "申诉"
+      },
+      "actions": {
+        "cancel": "取消举报"
       },
       "admin": {
         "reviewDate": "审核日期",

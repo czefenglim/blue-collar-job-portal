@@ -32,7 +32,7 @@ elseif (Delete?)
   |System|
   :Delete Record;
   :Refresh List;
+else (no action)
 endif
 stop
 @enduml
-

@@ -3,421 +3,428 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Job Detail Wireframe</title>
+    <title>Admin - Job Details</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+      :root {
+        --primary: #1e3a8a;
+        --border: #e2e8f0;
+        --soft: #f8fafc;
+        --muted: #64748b;
+        --text: #334155;
+      }
       body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 20px;
+        background-color: #f4f4f4;
         display: flex;
         justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text);
       }
       .mobile-frame {
-        width: 375px;
+        width: 100%;
+        max-width: 375px;
         min-height: 812px;
-        background-color: #ffffff;
-        border: 1px solid #ddd;
+        background-color: #fff;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        position: relative;
         display: flex;
         flex-direction: column;
+        overflow: visible;
+        position: relative;
+        border: 8px solid #1e293b;
+        border-radius: 30px;
+      }
+      .status-bar {
+        height: 44px;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        font-size: 10px;
+        color: #333;
+        font-weight: 700;
+        flex-shrink: 0;
       }
       .header {
-        background-color: white;
-        padding: 20px;
-        padding-top: 40px;
-        border-bottom: 1px solid #eee;
+        background: white;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
-        gap: 15px;
+        justify-content: space-between;
+        flex-shrink: 0;
       }
-      .back-button {
-        width: 24px;
-        height: 24px;
-        background-color: #333;
-        border-radius: 4px;
+      .title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #000;
       }
-      .header-title {
-        font-size: 18px;
-        font-weight: bold;
-      }
+
       .content {
-        padding: 20px;
         flex: 1;
+        padding: 16px;
         display: flex;
         flex-direction: column;
         gap: 20px;
       }
-      .job-header {
-        display: flex;
-        gap: 15px;
-        align-items: start;
-      }
-      .company-logo {
-        width: 60px;
-        height: 60px;
-        background-color: #e0e0e0;
-        border-radius: 8px;
-      }
-      .job-title-block {
-        flex: 1;
-      }
-      .job-title {
-        width: 100%;
-        height: 20px;
-        background-color: #333;
+
+      /* Text Lines (Wireframe placeholders) */
+      .text-line {
+        background: #e2e8f0;
         border-radius: 4px;
-        margin-bottom: 8px;
-      }
-      .company-name {
-        width: 60%;
         height: 14px;
-        background-color: #666;
-        border-radius: 4px;
-      }
-      .tag-row {
         display: flex;
-        gap: 10px;
-        margin-top: 10px;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
       }
-      .tag {
-        padding: 4px 10px;
-        background-color: #f1f5f9;
-        border-radius: 4px;
-        font-size: 12px;
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
         color: #475569;
       }
-      .appeal-box {
-        background-color: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-      }
-      .appeal-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-        color: #1e40af;
-        font-weight: bold;
-      }
-      .appeal-text {
-        font-size: 14px;
+      .text-line.blue {
+        background: #eff6ff;
         color: #1e3a8a;
-        line-height: 1.4;
       }
-      .appeal-evidence {
-        font-size: 12px;
-        color: #3b82f6;
-        margin-top: 8px;
-        font-weight: 600;
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
       }
-      .rejection-box {
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.btn {
+        height: 44px;
+        font-size: 14px;
+        justify-content: center;
+        padding: 0;
         border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
       }
-      .rejection-title {
-        color: #b91c1c;
-        font-weight: bold;
-        margin-bottom: 5px;
+
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .row {
         display: flex;
         align-items: center;
+        gap: 12px;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
         gap: 6px;
       }
-      .rejection-text {
-        color: #7f1d1d;
-        font-size: 14px;
-      }
+
       .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        margin-bottom: 20px;
       }
-      .info-card {
-        background-color: #f8fafc;
-        padding: 12px;
-        border-radius: 8px;
+
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .stat-item {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-      }
-      .info-label-sm {
-        font-size: 10px;
-        color: #64748b;
-      }
-      .info-value-sm {
-        font-size: 12px;
-        font-weight: 600;
-        color: #1e293b;
-      }
-      .action-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: white;
-        padding: 16px 20px;
-        border-top: 1px solid #eee;
-        display: flex;
-        gap: 12px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-      }
-      .btn {
-        flex: 1;
-        height: 48px;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        padding: 8px;
         border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 16px;
+        border: 1px solid #e2e8f0;
       }
-      .btn-reject {
-        background-color: #fee2e2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-      }
-      .btn-approve {
-        background-color: #16a34a;
-        color: white;
-      }
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-      }
-      /* ... existing styles ... */
     </style>
-    <script>
-      function adjustHeight() {
-        const frame = document.getElementById('mobileFrame');
-        if (frame) {
-          const contentHeight = frame.scrollHeight;
-          if (contentHeight > 812) {
-            frame.style.height = contentHeight + 'px';
-          } else {
-            frame.style.height = '812px';
-          }
-        }
-      }
-
-      window.onload = adjustHeight;
-      // Also adjust on content changes if needed
-    </script>
   </head>
   <body>
-    <div class="mobile-frame" id="mobileFrame">
+    <div
+      class="mobile-frame"
+      style="height: auto; overflow: visible; padding-bottom: 20px"
+    >
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>Signal • Wifi • Battery</span>
+      </div>
+
       <div class="header">
-        <div class="back-button"></div>
-        <div class="header-title">Job Details</div>
+        <div
+          class="text-line center"
+          style="
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #64748b;
+          "
+        >
+          &lt;
+        </div>
+        <div class="title">Job Details</div>
+        <div style="width: 24px"></div>
       </div>
+
       <div class="content">
-        <!-- Appeal Status Alert (Conditional) -->
-        <div class="appeal-box">
-          <div class="appeal-header">
-            <span>Appeal Request</span>
+        <!-- Status -->
+        <div style="display: flex; justify-content: center">
+          <div
+            class="text-line blue center"
+            style="width: 100px; height: 24px; border-radius: 12px"
+          >
+            Appealed
           </div>
-          <div class="appeal-text">
-            Employer explanation for why this job should be approved despite
-            previous rejection.
-          </div>
-          <div class="appeal-evidence">2 Files Attached</div>
         </div>
 
-        <div class="job-header">
-          <div class="company-logo"></div>
-          <div class="job-title-block">
-            <div class="job-title"></div>
-            <div class="company-name"></div>
-            <div class="tag-row">
-              <div class="tag">Full-time</div>
-              <div class="tag">On-site</div>
+        <!-- Appeal Section -->
+        <div
+          class="section"
+          style="
+            padding: 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+          "
+        >
+          <div class="row">
+            <div
+              class="text-line center"
+              style="
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                background: #bfdbfe;
+              "
+            >
+              !
+            </div>
+            <div
+              class="text-line blue"
+              style="width: 100px; background: transparent"
+            >
+              Employer Appeal
             </div>
           </div>
+          <div
+            class="text-line"
+            style="
+              width: 100%;
+              height: auto;
+              padding: 8px;
+              white-space: normal;
+              line-height: 1.4;
+              background: rgba(255, 255, 255, 0.5);
+            "
+          >
+            "We have corrected the salary range and added clear job requirements
+            as requested. Please review."
+          </div>
+          <div class="text-line blue center" style="width: 120px">
+            View Evidence
+          </div>
         </div>
 
-        <!-- Key Info Grid -->
-        <div>
-          <div class="section-title">Key Information</div>
+        <!-- Company Info -->
+        <div class="section">
+          <div class="row">
+            <div
+              class="text-line center"
+              style="width: 48px; height: 48px; border-radius: 24px"
+            >
+              L
+            </div>
+            <div class="col" style="flex: 1">
+              <div class="text-line large dark" style="width: 140px">
+                Logistics Co.
+              </div>
+              <div class="text-line green" style="width: 80px">Verified</div>
+            </div>
+          </div>
+          <div class="col" style="gap: 8px; padding-left: 60px">
+            <div class="text-line" style="width: 180px">
+              contact@logistics.co
+            </div>
+            <div class="text-line" style="width: 120px">+60 12-345 6789</div>
+          </div>
+        </div>
+
+        <div style="height: 1px; background: #e2e8f0; margin: 0 -16px"></div>
+
+        <!-- Job Info -->
+        <div class="section">
+          <div class="text-line large dark" style="width: 200px">
+            Warehouse Supervisor
+          </div>
+          <div class="text-line" style="width: 140px">
+            Logistics & Transportation
+          </div>
+
+          <div
+            class="text-line large"
+            style="width: 80px; background: transparent; margin-top: 8px"
+          >
+            Key Info
+          </div>
+
           <div class="info-grid">
-            <div class="info-card">
-              <div class="info-label-sm">Location</div>
-              <div class="info-value-sm">Kuala Lumpur</div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Location
+              </div>
+              <div class="text-line" style="width: 100%">
+                Shah Alam, Selangor
+              </div>
             </div>
-            <div class="info-card">
-              <div class="info-label-sm">Salary</div>
-              <div class="info-value-sm">RM 2,500 - 3,500</div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Job Type
+              </div>
+              <div class="text-line" style="width: 80%">Full Time</div>
             </div>
-            <div class="info-card">
-              <div class="info-label-sm">Experience</div>
-              <div class="info-value-sm">Entry Level</div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Salary
+              </div>
+              <div class="text-line" style="width: 100%">RM 2,500 - 3,500</div>
             </div>
-            <div class="info-card">
-              <div class="info-label-sm">Working Hours</div>
-              <div class="info-value-sm">9am - 6pm</div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Hours
+              </div>
+              <div class="text-line" style="width: 100%">9:00 AM - 6:00 PM</div>
+            </div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Experience
+              </div>
+              <div class="text-line" style="width: 80%">1-3 Years</div>
+            </div>
+            <div class="col">
+              <div
+                class="text-line"
+                style="width: 60px; background: transparent"
+              >
+                Start Date
+              </div>
+              <div class="text-line" style="width: 60%">ASAP</div>
             </div>
           </div>
         </div>
 
-        <!-- Stats -->
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-val">1.2k</div>
-            <div class="stat-lbl">Views</div>
+        <div style="height: 1px; background: #e2e8f0; margin: 0 -16px"></div>
+
+        <!-- Statistics -->
+        <div class="section">
+          <div
+            class="text-line large"
+            style="width: 80px; background: transparent"
+          >
+            Statistics
           </div>
-          <div class="stat-card">
-            <div class="stat-val">45</div>
-            <div class="stat-lbl">Applications</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val">2d</div>
-            <div class="stat-lbl">Posted</div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <div
+                class="text-line center"
+                style="width: 20px; height: 20px; border-radius: 10px"
+              >
+                👁
+              </div>
+              <div class="text-line center dark" style="width: 40px">124</div>
+              <div
+                class="text-line center"
+                style="width: 30px; background: transparent"
+              >
+                Views
+              </div>
+            </div>
+            <div class="stat-item">
+              <div
+                class="text-line center"
+                style="width: 20px; height: 20px; border-radius: 10px"
+              >
+                📄
+              </div>
+              <div class="text-line center dark" style="width: 40px">12</div>
+              <div
+                class="text-line center"
+                style="width: 50px; background: transparent"
+              >
+                Apps
+              </div>
+            </div>
+            <div class="stat-item">
+              <div
+                class="text-line center"
+                style="width: 20px; height: 20px; border-radius: 10px"
+              >
+                📅
+              </div>
+              <div class="text-line center dark" style="width: 50px">
+                Oct 12
+              </div>
+              <div
+                class="text-line center"
+                style="width: 40px; background: transparent"
+              >
+                Created
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div class="section-title">Job Description</div>
-          <div class="description-block">
-            We are looking for an experienced Site Manager to oversee daily
-            operations at our construction site. You will be responsible for
-            ensuring safety compliance, managing workers, and keeping the
-            project on schedule.
+        <!-- Actions -->
+        <div style="display: flex; gap: 12px; margin-top: 20px">
+          <div
+            class="text-line btn red"
+            style="
+              flex: 1;
+              border: 1px solid #fee2e2;
+              background: white;
+              color: #991b1b;
+            "
+          >
+            Reject
           </div>
-        </div>
-
-        <div>
-          <div class="section-title">Requirements</div>
-          <div class="description-block">
-            • Minimum 3 years of experience in construction management<br />
-            • Valid CIDB Green Card<br />
-            • Strong leadership and communication skills<br />
-            • Ability to read technical drawings
-          </div>
-        </div>
-
-        <div>
-          <div class="section-title">Benefits</div>
-          <div class="description-block">
-            • EPF & SOCSO contributions<br />
-            • Performance bonus<br />
-            • Health insurance
-          </div>
-        </div>
-
-        <div style="height: 100px"></div>
-      </div>
-
-      <div class="action-bar">
-        <div class="btn btn-reject" onclick="openRejectModal()">Reject</div>
-        <div class="btn btn-approve" onclick="openApproveModal()">Approve</div>
-      </div>
-
-      <!-- Reject Modal -->
-      <div class="modal-overlay" id="rejectModal">
-        <div class="modal-content">
-          <div class="modal-title">Reject Job</div>
-          <textarea
-            class="modal-input"
-            id="rejectReason"
-            placeholder="Reason for rejection..."
-          ></textarea>
-          <div class="modal-actions">
-            <button class="modal-button cancel" onclick="closeRejectModal()">
-              Cancel
-            </button>
-            <button
-              class="modal-button confirm-danger"
-              onclick="confirmReject()"
-            >
-              Reject
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Approve Modal -->
-      <div class="modal-overlay" id="approveModal">
-        <div class="modal-content">
-          <div class="modal-title">Approve Job</div>
-          <div class="modal-text">
-            Are you sure you want to approve this job posting? It will be live
-            immediately.
-          </div>
-          <div class="modal-actions">
-            <button class="modal-button cancel" onclick="closeApproveModal()">
-              Cancel
-            </button>
-            <button
-              class="modal-button confirm-success"
-              onclick="confirmApprove()"
-            >
-              Approve
-            </button>
-          </div>
+          <div class="text-line btn green" style="flex: 1">Approve Appeal</div>
         </div>
       </div>
     </div>
-    <script>
-      function adjustHeight() {
-        const frame = document.getElementById('mobileFrame');
-        frame.style.height = '812px'; // Reset to min-height
-        if (frame.scrollHeight > 812) {
-          frame.style.height = frame.scrollHeight + 'px';
-        }
-      }
-      window.addEventListener('load', adjustHeight);
-      setInterval(adjustHeight, 1000);
-
-      function openApproveModal() {
-        document.getElementById('approveModal').style.display = 'flex';
-      }
-
-      function closeApproveModal() {
-        document.getElementById('approveModal').style.display = 'none';
-      }
-
-      function confirmApprove() {
-        alert('Job approved successfully!');
-        closeApproveModal();
-      }
-
-      function openRejectModal() {
-        document.getElementById('rejectModal').style.display = 'flex';
-      }
-
-      function closeRejectModal() {
-        document.getElementById('rejectModal').style.display = 'none';
-        document.getElementById('rejectReason').value = '';
-      }
-
-      function confirmReject() {
-        const reason = document.getElementById('rejectReason').value;
-        if (!reason) {
-          alert('Please enter a rejection reason');
-          return;
-        }
-        alert('Job rejected with reason: ' + reason);
-        closeRejectModal();
-      }
-    </script>
   </body>
 </html>
-<!-- 
-Page Description: 
-This view provides administrators with a raw, unaltered look at a specific job posting, including backend metadata not visible to regular users, such as posting history and edit logs. It is utilized during deep-dive investigations or support requests to understand exactly what was published and when. The primary goal is to provide total transparency on a job entity to aid in dispute resolution or quality assurance.
--->

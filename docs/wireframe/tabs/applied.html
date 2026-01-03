@@ -32,6 +32,7 @@
         flex-direction: column;
         position: relative;
         border: 8px solid #1e293b;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -132,6 +133,49 @@
         display: flex;
         gap: 8px;
       }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: #1e3a8a;
+        color: #fff;
+        height: 34px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        flex: 1;
+        cursor: pointer;
+      }
+      .text-line.btn-outline {
+        background: #fff;
+        border: 1px solid #1e3a8a;
+        color: #1e3a8a;
+        height: 34px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        flex: 1;
+        cursor: pointer;
+      }
       .status {
         padding: 4px 8px;
         border-radius: 999px;
@@ -139,32 +183,6 @@
         border: 1px solid #c7d2fe;
         color: var(--primary);
         background: #e0e7ff;
-      }
-      .btn-row {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      .btn {
-        flex: 1;
-        height: 34px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 12px;
-        cursor: pointer;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
-        border: none;
-      }
-      .btn-outline {
-        background: #fff;
-        border: 1px solid var(--primary);
-        color: var(--primary);
       }
     </style>
   </head>
@@ -180,17 +198,19 @@
 
         <div class="card">
           <div class="row">
-            <div class="logo">L1</div>
+            <div
+              class="text-line center dark large"
+              style="width: 40px; height: 40px; border-radius: 6px"
+            >
+              L1
+            </div>
             <div class="company">
               <div
-                style="
-                  height: 14px;
-                  background: #e5e7eb;
-                  border-radius: 3px;
-                  width: 70%;
-                  margin-bottom: 6px;
-                "
-              ></div>
+                class="text-line dark large"
+                style="width: 70%; margin-bottom: 6px"
+              >
+                Company Name
+              </div>
               <div class="meta">
                 <span>Applied: 12 Dec 2025</span><span>Full-time</span>
               </div>
@@ -198,24 +218,26 @@
             <div class="status">Under Review</div>
           </div>
           <div class="btn-row">
-            <div class="btn btn-outline">View Application</div>
-            <div class="btn btn-primary">Open Job</div>
+            <div class="text-line center btn-outline">View Application</div>
+            <div class="text-line center btn-primary">Open Job</div>
           </div>
         </div>
 
         <div class="card">
           <div class="row">
-            <div class="logo">L2</div>
+            <div
+              class="text-line center dark large"
+              style="width: 40px; height: 40px; border-radius: 6px"
+            >
+              L2
+            </div>
             <div class="company">
               <div
-                style="
-                  height: 14px;
-                  background: #e5e7eb;
-                  border-radius: 3px;
-                  width: 60%;
-                  margin-bottom: 6px;
-                "
-              ></div>
+                class="text-line dark large"
+                style="width: 60%; margin-bottom: 6px"
+              >
+                Company Name
+              </div>
               <div class="meta">
                 <span>Applied: 08 Dec 2025</span><span>Contract</span>
               </div>
@@ -223,8 +245,8 @@
             <div class="status">Interview</div>
           </div>
           <div class="btn-row">
-            <div class="btn btn-outline">View Application</div>
-            <div class="btn btn-primary">Open Job</div>
+            <div class="text-line center btn-outline">View Application</div>
+            <div class="text-line center btn-primary">Open Job</div>
           </div>
         </div>
       </div>

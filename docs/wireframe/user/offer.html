@@ -33,6 +33,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -195,16 +196,63 @@
         font-weight: 600;
         color: var(--muted);
       }
-      .btn-confirm {
-        flex: 1;
-        height: 36px;
-        border-radius: 10px;
-        background: var(--success);
-        color: #fff;
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
         display: flex;
         align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #475569;
+      }
+      .text-line.center {
         justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-reject {
+        background: #fff;
+        border: 1px solid var(--danger);
+        color: var(--danger);
+        height: 40px;
+        font-size: 14px;
         font-weight: 600;
+        border-radius: 12px;
+      }
+      .text-line.btn-accept {
+        background: var(--success);
+        color: #fff;
+        height: 40px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 12px;
+      }
+      .text-line.btn-cancel {
+        background: #fff;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        height: 36px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 10px;
+      }
+      .text-line.btn-confirm {
+        background: var(--success);
+        color: #fff;
+        height: 36px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 10px;
       }
     </style>
   </head>
@@ -214,46 +262,77 @@
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
-        <div class="back"></div>
-        <div class="title">Offer</div>
+        <div
+          class="text-line center dark"
+          style="width: 24px; height: 24px; border-radius: 6px"
+        >
+          <
+        </div>
+        <div class="text-line large dark" style="width: 100px">Offer</div>
       </div>
       <div class="content">
         <div class="card">
-          <div class="line" style="width: 60%"></div>
-          <div class="line" style="width: 40%"></div>
+          <div
+            class="text-line dark large"
+            style="width: 60%; margin-bottom: 6px"
+          >
+            Offer Title
+          </div>
+          <div class="text-line" style="width: 40%">Company Name</div>
           <div class="divider"></div>
           <div class="row">
             <div class="item">
               <div class="label">Start Date</div>
-              <div class="value" style="width: 70%"></div>
+              <div class="text-line" style="width: 70%">Date</div>
             </div>
             <div class="item">
               <div class="label">Salary</div>
-              <div class="value" style="width: 80%"></div>
+              <div class="text-line" style="width: 80%">Amount</div>
             </div>
           </div>
           <div class="row">
             <div class="item">
               <div class="label">Duration</div>
-              <div class="value" style="width: 50%"></div>
+              <div class="text-line" style="width: 50%">Duration</div>
             </div>
           </div>
-          <div class="contract">View Contract PDF</div>
+          <div
+            class="text-line center"
+            style="
+              height: 40px;
+              background: #eff6ff;
+              color: var(--primary);
+              font-weight: 600;
+              border: 1px dashed #bfdbfe;
+              border-radius: 12px;
+            "
+          >
+            View Contract PDF
+          </div>
         </div>
         <div class="actions">
-          <div class="btn reject">Reject Offer</div>
-          <div class="btn accept">Accept Offer</div>
+          <div class="text-line center btn-reject" style="flex: 1">
+            Reject Offer
+          </div>
+          <div class="text-line center btn-accept" style="flex: 1">
+            Accept Offer
+          </div>
         </div>
         <div style="height: 12px"></div>
         <div class="status">
           <div
+            class="text-line center"
             style="
               width: 48px;
               height: 48px;
               border-radius: 24px;
               background: #d1fae5;
+              color: var(--success);
+              font-size: 24px;
             "
-          ></div>
+          >
+            ✓
+          </div>
           <div style="font-size: 14px; color: var(--muted)">
             You have accepted this offer
           </div>
@@ -264,16 +343,42 @@
           <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px">
             Upload the signed contract PDF
           </div>
-          <div class="upload">Upload Signed PDF</div>
+          <div
+            class="text-line center"
+            style="
+              height: 40px;
+              border-radius: 10px;
+              border: 1px dashed #cbd5e1;
+              background: #f1f5f9;
+              margin-bottom: 12px;
+            "
+          >
+            Upload Area
+          </div>
           <div class="modal-row">
-            <div class="checkbox"></div>
+            <div
+              class="text-line center"
+              style="
+                width: 20px;
+                height: 20px;
+                border-radius: 6px;
+                border: 1px solid #94a3b8;
+                margin-right: 8px;
+              "
+            >
+              X
+            </div>
             <div style="font-size: 12px; color: var(--text)">
               I agree to the contract terms
             </div>
           </div>
           <div class="modal-actions">
-            <div class="btn-cancel">Cancel</div>
-            <div class="btn-confirm">Submit & Accept</div>
+            <div class="text-line center btn-cancel" style="flex: 1">
+              Cancel
+            </div>
+            <div class="text-line center btn-confirm" style="flex: 1">
+              Submit & Accept
+            </div>
           </div>
         </div>
       </div>

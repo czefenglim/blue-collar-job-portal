@@ -31,6 +31,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -152,16 +153,47 @@
         border-radius: 20px;
         margin: 0 auto 12px;
       }
-      .cta {
-        margin: 16px;
-        height: 34px;
-        border-radius: 8px;
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
         display: flex;
         align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #475569;
+      }
+      .text-line.center {
         justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-action {
+        background: #eff6ff;
+        color: var(--primary);
         font-weight: 600;
-        background: var(--primary);
-        color: #fff;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        height: auto;
+      }
+      .text-line.btn-delete {
+        background: #fee2e2;
+        color: #ef4444;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        height: auto;
       }
     </style>
   </head>
@@ -171,41 +203,105 @@
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
-        <div class="back"></div>
+        <div
+          class="text-line center dark"
+          style="width: 24px; height: 24px; border-radius: 6px"
+        >
+          <
+        </div>
         <div class="header-text">
-          <div class="title">Notifications</div>
+          <div
+            class="text-line large dark"
+            style="width: 100px; margin-bottom: 4px"
+          >
+            Notifications
+          </div>
           <div class="subtitle">3 unread</div>
         </div>
       </div>
       <div class="action-bar">
-        <div class="action">Mark All Read</div>
-        <div class="action delete">Delete All</div>
+        <div class="text-line center btn-action">Mark All Read</div>
+        <div class="text-line center btn-delete">Delete All</div>
       </div>
       <div class="content">
         <div class="card unread">
           <div class="row">
-            <div class="icon"></div>
+            <div
+              class="text-line center dark large"
+              style="
+                width: 48px;
+                height: 48px;
+                border-radius: 24px;
+                flex-shrink: 0;
+              "
+            >
+              Icon
+            </div>
             <div class="text">
-              <div class="line" style="width: 60%"></div>
-              <div class="line" style="width: 90%"></div>
+              <div
+                class="text-line dark large"
+                style="width: 60%; margin-bottom: 6px"
+              >
+                Notification Title
+              </div>
+              <div class="text-line" style="width: 90%; margin-bottom: 6px">
+                Description of the notification goes here
+              </div>
               <div class="footer">
                 <span>2h ago</span><span>Action Available</span>
               </div>
             </div>
-            <div class="delete-btn"></div>
+            <div
+              class="text-line center"
+              style="width: 20px; height: 20px; border-radius: 6px"
+            >
+              x
+            </div>
           </div>
           <div class="row">
-            <div class="icon"></div>
+            <div
+              class="text-line center dark large"
+              style="
+                width: 48px;
+                height: 48px;
+                border-radius: 24px;
+                flex-shrink: 0;
+              "
+            >
+              Icon
+            </div>
             <div class="text">
-              <div class="line" style="width: 50%"></div>
-              <div class="line" style="width: 80%"></div>
+              <div
+                class="text-line dark large"
+                style="width: 50%; margin-bottom: 6px"
+              >
+                Another Notification
+              </div>
+              <div class="text-line" style="width: 80%; margin-bottom: 6px">
+                More details about this alert
+              </div>
               <div class="footer"><span>1d ago</span><span></span></div>
             </div>
-            <div class="delete-btn"></div>
+            <div
+              class="text-line center"
+              style="width: 20px; height: 20px; border-radius: 6px"
+            >
+              x
+            </div>
           </div>
         </div>
         <div class="empty">
-          <div class="big"></div>
+          <div
+            class="text-line center dark large"
+            style="
+              width: 80px;
+              height: 80px;
+              border-radius: 20px;
+              margin: 0 auto 12px;
+            "
+          >
+            Empty
+          </div>
           <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px">
             No Notifications
           </div>

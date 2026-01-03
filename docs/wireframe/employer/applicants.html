@@ -31,6 +31,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -61,14 +62,6 @@
         gap: 8px;
         margin-bottom: 12px;
       }
-      .pill {
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        background: #fff;
-        border-radius: 999px;
-        padding: 6px 10px;
-        font-size: 12px;
-      }
       .card {
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -80,60 +73,83 @@
         align-items: center;
         gap: 10px;
       }
-      .avatar {
+      .details {
+        flex: 1;
+      }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 4px;
+      }
+      .text-line.large {
+        height: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        color: white;
+        height: 32px;
+        font-size: 12px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 8px;
+        margin-top: 0;
+        margin-bottom: 0;
+        flex: 1;
+      }
+      .text-line.btn-outline {
+        background: transparent;
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        height: 32px;
+        font-size: 12px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 8px;
+        margin-top: 0;
+        margin-bottom: 0;
+        flex: 1;
+      }
+      .text-line.pill {
+        background: #fff;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        border-radius: 999px;
+        padding: 0 10px;
+        height: 24px;
+        font-size: 12px;
+        justify-content: center;
+        padding-left: 0;
+        width: auto;
+      }
+      .text-line.avatar {
         width: 40px;
         height: 40px;
         border-radius: 20px;
         background: #e0e7ff;
-        flex-shrink: 0;
-      }
-      .details {
-        flex: 1;
-      }
-      .line {
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .text-line {
-        height: auto;
-        background: #e2e8f0;
-        border-radius: 4px;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        font-size: 10px;
-        color: #64748b;
-        padding: 4px;
-        text-align: center;
-        line-height: 1.2;
+        padding-left: 0;
+        flex-shrink: 0;
+        margin-bottom: 0;
       }
       .actions {
         display: flex;
         gap: 8px;
         margin-top: 8px;
-      }
-      .btn {
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 10px;
-        font-weight: 600;
-        font-size: 12px;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
-        border: none;
-      }
-      .btn-outline {
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        background: #fff;
       }
     </style>
   </head>
@@ -145,56 +161,34 @@
       <div class="header">Applicants</div>
       <div class="content">
         <div class="filters">
-          <div class="pill">All</div>
-          <div class="pill">Pending</div>
-          <div class="pill">Shortlisted</div>
+          <div class="text-line pill">All</div>
+          <div class="text-line pill">Pending</div>
+          <div class="text-line pill">Shortlisted</div>
         </div>
         <div class="card">
           <div class="row">
-            <div
-              class="avatar"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                color: #64748b;
-              "
-            >
-              Img
-            </div>
+            <div class="text-line avatar">Img</div>
             <div class="details">
               <div class="text-line" style="width: 60%">Applicant Name</div>
               <div class="text-line" style="width: 40%">Job Applied</div>
             </div>
           </div>
           <div class="actions">
-            <div class="btn btn-outline">View</div>
-            <div class="btn btn-primary">Hire</div>
+            <div class="text-line btn-outline">View</div>
+            <div class="text-line btn-primary">Hire</div>
           </div>
         </div>
         <div class="card">
           <div class="row">
-            <div
-              class="avatar"
-              style="
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                color: #64748b;
-              "
-            >
-              Img
-            </div>
+            <div class="text-line avatar">Img</div>
             <div class="details">
               <div class="text-line" style="width: 50%">Applicant Name</div>
               <div class="text-line" style="width: 70%">Job Applied</div>
             </div>
           </div>
           <div class="actions">
-            <div class="btn btn-outline">View</div>
-            <div class="btn btn-primary">Hire</div>
+            <div class="text-line btn-outline">View</div>
+            <div class="text-line btn-primary">Hire</div>
           </div>
         </div>
       </div>

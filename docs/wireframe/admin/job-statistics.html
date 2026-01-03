@@ -86,6 +86,41 @@
         /* No overflow hidden here to allow content to expand the frame */
       }
 
+      /* Text Line Styles */
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #334155;
+      }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .text-line.blue {
+        background: #eff6ff;
+        color: #1e3a8a;
+      }
+
       /* Tabs */
       .tabs-section {
         padding: 16px;
@@ -136,18 +171,6 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-      }
-      .chart-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1e293b;
-      }
-      .chart-period {
-        font-size: 12px;
-        color: #64748b;
-        background: #f1f5f9;
-        padding: 4px 8px;
-        border-radius: 6px;
       }
 
       .chart-area {
@@ -207,29 +230,7 @@
         border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        gap: 4px;
-      }
-      .detail-head {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .detail-val {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1e293b;
-      }
-      .trend {
-        font-size: 11px;
-        font-weight: 600;
-      }
-      .trend.up {
-        color: #16a34a;
-      }
-      .trend.down {
-        color: #dc2626;
+        gap: 8px;
       }
 
       /* Lists */
@@ -252,33 +253,11 @@
       .list-item:first-child {
         padding-top: 0;
       }
-      .item-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: #f1f5f9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 12px;
-        color: #475569;
-      }
       .item-info {
         flex: 1;
-      }
-      .item-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: #1e293b;
-      }
-      .item-sub {
-        font-size: 11px;
-        color: #64748b;
-      }
-      .item-val {
-        font-weight: 600;
-        font-size: 13px;
-        color: #1e293b;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
     </style>
     <!-- Ionicons -->
@@ -578,8 +557,10 @@
         <div class="page-content">
           <div class="chart-card">
             <div class="chart-header">
-              <div class="chart-title">Hiring Velocity</div>
-              <div class="chart-period">Last 6 Months</div>
+              <div class="text-line dark large" style="width: 50%">
+                Hiring Velocity
+              </div>
+              <div class="text-line" style="width: 35%">Last 6 Months</div>
             </div>
             <div class="chart-area">
               <div class="bar-group">
@@ -613,36 +594,32 @@
             <div class="grid-title">Market Salary Trends</div>
             <div class="details-grid">
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="cash-outline"></ion-icon>
-                  <span>General</span>
+                <div class="text-line" style="width: 60%">General</div>
+                <div class="text-line dark large" style="width: 50%">
+                  $22/hr
                 </div>
-                <div class="detail-val">$22/hr</div>
-                <span class="trend up">↑ 2%</span>
+                <div class="text-line green" style="width: 60%">↑ 2%</div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="cash-outline"></ion-icon>
-                  <span>Skilled</span>
+                <div class="text-line" style="width: 60%">Skilled</div>
+                <div class="text-line dark large" style="width: 50%">
+                  $35/hr
                 </div>
-                <div class="detail-val">$35/hr</div>
-                <span class="trend up">↑ 5%</span>
+                <div class="text-line green" style="width: 60%">↑ 5%</div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="cash-outline"></ion-icon>
-                  <span>Expert</span>
+                <div class="text-line" style="width: 60%">Expert</div>
+                <div class="text-line dark large" style="width: 50%">
+                  $55/hr
                 </div>
-                <div class="detail-val">$55/hr</div>
-                <span class="trend up">↑ Stable</span>
+                <div class="text-line green" style="width: 60%">↑ Stable</div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="cash-outline"></ion-icon>
-                  <span>Manager</span>
+                <div class="text-line" style="width: 60%">Manager</div>
+                <div class="text-line dark large" style="width: 50%">
+                  $75k/yr
                 </div>
-                <div class="detail-val">$75k/yr</div>
-                <span class="trend down">↓ 1%</span>
+                <div class="text-line red" style="width: 60%">↓ 1%</div>
               </div>
             </div>
           </div>
@@ -651,34 +628,31 @@
             <div class="grid-title">Churn Reasons</div>
             <div class="list-card">
               <div class="list-item">
-                <div class="item-icon">
-                  <ion-icon name="alert-circle-outline"></ion-icon>
+                <div
+                  class="text-line"
+                  style="
+                    width: 32px;
+                    height: 32px;
+                    justify-content: center;
+                    margin-right: 12px;
+                  "
+                >
+                  ⚠️
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Better Offer</div>
-                  <div class="item-sub">Found higher pay</div>
+                  <div class="text-line dark" style="width: 60%">
+                    Better Offer
+                  </div>
+                  <div class="text-line" style="width: 80%">
+                    Found higher pay
+                  </div>
                 </div>
-                <div class="item-val">45%</div>
-              </div>
-              <div class="list-item">
-                <div class="item-icon">
-                  <ion-icon name="map-outline"></ion-icon>
+                <div
+                  class="text-line blue"
+                  style="width: 40px; justify-content: center"
+                >
+                  45%
                 </div>
-                <div class="item-info">
-                  <div class="item-name">Relocation</div>
-                  <div class="item-sub">Moved to new city</div>
-                </div>
-                <div class="item-val">20%</div>
-              </div>
-              <div class="list-item">
-                <div class="item-icon">
-                  <ion-icon name="briefcase-outline"></ion-icon>
-                </div>
-                <div class="item-info">
-                  <div class="item-name">Career Change</div>
-                  <div class="item-sub">Left industry</div>
-                </div>
-                <div class="item-val">15%</div>
               </div>
             </div>
           </div>

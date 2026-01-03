@@ -68,6 +68,20 @@
       },
       "reportedBy": "{name} அளித்த அறிக்கை"
     },
+    "tabs": {
+      "pending": "நிலுவையில்",
+      "history": "வரலாறு"
+    },
+    "status": {
+      "underReview": "மதிப்பாய்வில் உள்ளது",
+      "resolved": "தீர்க்கப்பட்டது",
+      "dismissed": "நிராகரிக்கப்பட்டது"
+    },
+    "listItems": {
+      "reportedLabel": "புகாரளித்தவர்: {name}",
+      "jobLabel": "வேலை: {title}",
+      "dateLabel": "{date}"
+    },
     "details": {
       "errors": {
         "authRequiredTitle": "அங்கீகாரம் தேவை",
@@ -94,8 +108,12 @@
         "reportedBy": "அறிக்கை செய்தவர்",
         "description": "அறிக்கை விளக்கம்",
         "evidence": "சான்று கோப்புகள்",
+        "reason": "காரணம்",
         "adminReview": "நிர்வாகி ஆய்வு",
         "appeals": "முறையீடுகள்"
+      },
+      "actions": {
+        "cancel": "புகாரை ரத்துசெய்"
       },
       "admin": {
         "reviewDate": "ஆய்வு தேதி",

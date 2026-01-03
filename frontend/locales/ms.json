@@ -68,6 +68,20 @@
       },
       "reportedBy": "Dilaporkan oleh {name}"
     },
+    "tabs": {
+      "pending": "Menunggu",
+      "history": "Sejarah"
+    },
+    "status": {
+      "underReview": "Dalam Semakan",
+      "resolved": "Diselesaikan",
+      "dismissed": "Ditolak"
+    },
+    "listItems": {
+      "reportedLabel": "Dilaporkan: {name}",
+      "jobLabel": "Pekerjaan: {title}",
+      "dateLabel": "{date}"
+    },
     "details": {
       "errors": {
         "authRequiredTitle": "Pengesahan Diperlukan",
@@ -94,8 +108,12 @@
         "reportedBy": "Dilaporkan Oleh",
         "description": "Penerangan Laporan",
         "evidence": "Fail Bukti",
+        "reason": "Sebab",
         "adminReview": "Semakan Admin",
         "appeals": "Rayuan"
+      },
+      "actions": {
+        "cancel": "Batal Laporan"
       },
       "admin": {
         "reviewDate": "Tarikh Semakan",

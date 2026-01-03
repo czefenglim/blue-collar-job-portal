@@ -15,6 +15,7 @@ if (Change Language?) then (yes)
   :Update App Locale Context;
   :Persist Selection to Local Storage/DB;
   :Reload UI Strings;
+else (no)
 endif
 |User|
 if (Change Notification Settings?) then (yes)
@@ -23,7 +24,7 @@ if (Change Notification Settings?) then (yes)
   |System|
   :Save Settings to Database;
   :Update Push Token Config;
+else (no)
 endif
 stop
 @enduml
-

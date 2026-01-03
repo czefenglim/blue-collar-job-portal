@@ -1,0 +1,413 @@
+erDiagram
+
+  USERS {
+    int id PK
+    varchar email
+    varchar password
+    varchar phoneNumber
+    boolean isEmailVerified
+    boolean isPhoneVerified
+    boolean isActive
+    datetime lastLoginAt
+    datetime createdAt
+    datetime updatedAt
+    varchar fullName
+    varchar preferredLanguage
+    varchar role
+    varchar status
+    datetime suspendedAt
+    varchar suspendedBy
+    text suspensionReason
+    text suspensionReason_ms
+    text suspensionReason_ta
+    text suspensionReason_zh
+    text suspensionReason_en
+    text pushToken
+  }
+
+  USER_PROFILES {
+    int id PK
+    int userId FK
+    datetime dateOfBirth
+    varchar gender
+    varchar nationality
+    varchar address
+    varchar city
+    varchar state
+    varchar postcode
+    int preferredSalaryMin
+    int preferredSalaryMax
+    datetime availableFrom
+    varchar workingHours
+    varchar transportMode
+    int maxTravelDistance
+    int experienceYears
+    varchar certifications
+    boolean profileCompleted
+    datetime createdAt
+    datetime updatedAt
+    text profilePicture
+    text resumeUrl_en
+    text resumeUrl_ms
+    text resumeUrl_zh
+    text resumeUrl_ta
+    text resumeUrl_uploaded
+    varchar uploadedLanguage
+    varchar uploadedFileName
+    datetime uploadedAt
+    varchar resumeSource
+    datetime resumeGeneratedAt
+    int resumeVersion
+    float latitude
+    float longitude
+  }
+
+  REGISTRATION_OTPS {
+    varchar id PK
+    varchar email
+    varchar otp
+    datetime expiresAt
+    text data
+    datetime createdAt
+  }
+
+  PASSWORD_RESET_OTPS {
+    varchar id PK
+    int userId FK
+    varchar codeHash
+    varchar otpSessionToken
+    datetime expiresAt
+    datetime consumedAt
+    int attempts
+    datetime createdAt
+  }
+
+  SKILL {
+    int id PK
+    varchar name
+    boolean isActive
+    datetime createdAt
+    varchar name_ms
+    varchar name_ta
+    varchar name_zh
+    varchar name_en
+  }
+
+  LANGUAGE {
+    int id PK
+    varchar name
+    boolean isActive
+    datetime createdAt
+    varchar name_ms
+    varchar name_ta
+    varchar name_zh
+    varchar name_en
+  }
+
+  USER_SKILLS {
+    int id PK
+    int userId FK
+    int skillId FK
+  }
+
+  USER_LANGUAGES {
+    int id PK
+    int userId FK
+    int languageId FK
+  }
+
+  INDUSTRIES {
+    int id PK
+    varchar name
+    varchar slug
+    varchar icon
+    varchar description
+    boolean isActive
+    datetime createdAt
+    varchar description_ms
+    varchar description_ta
+    varchar description_zh
+    varchar description_en
+    varchar name_ms
+    varchar name_ta
+    varchar name_zh
+    varchar name_en
+  }
+
+  USER_INDUSTRIES {
+    int id PK
+    int userId FK
+    int industryId FK
+  }
+
+  RESUMEQUESTION {
+    int id PK
+    varchar questionId
+    varchar question
+    varchar type
+    json options
+    boolean required
+    varchar conditionalOn
+    varchar conditionalValue
+    datetime createdAt
+    datetime updatedAt
+    varchar question_ms
+    varchar question_ta
+    varchar question_zh
+    varchar question_en
+  }
+
+  RESUME_ANSWERS {
+    int id PK
+    int userId FK
+    varchar questionId FK
+    json answer
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  COMPANIES {
+    int id PK
+    varchar name
+    varchar slug
+    text description
+    text logo
+    varchar website
+    varchar email
+    varchar phone
+    varchar address
+    varchar city
+    varchar state
+    varchar postcode
+    varchar companySize
+    boolean isVerified
+    boolean isActive
+    datetime createdAt
+    datetime updatedAt
+    text description_ms
+    text description_ta
+    text description_zh
+    text description_en
+    varchar name_ms
+    varchar name_ta
+    varchar name_zh
+    varchar name_en
+    int userId FK
+    int industryId FK
+    boolean onboardingCompleted
+    int onboardingStep
+    text verificationDocument
+    varchar verificationStatus
+    text verificationRemark
+    datetime verifiedDate
+    boolean hasCompletedInitialSubscription
+  }
+
+  COMPANY_VERIFICATIONS {
+    int id PK
+    int companyId FK
+    text businessDocument
+    varchar documentType
+    varchar documentName
+    boolean phoneVerified
+    boolean emailVerified
+    varchar status
+    text reviewNotes
+    int reviewedBy FK
+    datetime reviewedAt
+    datetime submittedAt
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  JOBS {
+    int id PK
+    varchar title
+    varchar slug
+    text description
+    text requirements
+    text benefits
+    int industryId FK
+    int companyId FK
+    varchar jobType
+    varchar workingHours
+    varchar experienceLevel
+    varchar address
+    varchar city
+    varchar state
+    varchar postcode
+    boolean isRemote
+    int salaryMin
+    int salaryMax
+    varchar salaryType
+    boolean isActive
+    boolean isFeatured
+    datetime applicationDeadline
+    datetime startDate
+    int viewCount
+    int applicationCount
+    datetime createdAt
+    datetime updatedAt
+    int createdBy FK
+    int updatedBy FK
+    varchar approvalStatus
+    datetime approvedAt
+    datetime rejectedAt
+    int rejectedBy FK
+    boolean isSuspended
+    datetime suspendedAt
+    varchar suspendedBy
+    float latitude
+    float longitude
+  }
+
+  JOB_APPLICATIONS {
+    int id PK
+    int userId FK
+    int jobId FK
+    varchar status
+    text coverLetter
+    varchar resumeUrl
+    datetime appliedAt
+    datetime updatedAt
+    varchar employerNote
+    datetime interviewDate
+  }
+
+  SAVED_JOBS {
+    int id PK
+    int userId FK
+    int jobId FK
+    datetime savedAt
+  }
+
+  JOB_OFFERS {
+    int id PK
+    int applicationId FK
+    datetime startDate
+    varchar contractDuration
+    decimal salaryAmount
+    varchar salaryCurrency
+    varchar payFrequency
+    boolean employerConfirmed
+    boolean applicantStatus
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  REVIEWS {
+    int id PK
+    int userId FK
+    int companyId FK
+    int rating
+    text comment
+    boolean isAnonymous
+    boolean isApproved
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  REPORTS {
+    int id PK
+    int userId FK
+    int jobId FK
+    varchar reportType
+    text description
+    varchar status
+    int reviewedBy FK
+    datetime reviewedAt
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  APPEALS {
+    int id PK
+    int reportId FK
+    int employerId FK
+    text explanation
+    varchar status
+    int reviewedBy FK
+    datetime reviewedAt
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  NOTIFICATIONS {
+    int id PK
+    int userId FK
+    varchar title
+    text message
+    varchar type
+    boolean isRead
+    datetime createdAt
+  }
+
+  CONVERSATIONS {
+    int id PK
+    int applicationId FK
+    int employerId FK
+    int jobSeekerId FK
+    int jobId FK
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  CHAT_MESSAGES {
+    int id PK
+    int conversationId FK
+    int senderId FK
+    text content
+    varchar messageType
+    boolean isRead
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  SUBSCRIPTIONS {
+    int id PK
+    int companyId FK
+    varchar planType
+    varchar status
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  INVOICES {
+    int id PK
+    int subscriptionId FK
+    float amount
+    varchar currency
+    varchar status
+    datetime createdAt
+  }
+
+  %% Relationships
+  USERS ||--|| USER_PROFILES : has
+  USERS ||--o{ PASSWORD_RESET_OTPS : requests
+  USERS ||--o{ USER_SKILLS : has
+  USERS ||--o{ USER_LANGUAGES : speaks
+  USERS ||--o{ USER_INDUSTRIES : interested_in
+  USERS ||--o{ RESUME_ANSWERS : answers
+  USERS ||--|| COMPANIES : owns
+  USERS ||--o{ JOB_APPLICATIONS : applies
+  USERS ||--o{ SAVED_JOBS : saves
+  USERS ||--o{ REVIEWS : writes
+  USERS ||--o{ REPORTS : submits
+  USERS ||--o{ APPEALS : files
+  USERS ||--o{ NOTIFICATIONS : receives
+  USERS ||--o{ CHAT_MESSAGES : sends
+
+  INDUSTRIES ||--o{ COMPANIES : categorizes
+  INDUSTRIES ||--o{ JOBS : categorizes
+
+  COMPANIES ||--o{ JOBS : posts
+  COMPANIES ||--|| COMPANY_VERIFICATIONS : verifies
+  COMPANIES ||--|| SUBSCRIPTIONS : has
+
+  JOBS ||--o{ JOB_APPLICATIONS : receives
+  JOB_APPLICATIONS ||--|| JOB_OFFERS : generates
+  JOB_APPLICATIONS ||--|| CONVERSATIONS : creates
+
+  CONVERSATIONS ||--o{ CHAT_MESSAGES : contains
+
+  SUBSCRIPTIONS ||--o{ INVOICES : generates

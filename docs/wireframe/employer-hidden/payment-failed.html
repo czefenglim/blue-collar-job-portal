@@ -33,6 +33,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -52,35 +53,10 @@
         align-items: center;
         justify-content: space-between;
       }
-      .title {
-        font-weight: 700;
-        font-size: 16px;
-        color: #000;
-      }
       .content {
         padding: 16px;
         background: #fff;
         flex: 1;
-      }
-      .icon {
-        width: 72px;
-        height: 72px;
-        border-radius: 36px;
-        background: var(--danger);
-        margin: 0 auto 12px;
-      }
-      .text {
-        text-align: center;
-        color: #7f1d1d;
-        font-weight: 700;
-        margin-bottom: 8px;
-      }
-      .message {
-        text-align: center;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 18px;
-        margin-bottom: 12px;
       }
       .reasons-card {
         border: 1px solid var(--border);
@@ -89,59 +65,68 @@
         padding: 12px;
         margin-top: 12px;
       }
-      .reasons-title {
-        font-size: 12px;
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 4px;
+      }
+      .text-line.large {
+        height: 24px;
+        font-size: 14px;
         font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 8px;
+        color: #334155;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        color: white;
+        height: 40px;
+        font-size: 14px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 12px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .text-line.btn-outline {
+        background: transparent;
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        height: 40px;
+        font-size: 14px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 12px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .text-line.icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        margin: 0 auto 12px;
+        background: #ef4444;
+        color: white;
+        font-size: 32px;
+        justify-content: center;
+        padding-left: 0;
       }
       .reason-item {
         display: flex;
         align-items: center;
         gap: 8px;
         margin-bottom: 8px;
-      }
-      .reason-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 6px;
-        background: #fde68a;
-        flex-shrink: 0;
-      }
-      .reason-line {
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        flex: 1;
-      }
-      .btn {
-        height: 40px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        margin-top: 12px;
-      }
-      .btn-primary {
-        background: var(--primary);
-        color: #fff;
-      }
-      .btn-outline {
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        background: #fff;
-      }
-      .placeholder {
-        height: 60px;
-        background: #e5e7eb;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #334155;
-        font-weight: 600;
-        margin-top: 12px;
       }
       .skip {
         margin-top: 8px;
@@ -166,34 +151,90 @@
             border-radius: 6px;
           "
         ></div>
-        <div class="title">Payment Failed</div>
+        <div
+          class="text-line large"
+          style="width: 120px; background: transparent; text-align: center"
+        >
+          Payment Failed
+        </div>
         <div style="width: 24px; height: 24px"></div>
       </div>
       <div class="content">
-        <div class="icon"></div>
-        <div class="text">Your payment could not be processed</div>
-        <div class="message">
+        <div class="text-line icon">!</div>
+        <div
+          class="text-line center large"
+          style="background: transparent; color: #7f1d1d"
+        >
+          Your payment could not be processed
+        </div>
+        <div
+          class="text-line center"
+          style="background: transparent; margin-bottom: 12px"
+        >
           Please check your payment details and try again
         </div>
 
         <div class="reasons-card">
-          <div class="reasons-title">Common Reasons</div>
-          <div class="reason-item">
-            <div class="reason-icon"></div>
-            <div class="reason-line" style="width: 60%"></div>
+          <div
+            class="text-line"
+            style="
+              width: 100px;
+              margin-bottom: 8px;
+              font-weight: 600;
+              color: #1e293b;
+              background: transparent;
+            "
+          >
+            Common Reasons
           </div>
           <div class="reason-item">
-            <div class="reason-icon"></div>
-            <div class="reason-line" style="width: 70%"></div>
+            <div
+              class="text-line center"
+              style="
+                width: 20px;
+                height: 20px;
+                background: #fde68a;
+                border-radius: 6px;
+              "
+            >
+              ?
+            </div>
+            <div class="text-line" style="width: 60%">Insufficient Funds</div>
+          </div>
+          <div class="reason-item">
+            <div
+              class="text-line center"
+              style="
+                width: 20px;
+                height: 20px;
+                background: #fde68a;
+                border-radius: 6px;
+              "
+            >
+              ?
+            </div>
+            <div class="text-line" style="width: 70%">
+              Incorrect Card Details
+            </div>
           </div>
           <div class="reason-item" style="margin-bottom: 0">
-            <div class="reason-icon"></div>
-            <div class="reason-line" style="width: 50%"></div>
+            <div
+              class="text-line center"
+              style="
+                width: 20px;
+                height: 20px;
+                background: #fde68a;
+                border-radius: 6px;
+              "
+            >
+              ?
+            </div>
+            <div class="text-line" style="width: 50%">Bank Declined</div>
           </div>
         </div>
 
-        <div class="btn btn-primary">Try Again</div>
-        <div class="btn btn-outline">Contact Support</div>
+        <div class="text-line btn-primary">Try Again</div>
+        <div class="text-line btn-outline">Contact Support</div>
         <div class="skip">Skip for now</div>
       </div>
     </div>
@@ -203,4 +244,3 @@
 Page Description: 
 This error state page informs the employer that their transaction (e.g., for a job boost or subscription) was unsuccessful. It suggests common remedies like checking card details or contacting the bank, and provides a clear path to retry the payment.
 -->
-```

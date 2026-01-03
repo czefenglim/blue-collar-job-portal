@@ -1,6 +1,8 @@
 @startuml UC_AdminJobs
 skinparam conditionStyle diamond
 skinparam activityDiamondShape true
+skinparam nodesep 100
+skinparam ranksep 60
 title Activity: Manage Jobs
 |Admin|
 start
@@ -19,23 +21,21 @@ start
 :Display Job Details;
 |Admin|
 :Review Details;
-if (Action?) then (Approve)
+fork
+  -> Approve;
   :Click Approve Job;
   |System|
   :Update Status to Active;
   :Publish Job;
-elseif (Reject)
+fork again
+  -> Reject;
   :Click Reject Job;
   :Enter Reason;
   |System|
   :Update Status to Rejected;
   :Notify Employer;
-
-endif
+fork again
+  -> Cancel;
+end fork
 stop
 @enduml
-
-
-
-
-

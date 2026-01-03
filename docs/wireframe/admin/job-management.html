@@ -62,27 +62,7 @@
       .header-text {
         display: flex;
         flex-direction: column;
-        gap: 2px;
-      }
-      .header-title {
-        font-size: 20px;
-        font-weight: bold;
-      }
-      .header-subtitle {
-        font-size: 12px;
-        opacity: 0.8;
-      }
-      .action-button {
-        width: 32px;
-        height: 32px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        color: white;
-        backdrop-filter: blur(4px);
+        gap: 6px;
       }
 
       .search-section {
@@ -268,10 +248,39 @@
 
       <div class="header">
         <div class="header-text">
-          <div class="header-title">Jobs</div>
-          <div class="header-subtitle">Manage job postings</div>
+          <div
+            class="text-line large"
+            style="
+              width: 100px;
+              height: 24px;
+              background: rgba(255, 255, 255, 0.2);
+              color: white;
+            "
+          >
+            Jobs
+          </div>
+          <div
+            class="text-line"
+            style="
+              width: 140px;
+              background: rgba(255, 255, 255, 0.1);
+              color: rgba(255, 255, 255, 0.9);
+            "
+          >
+            Manage job postings
+          </div>
         </div>
-        <div class="action-button">
+        <div
+          class="text-line"
+          style="
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            justify-content: center;
+            color: white;
+          "
+        >
           <ion-icon name="options-outline"></ion-icon>
         </div>
       </div>

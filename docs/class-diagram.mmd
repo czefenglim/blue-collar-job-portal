@@ -1,0 +1,377 @@
+classDiagram
+    class User {
+        +Int id
+        +String email
+        +String password
+        +String fullName
+        +String phoneNumber
+        +UserRole role
+        +AccountStatus status
+        +Boolean isActive
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Company {
+        +Int id
+        +Int userId
+        +String name
+        +String slug
+        +String description
+        +String logo
+        +String website
+        +String email
+        +String phone
+        +Int industryId
+        +String address
+        +String city
+        +String state
+        +String postcode
+        +Boolean isVerified
+        +String verificationStatus
+    }
+
+    class Industry {
+        +Int id
+        +String name
+        +String slug
+        +Boolean isActive
+    }
+
+    class Job {
+        +Int id
+        +Int companyId
+        +String title
+        +String slug
+        +String description
+        +Int industryId
+        +String jobType
+        +String city
+        +String state
+        +String address
+        +String postcode
+        +Int salaryMin
+        +Int salaryMax
+        +ApprovalStatus approvalStatus
+        +Boolean isActive
+        +DateTime createdAt
+    }
+
+    class JobApplication {
+        +Int id
+        +Int userId
+        +Int jobId
+        +ApplicationStatus status
+        +String resumeUrl
+        +DateTime appliedAt
+    }
+
+    class SavedJob {
+        +Int id
+        +Int userId
+        +Int jobId
+        +DateTime savedAt
+    }
+
+    class Notification {
+        +Int id
+        +Int userId
+        +String title
+        +String message
+        +NotificationType type
+        +Boolean isRead
+        +String actionUrl
+        +DateTime createdAt
+    }
+
+    class Review {
+        +Int id
+        +Int userId
+        +Int companyId
+        +Int rating
+        +String title
+        +String comment
+        +Boolean isAnonymous
+        +Boolean isApproved
+        +DateTime createdAt
+    }
+
+    class Report {
+        +Int id
+        +Int userId
+        +Int jobId
+        +ReportType reportType
+        +String description
+        +String evidence
+        +ReportStatus status
+        +DateTime createdAt
+    }
+
+    class Appeal {
+        +Int id
+        +Int reportId
+        +Int employerId
+        +String explanation
+        +String evidence
+        +AppealStatus status
+        +DateTime createdAt
+    }
+
+    class JobAppeal {
+        +Int id
+        +Int jobId
+        +Int employerId
+        +String explanation
+        +AppealStatus status
+        +DateTime createdAt
+    }
+
+    class Conversation {
+        +Int id
+        +Int applicationId
+        +Int employerId
+        +Int jobSeekerId
+        +Int jobId
+        +DateTime createdAt
+        +DateTime updatedAt
+        +DateTime lastMessageAt
+        +Boolean isActive
+    }
+
+    class ChatMessage {
+        +Int id
+        +Int conversationId
+        +Int senderId
+        +String content
+        +MessageType messageType
+        +String attachmentUrl
+        +Boolean isRead
+        +DateTime createdAt
+    }
+
+    class Subscription {
+        +Int id
+        +Int companyId
+        +PlanType planType
+        +SubscriptionStatus status
+        +Int jobPostLimit
+        +Int jobPostsUsed
+        +DateTime createdAt
+    }
+
+    class SubscriptionPlan {
+        +Int id
+        +PlanType type
+        +String name
+        +Float price
+        +String currency
+        +Boolean isActive
+    }
+
+    class JobOffer {
+        +Int id
+        +Int applicationId
+        +DateTime startDate
+        +String contractDuration
+        +Decimal salaryAmount
+        +String salaryCurrency
+        +String payFrequency
+        +OfferStatus applicantStatus
+        +DateTime createdAt
+    }
+
+    class CompanyVerification {
+        +Int id
+        +Int companyId
+        +String businessDocument
+        +String documentType
+        +String status
+        +Int reviewedBy
+        +DateTime reviewedAt
+    }
+
+    class RegistrationOTP {
+        +String id
+        +String email
+        +String otp
+        +DateTime expiresAt
+        +String data
+    }
+
+    class PasswordResetOTP {
+        +String id
+        +Int userId
+        +String codeHash
+        +String otpSessionToken
+        +DateTime expiresAt
+        +DateTime consumedAt
+    }
+
+    class UserProfile {
+        +Int userId
+        +String preferredLocation
+        +String resumeUrl
+        +Boolean profileCompleted
+    }
+
+    class Invoice {
+        +Int id
+        +Int subscriptionId
+        +String stripeInvoiceId
+        +Float amount
+        +String currency
+        +String status
+        +String invoiceUrl
+        +String invoicePdf
+        +DateTime paidAt
+        +DateTime createdAt
+    }
+
+    %% Controllers
+    class EmployerController {
+        +uploadCompanyLogo()
+        +uploadVerificationDocument()
+        +createCompany()
+        +submitVerification()
+        +createFirstJob()
+        +getEmployerProfile()
+        +getIndustries()
+        +updateCompanyProfile()
+        +getOnboardingStatus()
+        +completeOnboarding()
+        +getDashboardStats()
+        +getEmployerJobs()
+        +toggleJobStatus()
+        +getApplicants()
+        +getApplicantDetail()
+        +shortlistApplicant()
+        +rejectApplicant()
+        +getVerificationStatus()
+        +resubmitCompany()
+    }
+
+    class JobController {
+        +getAllJobs()
+        +createJob()
+        +updateJob()
+        +getJobById()
+        +approveJob()
+        +deleteJob()
+    }
+
+    class ChatController {
+        +createConversation()
+        +getConversations()
+        +getConversation()
+        +getConversationByApplication()
+        +checkConversationExists()
+        +getMessages()
+        +sendMessage()
+        +sendAttachment()
+        +markAsRead()
+        +editMessage()
+        +deleteMessage()
+        +getUnreadCount()
+    }
+
+    class ReportController {
+        +createReport()
+        +getReports()
+        +updateReportStatus()
+    }
+
+    class ReviewController {
+        +createReview()
+        +flagReview()
+        +respondReview()
+    }
+
+    class AdminController {
+        +login()
+        +getDashboard()
+        +moderateCompany()
+        +moderateJob()
+    }
+
+    class AdminActionController {
+        +getJobForReview()
+        +deleteJobWithReason()
+        +suspendEmployer()
+    }
+
+    class AppealController {
+        +createAppeal()
+        +getAppeals()
+        +reviewAppeal()
+    }
+
+    class JobAppealController {
+        +submitJobAppeal()
+        +getJobAppeals()
+        +reviewJobAppeal()
+    }
+
+    class NotificationController {
+        +getNotifications()
+        +markAsRead()
+        +sendPush()
+    }
+
+    class OnboardingController {
+        +getIndustries()
+        +saveProfile()
+        +completeOnboarding()
+    }
+
+    %% Relationships
+    User "1" o-- "0..1" Company
+    Company "1" o-- "0..1" CompanyVerification
+    Company "1" o-- "0..1" Subscription
+    Company "1" o-- "0..*" Review
+    Company "1" o-- "0..*" Job
+    Industry "1" o-- "0..*" Company
+    Industry "1" o-- "0..*" Job
+    User "1" o-- "0..1" UserProfile
+    User "1" o-- "0..*" JobApplication
+    User "1" o-- "0..*" SavedJob
+    User "1" o-- "0..*" Notification
+    User "1" o-- "0..*" Review
+    User "1" o-- "0..*" Report
+    User "1" o-- "0..*" Appeal
+    User "1" o-- "0..*" JobAppeal
+    User "1" o-- "0..*" ChatMessage
+    Job "1" o-- "0..*" JobApplication
+    Job "1" o-- "0..*" Report
+    Job "1" o-- "0..*" SavedJob
+    Job "1" o-- "0..*" Conversation
+    JobApplication "1" o-- "0..1" Conversation
+    JobApplication "1" o-- "0..1" JobOffer
+    Conversation "1" o-- "0..*" ChatMessage
+    Report "1" o-- "0..*" Appeal
+    Subscription "1" o-- "0..*" Invoice
+
+    %% Controller Dependencies
+    EmployerController ..> Company
+    EmployerController ..> CompanyVerification
+    EmployerController ..> Job
+    EmployerController ..> JobApplication
+    EmployerController ..> Subscription
+    EmployerController ..> Notification
+    JobController ..> Job
+    JobController ..> Company
+    JobController ..> Industry
+    ChatController ..> Conversation
+    ChatController ..> ChatMessage
+    ReportController ..> Report
+    ReviewController ..> Review
+    AdminController ..> User
+    AdminController ..> Company
+    AdminController ..> Job
+    AdminController ..> Report
+    AdminActionController ..> Job
+    AdminActionController ..> Report
+    AppealController ..> Appeal
+    JobAppealController ..> JobAppeal
+    NotificationController ..> Notification
+    OnboardingController ..> UserProfile
+    OnboardingController ..> Industry

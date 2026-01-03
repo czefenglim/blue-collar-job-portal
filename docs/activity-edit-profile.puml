@@ -4,17 +4,23 @@ title Activity: Edit Profile
 |Job Seeker|
 start
 :Click Edit Profile;
-fork
+if (Edit Section?) then (Personal Info)
   :Update Personal Info;
-fork again
-  :Update Address;
-fork again
-  :Update Job Preferences;
-fork again
-  :Upload / Update Resume;
-fork again
-  :Update Skills;
-end fork
+else
+  if (Edit Section?) then (Address)
+    :Update Address;
+  else
+    if (Edit Section?) then (Job Preferences)
+      :Update Job Preferences;
+    else
+      if (Edit Section?) then (Resume)
+        :Upload / Update Resume;
+      else (Skills)
+        :Update Skills;
+      endif
+    endif
+  endif
+endif
 :Click Save Changes;
 |System|
 :Validate Data;

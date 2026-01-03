@@ -1,5 +1,7 @@
 @startuml UC_ViewApps
 skinparam conditionStyle diamond
+skinparam nodesep 100
+skinparam ranksep 60
 title Activity: View Applicants
 |Employer|
 start
@@ -16,17 +18,22 @@ repeat
   :Display Details;
   |Employer|
   :Review Resume & Profile;
-  if (Decision?) then (Shortlist)
+  fork
+    -> Keep Pending;
+  fork again
+    -> Shortlist;
     :Click Shortlist;
     |System|
     :Update Status to Shortlisted;
-  elseif (Reject)
+  fork again
+    -> Reject;
     :Click Reject;
     |System|
     :Update Status to Rejected;
     :Send Rejection Email (Optional);
-  endif
+  end fork
 |Employer|
-repeat while (More Applicants?)
+repeat while (More Applicants?) is (yes)
+-> no;
 stop
 @enduml

@@ -2,25 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=375, height=812, initial-scale=1.0" />
     <title>Employer Onboarding Wireframe</title>
     <style>
-      :root {
-        --primary: #1e3a8a;
-        --border: #e2e8f0;
-        --soft: #f8fafc;
-        --muted: #64748b;
-        --text: #334155;
-        --success: #10b981;
-      }
-      * {
-        box-sizing: border-box;
-      }
       body {
-        background: #eef2f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: #eef2f6;
         margin: 0;
-        font-family: Segoe UI, Tahoma, sans-serif;
-        color: var(--text);
         display: flex;
         align-items: flex-start;
         justify-content: center;
@@ -32,165 +21,126 @@
       .mobile-frame {
         width: 375px;
         min-height: 812px;
-        height: auto;
-        background: #f8fafc;
-        border-radius: 30px;
-        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-        border: 8px solid #1e293b;
+        background-color: #ffffff;
         display: flex;
         flex-direction: column;
         position: relative;
         flex-shrink: 0;
+        border-radius: 30px;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        border: 8px solid #1e293b;
+        overflow: hidden;
       }
-
       .header {
-        padding: 50px 20px 20px;
+        padding: 24px;
         background: white;
-        border-bottom: 1px solid var(--border);
-        border-radius: 20px 20px 0 0;
+        border-bottom: 1px solid #f1f5f9;
       }
-
-      .header-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--primary);
-        margin-bottom: 4px;
-      }
-
-      .header-subtitle {
-        font-size: 14px;
-        color: var(--muted);
-      }
-
-      /* Progress Bar */
-      .progress-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 24px;
-        padding: 0 10px;
-      }
-      .step-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #e2e8f0;
-        color: #94a3b8;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-      }
-      .step-dot.active {
-        background: var(--primary);
-        color: white;
-        box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
-      }
-      .step-line {
-        flex: 1;
-        height: 3px;
-        background: #e2e8f0;
-        margin: 0 8px;
-        border-radius: 2px;
-      }
-      .step-line.active {
-        background: var(--primary);
-      }
-
-      /* Content */
       .content {
         flex: 1;
         padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: #f8fafc;
+      }
+      /* New Text Line Styles */
+      .text-line {
+        background-color: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.dark {
+        background-color: #cbd5e1;
+        color: #475569;
+      }
+      .text-line.btn-primary {
+        background-color: #1e3a8a;
+        color: white;
+        height: 44px;
+        font-size: 14px;
+        justify-content: center;
+        border-radius: 8px;
+      }
+      .text-line.btn-success {
+        background-color: #10b981;
+      }
+      .text-line.input {
+        height: 40px;
+        font-size: 14px;
+        background: #f1f5f9;
+        color: #94a3b8;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 12px;
       }
 
       .card {
         background: white;
-        border-radius: 16px;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #f1f5f9;
+      }
+      .progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+      }
+      .step-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #64748b;
+      }
+      .step-dot.active {
+        background: #1e3a8a;
+        color: white;
+      }
+      .step-line {
+        flex: 1;
+        height: 2px;
+        background: #e2e8f0;
+        margin: 0 8px;
+      }
+      .step-line.active {
+        background: #1e3a8a;
+      }
+      .footer {
         padding: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
+        background: white;
+        border-top: 1px solid #f1f5f9;
       }
-
-      .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        color: #0f172a;
-      }
-
-      .input-group {
-        margin-bottom: 16px;
-      }
-      .label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 6px;
-      }
-      .input-field {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        font-size: 14px;
-        color: var(--text);
-      }
-      .input-field:focus {
-        outline: none;
-        border-color: var(--primary);
-      }
-
       .upload-box {
         border: 2px dashed #cbd5e1;
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 24px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         background: #f8fafc;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .upload-box:hover {
-        background: #f1f5f9;
-        border-color: var(--primary);
-      }
-      .upload-icon {
-        font-size: 24px;
-        color: var(--muted);
-        margin-bottom: 8px;
-      }
-      .upload-text {
-        font-size: 13px;
-        color: var(--primary);
-        font-weight: 600;
-      }
-
-      .footer {
-        padding: 20px;
-        background: white;
-        border-top: 1px solid var(--border);
-        border-radius: 0 0 20px 20px;
-        margin-top: auto;
-      }
-      .btn-primary {
-        width: 100%;
-        padding: 16px;
-        background: var(--primary);
-        color: white;
-        border-radius: 12px;
-        border: none;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .btn-success {
-        background: var(--success);
+        gap: 8px;
       }
     </style>
   </head>
@@ -198,8 +148,12 @@
     <!-- Step 1 Frame -->
     <div class="mobile-frame">
       <div class="header">
-        <div class="header-title">Company Details</div>
-        <div class="header-subtitle">Tell us about your business</div>
+        <div class="text-line large dark" style="width: 120px">
+          Company Details
+        </div>
+        <div class="text-line" style="width: 150px; margin-top: 4px">
+          Tell us about your business
+        </div>
         <div class="progress-row">
           <div class="step-dot active">1</div>
           <div class="step-line"></div>
@@ -211,64 +165,74 @@
 
       <div class="content">
         <div class="card">
-          <div class="section-title">Basic Information</div>
-          <div class="input-group">
-            <div class="label">Company Name</div>
-            <input
-              class="input-field"
-              type="text"
-              value="BuildIt Construction Sdn Bhd"
-            />
+          <div
+            class="text-line large dark"
+            style="width: 100px; margin-bottom: 12px"
+          >
+            Basic Info
           </div>
-          <div class="input-group">
-            <div class="label">Industry</div>
-            <input
-              class="input-field"
-              type="text"
-              value="Construction & Engineering"
-            />
+          <div class="text-line" style="width: 80px; margin-bottom: 6px">
+            Company Name
           </div>
-          <div class="input-group">
-            <div class="label">Company Size</div>
-            <input class="input-field" type="text" value="Small (1-50)" />
+          <div class="text-line input">BuildIt Construction Sdn Bhd</div>
+
+          <div class="text-line" style="width: 60px; margin-bottom: 6px">
+            Industry
           </div>
+          <div class="text-line input">Construction & Engineering</div>
+
+          <div class="text-line" style="width: 80px; margin-bottom: 6px">
+            Company Size
+          </div>
+          <div class="text-line input">Small (1-50)</div>
         </div>
 
         <div class="card">
-          <div class="section-title">Location & Contact</div>
-          <div class="input-group">
-            <div class="label">Address</div>
-            <input
-              class="input-field"
-              type="text"
-              placeholder="Search address..."
-            />
+          <div
+            class="text-line large dark"
+            style="width: 100px; margin-bottom: 12px"
+          >
+            Contact
           </div>
-          <div class="input-group">
-            <div class="label">Website (Optional)</div>
-            <input class="input-field" type="text" placeholder="https://" />
+          <div class="text-line" style="width: 60px; margin-bottom: 6px">
+            Address
           </div>
+          <div class="text-line input">Search address...</div>
         </div>
 
         <div class="card">
-          <div class="section-title">Company Logo</div>
+          <div
+            class="text-line large dark"
+            style="width: 100px; margin-bottom: 12px"
+          >
+            Company Logo
+          </div>
           <div class="upload-box">
-            <div class="upload-icon">📷</div>
-            <div class="upload-text">Upload Logo</div>
+            <div
+              class="text-line center"
+              style="width: 30px; height: 30px; border-radius: 15px"
+            >
+              +
+            </div>
+            <div class="text-line" style="width: 80px">Upload Logo</div>
           </div>
         </div>
       </div>
 
       <div class="footer">
-        <div class="btn-primary">Continue</div>
+        <div class="text-line btn-primary">Continue</div>
       </div>
     </div>
 
     <!-- Step 2 Frame -->
     <div class="mobile-frame">
       <div class="header">
-        <div class="header-title">Verification</div>
-        <div class="header-subtitle">Verify your identity</div>
+        <div class="text-line large dark" style="width: 100px">
+          Verification
+        </div>
+        <div class="text-line" style="width: 120px; margin-top: 4px">
+          Verify your identity
+        </div>
         <div class="progress-row">
           <div class="step-dot active">1</div>
           <div class="step-line active"></div>
@@ -280,36 +244,56 @@
 
       <div class="content">
         <div class="card">
-          <div class="section-title">Contact Verification</div>
-          <div class="input-group">
-            <div class="label">Business Phone</div>
-            <input class="input-field" type="text" value="+60 3-1234 5678" />
+          <div
+            class="text-line large dark"
+            style="width: 120px; margin-bottom: 12px"
+          >
+            Contact Verification
           </div>
-          <div class="input-group">
-            <div class="label">Business Email</div>
-            <input class="input-field" type="text" value="admin@buildit.com" />
+          <div class="text-line" style="width: 80px; margin-bottom: 6px">
+            Business Phone
           </div>
+          <div class="text-line input">+60 3-1234 5678</div>
+
+          <div class="text-line" style="width: 80px; margin-bottom: 6px">
+            Business Email
+          </div>
+          <div class="text-line input">admin@buildit.com</div>
         </div>
 
         <div class="card">
-          <div class="section-title">Business Registration</div>
+          <div
+            class="text-line large dark"
+            style="width: 120px; margin-bottom: 12px"
+          >
+            Registration
+          </div>
           <div class="upload-box">
-            <div class="upload-icon">📄</div>
-            <div class="upload-text">Upload SSM / License</div>
+            <div
+              class="text-line center"
+              style="width: 30px; height: 30px; border-radius: 15px"
+            >
+              +
+            </div>
+            <div class="text-line" style="width: 100px">
+              Upload SSM / License
+            </div>
           </div>
         </div>
       </div>
 
       <div class="footer">
-        <div class="btn-primary">Continue</div>
+        <div class="text-line btn-primary">Continue</div>
       </div>
     </div>
 
     <!-- Step 3 Frame -->
     <div class="mobile-frame">
       <div class="header">
-        <div class="header-title">Review</div>
-        <div class="header-subtitle">Confirm your details</div>
+        <div class="text-line large dark" style="width: 80px">Review</div>
+        <div class="text-line" style="width: 100px; margin-top: 4px">
+          Confirm details
+        </div>
         <div class="progress-row">
           <div class="step-dot active">1</div>
           <div class="step-line active"></div>
@@ -321,26 +305,38 @@
 
       <div class="content">
         <div class="card">
-          <div class="section-title">Summary</div>
-          <div class="input-group">
-            <div class="label">Company</div>
-            <div style="font-size: 14px">BuildIt Construction Sdn Bhd</div>
+          <div
+            class="text-line large dark"
+            style="width: 80px; margin-bottom: 12px"
+          >
+            Summary
           </div>
-          <div class="input-group">
-            <div class="label">Industry</div>
-            <div style="font-size: 14px">Construction & Engineering</div>
+
+          <div class="text-line" style="width: 60px; margin-bottom: 4px">
+            Company
           </div>
-          <div class="input-group">
-            <div class="label">Verification</div>
-            <div style="font-size: 14px; color: var(--success)">
-              Document Uploaded ✅
-            </div>
+          <div class="text-line large" style="width: 100%; margin-bottom: 12px">
+            BuildIt Construction Sdn Bhd
+          </div>
+
+          <div class="text-line" style="width: 60px; margin-bottom: 4px">
+            Industry
+          </div>
+          <div class="text-line large" style="width: 100%; margin-bottom: 12px">
+            Construction & Engineering
+          </div>
+
+          <div class="text-line" style="width: 70px; margin-bottom: 4px">
+            Verification
+          </div>
+          <div class="text-line large" style="width: 120%">
+            Document Uploaded
           </div>
         </div>
       </div>
 
       <div class="footer">
-        <div class="btn-primary btn-success">Complete Setup</div>
+        <div class="text-line btn-primary btn-success">Complete Setup</div>
       </div>
     </div>
   </body>

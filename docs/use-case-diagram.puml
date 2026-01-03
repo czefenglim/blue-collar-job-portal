@@ -5,49 +5,56 @@ skinparam usecase {
   BorderColor #1E3A8A
   ArrowColor #475569
 }
+skinparam packageStyle rectangle
 
 actor "Job Seeker" as JS
 actor "Employer" as EMP
 actor "Admin" as ADM
 
 rectangle "Blue-Collar Job Portal" {
-  ' Authentication
-  (Sign Up / Login - Job Seeker) as UC_AuthJS
-  (Sign Up / Login - Employer) as UC_AuthEmp
 
-  ' Job Seeker Use Cases
-  (Onboarding - Job Seeker) as UC_OnboardJS
-  (Browse & Search Jobs) as UC_Browse
-  (Save Jobs) as UC_Save
-  (Apply to Jobs) as UC_Apply
-  (Chat with Employer) as UC_ChatEmp
-  (View Profile) as UC_ViewProfile
-  (Edit Profile) as UC_EditProfile
-  (View Notifications) as UC_NotifyJS
-  (Write Reviews) as UC_WriteReview
-  (Manage Preferences) as UC_PrefsJS
+  package "Authentication" {
+    (Sign Up / Login - Job Seeker) as UC_AuthJS
+    (Sign Up / Login - Employer) as UC_AuthEmp
+    (Onboarding - Job Seeker) as UC_OnboardJS
+    (Employer Onboarding & Verification) as UC_OnboardEmp
+  }
 
-  ' Employer Use Cases
-  (Employer Onboarding) as UC_OnboardEmp
-  (Create Job Post) as UC_CreateJob
-  (Edit / Manage Job Post) as UC_EditJob
-  (Manage Company Profile) as UC_Company
-  (View Applicants) as UC_ViewApps
-  (Chat with Job Seeker) as UC_ChatJS
-  (Manage Subscription) as UC_Sub
-  (Make Payments) as UC_Pay
-  (Respond to Reviews) as UC_RespondReview
-  (Flag Review) as UC_FlagReview
-  (View Notifications) as UC_NotifyEmp
-  (Manage Preferences) as UC_PrefsEmp
+  package "Job Seeker Services" {
+    (Browse & Search Jobs) as UC_Browse
+    (Save Jobs) as UC_Save
+    (Apply to Jobs) as UC_Apply
+    (View & Accept Offers) as UC_Offers
+    (Manage Profile) as UC_JSProfile
+  }
 
-  ' Admin Use Cases
-  (Manage Users) as UC_AdminUsers
-  (Manage Jobs) as UC_AdminJobs
-  (Manage Companies) as UC_AdminCompanies
-  (Manage Industries) as UC_AdminIndustries
-  (Manage Reviews) as UC_AdminReviews
-  (Manage Subscriptions) as UC_AdminSubs
+  package "Communication & Engagement" {
+    (Chat with Users) as UC_Chat
+    (View Notifications) as UC_Notify
+    (Write Reviews) as UC_WriteReview
+    (Report Content) as UC_Report
+  }
+
+  package "Employer Services" {
+    (Create & Manage Jobs) as UC_ManageJobs
+    (View Applicants) as UC_ViewApps
+    (Hire Candidate) as UC_Hire
+    (Manage Company Profile) as UC_CompProfile
+    (Respond to Reviews) as UC_RespondReview
+    (Appeal Rejections) as UC_Appeal
+    (Manage Subscription) as UC_Sub
+    (Make Payments) as UC_Pay
+  }
+
+  package "Admin Services" {
+    (Manage Users) as UC_AdminUsers
+    (Manage Jobs & Approvals) as UC_AdminJobs
+    (Verify Companies) as UC_AdminCompanies
+    (Review Reports & Moderation) as UC_AdminReviews
+    (Review Appeals) as UC_AdminAppeals
+    (Manage Industries) as UC_AdminIndustries
+    (View System Statistics) as UC_AdminStats
+  }
 }
 
 ' Job Seeker Relationships
@@ -56,40 +63,43 @@ JS --> UC_OnboardJS
 JS --> UC_Browse
 JS --> UC_Save
 JS --> UC_Apply
-JS --> UC_ChatEmp
-JS --> UC_ViewProfile
-JS --> UC_EditProfile
-JS --> UC_NotifyJS
+JS --> UC_Offers
+JS --> UC_JSProfile
+JS --> UC_Chat
+JS --> UC_Notify
 JS --> UC_WriteReview
-JS --> UC_PrefsJS
+JS --> UC_Report
 
 ' Employer Relationships
 EMP --> UC_AuthEmp
 EMP --> UC_OnboardEmp
-EMP --> UC_CreateJob
-EMP --> UC_EditJob
-EMP --> UC_Company
+EMP --> UC_ManageJobs
 EMP --> UC_ViewApps
-EMP --> UC_ChatJS
+EMP --> UC_Hire
+EMP --> UC_CompProfile
+EMP --> UC_Chat
+EMP --> UC_Notify
+EMP --> UC_RespondReview
+EMP --> UC_Appeal
 EMP --> UC_Sub
 EMP --> UC_Pay
-EMP --> UC_RespondReview
-EMP --> UC_FlagReview
-EMP --> UC_NotifyEmp
-EMP --> UC_PrefsEmp
+EMP --> UC_Report
 
 ' Admin Relationships
 ADM --> UC_AdminUsers
 ADM --> UC_AdminJobs
 ADM --> UC_AdminCompanies
-ADM --> UC_AdminIndustries
 ADM --> UC_AdminReviews
-ADM --> UC_AdminSubs
+ADM --> UC_AdminAppeals
+ADM --> UC_AdminIndustries
+ADM --> UC_AdminStats
 
 ' Associations
-UC_AuthJS ..> UC_OnboardJS : <<triggers>>
-UC_AuthEmp ..> UC_OnboardEmp : <<triggers>>
+UC_AuthJS ..> UC_OnboardJS : <<include>>
+UC_AuthEmp ..> UC_OnboardEmp : <<include>>
 UC_Sub ..> UC_Pay : <<include>>
-UC_WriteReview ..> UC_RespondReview : <<related>>
-UC_WriteReview ..> UC_FlagReview : <<related>>
+UC_Hire ..> UC_Offers : <<triggers>>
+UC_Report ..> UC_AdminReviews : <<triggers>>
+UC_Appeal ..> UC_AdminAppeals : <<triggers>>
+
 @enduml

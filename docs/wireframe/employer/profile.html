@@ -32,6 +32,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -51,11 +52,6 @@
         align-items: center;
         justify-content: space-between;
       }
-      .title {
-        font-weight: 700;
-        font-size: 16px;
-        color: #000;
-      }
       .content {
         padding: 16px;
         background: #fff;
@@ -73,51 +69,14 @@
         align-items: center;
         gap: 12px;
       }
-      .avatar {
-        width: 64px;
-        height: 64px;
-        border-radius: 12px;
-        background: #e0e7ff;
-        flex-shrink: 0;
-      }
       .lines {
         flex: 1;
-      }
-      .line {
-        height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .verification {
-        margin-top: 8px;
-        height: 28px;
-        border-radius: 8px;
-        background: #1e3a8a;
-      }
-      .edit-btn {
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 12px;
-        background: var(--primary);
-        color: #fff;
-        margin-top: 12px;
       }
       .section {
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 12px;
-      }
-      .section-title {
-        font-weight: 700;
-        font-size: 14px;
-        color: #1e293b;
-        margin-bottom: 8px;
       }
       .info-row {
         display: flex;
@@ -128,17 +87,6 @@
         border-radius: 8px;
         background: var(--soft);
         margin-bottom: 8px;
-      }
-      .label {
-        font-size: 12px;
-        color: var(--muted);
-        font-weight: 600;
-      }
-      .value {
-        width: 50%;
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 3px;
       }
       .onboarding {
         border: 1px solid var(--border);
@@ -151,18 +99,6 @@
         align-items: center;
         justify-content: space-between;
         margin-bottom: 8px;
-      }
-      .progress-title {
-        height: 14px;
-        width: 40%;
-        background: #e5e7eb;
-        border-radius: 3px;
-      }
-      .progress-percentage {
-        height: 14px;
-        width: 20%;
-        background: #e5e7eb;
-        border-radius: 3px;
       }
       .progress-bar {
         height: 10px;
@@ -196,20 +132,71 @@
         align-items: center;
         gap: 10px;
       }
-      .setting-icon {
+      .setting-texts {
+        width: 160px;
+      }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 4px;
+      }
+      .text-line.large {
+        height: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: linear-gradient(to right, #2563eb, #1e40af);
+        color: white;
+        height: 36px;
+        font-size: 12px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 10px;
+        margin-top: 12px;
+        margin-bottom: 0;
+      }
+      .text-line.avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: #e0e7ff;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.icon {
         width: 28px;
         height: 28px;
         border-radius: 8px;
         background: #eff6ff;
+        margin-bottom: 0;
+        justify-content: center;
+        padding-left: 0;
       }
-      .setting-texts {
-        width: 160px;
-      }
-      .chevron {
+      .text-line.chevron {
         width: 16px;
         height: 16px;
         border-radius: 4px;
         background: #cbd5e1;
+        margin-bottom: 0;
+      }
+      .text-line.transparent {
+        background: transparent;
       }
     </style>
   </head>
@@ -227,78 +214,129 @@
             background: var(--primary);
           "
         ></div>
-        <div class="title">Profile</div>
+        <div
+          class="text-line large transparent"
+          style="width: 100px; text-align: center; justify-content: center"
+        >
+          Profile
+        </div>
         <div style="width: 24px; height: 24px"></div>
       </div>
       <div class="content">
         <div class="hero">
           <div class="row">
-            <div class="avatar"></div>
+            <div class="text-line avatar">Logo</div>
             <div class="lines">
-              <div class="line" style="width: 60%"></div>
-              <div class="line" style="width: 40%"></div>
+              <div class="text-line" style="width: 60%">Company Name</div>
+              <div class="text-line" style="width: 40%">Tagline</div>
             </div>
           </div>
-          <div class="verification"></div>
-          <div class="edit-btn">Edit Company Profile</div>
+          <div
+            class="text-line center"
+            style="
+              margin-top: 8px;
+              height: 28px;
+              border-radius: 8px;
+              background: #1e3a8a;
+              color: white;
+            "
+          >
+            Verified Employer
+          </div>
+          <div class="text-line btn-primary">Edit Company Profile</div>
         </div>
 
         <div class="section">
-          <div class="section-title">Company Information</div>
-          <div class="info-row">
-            <div class="label">Industry</div>
-            <div class="value"></div>
+          <div
+            class="text-line large transparent"
+            style="margin-bottom: 8px; color: #1e293b"
+          >
+            Company Information
           </div>
           <div class="info-row">
-            <div class="label">Company Size</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Industry
+            </div>
+            <div class="text-line" style="width: 50%">Tech</div>
           </div>
           <div class="info-row">
-            <div class="label">Address</div>
-            <div class="value"></div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Contact Information</div>
-          <div class="info-row">
-            <div class="label">Email</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Company Size
+            </div>
+            <div class="text-line" style="width: 50%">10-50</div>
           </div>
           <div class="info-row">
-            <div class="label">Phone</div>
-            <div class="value"></div>
-          </div>
-          <div class="info-row">
-            <div class="label">Website</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Address
+            </div>
+            <div class="text-line" style="width: 50%">Kuala Lumpur</div>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-title">Account Information</div>
-          <div class="info-row">
-            <div class="label">Full Name</div>
-            <div class="value"></div>
+          <div
+            class="text-line large transparent"
+            style="margin-bottom: 8px; color: #1e293b"
+          >
+            Contact Information
           </div>
           <div class="info-row">
-            <div class="label">Email</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Email
+            </div>
+            <div class="text-line" style="width: 50%">contact@company.com</div>
           </div>
           <div class="info-row">
-            <div class="label">Phone</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Phone
+            </div>
+            <div class="text-line" style="width: 50%">+60 12 345 6789</div>
           </div>
           <div class="info-row">
-            <div class="label">Role</div>
-            <div class="value"></div>
+            <div class="text-line transparent" style="font-weight: 600">
+              Website
+            </div>
+            <div class="text-line" style="width: 50%">www.company.com</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div
+            class="text-line large transparent"
+            style="margin-bottom: 8px; color: #1e293b"
+          >
+            Account Information
+          </div>
+          <div class="info-row">
+            <div class="text-line transparent" style="font-weight: 600">
+              Full Name
+            </div>
+            <div class="text-line" style="width: 50%">John Doe</div>
+          </div>
+          <div class="info-row">
+            <div class="text-line transparent" style="font-weight: 600">
+              Email
+            </div>
+            <div class="text-line" style="width: 50%">john@company.com</div>
+          </div>
+          <div class="info-row">
+            <div class="text-line transparent" style="font-weight: 600">
+              Phone
+            </div>
+            <div class="text-line" style="width: 50%">+60 12 345 6789</div>
+          </div>
+          <div class="info-row">
+            <div class="text-line transparent" style="font-weight: 600">
+              Role
+            </div>
+            <div class="text-line" style="width: 50%">HR Manager</div>
           </div>
         </div>
 
         <div class="onboarding">
           <div class="progress-header">
-            <div class="progress-title"></div>
-            <div class="progress-percentage"></div>
+            <div class="text-line" style="width: 40%">Profile Completion</div>
+            <div class="text-line" style="width: 20%">80%</div>
           </div>
           <div class="progress-bar">
             <div class="progress-fill"></div>
@@ -308,33 +346,39 @@
         <div class="settings">
           <div class="setting-item">
             <div class="setting-left">
-              <div class="setting-icon"></div>
+              <div class="text-line icon"></div>
               <div class="setting-texts">
-                <div class="line" style="width: 70%"></div>
-                <div class="line" style="width: 50%"></div>
+                <div class="text-line" style="width: 70%">
+                  Settings Option 1
+                </div>
+                <div class="text-line" style="width: 50%">Description</div>
               </div>
             </div>
-            <div class="chevron"></div>
+            <div class="text-line chevron"></div>
           </div>
           <div class="setting-item">
             <div class="setting-left">
-              <div class="setting-icon"></div>
+              <div class="text-line icon"></div>
               <div class="setting-texts">
-                <div class="line" style="width: 70%"></div>
-                <div class="line" style="width: 50%"></div>
+                <div class="text-line" style="width: 70%">
+                  Settings Option 2
+                </div>
+                <div class="text-line" style="width: 50%">Description</div>
               </div>
             </div>
-            <div class="chevron"></div>
+            <div class="text-line chevron"></div>
           </div>
           <div class="setting-item" style="margin-bottom: 0">
             <div class="setting-left">
-              <div class="setting-icon"></div>
+              <div class="text-line icon"></div>
               <div class="setting-texts">
-                <div class="line" style="width: 70%"></div>
-                <div class="line" style="width: 50%"></div>
+                <div class="text-line" style="width: 70%">
+                  Settings Option 3
+                </div>
+                <div class="text-line" style="width: 50%">Description</div>
               </div>
             </div>
-            <div class="chevron"></div>
+            <div class="text-line chevron"></div>
           </div>
         </div>
       </div>

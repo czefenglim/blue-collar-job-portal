@@ -139,6 +139,16 @@
         white-space: nowrap;
         overflow: hidden;
       }
+      .text-line.large {
+        height: 18px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
       
       .preview-section {
         background: white;
@@ -198,62 +208,60 @@
           <div class="subtitle">Choose your preferred language</div>
         </div>
 
-        <!-- Language Grid -->
+        <!-- Grid -->
         <div class="language-grid">
-          <!-- English (Selected) -->
+          <!-- English (Active) -->
           <div class="language-card active">
             <div class="lang-header">
-                <div class="lang-code">EN</div>
-                <div class="check-circle">✓</div>
+              <div class="text-line dark large center" style="width: 30px">En</div>
+              <div class="check-circle"><ion-icon name="checkmark"></ion-icon></div>
             </div>
-            <div class="text-line" style="width: 80%; background: transparent; color: #1e293b; font-weight: 600;">English</div>
-            <div class="text-line" style="width: 60%; background: transparent; color: #64748b;">English</div>
-          </div>
-
-          <!-- Chinese -->
-          <div class="language-card">
-            <div class="lang-header">
-                <div class="lang-code">中文</div>
-            </div>
-            <div class="text-line" style="width: 60%; margin-bottom: 4px;">中文</div>
-            <div class="text-line" style="width: 50%;">Chinese</div>
+            <div class="text-line" style="width: 80%">English</div>
+            <div class="text-line" style="width: 60%">Default</div>
           </div>
 
           <!-- Malay -->
           <div class="language-card">
             <div class="lang-header">
-                <div class="lang-code">BM</div>
+              <div class="text-line dark large center" style="width: 30px">Ms</div>
             </div>
-            <div class="text-line" style="width: 90%; margin-bottom: 4px;">Bahasa Melayu</div>
-            <div class="text-line" style="width: 40%;">Malay</div>
+            <div class="text-line" style="width: 90%">Bahasa Melayu</div>
+            <div class="text-line" style="width: 50%">Malay</div>
+          </div>
+
+          <!-- Chinese -->
+          <div class="language-card">
+            <div class="lang-header">
+              <div class="text-line dark large center" style="width: 30px">Zh</div>
+            </div>
+            <div class="text-line" style="width: 60%">中文</div>
+            <div class="text-line" style="width: 70%">Chinese</div>
           </div>
 
           <!-- Tamil -->
           <div class="language-card">
             <div class="lang-header">
-                <div class="lang-code">தமிழ்</div>
+              <div class="text-line dark large center" style="width: 30px">Ta</div>
             </div>
-            <div class="text-line" style="width: 50%; margin-bottom: 4px;">தமிழ்</div>
-            <div class="text-line" style="width: 40%;">Tamil</div>
+            <div class="text-line" style="width: 60%">தமிழ்</div>
+            <div class="text-line" style="width: 50%">Tamil</div>
           </div>
         </div>
 
-        <!-- Selected Preview -->
+        <!-- Preview/Info Area -->
         <div class="preview-section">
-            <div class="text-line" style="width: 100px; background: transparent; justify-content: center; margin-bottom: 4px; font-weight: 600;">Selected Language</div>
-            <div class="lang-code" style="color: var(--primary); font-size: 24px;">EN</div>
-            <div class="text-line" style="width: 60px; background: transparent; justify-content: center;">English</div>
+           <div class="text-line dark large" style="width: 80%">Language Preview</div>
+           <div class="text-line" style="width: 100%">Sample text in selected language...</div>
         </div>
 
         <!-- Buttons -->
-        <div class="btn-primary">Confirm Language</div>
-        <div class="btn-secondary">Cancel</div>
-
+        <div class="btn-primary">
+           <div class="text-line center" style="width: 80px; background: rgba(255,255,255,0.2); color: white;">Confirm Button</div>
+        </div>
+        <div class="btn-secondary">
+           <div class="text-line center" style="width: 80px; background: transparent; color: var(--muted);">Cancel Button</div>
+        </div>
       </div>
     </div>
   </body>
 </html>
-<!--
-Page Description:
-This is the language selection screen, which is the first interaction point for the user. It allows users to choose their preferred interface language from available options (English, Chinese, Malay, Tamil). The selection is persisted and shapes the localization for the rest of the app experience.
--->

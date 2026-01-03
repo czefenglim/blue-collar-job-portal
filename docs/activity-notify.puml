@@ -17,7 +17,7 @@ if (Click Notification?) then (yes)
   |System|
   :Mark as Read;
   :Navigate to Related Content;
+else (no)
 endif
 stop
 @enduml
-

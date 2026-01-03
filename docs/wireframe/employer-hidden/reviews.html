@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reviews</title>
+    <title>Employer - Reviews</title>
     <style>
       :root {
         --primary: #1e3a8a;
@@ -31,6 +31,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: visible;
       }
       .status-bar {
         height: 20px;
@@ -48,13 +49,7 @@
         padding: 12px 16px;
         display: flex;
         align-items: center;
-        gap: 12px;
-      }
-      .back {
-        width: 24px;
-        height: 24px;
-        background: var(--primary);
-        border-radius: 6px;
+        justify-content: space-between;
       }
       .title {
         font-weight: 700;
@@ -66,93 +61,242 @@
         background: #fff;
         flex: 1;
       }
-      .summary {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .score {
-        flex: 1;
-        background: #f8fafc;
+      .box {
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 12px;
-        text-align: center;
-      }
-      .score-num {
-        height: 18px;
-        background: #d1fae5;
-        border-radius: 6px;
-        margin: 0 auto 6px;
-        width: 50%;
-      }
-      .card {
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 12px;
         margin-bottom: 12px;
       }
-      .line {
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
         height: 14px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        margin-bottom: 6px;
-      }
-      .placeholder {
-        height: 60px;
-        background: #e5e7eb;
-        border-radius: 12px;
         display: flex;
         align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.center {
         justify-content: center;
-        color: #334155;
-        font-weight: 600;
-        margin-bottom: 12px;
+        padding-left: 0;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 12px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
     </style>
   </head>
   <body>
-    <div class="mobile-frame">
+    <div
+      class="mobile-frame"
+      style="height: auto; overflow: visible; padding-bottom: 20px"
+    >
       <div class="status-bar">
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
-        <div class="back"></div>
-        <div class="title">Reviews</div>
+        <div
+          class="text-line center"
+          style="
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: #1e3a8a;
+            color: white;
+          "
+        >
+          &lt;
+        </div>
+        <div class="title">Company Reviews</div>
+        <div style="width: 24px"></div>
       </div>
       <div class="content">
-        <div class="summary">
-          <div class="score">
-            <div class="score-num"></div>
-            <div style="font-size: 12px; color: var(--muted)">
-              Average Rating
+        <!-- Stats -->
+        <div class="box">
+          <div style="display: flex; gap: 16px; align-items: center">
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+              "
+            >
+              <div
+                class="text-line center large"
+                style="width: 40px; height: 32px; font-size: 18px"
+              >
+                4.2
+              </div>
+              <div class="text-line center" style="width: 60px">Stars</div>
+              <div class="text-line center" style="width: 50px">128 Rev</div>
+            </div>
+            <div
+              style="flex: 1; display: flex; flex-direction: column; gap: 4px"
+            >
+              <div class="text-line" style="width: 100%">5 Star Bar</div>
+              <div class="text-line" style="width: 80%">4 Star Bar</div>
+              <div class="text-line" style="width: 60%">3 Star Bar</div>
+              <div class="text-line" style="width: 40%">2 Star Bar</div>
+              <div class="text-line" style="width: 20%">1 Star Bar</div>
             </div>
           </div>
-          <div class="score">
-            <div class="score-num"></div>
-            <div style="font-size: 12px; color: var(--muted)">
-              Total Reviews
+        </div>
+
+        <!-- Filters -->
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+          "
+        >
+          <div class="text-line center" style="width: 100px">Sort: Newest</div>
+          <div style="display: flex; gap: 4px">
+            <div
+              class="text-line center"
+              style="width: 30px; background: #1e3a8a; color: white"
+            >
+              All
+            </div>
+            <div class="text-line center" style="width: 30px">5★</div>
+            <div class="text-line center" style="width: 30px">4★</div>
+          </div>
+        </div>
+
+        <!-- Review 1 -->
+        <div class="box">
+          <div
+            class="row"
+            style="margin-bottom: 8px; justify-content: space-between"
+          >
+            <div class="row" style="gap: 8px">
+              <div
+                class="text-line center"
+                style="width: 32px; height: 32px; border-radius: 16px"
+              >
+                JD
+              </div>
+              <div>
+                <div class="text-line" style="width: 80px; margin-bottom: 4px">
+                  John Doe
+                </div>
+                <div class="text-line" style="width: 60px">5 Stars</div>
+              </div>
+            </div>
+            <div class="text-line" style="width: 60px">2 days ago</div>
+          </div>
+          <div class="text-line" style="width: 100%; margin-bottom: 4px">
+            Review Title
+          </div>
+          <div
+            class="text-line"
+            style="width: 100%; height: 40px; margin-bottom: 8px"
+          >
+            Review Content...
+          </div>
+
+          <div class="box" style="background: #f8fafc; margin-bottom: 0">
+            <div
+              class="row"
+              style="justify-content: space-between; margin-bottom: 4px"
+            >
+              <div class="text-line" style="width: 100px">Employer Reply</div>
+              <div class="text-line" style="width: 50px">1 day ago</div>
+            </div>
+            <div class="text-line" style="width: 100%">Reply Content...</div>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="box">
+          <div
+            class="row"
+            style="margin-bottom: 8px; justify-content: space-between"
+          >
+            <div class="row" style="gap: 8px">
+              <div
+                class="text-line center"
+                style="width: 32px; height: 32px; border-radius: 16px"
+              >
+                JS
+              </div>
+              <div>
+                <div class="text-line" style="width: 80px; margin-bottom: 4px">
+                  Jane Smith
+                </div>
+                <div class="text-line" style="width: 60px">3 Stars</div>
+              </div>
+            </div>
+            <div class="text-line" style="width: 60px">1 week ago</div>
+          </div>
+          <div
+            class="text-line"
+            style="width: 100%; height: 40px; margin-bottom: 8px"
+          >
+            Review Content...
+          </div>
+          <div class="row" style="justify-content: flex-end; gap: 8px">
+            <div class="text-line center" style="width: 60px">Flag</div>
+            <div class="text-line center" style="width: 60px; color: #1e3a8a">
+              Reply
             </div>
           </div>
-          <div class="text-line">Reviewer Name & Date</div>
-        <div class="placeholder">Filters</div>
-        <div class="placeholder">Write a Review</div>
-          <div class="text-line" style="height: 40px">Review Comment Text</div>
-          <div class="line" style="width: 60%"></div>
-          <div class="line" style="width: 90%"></div>
-          <div class="text-line">Reviewer Name & Date</div>
-          <div class="text-line" style="height: 40px">Review Comment Text</div>
-          <div class="line" style="width: 50%"></div>
-          <div class="line" style="width: 80%"></div>
-          <div class="text-line">Reviewer Name & Date</div>
-          <div class="text-line" style="height: 40px">Review Comment Text</div>
-          <div class="text-line">"Reply" Button</div>
+        </div>
+
+        <!-- Review 3 Hidden -->
+        <div class="box" style="opacity: 0.7">
+          <div
+            class="row"
+            style="margin-bottom: 8px; justify-content: space-between"
+          >
+            <div class="row" style="gap: 8px">
+              <div
+                class="text-line center"
+                style="width: 32px; height: 32px; border-radius: 16px"
+              >
+                U
+              </div>
+              <div>
+                <div class="text-line" style="width: 80px; margin-bottom: 4px">
+                  Unknown
+                </div>
+                <div class="text-line" style="width: 60px">1 Star</div>
+              </div>
+            </div>
+            <div style="text-align: right">
+              <div
+                class="text-line"
+                style="width: 60px; margin-bottom: 4px; margin-left: auto"
+              >
+                1 mo ago
+              </div>
+              <div
+                class="text-line center"
+                style="
+                  width: 50px;
+                  background: #fee2e2;
+                  color: #ef4444;
+                  margin-left: auto;
+                "
+              >
+                Hidden
+              </div>
+            </div>
+          </div>
+          <div class="text-line" style="width: 100%; margin-bottom: 4px">
+            Hidden Review Content...
+          </div>
         </div>
       </div>
     </div>
   </body>
 </html>
-<!-- 
-Page Description: 
-This page collects and displays reviews left by former employees or candidates about the company. Employers use this page to monitor their brand reputation. Depending on platform rules, they may also have the ability to reply to feedback here to address concerns publicly.
--->

@@ -1,5 +1,8 @@
 @startuml UC_EditJob
 skinparam conditionStyle diamond
+skinparam activityDiamondShape true
+skinparam nodesep 100
+skinparam ranksep 60
 title Activity: Edit / Manage Job Post
 
 |Employer|
@@ -13,7 +16,7 @@ endif
 
 :Select Action;
 
-split
+fork
   -> Edit Details;
   :Edit Job Information;
   :Click Save Changes;
@@ -22,7 +25,7 @@ split
   :Update Job Record;
   :Show Success Message;
   :Return to Job Page;
-split again
+fork again
   -> Toggle Status;
   if (Action Type?) then (Close Job)
     :Click Close Job;
@@ -37,13 +40,13 @@ split again
     :Make Job Viewable;
     :Show Success Message;
   endif
-split again
+fork again
   -> Delete Job;
   :Click Delete Job;
   |System|
   :Remove Job from Database;
   :Show Success Message;
-end split
+end fork
 
 stop
 @enduml

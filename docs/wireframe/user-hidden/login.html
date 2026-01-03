@@ -75,20 +75,6 @@
         align-items: center;
         margin-bottom: 40px;
       }
-      .logo-box {
-        width: 80px;
-        height: 80px;
-        background: var(--primary);
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 16px;
-        color: white;
-        font-weight: bold;
-        font-size: 28px;
-        box-shadow: 0 4px 8px rgba(30, 58, 138, 0.3);
-      }
       .title {
         font-size: 24px;
         font-weight: bold;
@@ -108,13 +94,6 @@
         padding: 24px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
-      .label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 8px;
-        display: block;
-      }
       .input-field {
         width: 100%;
         height: 56px;
@@ -127,10 +106,26 @@
         padding: 0 16px;
       }
       .text-line {
-        height: 12px;
         background: #e2e8f0;
         border-radius: 4px;
-        width: 60%;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
       }
       .btn-primary {
         width: 100%;
@@ -143,19 +138,10 @@
         margin-bottom: 24px;
         box-shadow: 0 4px 8px rgba(30, 58, 138, 0.3);
       }
-      .btn-text {
-        height: 14px;
-        width: 80px;
-        background: rgba(255, 255, 255, 0.4);
-        border-radius: 4px;
-      }
       .forgot-link {
-        text-align: right;
-        color: var(--primary);
-        font-size: 14px;
-        font-weight: 600;
+        display: flex;
+        justify-content: flex-end;
         margin-bottom: 24px;
-        display: block;
       }
       .divider {
         display: flex;
@@ -198,68 +184,45 @@
       </div>
       <div class="content">
         <div class="header-back">
-          <ion-icon
-            name="arrow-back"
-            style="color: var(--primary); font-size: 24px"
-          ></ion-icon>
+          <ion-icon name="arrow-back"></ion-icon>
         </div>
-
+        
         <div class="logo-section">
-          <div class="logo-box">BC</div>
-          <div class="title">Welcome Back</div>
-          <div class="subtitle">Sign in to continue</div>
+          <div class="text-line dark large center" style="width: 80px; height: 80px; margin-bottom: 16px; border-radius: 20px;">Logo</div>
+          <div class="title">Login</div>
+          <div class="subtitle">Welcome back!</div>
         </div>
 
         <div class="form-card">
-          <span class="label">Email Address</span>
+          <div class="text-line" style="width: 100px; margin-bottom: 8px">Email Address</div>
           <div class="input-field">
-            <div class="text-line" style="width: 150px"></div>
+            <div class="text-line" style="width: 150px">user@example.com</div>
           </div>
 
-          <span class="label">Password</span>
-          <div class="input-field" style="justify-content: space-between">
-            <div class="text-line" style="width: 100px"></div>
-            <ion-icon
-              name="eye-off-outline"
-              style="color: var(--muted); font-size: 20px"
-            ></ion-icon>
+          <div class="text-line" style="width: 80px; margin-bottom: 8px">Password</div>
+          <div class="input-field">
+            <div class="text-line" style="width: 100px">********</div>
           </div>
 
-          <div class="forgot-link">Forgot Password?</div>
+          <div class="forgot-link">
+             <div class="text-line" style="width: 100px; background: transparent; color: var(--primary); justify-content: flex-end;">Forgot Password?</div>
+          </div>
 
           <div class="btn-primary">
-            <div class="btn-text"></div>
+            <div class="text-line center" style="width: 100px; background: rgba(255,255,255,0.2); color: white;">Login Button</div>
           </div>
 
           <div class="divider">
             <div class="divider-line"></div>
-            <div class="divider-text">or</div>
+            <div class="divider-text">OR</div>
             <div class="divider-line"></div>
           </div>
 
           <div class="signup-text">
             Don't have an account? <span class="signup-link">Sign Up</span>
           </div>
-
-          <div
-            style="
-              text-align: center;
-              margin-top: 16px;
-              color: var(--primary);
-              font-weight: 600;
-              font-size: 14px;
-            "
-          >
-            Change Language
-          </div>
         </div>
       </div>
     </div>
   </body>
 </html>
-<!--
-Page Description:
-Authentication Flow (Login & Sign Up):
-The Login screen serves as the entry point for returning users, allowing them to authenticate via email and password. It includes validation for required fields and links to the "Forgot Password" flow.
-The Sign Up screen (sign-up.html) allows new users to create an account by providing their personal details (Name, Email, Phone) and setting a password. It features client-side validation for password matching and strength, along with Terms of Service agreement. Both screens are designed with a clean, mobile-first interface to ensure a smooth onboarding experience.
--->

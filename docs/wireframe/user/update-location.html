@@ -33,6 +33,7 @@
         border: 8px solid #1e293b;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .status-bar {
         height: 20px;
@@ -179,6 +180,49 @@
       .spacer {
         height: 40px;
       }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #475569;
+      }
+      .text-line.center {
+        justify-content: center;
+        padding-left: 0;
+      }
+      .text-line.btn-primary {
+        background: linear-gradient(90deg, #4f46e5, #3730a3);
+        color: #fff;
+        height: 48px;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 16px;
+      }
+      .text-line.input-box {
+        background: #f8fafc;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        height: 42px;
+        padding-left: 12px;
+        font-size: 14px;
+        color: #334155;
+        align-items: center;
+        display: flex;
+      }
     </style>
   </head>
   <body>
@@ -187,13 +231,31 @@
         <span>9:41</span><span>Signal • Wifi • Battery</span>
       </div>
       <div class="header">
-        <div class="back"></div>
-        <div class="title">Update Location</div>
+        <div
+          class="text-line center dark"
+          style="width: 24px; height: 24px; border-radius: 6px"
+        >
+          <
+        </div>
+        <div class="text-line large dark" style="width: 100px">
+          Update Location
+        </div>
         <div style="width: 24px"></div>
       </div>
       <div class="content">
         <div class="card">
-          <div class="hero-icon"></div>
+          <div
+            class="text-line center dark large"
+            style="
+              width: 72px;
+              height: 72px;
+              border-radius: 36px;
+              margin: 0 auto 20px;
+              box-shadow: 0 6px 12px rgba(30, 58, 138, 0.3);
+            "
+          >
+            Location Icon
+          </div>
           <div class="hero-title">Update Your Location</div>
           <div class="hero-subtitle">
             Set your preferred location for better job matches
@@ -202,7 +264,12 @@
 
         <div class="card">
           <div class="info-header">
-            <div class="info-icon"></div>
+            <div
+              class="text-line center dark large"
+              style="width: 48px; height: 48px; border-radius: 16px"
+            >
+              ?
+            </div>
             <div style="font-weight: 700; color: #1e293b">
               Why update location?
             </div>
@@ -215,41 +282,116 @@
 
         <div class="card">
           <div class="label-row">
-            <div class="label-icon"></div>
-            <div class="label">
-              Address <span class="optional">(Optional)</span>
+            <div
+              class="text-line center"
+              style="width: 36px; height: 36px; border-radius: 10px"
+            >
+              A
+            </div>
+            <div
+              class="text-line"
+              style="
+                width: 100px;
+                background: transparent;
+                color: #1e293b;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 0;
+              "
+            >
+              Address (Optional)
             </div>
           </div>
-          <div class="input"></div>
+          <div class="text-line input-box">Enter Address</div>
 
           <div class="label-row" style="margin-top: 20px">
-            <div class="label-icon"></div>
-            <div class="label">City <span class="required">*</span></div>
-          </div>
-          <div class="input"></div>
-
-          <div class="label-row" style="margin-top: 20px">
-            <div class="label-icon"></div>
-            <div class="label">State <span class="required">*</span></div>
-          </div>
-          <div class="input"></div>
-
-          <div class="label-row" style="margin-top: 20px">
-            <div class="label-icon"></div>
-            <div class="label">
-              Postcode <span class="optional">(Optional)</span>
+            <div
+              class="text-line center"
+              style="width: 36px; height: 36px; border-radius: 10px"
+            >
+              C
+            </div>
+            <div
+              class="text-line"
+              style="
+                width: 60px;
+                background: transparent;
+                color: #1e293b;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 0;
+              "
+            >
+              City *
             </div>
           </div>
-          <div class="input"></div>
+          <div class="text-line input-box">Enter City</div>
+
+          <div class="label-row" style="margin-top: 20px">
+            <div
+              class="text-line center"
+              style="width: 36px; height: 36px; border-radius: 10px"
+            >
+              S
+            </div>
+            <div
+              class="text-line"
+              style="
+                width: 60px;
+                background: transparent;
+                color: #1e293b;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 0;
+              "
+            >
+              State *
+            </div>
+          </div>
+          <div class="text-line input-box">Enter State</div>
+
+          <div class="label-row" style="margin-top: 20px">
+            <div
+              class="text-line center"
+              style="width: 36px; height: 36px; border-radius: 10px"
+            >
+              P
+            </div>
+            <div
+              class="text-line"
+              style="
+                width: 100px;
+                background: transparent;
+                color: #1e293b;
+                font-weight: 600;
+                font-size: 15px;
+                padding: 0;
+              "
+            >
+              Postcode (Optional)
+            </div>
+          </div>
+          <div class="text-line input-box">Enter Postcode</div>
 
           <div class="save" style="margin-top: 12px">
-            <div class="save-btn">Save Location</div>
+            <div class="text-line center btn-primary">Save Location</div>
           </div>
         </div>
 
         <div class="card">
           <div class="tips-header">
-            <div class="tips-icon"></div>
+            <div
+              class="text-line center dark large"
+              style="
+                width: 48px;
+                height: 48px;
+                border-radius: 16px;
+                background: #fef3c7;
+                color: #b45309;
+              "
+            >
+              Tip
+            </div>
             <div style="font-weight: 700; color: #1e293b">Pro Tip</div>
           </div>
           <div
@@ -265,6 +407,7 @@
           </div>
           <div class="tips-footer">
             <div
+              class="text-line center"
               style="
                 width: 16px;
                 height: 16px;

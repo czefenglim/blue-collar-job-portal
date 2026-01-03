@@ -27,7 +27,7 @@ if (Select Job?) then (yes)
   |System|
   :Fetch Job Details;
   :Navigate to Job Details Screen;
+else (no)
 endif
 stop
 @enduml
-

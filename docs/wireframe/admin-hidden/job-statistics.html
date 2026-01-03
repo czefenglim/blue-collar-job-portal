@@ -280,6 +280,43 @@
         font-size: 13px;
         color: #1e293b;
       }
+      .text-line {
+        background: #e2e8f0;
+        border-radius: 4px;
+        height: 14px;
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        font-size: 9px;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      .text-line:last-child {
+        margin-bottom: 0;
+      }
+      .text-line.large {
+        height: 18px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .text-line.dark {
+        background: #cbd5e1;
+        color: #334155;
+      }
+      .text-line.green {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .text-line.red {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .text-line.blue {
+        background: #eff6ff;
+        color: #1e3a8a;
+      }
     </style>
     <!-- Ionicons -->
     <script
@@ -302,7 +339,18 @@
         <div class="back-btn">
           <ion-icon name="arrow-back"></ion-icon>
         </div>
-        <div class="header-title">Job Statistics</div>
+        <div
+          class="text-line large"
+          style="
+            width: 120px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            justify-content: center;
+          "
+        >
+          Job Statistics
+        </div>
         <div class="back-btn" style="opacity: 0"></div>
       </div>
 
@@ -318,8 +366,10 @@
         <div class="page-content">
           <div class="chart-card">
             <div class="chart-header">
-              <div class="chart-title">Applications</div>
-              <div class="chart-period">Last 7 Days</div>
+              <div class="text-line dark large" style="width: 50%">
+                Applications
+              </div>
+              <div class="text-line" style="width: 30%">Last 7 Days</div>
             </div>
             <div class="chart-area">
               <div class="bar-group">
@@ -354,75 +404,126 @@
           </div>
 
           <div>
-            <div class="grid-title">Key Metrics</div>
+            <div
+              class="text-line dark large"
+              style="width: 40%; margin-bottom: 8px"
+            >
+              Key Metrics
+            </div>
             <div class="details-grid">
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="briefcase-outline"></ion-icon>
-                  <span>Total Jobs</span>
+                <div class="text-line" style="width: 70%">Total Jobs</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  1,245
                 </div>
-                <div class="detail-val">1,245</div>
-                <span class="trend up">↑ 12% vs last week</span>
+                <div class="text-line green" style="width: 80%">
+                  ↑ 12% vs last week
+                </div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="checkmark-done-outline"></ion-icon>
-                  <span>Filled</span>
+                <div class="text-line" style="width: 70%">Filled</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  842
                 </div>
-                <div class="detail-val">842</div>
-                <span class="trend up">↑ 5% vs last week</span>
+                <div class="text-line green" style="width: 80%">
+                  ↑ 5% vs last week
+                </div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="eye-outline"></ion-icon>
-                  <span>Views</span>
+                <div class="text-line" style="width: 70%">Views</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  45.2k
                 </div>
-                <div class="detail-val">45.2k</div>
-                <span class="trend down">↓ 2% vs last week</span>
+                <div class="text-line red" style="width: 80%">
+                  ↓ 2% vs last week
+                </div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="time-outline"></ion-icon>
-                  <span>Avg Time</span>
+                <div class="text-line" style="width: 70%">Avg Time</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  14d
                 </div>
-                <div class="detail-val">14d</div>
-                <span class="trend up">↑ Stable</span>
+                <div class="text-line green" style="width: 80%">↑ Stable</div>
               </div>
             </div>
           </div>
 
           <div>
-            <div class="grid-title">Top Categories</div>
+            <div
+              class="text-line dark large"
+              style="width: 40%; margin-bottom: 8px"
+            >
+              Top Categories
+            </div>
             <div class="list-card">
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="construct"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Construction</div>
-                  <div class="item-sub">342 active jobs</div>
+                  <div class="text-line dark large" style="width: 60%">
+                    Construction
+                  </div>
+                  <div class="text-line" style="width: 40%">
+                    342 active jobs
+                  </div>
                 </div>
-                <div class="item-val">28%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  28%
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="car"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Transportation</div>
-                  <div class="item-sub">215 active jobs</div>
+                  <div class="text-line dark large" style="width: 60%">
+                    Transportation
+                  </div>
+                  <div class="text-line" style="width: 40%">
+                    215 active jobs
+                  </div>
                 </div>
-                <div class="item-val">18%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  18%
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="flash"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Electrical</div>
-                  <div class="item-sub">189 active jobs</div>
+                  <div class="text-line dark large" style="width: 50%">
+                    Electrical
+                  </div>
+                  <div class="text-line" style="width: 40%">
+                    189 active jobs
+                  </div>
                 </div>
-                <div class="item-val">15%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  15%
+                </div>
               </div>
             </div>
           </div>
@@ -456,8 +557,10 @@
         <div class="page-content">
           <div class="chart-card">
             <div class="chart-header">
-              <div class="chart-title">Gender Distribution</div>
-              <div class="chart-period">Total</div>
+              <div class="text-line dark large" style="width: 60%">
+                Gender Distribution
+              </div>
+              <div class="text-line" style="width: 20%">Total</div>
             </div>
             <div class="chart-area">
               <div class="bar-group">
@@ -476,75 +579,118 @@
           </div>
 
           <div>
-            <div class="grid-title">Age Groups</div>
+            <div
+              class="text-line dark large"
+              style="width: 40%; margin-bottom: 8px"
+            >
+              Age Groups
+            </div>
             <div class="details-grid">
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="person-outline"></ion-icon>
-                  <span>18-24</span>
+                <div class="text-line" style="width: 50%">18-24</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  25%
                 </div>
-                <div class="detail-val">25%</div>
-                <span class="trend up">Entry Level</span>
+                <div class="text-line green" style="width: 70%">
+                  Entry Level
+                </div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="person-outline"></ion-icon>
-                  <span>25-34</span>
+                <div class="text-line" style="width: 50%">25-34</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  45%
                 </div>
-                <div class="detail-val">45%</div>
-                <span class="trend up">Mid Senior</span>
+                <div class="text-line green" style="width: 70%">Mid Senior</div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="person-outline"></ion-icon>
-                  <span>35-44</span>
+                <div class="text-line" style="width: 50%">35-44</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  20%
                 </div>
-                <div class="detail-val">20%</div>
-                <span class="trend down">Senior</span>
+                <div class="text-line red" style="width: 70%">Senior</div>
               </div>
               <div class="detail-card">
-                <div class="detail-head">
-                  <ion-icon name="person-outline"></ion-icon>
-                  <span>45+</span>
+                <div class="text-line" style="width: 50%">45+</div>
+                <div
+                  class="text-line dark large"
+                  style="width: 50%; height: 24px; font-size: 16px"
+                >
+                  10%
                 </div>
-                <div class="detail-val">10%</div>
-                <span class="trend down">Expert</span>
+                <div class="text-line red" style="width: 70%">Expert</div>
               </div>
             </div>
           </div>
 
           <div>
-            <div class="grid-title">Top Locations</div>
+            <div
+              class="text-line dark large"
+              style="width: 40%; margin-bottom: 8px"
+            >
+              Top Locations
+            </div>
             <div class="list-card">
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="location-outline"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">New York, NY</div>
-                  <div class="item-sub">1,205 Candidates</div>
+                  <div class="text-line dark large" style="width: 60%">
+                    New York, NY
+                  </div>
+                  <div class="text-line" style="width: 40%">
+                    1,205 Candidates
+                  </div>
                 </div>
-                <div class="item-val">32%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  32%
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="location-outline"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Los Angeles, CA</div>
-                  <div class="item-sub">980 Candidates</div>
+                  <div class="text-line dark large" style="width: 60%">
+                    Los Angeles, CA
+                  </div>
+                  <div class="text-line" style="width: 40%">980 Candidates</div>
                 </div>
-                <div class="item-val">24%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  24%
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="location-outline"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Chicago, IL</div>
-                  <div class="item-sub">750 Candidates</div>
+                  <div class="text-line dark large" style="width: 50%">
+                    Chicago, IL
+                  </div>
+                  <div class="text-line" style="width: 40%">750 Candidates</div>
                 </div>
-                <div class="item-val">18%</div>
+                <div
+                  class="text-line dark"
+                  style="width: 30px; justify-content: center"
+                >
+                  18%
+                </div>
               </div>
             </div>
           </div>
@@ -648,17 +794,17 @@
           </div>
 
           <div>
-            <div class="grid-title">Churn Reasons</div>
+            <div class="text-line dark large" style="width: 40%; margin-bottom: 8px;">Churn Reasons</div>
             <div class="list-card">
               <div class="list-item">
                 <div class="item-icon">
                   <ion-icon name="alert-circle-outline"></ion-icon>
                 </div>
                 <div class="item-info">
-                  <div class="item-name">Better Offer</div>
-                  <div class="item-sub">Found higher pay</div>
+                  <div class="text-line dark large" style="width: 60%;">Better Offer</div>
+                  <div class="text-line" style="width: 50%;">Found higher pay</div>
                 </div>
-                <div class="item-val">45%</div>
+                <div class="text-line dark" style="width: 30px; justify-content: center;">45%</div>
               </div>
               <div class="list-item">
                 <div class="item-icon">

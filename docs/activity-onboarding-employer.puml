@@ -15,7 +15,8 @@ repeat
   else (Continue)
     break
   endif
-repeat while (Action is not Continue)
+repeat while (Action is not Continue) is (yes)
+-> no;
 
 :Click Continue;
 
