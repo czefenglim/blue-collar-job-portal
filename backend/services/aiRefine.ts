@@ -7,7 +7,7 @@ interface Answer {
 }
 
 const cohere = new CohereClientV2({
-  token: '9KjRTgmeA7d93zMJ5yBcZDOlXHLZFGXNaPebOf2q', // Ensure your actual key is used here
+  token: process.env.COHERE_API_KEY, // Ensure your actual key is used here
 });
 
 export async function refineAnswers(answers: Answer[]) {

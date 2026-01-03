@@ -19,7 +19,7 @@
       }
     },
     "extra": {
-      "API_BASE_URL": "https://joyful-tera-cany.ngrok-free.dev",
+      "API_BASE_URL": "https://blue-collar-job-portal.onrender.com",
       "JWT_SECRET": "a2579ab20d8b7fece531824ecaf62b060ff13dc49b5530c99fca0395471264b9b1e2ec000681baa7d3acc462a985d287570a92c7dd2b107e2a12c9ed70451953",
       "eas": {
         "projectId": "292031b1-4b6a-4796-b8d0-e687c950b8b4"
