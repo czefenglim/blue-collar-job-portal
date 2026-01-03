@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import PDFDocument from 'pdfkit';
+import axios from 'axios';
 import { getSignedDownloadUrl } from './s3Service';
 import { SupportedLang, labelEnum } from '../utils/enumLabels';
 
@@ -38,376 +39,264 @@ export async function generateResumePDF(
   refinedAnswers: RefinedAnswer[],
   lang: SupportedLang = 'en'
 ): Promise<Buffer> {
-  const age = calculateAge(profile.dateOfBirth);
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 0, size: 'A4' });
+      const buffers: Buffer[] = [];
 
-  // Translations for section labels
-  const LABELS: Record<SupportedLang, Record<string, string>> = {
-    en: {
-      contact: 'Contact',
-      skills: 'Skills',
-      profileSummary: 'Profile Summary',
-      experience: 'Experience',
-      workExperience: 'Work Experience',
-      educationLevel: 'Education Level',
-      achievements: 'Achievements',
-      references: 'References',
-      age: 'Age',
-    },
-    ms: {
-      contact: 'Hubungi',
-      skills: 'Kemahiran',
-      profileSummary: 'Ringkasan Profil',
-      experience: 'Pengalaman',
-      workExperience: 'Pengalaman Kerja',
-      educationLevel: 'Tahap Pendidikan',
-      achievements: 'Pencapaian',
-      references: 'Rujukan',
-      age: 'Umur',
-    },
-    zh: {
-      contact: '联系方式',
-      skills: '技能',
-      profileSummary: '个人简介',
-      experience: '经历',
-      workExperience: '工作经历',
-      educationLevel: '教育程度',
-      achievements: '成就',
-      references: '推荐人',
-      age: '年龄',
-    },
-    ta: {
-      contact: 'தொடர்பு',
-      skills: 'திறன்கள்',
-      profileSummary: 'சுயவிவர சுருக்கம்',
-      experience: 'அனுபவம்',
-      workExperience: 'வேலை அனுபவம்',
-      educationLevel: 'கல்வி நிலை',
-      achievements: 'சாதனைகள்',
-      references: 'குறிப்புகள்',
-      age: 'வயது',
-    },
-  };
+      doc.on('data', (buffer) => buffers.push(buffer));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-  // Translate gender label if present
-  const genderLabel = labelEnum('Gender', profile.gender, lang);
+      const age = calculateAge(profile.dateOfBirth);
 
-  // Sign profile picture if it's an S3 key
-  let profileImageUrl: string | undefined = undefined;
-  if (profile.profilePicture) {
-    profileImageUrl = profile.profilePicture.startsWith('http')
-      ? profile.profilePicture
-      : await getSignedDownloadUrl(profile.profilePicture, 600);
-  }
+      // Translations for section labels
+      const LABELS: Record<SupportedLang, Record<string, string>> = {
+        en: {
+          contact: 'Contact',
+          skills: 'Skills',
+          profileSummary: 'Profile Summary',
+          experience: 'Experience',
+          workExperience: 'Work Experience',
+          educationLevel: 'Education Level',
+          achievements: 'Achievements',
+          references: 'References',
+          age: 'Age',
+        },
+        ms: {
+          contact: 'Hubungi',
+          skills: 'Kemahiran',
+          profileSummary: 'Ringkasan Profil',
+          experience: 'Pengalaman',
+          workExperience: 'Pengalaman Kerja',
+          educationLevel: 'Tahap Pendidikan',
+          achievements: 'Pencapaian',
+          references: 'Rujukan',
+          age: 'Umur',
+        },
+        zh: {
+          contact: '联系方式',
+          skills: '技能',
+          profileSummary: '个人简介',
+          experience: '经历',
+          workExperience: '工作经历',
+          educationLevel: '教育程度',
+          achievements: '成就',
+          references: '推荐人',
+          age: '年龄',
+        },
+        ta: {
+          contact: 'தொடர்பு',
+          skills: 'திறன்கள்',
+          profileSummary: 'சுயவிவர சுருக்கம்',
+          experience: 'அனுபவம்',
+          workExperience: 'வேலை அனுபவம்',
+          educationLevel: 'கல்வி நிலை',
+          achievements: 'சாதனைகள்',
+          references: 'குறிப்புகள்',
+          age: 'வயது',
+        },
+      };
 
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+      // Translate gender label if present
+      const genderLabel = labelEnum('Gender', profile.gender, lang);
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
-      color: #2d3748;
-      background: #ffffff;
-    }
+      // --- Colors ---
+      const sidebarColor = '#667eea'; // Simplified to solid color for PDFKit (gradients are harder)
+      const sidebarTextColor = '#FFFFFF';
+      const mainTextColor = '#2d3748';
+      const headingColor = '#1a202c';
+      const accentColor = '#667eea';
 
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
+      // --- Layout Constants ---
+      const sidebarWidth = 200;
+      const contentPadding = 40;
+      const contentWidth = doc.page.width - sidebarWidth - contentPadding * 2;
+      const startXContent = sidebarWidth + contentPadding;
 
-    .sidebar {
-      width: 280px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px 30px;
-      position: relative;
-    }
+      // 1. Draw Sidebar Background
+      doc.rect(0, 0, sidebarWidth, doc.page.height).fill(sidebarColor);
 
-    .sidebar::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: -20px;
-      width: 40px;
-      height: 100%;
-      background: inherit;
-      clip-path: polygon(0 0, 0% 100%, 100% 100%);
-    }
+      // 2. Profile Picture
+      let yPos = 40;
+      if (profile.profilePicture) {
+        try {
+          let profileImageUrl = profile.profilePicture.startsWith('http')
+            ? profile.profilePicture
+            : await getSignedDownloadUrl(profile.profilePicture, 600);
 
-    .profile-photo {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.6);
-    }
+          const response = await axios.get(profileImageUrl, {
+            responseType: 'arraybuffer',
+          });
+          const imageBuffer = Buffer.from(response.data);
 
-    .header {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .name {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 5px;
-      color: white;
-      text-transform: uppercase;
-    }
-
-    .personal-info {
-      font-size: 13px;
-      opacity: 0.9;
-      line-height: 1.4;
-    }
-
-    .contact-section {
-      margin-top: 30px;
-    }
-
-    .contact-title {
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 15px;
-      opacity: 0.9;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .contact-icon {
-      width: 18px;
-      height: 18px;
-      margin-right: 10px;
-      opacity: 0.9;
-    }
-
-    .skills-section {
-      margin-top: 40px;
-    }
-
-    .skills-title {
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 20px;
-      opacity: 0.9;
-    }
-
-    .skill-item {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 8px 14px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 40px 50px;
-      background: #ffffff;
-    }
-
-    .section {
-      margin-bottom: 35px;
-    }
-
-    .section-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a202c;
-      margin-bottom: 16px;
-      border-bottom: 3px solid #667eea;
-      display: inline-block;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .section-content {
-      font-size: 14px;
-      line-height: 1.8;
-      color: #4a5568;
-      text-align: justify;
-    }
-
-    .decorative-line {
-      height: 2px;
-      background: linear-gradient(90deg, #667eea 0%, transparent 100%);
-      margin: 25px 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="header">
-        ${
-          profileImageUrl
-            ? `<img src="${profileImageUrl}" class="profile-photo" />`
-            : ''
+          doc.save();
+          doc.circle(sidebarWidth / 2, yPos + 60, 60).clip();
+          doc.image(imageBuffer, sidebarWidth / 2 - 60, yPos, {
+            width: 120,
+            height: 120,
+          });
+          doc.restore();
+          yPos += 140;
+        } catch (error) {
+          console.error('Error fetching profile image:', error);
+          // Fallback or skip image
         }
-        <h1 class="name">${profile.fullName}</h1>
-        <p class="personal-info">
-          ${genderLabel ? `${genderLabel}<br>` : ''}
-          ${age ? `${LABELS[lang].age}: ${age}` : ''}
-        </p>
-      </div>
-
-      <div class="contact-section">
-        <h3 class="contact-title">${LABELS[lang].contact}</h3>
-        <div class="contact-item">
-          <span class="icon-email"></span>
-          <span>${profile.email}</span>
-        </div>
-        <div class="contact-item">
-          <span class="icon-phone"></span>
-          <span>${profile.phone}</span>
-        </div>
-      </div>
-
-      ${
-        profile.skills.length > 0
-          ? `
-      <div class="skills-section">
-        <h3 class="skills-title">${LABELS[lang].skills}</h3>
-        ${profile.skills
-          .map((s) => `<div class="skill-item">${s.name}</div>`)
-          .join('')}
-      </div>`
-          : ''
+      } else {
+        yPos += 20; // Some padding if no image
       }
-    </div>
-        
-        <!-- Main Content -->
-        <div class="main-content">
-          ${
-            refinedAnswers.find((a) => a.questionId === 'summary')?.answer
-              ? `
-          <div class="section">
-            <h2 class="section-title">${LABELS[lang].profileSummary}</h2>
-            <div class="profile-summary">
-              ${refinedAnswers.find((a) => a.questionId === 'summary')?.answer}
-            </div>
-          </div>
-          `
-              : ''
-          }
-          
-          <div class="decorative-line"></div>
-          
-          ${
-            refinedAnswers.find((a) => a.questionId === 'experience')?.answer
-              ? `
-          <div class="section">
-            <h2 class="section-title">${LABELS[lang].experience}</h2>
-            <div class="section-content experience-content">
-              ${
-                refinedAnswers.find((a) => a.questionId === 'experience')
-                  ?.answer
-              }
-            </div>
-          </div>
-          `
-              : ''
-          }
-          
-         ${refinedAnswers
-           .filter(
-             (a) =>
-               ![
-                 'summary',
-                 'experience',
-                 'hasWorkExperience',
-                 'hasAchievements',
-                 'hasReferences',
-                 'hasEducation',
-               ].includes(a.questionId)
-           )
 
-           .map((answer) => {
-             // ✅ Map question IDs to friendly section titles
-             const titleMap: Record<string, string> = {
-               workExperience: LABELS[lang].workExperience,
-               educationLevel: LABELS[lang].educationLevel,
-               achievements: LABELS[lang].achievements,
-               references: LABELS[lang].references,
-             };
+      // 3. Sidebar Content (Name, Personal Info, Contact, Skills)
+      doc.fillColor(sidebarTextColor);
+      doc.font('Helvetica-Bold').fontSize(18);
 
-             const sectionTitle =
-               titleMap[answer.questionId] ||
-               answer.questionId.charAt(0).toUpperCase() +
-                 answer.questionId.slice(1);
+      // Name (centered in sidebar)
+      doc.text(profile.fullName.toUpperCase(), 20, yPos, {
+        width: sidebarWidth - 40,
+        align: 'center',
+      });
+      yPos +=
+        doc.heightOfString(profile.fullName.toUpperCase(), {
+          width: sidebarWidth - 40,
+        }) + 10;
 
-             return `
-              <div class="decorative-line"></div>
-              <div class="section">
-                <h2 class="section-title">${sectionTitle}</h2>
-                <div class="section-content">
-                  ${answer.answer}
-                </div>
-              </div>
-            `;
-           })
-           .join('')}
+      // Personal Info (Gender, Age)
+      doc.font('Helvetica').fontSize(10);
+      let personalInfoText = '';
+      if (genderLabel) personalInfoText += `${genderLabel}\n`;
+      if (age) personalInfoText += `${LABELS[lang].age}: ${age}`;
 
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+      if (personalInfoText) {
+        doc.text(personalInfoText, 20, yPos, {
+          width: sidebarWidth - 40,
+          align: 'center',
+        });
+        yPos +=
+          doc.heightOfString(personalInfoText, { width: sidebarWidth - 40 }) +
+          30;
+      } else {
+        yPos += 20;
+      }
 
-  console.log('Launching Puppeteer...');
-  try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
-    });
-    console.log('Puppeteer launched successfully');
+      // Contact Section
+      doc.font('Helvetica-Bold').fontSize(12);
+      doc.text(LABELS[lang].contact, 20, yPos);
+      yPos += 20;
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+      doc.font('Helvetica').fontSize(10);
+      doc.text(profile.email, 20, yPos, { width: sidebarWidth - 40 });
+      yPos +=
+        doc.heightOfString(profile.email, { width: sidebarWidth - 40 }) + 5;
 
-    const pdfUint8 = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      },
-    });
+      doc.text(profile.phone, 20, yPos, { width: sidebarWidth - 40 });
+      yPos +=
+        doc.heightOfString(profile.phone, { width: sidebarWidth - 40 }) + 30;
 
-    const pdfBuffer = Buffer.from(pdfUint8);
+      // Skills Section
+      if (profile.skills.length > 0) {
+        doc.font('Helvetica-Bold').fontSize(12);
+        doc.text(LABELS[lang].skills, 20, yPos);
+        yPos += 20;
 
-    await browser.close();
-    return pdfBuffer;
-  } catch (error) {
-    console.error('Error in Puppeteer launch or PDF generation:', error);
-    throw error;
-  }
+        doc.font('Helvetica').fontSize(10);
+        profile.skills.forEach((skill) => {
+          doc.text(`• ${skill.name}`, 20, yPos, { width: sidebarWidth - 40 });
+          yPos +=
+            doc.heightOfString(`• ${skill.name}`, {
+              width: sidebarWidth - 40,
+            }) + 5;
+        });
+      }
+
+      // 4. Main Content
+      let yContent = 40;
+      doc.fillColor(mainTextColor);
+
+      // Helper to draw section
+      const drawSection = (title: string, content: string) => {
+        if (!content) return;
+
+        // Check for page break
+        if (yContent + 100 > doc.page.height) {
+          doc.addPage();
+          // Redraw sidebar on new page
+          doc.rect(0, 0, sidebarWidth, doc.page.height).fill(sidebarColor);
+          yContent = 40;
+        }
+
+        doc.fillColor(headingColor);
+        doc.font('Helvetica-Bold').fontSize(18);
+        doc.text(title.toUpperCase(), startXContent, yContent);
+
+        yContent += 25;
+
+        // Underline
+        doc
+          .moveTo(startXContent, yContent)
+          .lineTo(startXContent + 50, yContent)
+          .lineWidth(3)
+          .strokeColor(accentColor)
+          .stroke();
+        yContent += 15;
+
+        doc.fillColor(mainTextColor);
+        doc.font('Helvetica').fontSize(12);
+        doc.text(content, startXContent, yContent, {
+          width: contentWidth,
+          align: 'justify',
+        });
+
+        yContent += doc.heightOfString(content, { width: contentWidth }) + 30;
+      };
+
+      // Profile Summary
+      const summary = refinedAnswers.find(
+        (a) => a.questionId === 'summary'
+      )?.answer;
+      if (summary) {
+        drawSection(LABELS[lang].profileSummary, summary);
+      }
+
+      // Experience
+      const experience = refinedAnswers.find(
+        (a) => a.questionId === 'experience'
+      )?.answer;
+      if (experience) {
+        drawSection(LABELS[lang].experience, experience);
+      }
+
+      // Other Sections
+      const otherAnswers = refinedAnswers.filter(
+        (a) =>
+          ![
+            'summary',
+            'experience',
+            'hasWorkExperience',
+            'hasAchievements',
+            'hasReferences',
+            'hasEducation',
+          ].includes(a.questionId)
+      );
+
+      otherAnswers.forEach((answer) => {
+        const titleMap: Record<string, string> = {
+          workExperience: LABELS[lang].workExperience,
+          educationLevel: LABELS[lang].educationLevel,
+          achievements: LABELS[lang].achievements,
+          references: LABELS[lang].references,
+        };
+
+        const sectionTitle =
+          titleMap[answer.questionId] ||
+          answer.questionId.charAt(0).toUpperCase() +
+            answer.questionId.slice(1);
+
+        drawSection(sectionTitle, answer.answer);
+      });
+
+      doc.end();
+    } catch (error) {
+      console.error('Error generating PDF with PDFKit:', error);
+      reject(error);
+    }
+  });
 }
