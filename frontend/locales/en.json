@@ -2348,7 +2348,8 @@
     "companyApprovalDetails": "Company Approval Details",
     "companies": "Companies",
     "companyDetails": "Company Details",
-    "jobStatistics": "Job Statistics"
+    "jobStatistics": "Job Statistics",
+    "editJobIndustry": "Job Industry Management"
   },
 
   "adminReports": {

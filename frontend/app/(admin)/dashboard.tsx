@@ -451,6 +451,24 @@ export default function AdminDashboardScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Job Industry Management */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Job Industry</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardDescription}>
+            Manage job industries, including adding new industries, editing
+            existing ones, and managing their visibility.
+          </Text>
+          <TouchableOpacity
+            style={styles.manageButton}
+            onPress={() => router.push('/(admin-hidden)/edit-job-industry')}
+          >
+            <Text style={styles.manageButtonText}>Manage Industries</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -460,6 +478,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+    lineHeight: 20,
   },
   loadingContainer: {
     flex: 1,

@@ -13,6 +13,7 @@ import {
   AccountStatus,
   ApprovalStatus,
 } from '@prisma/client';
+import slugify from 'slugify';
 import { translateText } from '../services/googleTranslation';
 import { EmployerTrustScoreService } from '../services/employerTrustScoreService';
 import { getSignedDownloadUrl } from '../services/s3Service';
@@ -1318,6 +1319,208 @@ export class AdminController {
       return res.status(500).json({
         success: false,
         message: error.message || 'Failed to enable company',
+      });
+    }
+  }
+
+  // ==========================================
+  // INDUSTRY MANAGEMENT
+  // ==========================================
+
+  /**
+   * Get all industries with localization
+   * GET /api/admin/industries
+   */
+  async getIndustries(req: AdminAuthRequest, res: Response) {
+    try {
+      const { lang = 'en' } = req.query;
+      const langParam = (lang as SupportedLang) || 'en';
+
+      const industries = await prisma.industry.findMany({
+        orderBy: { name: 'asc' },
+      });
+
+      const localizedIndustries = industries.map((ind) => {
+        const nameLocalized =
+          langParam === 'ms'
+            ? ind.name_ms ?? ind.name
+            : langParam === 'zh'
+            ? ind.name_zh ?? ind.name
+            : langParam === 'ta'
+            ? ind.name_ta ?? ind.name
+            : ind.name_en ?? ind.name;
+
+        const descLocalized =
+          langParam === 'ms'
+            ? ind.description_ms ?? ind.description
+            : langParam === 'zh'
+            ? ind.description_zh ?? ind.description
+            : langParam === 'ta'
+            ? ind.description_ta ?? ind.description
+            : ind.description_en ?? ind.description;
+
+        return {
+          ...ind,
+          name: nameLocalized,
+          description: descLocalized,
+          original_name: ind.name,
+          original_description: ind.description,
+        };
+      });
+
+      res.status(200).json({
+        success: true,
+        data: localizedIndustries,
+      });
+    } catch (error) {
+      console.error('Error fetching industries:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch industries',
+      });
+    }
+  }
+
+  /**
+   * Create a new industry
+   * POST /api/admin/industries
+   */
+  async createIndustry(req: AdminAuthRequest, res: Response) {
+    try {
+      const { name, icon, description } = req.body;
+
+      if (!name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Industry name is required',
+        });
+      }
+
+      const slug = slugify(name, { lower: true, strict: true });
+
+      // Check for duplicate
+      const existing = await prisma.industry.findFirst({
+        where: { OR: [{ name }, { slug }] },
+      });
+
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: 'Industry with this name already exists',
+        });
+      }
+
+      // Translate
+      const name_ms = await translateText(name, 'ms');
+      const name_zh = await translateText(name, 'zh');
+      const name_ta = await translateText(name, 'ta');
+      const name_en = await translateText(name, 'en');
+
+      let desc_ms, desc_zh, desc_ta, desc_en;
+      if (description) {
+        desc_ms = await translateText(description, 'ms');
+        desc_zh = await translateText(description, 'zh');
+        desc_ta = await translateText(description, 'ta');
+        desc_en = await translateText(description, 'en');
+      }
+
+      const industry = await prisma.industry.create({
+        data: {
+          name,
+          slug,
+          icon,
+          description,
+          isActive: true,
+          name_ms,
+          name_zh,
+          name_ta,
+          name_en,
+          description_ms: desc_ms,
+          description_zh: desc_zh,
+          description_ta: desc_ta,
+          description_en: desc_en,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Industry created successfully',
+        data: industry,
+      });
+    } catch (error) {
+      console.error('Error creating industry:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create industry',
+      });
+    }
+  }
+
+  /**
+   * Update an industry
+   * PUT /api/admin/industries/:id
+   */
+  async updateIndustry(req: AdminAuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, icon, description, isActive } = req.body;
+
+      const industry = await prisma.industry.findUnique({
+        where: { id: parseInt(id) },
+      });
+
+      if (!industry) {
+        return res.status(404).json({
+          success: false,
+          message: 'Industry not found',
+        });
+      }
+
+      const data: any = {};
+      if (icon !== undefined) data.icon = icon;
+      if (isActive !== undefined) data.isActive = isActive;
+
+      // Update name and re-translate if changed
+      if (name && name !== industry.name) {
+        data.name = name;
+        data.slug = slugify(name, { lower: true, strict: true });
+        data.name_ms = await translateText(name, 'ms');
+        data.name_zh = await translateText(name, 'zh');
+        data.name_ta = await translateText(name, 'ta');
+        data.name_en = await translateText(name, 'en');
+      }
+
+      // Update description and re-translate if changed
+      if (description !== undefined && description !== industry.description) {
+        data.description = description;
+        if (description) {
+          data.description_ms = await translateText(description, 'ms');
+          data.description_zh = await translateText(description, 'zh');
+          data.description_ta = await translateText(description, 'ta');
+          data.description_en = await translateText(description, 'en');
+        } else {
+          data.description_ms = null;
+          data.description_zh = null;
+          data.description_ta = null;
+          data.description_en = null;
+        }
+      }
+
+      const updatedIndustry = await prisma.industry.update({
+        where: { id: parseInt(id) },
+        data,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Industry updated successfully',
+        data: updatedIndustry,
+      });
+    } catch (error) {
+      console.error('Error updating industry:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update industry',
       });
     }
   }

@@ -379,15 +379,8 @@ export async function generateResumePDF(
   try {
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath:
-        '/opt/render/.cache/puppeteer/chrome/linux-143.0.7499.169/chrome-linux64/chrome',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-      ],
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
-
     console.log('Puppeteer launched successfully');
 
     const page = await browser.newPage();

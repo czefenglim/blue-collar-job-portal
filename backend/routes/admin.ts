@@ -170,4 +170,33 @@ router.patch('/companies/:companyId/disable', adminController.disableCompany);
  */
 router.patch('/companies/:companyId/enable', adminController.enableCompany);
 
+// ==========================================
+// INDUSTRY MANAGEMENT
+// ==========================================
+
+/**
+ * @route   GET /api/admin/industries
+ * @desc    Get all industries
+ * @access  Admin only
+ */
+router.get('/industries', adminController.getIndustries);
+
+/**
+ * @route   POST /api/admin/industries
+ * @desc    Create a new industry
+ * @access  Admin only
+ */
+router.post(
+  '/industries',
+  [body('name').notEmpty().withMessage('Name is required')],
+  adminController.createIndustry
+);
+
+/**
+ * @route   PUT /api/admin/industries/:id
+ * @desc    Update an industry
+ * @access  Admin only
+ */
+router.put('/industries/:id', adminController.updateIndustry);
+
 export default router;

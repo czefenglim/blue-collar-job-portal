@@ -2309,6 +2309,7 @@
     "companyApprovalDetails": "公司审批详情",
     "companies": "公司",
     "companyDetails": "公司详情",
-    "jobStatistics": "职位统计"
+    "jobStatistics": "职位统计",
+    "editJobIndustry": "编辑职位行业"
   }
 }

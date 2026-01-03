@@ -64,6 +64,10 @@ export default function HiddenLayout() {
         name="job-statistics"
         options={{ title: t('adminHiddenLayout.jobStatistics') }}
       />
+      <Stack.Screen
+        name="edit-job-industry"
+        options={{ title: t('adminHiddenLayout.editJobIndustry') }}
+      />
     </Stack>
   );
 }

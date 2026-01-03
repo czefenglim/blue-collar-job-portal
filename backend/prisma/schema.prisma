@@ -167,13 +167,13 @@ model Industry {
   name           String         @unique
   slug           String         @unique
   icon           String?
-  description    String?
+  description    String?        @db.Text
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
-  description_ms String?
-  description_ta String?
-  description_zh String?
-  description_en String?
+  description_ms String?        @db.Text
+  description_ta String?        @db.Text
+  description_zh String?        @db.Text
+  description_en String?        @db.Text
   name_ms        String?
   name_ta        String?
   name_zh        String?
