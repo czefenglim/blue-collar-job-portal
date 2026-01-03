@@ -579,8 +579,7 @@ export default function AdminJobsScreen() {
                 <Text style={styles.statusText}>{statusBadge.text}</Text>
               </View>
 
-              {item._count.appeals &&
-                item._count.appeals > 0 &&
+              {(item._count.appeals ?? 0) > 0 &&
                 item.approvalStatus !== 'APPROVED' &&
                 item.approvalStatus !== 'REJECTED_AI' &&
                 item.approvalStatus !== 'REJECTED_FINAL' && (
