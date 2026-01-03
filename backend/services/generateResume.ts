@@ -377,19 +377,12 @@ export async function generateResumePDF(
 
   console.log('Launching Puppeteer...');
   try {
-    // Log the expected executable path for debugging
-    try {
-      console.log('Puppeteer executable path:', puppeteer.executablePath());
-    } catch (e) {
-      console.log('Could not determine executable path:', e);
-    }
-
     const browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage', // Added to prevent crashes in low-memory environments
+        '--disable-dev-shm-usage',
         '--disable-gpu',
       ],
     });

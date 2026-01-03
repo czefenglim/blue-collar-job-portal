@@ -108,7 +108,7 @@ export async function refineAnswers(answers: Answer[]) {
           console.warn(
             `Cohere rate limit hit (429). Retrying in ${retryDelay}ms... (Attempt ${retries}/${MAX_RETRIES})`
           );
-          console.warn('Cohere API key:', process.env.COHERE_API_KEY);
+
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
           retryDelay *= 2; // Exponential backoff
         } else {
