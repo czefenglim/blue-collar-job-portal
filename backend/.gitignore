@@ -21,6 +21,3 @@ Thumbs.db
 # IDE / editor
 .vscode/
 .idea/
-
-# Puppeteer cache
-.cache/
