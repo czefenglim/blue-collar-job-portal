@@ -379,16 +379,31 @@ export async function generateResumePDF(
   try {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+      ],
+      timeout: 60000, // Launch timeout
+      protocolTimeout: 240000, // Increase protocol timeout for slow environments
     });
     console.log('Puppeteer launched successfully');
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    // Set a longer timeout for page operations
+    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(60000);
+
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout: 60000,
+    });
 
     const pdfUint8 = await page.pdf({
       format: 'A4',
       printBackground: true,
+      timeout: 60000,
       margin: {
         top: 0,
         right: 0,
