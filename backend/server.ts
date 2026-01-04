@@ -33,7 +33,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(
-  '/api/subscription/webhook',
+  '/api/subscription',
   express.raw({ type: 'application/json' }),
   subscriptionRoutes
 );

@@ -6,11 +6,12 @@ interface Answer {
   answer: string;
 }
 
-const cohere = new CohereClientV2({
-  token: process.env.COHERE_API_KEY, // Ensure your actual key is used here
-});
-
 export async function refineAnswers(answers: Answer[]) {
+  // Instantiate client inside function to ensure thread safety/isolation during parallel execution
+  const cohere = new CohereClientV2({
+    token: process.env.COHERE_API_KEY,
+  });
+
   const questionContext: Record<string, string> = {
     educationLevel:
       'education level (e.g. Primary School, Secondary School, Bachelor Degree)',
@@ -63,6 +64,7 @@ export async function refineAnswers(answers: Answer[]) {
             4. Formatting: Do not add labels like "Experience:" or "Education:". 
             5. References: For the "references" section, keep it simple (Name and Phone only).
             6. "No" Answers: If the input is "No", empty, or irrelevant, return only the word "No".
+            7. Education: If the input is an education level (e.g. "Primary", "Secondary"), describe it professionally (e.g. "Completed Primary School education"). Do NOT return "No" for valid education levels.
             
             EXAMPLE OF WORK EXPERIENCE TRANSFORMATION:
             User Input: "I work at Uber driver since 2021 until now 2025. I drive car take people everywhere in KL. Sometime send food also. Always follow GPS and safe."
@@ -99,10 +101,22 @@ export async function refineAnswers(answers: Answer[]) {
             ?.replace(/\*\*(.*?)\*\*/g, '$1')
             ?.trim();
 
-          refinedAnswer = {
-            questionId: ans.questionId,
-            answer: cleanedText || ans.answer,
-          };
+          // SAFEGUARD: If AI returns "No" but the original answer was NOT "No" (especially for Education), revert to original.
+          if (
+            cleanedText === 'No' &&
+            ans.answer.toLowerCase() !== 'no' &&
+            ans.questionId === 'educationLevel'
+          ) {
+            console.warn(
+              `AI returned 'No' for valid education level '${ans.answer}'. Reverting to original.`
+            );
+            refinedAnswer = ans;
+          } else {
+            refinedAnswer = {
+              questionId: ans.questionId,
+              answer: cleanedText || ans.answer,
+            };
+          }
           success = true;
         } catch (error: any) {
           if (error.statusCode === 429 || error.message?.includes('429')) {
