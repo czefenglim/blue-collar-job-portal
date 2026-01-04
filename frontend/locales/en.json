@@ -2329,7 +2329,8 @@
     "notificationsManagement": "Notifications Management",
     "pricing": "Pricing",
     "confirmHire": "Hire Confirmation",
-    "hireApplicant": "Hire"
+    "hireApplicant": "Hire",
+    "paymentSuccess": "Payment Success"
   },
   "adminLayout": {
     "dashboard": "Dashboard",

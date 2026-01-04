@@ -2284,7 +2284,8 @@
     "notificationsManagement": "அறிவிப்பு மேலாண்மை",
     "pricing": "விலை",
     "confirmHire": "விண்ணப்பதாரர் உறுதிப்படுத்தல்",
-    "hireApplicant": "விண்ணப்பதாரர் உறுதிப்படுத்தல்"
+    "hireApplicant": "விண்ணப்பதாரர் உறுதிப்படுத்தல்",
+    "paymentSuccess": "பதிவு வெற்றி"
   },
   "adminLayout": {
     "dashboard": "டாஷ்போர்ட்",

@@ -2290,7 +2290,8 @@
     "notificationsManagement": "通知管理",
     "pricing": "定价",
     "confirmHire": "雇佣确认",
-    "hireApplicant": "雇佣"
+    "hireApplicant": "雇佣",
+    "paymentSuccess": "支付成功"
   },
   "adminLayout": {
     "dashboard": "仪表板",

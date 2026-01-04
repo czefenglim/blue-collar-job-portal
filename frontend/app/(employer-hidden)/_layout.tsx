@@ -80,6 +80,10 @@ export default function HiddenLayout() {
         name="hire/verify/[id]"
         options={{ title: t('employerHiddenLayout.confirmHire') }}
       />
+      <Stack.Screen
+        name="payment/payment-success"
+        options={{ title: t('employerHiddenLayout.paymentSuccess') }}
+      />
     </Stack>
   );
 }

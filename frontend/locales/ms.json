@@ -2303,7 +2303,8 @@
     "notificationsManagement": "Pengurusan Pemberitahuan",
     "pricing": "Pricing",
     "confirmHire": "Pengesahan Pekerjaan",
-    "hireApplicant": "Pekerjaaan"
+    "hireApplicant": "Pekerjaaan",
+    "paymentSuccess": "Pembayaran Berjaya"
   },
   "adminLayout": {
     "dashboard": "Papan Pemuka",

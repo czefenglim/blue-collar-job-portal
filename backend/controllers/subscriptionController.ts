@@ -172,9 +172,15 @@ export const createCheckoutSession = async (
 ) => {
   try {
     const userId = req.user!.userId;
-    const { planType, expoUrl } = req.body;
+    const { planType: rawPlanType, expoUrl } = req.body;
+
+    console.log('createCheckoutSession request body:', req.body);
+    console.log('Received planType:', rawPlanType);
+
+    const planType = rawPlanType ? rawPlanType.toUpperCase() : undefined;
 
     if (!planType || (planType !== 'PRO' && planType !== 'MAX')) {
+      console.error(`Invalid planType received: '${planType}'`);
       return res.status(400).json({
         success: false,
         message: 'Invalid plan type. Must be PRO or MAX',

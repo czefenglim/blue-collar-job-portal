@@ -26,23 +26,27 @@ import './jobs/notificationJobs';
 import paymentRoutes from './routes/payment';
 import hireRoutes from './routes/hire';
 import path from 'path';
+import { handleStripeWebhook } from './controllers/subscriptionController';
 
 const app = express();
 
 // Tell Express to trust the reverse proxy (ngrok, Heroku, Nginx, etc.)
 app.set('trust proxy', 1);
 
-app.use(
-  '/api/subscription',
+// ⭐️ STRIPE WEBHOOK: Must use raw body for signature verification ⭐️
+// This must be defined BEFORE express.json()
+app.post(
+  '/api/subscription/webhook',
   express.raw({ type: 'application/json' }),
-  subscriptionRoutes
+  handleStripeWebhook
 );
 
 // ⭐️ CRITICAL: Body parser MUST come first ⭐️
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ⭐️ Debug middleware to verify body parsing ⭐️
+// ⭐️ Debug middleware to verify body parsing (Commented out for production) ⭐️
+/*
 app.use((req, res, next) => {
   console.log('🔍 DEBUG MIDDLEWARE:');
   console.log('  Method:', req.method);
@@ -52,6 +56,7 @@ app.use((req, res, next) => {
   console.log('  Body:', req.body);
   next();
 });
+*/
 
 // Security middleware (AFTER body parser)
 app.use(
