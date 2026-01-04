@@ -109,26 +109,15 @@ export class AIJobVerificationService {
   private static async analyzeJobContentWithAI(
     jobData: JobData
   ): Promise<AIAnalysisResult | null> {
-    let retries = 0;
-    let success = false;
-    const MAX_RETRIES = 3;
-    let retryDelay = 2000; // Start with 2 seconds
+    try {
+      const salaryInfo =
+        jobData.salaryMin && jobData.salaryMax
+          ? `RM${jobData.salaryMin} - RM${jobData.salaryMax} ${
+              jobData.salaryType || 'MONTHLY'
+            }`
+          : 'Not specified';
 
-    while (retries < MAX_RETRIES && !success) {
-      try {
-        // Add a small delay before request to prevent burst rate limiting
-        if (retries === 0) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        const salaryInfo =
-          jobData.salaryMin && jobData.salaryMax
-            ? `RM${jobData.salaryMin} - RM${jobData.salaryMax} ${
-                jobData.salaryType || 'MONTHLY'
-              }`
-            : 'Not specified';
-
-        const prompt = `You are a job posting fraud detection AI for a Malaysian blue-collar job portal. Analyze the following job posting for scams, fraud, or unprofessional content.
+      const prompt = `You are a job posting fraud detection AI for a Malaysian blue-collar job portal. Analyze the following job posting for scams, fraud, or unprofessional content.
 
 **Job Details:**
 Title: ${jobData.title}
@@ -168,63 +157,50 @@ Risk Score Guide:
 
 Respond ONLY with the JSON object, nothing else.`;
 
-        const response = await cohere.chat({
-          model: 'command-r-plus-08-2024', // Updated model to match aiRefine
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-        });
+      const response = await cohere.chat({
+        model: 'command-a-03-2025',
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      });
 
-        const text = response.message?.content
-          ?.filter(
-            (
-              c
-            ): c is Extract<
-              AssistantMessageResponseContentItem,
-              { type: 'text' }
-            > => c.type === 'text'
-          )
-          .map((c) => c.text)
-          .join(' ')
-          .trim();
+      const text = response.message?.content
+        ?.filter(
+          (
+            c
+          ): c is Extract<
+            AssistantMessageResponseContentItem,
+            { type: 'text' }
+          > => c.type === 'text'
+        )
+        .map((c) => c.text)
+        .join(' ')
+        .trim();
 
-        if (!text) {
-          console.error('❌ Cohere returned empty response');
-          return null;
-        }
-
-        // Clean response (remove markdown code blocks if present)
-        const cleanedText = text
-          .replace(/```json\s*/g, '')
-          .replace(/```\s*/g, '')
-          .trim();
-
-        console.log('🤖 Cohere AI Response:', cleanedText);
-
-        // Parse JSON response
-        const aiResult: AIAnalysisResult = JSON.parse(cleanedText);
-        success = true;
-        return aiResult;
-      } catch (error: any) {
-        if (error.statusCode === 429 || error.message?.includes('429')) {
-          retries++;
-          console.warn(
-            `Cohere rate limit hit (429). Retrying in ${retryDelay}ms... (Attempt ${retries}/${MAX_RETRIES})`
-          );
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          retryDelay *= 2; // Exponential backoff
-        } else {
-          console.error('❌ Error analyzing job with Cohere AI:', error);
-          // Don't retry for non-rate-limit errors
-          return null;
-        }
+      if (!text) {
+        console.error('❌ Cohere returned empty response');
+        return null;
       }
-    }
 
-    return null;
+      // Clean response (remove markdown code blocks if present)
+      const cleanedText = text
+        .replace(/```json\s*/g, '')
+        .replace(/```\s*/g, '')
+        .trim();
+
+      console.log('🤖 Cohere AI Response:', cleanedText);
+
+      // Parse JSON response
+      const aiResult: AIAnalysisResult = JSON.parse(cleanedText);
+
+      return aiResult;
+    } catch (error) {
+      console.error('❌ Error analyzing job with Cohere AI:', error);
+      return null;
+    }
   }
 
   /**

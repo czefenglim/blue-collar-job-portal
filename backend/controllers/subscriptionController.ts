@@ -295,28 +295,6 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // ⭐️ ROBUSTNESS CHECK: Ensure DB is updated even if webhook failed ⭐️
-    const companyId = parseInt(session.metadata?.companyId || '0');
-    const planType = session.metadata?.planType as 'PRO' | 'MAX';
-
-    if (companyId && planType) {
-      const subscription = await prisma.subscription.findUnique({
-        where: { companyId },
-      });
-
-      // If subscription doesn't exist OR plan type doesn't match OR stripeSubscriptionId is missing
-      if (
-        !subscription ||
-        subscription.planType !== planType ||
-        !subscription.stripeSubscriptionId
-      ) {
-        console.warn(
-          '⚠️ Webhook delay detected! Manually updating subscription in verifyPayment...'
-        );
-        await handleCheckoutCompleted(session);
-      }
-    }
-
     return res.status(200).json({
       success: true,
       data: {

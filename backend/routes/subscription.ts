@@ -30,6 +30,5 @@ router.post('/cancel', authMiddleware, cancelSubscription);
 router.get('/can-post-job', authMiddleware, canPostJob);
 
 // Stripe webhook (NO auth middleware - Stripe validates with signature)
-// NOTE: This route is handled in server.ts directly to ensure raw body parsing
-// router.post('/webhook', handleStripeWebhook);
+router.post('/webhook', handleStripeWebhook);
 export default router;

@@ -19,15 +19,6 @@ import companyRoutes from './routes/company';
 import jobAppealRoutes from './routes/jobAppeal';
 import chatRoutes from './routes/chat';
 import aiAssistantRoutes from './routes/aiAssistant';
-import {
-  getCurrentSubscription,
-  selectFreePlan,
-  createCheckoutSession,
-  verifyPayment,
-  handleStripeWebhook,
-  cancelSubscription,
-  canPostJob,
-} from './controllers/subscriptionController';
 import subscriptionRoutes from './routes/subscription';
 import subscriptionPlanRoutes from './routes/subscriptionPlans';
 import statisticRoutes from './routes/statistic';
@@ -41,12 +32,10 @@ const app = express();
 // Tell Express to trust the reverse proxy (ngrok, Heroku, Nginx, etc.)
 app.set('trust proxy', 1);
 
-// ⭐️ STRIPE WEBHOOK HANDLING ⭐️
-// Must be defined BEFORE the global JSON body parser
-app.post(
+app.use(
   '/api/subscription/webhook',
   express.raw({ type: 'application/json' }),
-  handleStripeWebhook
+  subscriptionRoutes
 );
 
 // ⭐️ CRITICAL: Body parser MUST come first ⭐️
