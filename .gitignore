@@ -5,8 +5,10 @@ frontend/node_modules/
 
 
 # Google Cloud keys
-*.json
-backend/*.json
+# *.json (Too broad, ignores package.json)
+# backend/*.json (Too broad, ignores package.json)
+backend/omega-*.json
+
 
 # Firebase / GCP / secrets
 serviceAccountKey.json

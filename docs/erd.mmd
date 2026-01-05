@@ -1,413 +1,454 @@
+---
+config:
+  layout: elk
+---
 erDiagram
+    %% User Management Relationships
+    User ||--o| UserProfile : has
+    User ||--o{ UserSkill : has
+    User ||--o{ UserLanguage : speaks
+    User ||--o{ UserIndustry : interested_in
+    User ||--o{ ResumeAnswer : provides
+    User ||--o{ PasswordResetOTP : requests
+    User ||--o{ Notification : receives
+    User ||--o{ SavedJob : saves
+    
+    UserProfile ||--o{ UserSkill : has
+    UserProfile ||--o{ UserLanguage : speaks
+    UserProfile ||--o{ UserIndustry : interested_in
+    
+    skill ||--o{ UserSkill : possessed_by
+    language ||--o{ UserLanguage : spoken_by
+    resumequestion ||--o{ ResumeAnswer : answered_by
 
-  USERS {
-    int id PK
-    varchar email
-    varchar password
-    varchar phoneNumber
-    boolean isEmailVerified
-    boolean isPhoneVerified
-    boolean isActive
-    datetime lastLoginAt
-    datetime createdAt
-    datetime updatedAt
-    varchar fullName
-    varchar preferredLanguage
-    varchar role
-    varchar status
-    datetime suspendedAt
-    varchar suspendedBy
-    text suspensionReason
-    text suspensionReason_ms
-    text suspensionReason_ta
-    text suspensionReason_zh
-    text suspensionReason_en
-    text pushToken
-  }
+    %% Company Management Relationships
+    User ||--o| Company : owns
+    Company ||--o| CompanyVerification : has
+    Company }o--|| Industry : belongs_to
+    Company ||--o| Subscription : has
+    Subscription ||--o{ Invoice : generates
+    
+    Company ||--o{ Review : receives
+    User ||--o{ Review : writes
+    
+    Industry ||--o{ UserIndustry : attracts
 
-  USER_PROFILES {
-    int id PK
-    int userId FK
-    datetime dateOfBirth
-    varchar gender
-    varchar nationality
-    varchar address
-    varchar city
-    varchar state
-    varchar postcode
-    int preferredSalaryMin
-    int preferredSalaryMax
-    datetime availableFrom
-    varchar workingHours
-    varchar transportMode
-    int maxTravelDistance
-    int experienceYears
-    varchar certifications
-    boolean profileCompleted
-    datetime createdAt
-    datetime updatedAt
-    text profilePicture
-    text resumeUrl_en
-    text resumeUrl_ms
-    text resumeUrl_zh
-    text resumeUrl_ta
-    text resumeUrl_uploaded
-    varchar uploadedLanguage
-    varchar uploadedFileName
-    datetime uploadedAt
-    varchar resumeSource
-    datetime resumeGeneratedAt
-    int resumeVersion
-    float latitude
-    float longitude
-  }
+    %% Job Management Relationships
+    Company ||--o{ Job : posts
+    Job }o--|| Industry : categorized_in
+    Job }o--|| Company : posted_by
+    
+    User ||--o{ JobApplication : submits
+    Job ||--o{ JobApplication : receives
+    
+    Job ||--o{ SavedJob : saved_by
+    
+    JobApplication ||--o| JobOffer : receives
+    
+    User ||--o{ Job : creates
+    User ||--o{ Job : updates
 
-  REGISTRATION_OTPS {
-    varchar id PK
-    varchar email
-    varchar otp
-    datetime expiresAt
-    text data
-    datetime createdAt
-  }
+    %% Communication Relationships
+    Conversation ||--o{ ChatMessage : contains
+    User ||--o{ ChatMessage : sends
+    
+    Job ||--o{ Conversation : about
+    JobApplication ||--o| Conversation : initiates
+    
+    User ||--o{ Conversation : "employer_side"
+    User ||--o{ Conversation : "jobseeker_side"
 
-  PASSWORD_RESET_OTPS {
-    varchar id PK
-    int userId FK
-    varchar codeHash
-    varchar otpSessionToken
-    datetime expiresAt
-    datetime consumedAt
-    int attempts
-    datetime createdAt
-  }
+    %% Admin & Report Relationships
+    User ||--o{ Report : files
+    Job ||--o{ Report : reported
+    
+    Report ||--o{ Appeal : generates
+    User ||--o{ Appeal : files
+    User ||--o{ Appeal : reviews
+    
+    Job ||--o{ JobAppeal : appealed
+    User ||--o{ JobAppeal : files
+    User ||--o{ JobAppeal : reviews
 
-  SKILL {
-    int id PK
-    varchar name
-    boolean isActive
-    datetime createdAt
-    varchar name_ms
-    varchar name_ta
-    varchar name_zh
-    varchar name_en
-  }
+    %% Entities
+    User {
+        int id PK
+        string email UK
+        string password
+        string phoneNumber
+        boolean isEmailVerified
+        boolean isPhoneVerified
+        boolean isActive
+        datetime lastLoginAt
+        datetime createdAt
+        datetime updatedAt
+        string fullName
+        enum preferredLanguage
+        enum role
+        enum status
+        datetime suspendedAt
+        string suspendedBy
+        text suspensionReason
+        text pushToken
+    }
 
-  LANGUAGE {
-    int id PK
-    varchar name
-    boolean isActive
-    datetime createdAt
-    varchar name_ms
-    varchar name_ta
-    varchar name_zh
-    varchar name_en
-  }
+    UserProfile {
+        int id PK
+        int userId FK
+        datetime dateOfBirth
+        enum gender
+        string nationality
+        string address
+        string city
+        string state
+        string postcode
+        int preferredSalaryMin
+        int preferredSalaryMax
+        datetime availableFrom
+        enum workingHours
+        enum transportMode
+        int maxTravelDistance
+        int experienceYears
+        string certifications
+        boolean profileCompleted
+        text profilePicture
+        text resumeUrl_en
+        text resumeUrl_ms
+        text resumeUrl_zh
+        text resumeUrl_ta
+        text resumeUrl_uploaded
+        string uploadedLanguage
+        string uploadedFileName
+        datetime uploadedAt
+        enum resumeSource
+        datetime resumeGeneratedAt
+        int resumeVersion
+        float latitude
+        float longitude
+    }
 
-  USER_SKILLS {
-    int id PK
-    int userId FK
-    int skillId FK
-  }
+    RegistrationOTP {
+        string id PK
+        string email UK
+        string otp
+        datetime expiresAt
+        text data
+    }
 
-  USER_LANGUAGES {
-    int id PK
-    int userId FK
-    int languageId FK
-  }
+    PasswordResetOTP {
+        string id PK
+        int userId FK
+        string codeHash
+        string otpSessionToken UK
+        datetime expiresAt
+        datetime consumedAt
+        int attempts
+    }
 
-  INDUSTRIES {
-    int id PK
-    varchar name
-    varchar slug
-    varchar icon
-    varchar description
-    boolean isActive
-    datetime createdAt
-    varchar description_ms
-    varchar description_ta
-    varchar description_zh
-    varchar description_en
-    varchar name_ms
-    varchar name_ta
-    varchar name_zh
-    varchar name_en
-  }
+    UserSkill {
+        int id PK
+        int userId FK
+        int skillId FK
+    }
 
-  USER_INDUSTRIES {
-    int id PK
-    int userId FK
-    int industryId FK
-  }
+    UserLanguage {
+        int id PK
+        int userId FK
+        int languageId FK
+    }
 
-  RESUMEQUESTION {
-    int id PK
-    varchar questionId
-    varchar question
-    varchar type
-    json options
-    boolean required
-    varchar conditionalOn
-    varchar conditionalValue
-    datetime createdAt
-    datetime updatedAt
-    varchar question_ms
-    varchar question_ta
-    varchar question_zh
-    varchar question_en
-  }
+    UserIndustry {
+        int id PK
+        int userId FK
+        int industryId FK
+    }
 
-  RESUME_ANSWERS {
-    int id PK
-    int userId FK
-    varchar questionId FK
-    json answer
-    datetime createdAt
-    datetime updatedAt
-  }
+    ResumeAnswer {
+        int id PK
+        int userId FK
+        string questionId FK
+        json answer
+    }
 
-  COMPANIES {
-    int id PK
-    varchar name
-    varchar slug
-    text description
-    text logo
-    varchar website
-    varchar email
-    varchar phone
-    varchar address
-    varchar city
-    varchar state
-    varchar postcode
-    varchar companySize
-    boolean isVerified
-    boolean isActive
-    datetime createdAt
-    datetime updatedAt
-    text description_ms
-    text description_ta
-    text description_zh
-    text description_en
-    varchar name_ms
-    varchar name_ta
-    varchar name_zh
-    varchar name_en
-    int userId FK
-    int industryId FK
-    boolean onboardingCompleted
-    int onboardingStep
-    text verificationDocument
-    varchar verificationStatus
-    text verificationRemark
-    datetime verifiedDate
-    boolean hasCompletedInitialSubscription
-  }
+    resumequestion {
+        int id PK
+        string questionId UK
+        string question
+        string type
+        json options
+        boolean required
+        string conditionalOn
+        string conditionalValue
+    }
 
-  COMPANY_VERIFICATIONS {
-    int id PK
-    int companyId FK
-    text businessDocument
-    varchar documentType
-    varchar documentName
-    boolean phoneVerified
-    boolean emailVerified
-    varchar status
-    text reviewNotes
-    int reviewedBy FK
-    datetime reviewedAt
-    datetime submittedAt
-    datetime createdAt
-    datetime updatedAt
-  }
+    skill {
+        int id PK
+        string name UK
+        boolean isActive
+    }
 
-  JOBS {
-    int id PK
-    varchar title
-    varchar slug
-    text description
-    text requirements
-    text benefits
-    int industryId FK
-    int companyId FK
-    varchar jobType
-    varchar workingHours
-    varchar experienceLevel
-    varchar address
-    varchar city
-    varchar state
-    varchar postcode
-    boolean isRemote
-    int salaryMin
-    int salaryMax
-    varchar salaryType
-    boolean isActive
-    boolean isFeatured
-    datetime applicationDeadline
-    datetime startDate
-    int viewCount
-    int applicationCount
-    datetime createdAt
-    datetime updatedAt
-    int createdBy FK
-    int updatedBy FK
-    varchar approvalStatus
-    datetime approvedAt
-    datetime rejectedAt
-    int rejectedBy FK
-    boolean isSuspended
-    datetime suspendedAt
-    varchar suspendedBy
-    float latitude
-    float longitude
-  }
+    language {
+        int id PK
+        string name UK
+        boolean isActive
+    }
 
-  JOB_APPLICATIONS {
-    int id PK
-    int userId FK
-    int jobId FK
-    varchar status
-    text coverLetter
-    varchar resumeUrl
-    datetime appliedAt
-    datetime updatedAt
-    varchar employerNote
-    datetime interviewDate
-  }
+    Company {
+        int id PK
+        string name
+        string slug UK
+        text description
+        text logo
+        string website
+        string email
+        string phone
+        string address
+        string city
+        string state
+        string postcode
+        enum companySize
+        boolean isVerified
+        boolean isActive
+        int userId FK
+        int industryId FK
+        boolean onboardingCompleted
+        int onboardingStep
+        text verificationDocument
+        string verificationStatus
+        text verificationRemark
+        datetime verifiedDate
+        boolean hasCompletedInitialSubscription
+    }
 
-  SAVED_JOBS {
-    int id PK
-    int userId FK
-    int jobId FK
-    datetime savedAt
-  }
+    CompanyVerification {
+        int id PK
+        int companyId FK
+        text businessDocument
+        string documentType
+        string documentName
+        boolean phoneVerified
+        boolean emailVerified
+        string status
+        text reviewNotes
+        int reviewedBy
+        datetime reviewedAt
+        datetime submittedAt
+    }
 
-  JOB_OFFERS {
-    int id PK
-    int applicationId FK
-    datetime startDate
-    varchar contractDuration
-    decimal salaryAmount
-    varchar salaryCurrency
-    varchar payFrequency
-    boolean employerConfirmed
-    boolean applicantStatus
-    datetime createdAt
-    datetime updatedAt
-  }
+    Industry {
+        int id PK
+        string name UK
+        string slug UK
+        string icon
+        text description
+        boolean isActive
+    }
 
-  REVIEWS {
-    int id PK
-    int userId FK
-    int companyId FK
-    int rating
-    text comment
-    boolean isAnonymous
-    boolean isApproved
-    datetime createdAt
-    datetime updatedAt
-  }
+    Review {
+        int id PK
+        int userId FK
+        int companyId FK
+        int rating
+        string title
+        text comment
+        boolean isAnonymous
+        boolean isApproved
+        boolean isVisible
+        text employerReply
+        text flagReason
+        datetime flaggedAt
+        boolean isFlagged
+        datetime repliedAt
+    }
 
-  REPORTS {
-    int id PK
-    int userId FK
-    int jobId FK
-    varchar reportType
-    text description
-    varchar status
-    int reviewedBy FK
-    datetime reviewedAt
-    datetime createdAt
-    datetime updatedAt
-  }
+    Subscription {
+        int id PK
+        int companyId FK
+        enum planType
+        enum status
+        string stripeCustomerId UK
+        string stripeSubscriptionId UK
+        string stripePriceId
+        datetime stripeCurrentPeriodEnd
+        int jobPostLimit
+        int jobPostsUsed
+        boolean canReplyToReviews
+        datetime billingCycleStart
+        datetime billingCycleEnd
+        datetime lastPaymentDate
+        float lastPaymentAmount
+        datetime cancelledAt
+    }
 
-  APPEALS {
-    int id PK
-    int reportId FK
-    int employerId FK
-    text explanation
-    varchar status
-    int reviewedBy FK
-    datetime reviewedAt
-    datetime createdAt
-    datetime updatedAt
-  }
+    Invoice {
+        int id PK
+        int subscriptionId FK
+        string stripeInvoiceId UK
+        float amount
+        string currency
+        string status
+        text invoiceUrl
+        text invoicePdf
+        datetime paidAt
+    }
 
-  NOTIFICATIONS {
-    int id PK
-    int userId FK
-    varchar title
-    text message
-    varchar type
-    boolean isRead
-    datetime createdAt
-  }
+    Job {
+        int id PK
+        string title
+        string slug UK
+        text description
+        text requirements
+        text benefits
+        int industryId FK
+        int companyId FK
+        enum jobType
+        enum workingHours
+        enum experienceLevel
+        string address
+        string city
+        string state
+        string postcode
+        boolean isRemote
+        int salaryMin
+        int salaryMax
+        enum salaryType
+        boolean isActive
+        boolean isFeatured
+        datetime applicationDeadline
+        datetime startDate
+        int viewCount
+        int applicationCount
+        int estimatedHireDaysMin
+        int estimatedHireDaysMax
+        int createdBy FK
+        int updatedBy FK
+        text skills
+        enum approvalStatus
+        datetime approvedAt
+        datetime rejectedAt
+        int rejectedBy FK
+        text rejectionReason
+        boolean isSuspended
+        datetime suspendedAt
+        string suspendedBy
+        text suspensionReason
+        float latitude
+        float longitude
+    }
 
-  CONVERSATIONS {
-    int id PK
-    int applicationId FK
-    int employerId FK
-    int jobSeekerId FK
-    int jobId FK
-    datetime createdAt
-    datetime updatedAt
-  }
+    JobApplication {
+        int id PK
+        int userId FK
+        int jobId FK
+        enum status
+        text coverLetter
+        string resumeUrl
+        datetime appliedAt
+        datetime updatedAt
+        string employerNote
+        datetime interviewDate
+    }
 
-  CHAT_MESSAGES {
-    int id PK
-    int conversationId FK
-    int senderId FK
-    text content
-    varchar messageType
-    boolean isRead
-    datetime createdAt
-    datetime updatedAt
-  }
+    SavedJob {
+        int id PK
+        int userId FK
+        int jobId FK
+        datetime savedAt
+    }
 
-  SUBSCRIPTIONS {
-    int id PK
-    int companyId FK
-    varchar planType
-    varchar status
-    datetime createdAt
-    datetime updatedAt
-  }
+    JobOffer {
+        int id PK
+        int applicationId FK
+        datetime startDate
+        string contractDuration
+        string durationPeriod
+        decimal salaryAmount
+        string salaryCurrency
+        string payFrequency
+        string contractUrl
+        boolean employerConfirmed
+        boolean compliesWithLaws
+        enum applicantStatus
+        text applicantSignature
+        text signedContractUrl
+        boolean employerVerified
+    }
 
-  INVOICES {
-    int id PK
-    int subscriptionId FK
-    float amount
-    varchar currency
-    varchar status
-    datetime createdAt
-  }
+    JobAppeal {
+        int id PK
+        int jobId FK
+        int employerId FK
+        text explanation
+        text evidence
+        json updatedJobData
+        enum status
+        enum appealType
+        int reviewedBy FK
+        datetime reviewedAt
+        text reviewNotes
+        string adminDecision
+    }
 
-  %% Relationships
-  USERS ||--|| USER_PROFILES : has
-  USERS ||--o{ PASSWORD_RESET_OTPS : requests
-  USERS ||--o{ USER_SKILLS : has
-  USERS ||--o{ USER_LANGUAGES : speaks
-  USERS ||--o{ USER_INDUSTRIES : interested_in
-  USERS ||--o{ RESUME_ANSWERS : answers
-  USERS ||--|| COMPANIES : owns
-  USERS ||--o{ JOB_APPLICATIONS : applies
-  USERS ||--o{ SAVED_JOBS : saves
-  USERS ||--o{ REVIEWS : writes
-  USERS ||--o{ REPORTS : submits
-  USERS ||--o{ APPEALS : files
-  USERS ||--o{ NOTIFICATIONS : receives
-  USERS ||--o{ CHAT_MESSAGES : sends
+    Conversation {
+        int id PK
+        int applicationId FK
+        int employerId FK
+        int jobSeekerId FK
+        int jobId FK
+        datetime lastMessageAt
+        boolean isActive
+    }
 
-  INDUSTRIES ||--o{ COMPANIES : categorizes
-  INDUSTRIES ||--o{ JOBS : categorizes
+    ChatMessage {
+        int id PK
+        int conversationId FK
+        int senderId FK
+        text content
+        enum messageType
+        text attachmentUrl
+        string attachmentName
+        int attachmentSize
+        string attachmentType
+        boolean isRead
+        datetime readAt
+        boolean isEdited
+        datetime editedAt
+        boolean isDeleted
+        datetime deletedAt
+    }
 
-  COMPANIES ||--o{ JOBS : posts
-  COMPANIES ||--|| COMPANY_VERIFICATIONS : verifies
-  COMPANIES ||--|| SUBSCRIPTIONS : has
+    Notification {
+        int id PK
+        int userId FK
+        string title
+        text message
+        enum type
+        boolean isRead
+        string actionUrl
+        text metadata
+    }
 
-  JOBS ||--o{ JOB_APPLICATIONS : receives
-  JOB_APPLICATIONS ||--|| JOB_OFFERS : generates
-  JOB_APPLICATIONS ||--|| CONVERSATIONS : creates
+    Report {
+        int id PK
+        int userId FK
+        int jobId FK
+        enum reportType
+        text description
+        text evidence
+        enum status
+        int reviewedBy FK
+        datetime reviewedAt
+        text reviewNotes
+    }
 
-  CONVERSATIONS ||--o{ CHAT_MESSAGES : contains
-
-  SUBSCRIPTIONS ||--o{ INVOICES : generates
+    Appeal {
+        int id PK
+        int reportId FK
+        int employerId FK
+        text explanation
+        text evidence
+        enum status
+        int reviewedBy FK
+        datetime reviewedAt
+        text reviewNotes
+    }
