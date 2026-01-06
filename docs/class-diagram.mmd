@@ -1,790 +1,649 @@
 classDiagram
-    %% Models
-    class User {
-        +Int id
-        +String email
-        +String password
-        +String fullName
-        +String phoneNumber
-        +Boolean isEmailVerified
-        +Boolean isPhoneVerified
-        +Boolean isActive
-        +DateTime lastLoginAt
-        +DateTime createdAt
-        +DateTime updatedAt
-        +LanguageType preferredLanguage
-        +UserRole role
-        +AccountStatus status
-        +DateTime suspendedAt
-        +String suspendedBy
-        +String suspensionReason
-        +String pushToken
+    namespace UserManagement {
+        class User {
+            +Int id
+            +String email
+            +String password
+            +String fullName
+            +String phoneNumber
+            +Boolean isEmailVerified
+            +Boolean isPhoneVerified
+            +Boolean isActive
+            +DateTime lastLoginAt
+            +DateTime createdAt
+            +DateTime updatedAt
+            +LanguageType preferredLanguage
+            +UserRole role
+            +AccountStatus status
+            +DateTime suspendedAt
+            +String suspendedBy
+            +String suspensionReason
+            +String pushToken
+            %% Methods
+            +login()
+            +logout()
+            +initiateSignup()
+            +completeSignup()
+            +refreshToken()
+            +verifyEmail()
+            +initiatePasswordReset()
+            +completePasswordReset()
+            +resendOTP()
+            +getCurrentUser()
+            +changePassword()
+            +updatePreferredLanguage()
+            +registerPushToken()
+            +sendEmailOtp()
+            +sendWelcomeEmail()
+            +getUsers()
+            +updateUserStatus()
+            +deleteUser()
+            +getDashboardAnalytics()
+        }
+
+        class UserProfile {
+            +Int id
+            +Int userId
+            +DateTime dateOfBirth
+            +Gender gender
+            +String nationality
+            +String address
+            +String city
+            +String state
+            +String postcode
+            +Int preferredSalaryMin
+            +Int preferredSalaryMax
+            +DateTime availableFrom
+            +WorkingHours workingHours
+            +TransportMode transportMode
+            +Int maxTravelDistance
+            +Int experienceYears
+            +String certifications
+            +Boolean profileCompleted
+            +DateTime createdAt
+            +DateTime updatedAt
+            +String profilePicture
+            +String resumeUrl_en
+            +String resumeUrl_ms
+            +String resumeUrl_zh
+            +String resumeUrl_ta
+            +String resumeUrl_uploaded
+            +String uploadedLanguage
+            +String uploadedFileName
+            +DateTime uploadedAt
+            +ResumeSource resumeSource
+            +DateTime resumeGeneratedAt
+            +Int resumeVersion
+            +Float latitude
+            +Float longitude
+            %% Methods
+            +getUserProfile()
+            +updateUserProfile()
+            +uploadResume()
+            +getUserPreferences()
+            +updateUserPreferences()
+            +uploadProfilePicture()
+            +saveBasicInfo()
+            +savePreferences()
+            +completeOnboarding()
+            +generateResume()
+            +generateResumePDF()
+            +uploadResumeToS3()
+            +getResumeSignedUrl()
+        }
+
+        class PasswordResetOTP {
+            +String id
+            +Int userId
+            +String codeHash
+            +String otpSessionToken
+            +DateTime expiresAt
+            +DateTime consumedAt
+            +Int attempts
+            +DateTime createdAt
+            %% Methods
+            +sendPasswordResetEmail()
+        }
+
+        class UserSkill {
+            +Int id
+            +Int userId
+            +Int skillId
+        }
+
+        class UserLanguage {
+            +Int id
+            +Int userId
+            +Int languageId
+        }
+
+        class UserIndustry {
+            +Int id
+            +Int userId
+            +Int industryId
+        }
+
+        class ResumeAnswer {
+            +Int id
+            +Int userId
+            +String questionId
+            +Json answer
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +refineAnswers()
+        }
+        
+        class ResumeQuestion {
+            +Int id
+            +String questionId
+            +String question
+            +String type
+            +Json options
+            +Boolean required
+            +String conditionalOn
+            +String conditionalValue
+            +DateTime createdAt
+            +DateTime updatedAt
+        }
+
+        class Language {
+            +Int id
+            +String name
+            +Boolean isActive
+            +DateTime createdAt
+            %% Methods
+            +getLanguages()
+        }
+        
+        class Skill {
+            +Int id
+            +String name
+            +Boolean isActive
+            +DateTime createdAt
+        }
     }
 
-    class RegistrationOTP {
-        +String id
-        +String email
-        +String otp
-        +DateTime expiresAt
-        +String data
-        +DateTime createdAt
+    namespace Communication {
+        class Conversation {
+            +Int id
+            +Int applicationId
+            +Int employerId
+            +Int jobSeekerId
+            +Int jobId
+            +DateTime createdAt
+            +DateTime updatedAt
+            +DateTime lastMessageAt
+            +Boolean isActive
+            %% Methods
+            +createConversation()
+            +getConversations()
+            +getConversation()
+            +handleChat()
+            +generateAIResponse()
+        }
+
+        class ChatMessage {
+            +Int id
+            +Int conversationId
+            +Int senderId
+            +String content
+            +MessageType messageType
+            +String attachmentUrl
+            +String attachmentName
+            +Int attachmentSize
+            +String attachmentType
+            +Boolean isRead
+            +DateTime readAt
+            +Boolean isEdited
+            +DateTime editedAt
+            +Boolean isDeleted
+            +DateTime deletedAt
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +sendMessage()
+            +markAsRead()
+            +uploadAttachment()
+            +translateText()
+        }
+        
+        class Notification {
+            +Int id
+            +Int userId
+            +String title
+            +String message
+            +NotificationType type
+            +Boolean isRead
+            +String actionUrl
+            +DateTime createdAt
+            +String metadata
+            %% Methods
+            +getNotifications()
+            +markNotificationAsRead()
+            +markAllAsRead()
+        }
     }
 
-    class PasswordResetOTP {
-        +String id
-        +Int userId
-        +String codeHash
-        +String otpSessionToken
-        +DateTime expiresAt
-        +DateTime consumedAt
-        +Int attempts
-        +DateTime createdAt
+    namespace AdminSystem {
+        class AdminAction {
+            +Int id
+            +String adminEmail
+            +AdminActionType actionType
+            +String targetType
+            +Int targetId
+            +String reason
+            +String notes
+            +DateTime createdAt
+            %% Methods
+            +getAdminActionHistory()
+            +getOverviewStats()
+            +getDashboardAnalytics()
+        }
+
+        class Report {
+            +Int id
+            +Int userId
+            +Int jobId
+            +ReportType reportType
+            +String description
+            +String evidence
+            +ReportStatus status
+            +Int reviewedBy
+            +DateTime reviewedAt
+            +String reviewNotes
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +createReport()
+            +getReports()
+            +getReportById()
+            +updateReportStatus()
+            +dismissReport()
+        }
+
+        class Appeal {
+            +Int id
+            +Int reportId
+            +Int employerId
+            +String explanation
+            +String evidence
+            +AppealStatus status
+            +Int reviewedBy
+            +DateTime reviewedAt
+            +String reviewNotes
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +submitAppeal()
+            +getEmployerAppeals()
+            +reviewAppeal()
+        }
+        
+        class JobAppeal {
+            +Int id
+            +Int jobId
+            +Int employerId
+            +String explanation
+            +String evidence
+            +Json updatedJobData
+            +AppealStatus status
+            +AppealType appealType
+            +Int reviewedBy
+            +DateTime reviewedAt
+            +String reviewNotes
+            +String adminDecision
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +submitJobAppeal()
+            +getJobAppeals()
+            +reviewJobAppeal()
+        }
     }
 
-    class UserProfile {
-        +Int id
-        +Int userId
-        +DateTime dateOfBirth
-        +Gender gender
-        +String nationality
-        +String address
-        +String city
-        +String state
-        +String postcode
-        +Int preferredSalaryMin
-        +Int preferredSalaryMax
-        +DateTime availableFrom
-        +WorkingHours workingHours
-        +TransportMode transportMode
-        +Int maxTravelDistance
-        +Int experienceYears
-        +String certifications
-        +Boolean profileCompleted
-        +DateTime createdAt
-        +DateTime updatedAt
-        +String profilePicture
-        +String resumeUrl_en
-        +String resumeUrl_ms
-        +String resumeUrl_zh
-        +String resumeUrl_ta
-        +String resumeUrl_uploaded
-        +String uploadedLanguage
-        +String uploadedFileName
-        +DateTime uploadedAt
-        +ResumeSource resumeSource
-        +DateTime resumeGeneratedAt
-        +Int resumeVersion
-        +Float latitude
-        +Float longitude
+    namespace JobManagement {
+        class Job {
+            +Int id
+            +String title
+            +String slug
+            +String description
+            +String requirements
+            +String benefits
+            +Int industryId
+            +Int companyId
+            +JobType jobType
+            +WorkingHours workingHours
+            +ExperienceLevel experienceLevel
+            +String address
+            +String city
+            +String state
+            +String postcode
+            +Boolean isRemote
+            +Int salaryMin
+            +Int salaryMax
+            +SalaryType salaryType
+            +Boolean isActive
+            +Boolean isFeatured
+            +DateTime applicationDeadline
+            +DateTime startDate
+            +Int viewCount
+            +Int applicationCount
+            +DateTime createdAt
+            +DateTime updatedAt
+            +Int estimatedHireDaysMin
+            +Int estimatedHireDaysMax
+            +Int createdBy
+            +Int updatedBy
+            +String skills
+            +ApprovalStatus approvalStatus
+            +DateTime approvedAt
+            +DateTime rejectedAt
+            +Int rejectedBy
+            +String rejectionReason
+            +Boolean isSuspended
+            +DateTime suspendedAt
+            +String suspendedBy
+            +String suspensionReason
+            +Float latitude
+            +Float longitude
+            %% Methods
+            +getAllJobs()
+            +createJob()
+            +updateJob()
+            +getJobById()
+            +deleteJob()
+            +getJobForReview()
+            +suspendJob()
+            +getJobPostRanking()
+            +getTrendData()
+            +getShortageAnalysis()
+            +getHighlights()
+            +verifyJob()
+            +checkRequiredFields()
+            +checkDuplicatePosts()
+            +analyzeJobContentWithAI()
+            +refineJobDescription()
+            +predictRecruitmentTime()
+            +analyzeSalary()
+            +getSalaryCompetitiveness()
+            +getRecruitmentPrediction()
+        }
+
+        class JobApplication {
+            +Int id
+            +Int userId
+            +Int jobId
+            +ApplicationStatus status
+            +String coverLetter
+            +String resumeUrl
+            +DateTime appliedAt
+            +DateTime updatedAt
+            +String employerNote
+            +DateTime interviewDate
+            %% Methods
+            +applyForJob()
+            +getApplicants()
+            +getApplicantDetail()
+            +updateApplicationStatus()
+            +getApplications()
+            +getApplicantQualityScore()
+            +getJobApplicantScores()
+            +calculateQualityScore()
+        }
+
+        class SavedJob {
+            +Int id
+            +Int userId
+            +Int jobId
+            +DateTime savedAt
+            %% Methods
+            +saveJob()
+            +unsaveJob()
+            +getSavedJobs()
+        }
+
+        class JobOffer {
+            +Int id
+            +Int applicationId
+            +DateTime startDate
+            +String contractDuration
+            +Decimal salaryAmount
+            +String salaryCurrency
+            +String payFrequency
+            +OfferStatus applicantStatus
+            +DateTime createdAt
+            %% Methods
+            +createOffer()
+            +getOffers()
+            +respondToOffer()
+            +uploadContractToS3()
+        }
     }
 
-    class UserSkill {
-        +Int id
-        +Int userId
-        +Int skillId
+    namespace CompanyManagement {
+        class Company {
+            +Int id
+            +String name
+            +String slug
+            +String description
+            +String logo
+            +String website
+            +String email
+            +String phone
+            +String address
+            +String city
+            +String state
+            +String postcode
+            +CompanySize companySize
+            +Boolean isVerified
+            +Boolean isActive
+            +DateTime createdAt
+            +DateTime updatedAt
+            +Int userId
+            +Int industryId
+            +Boolean onboardingCompleted
+            +Int onboardingStep
+            +String verificationDocument
+            +String verificationStatus
+            +String verificationRemark
+            +DateTime verifiedDate
+            +Boolean hasCompletedInitialSubscription
+            %% Methods
+            +getAllCompanies()
+            +getCompanyById()
+            +updateCompany()
+            +verifyCompany()
+            +getCompanyJobs()
+            +getCompanyReviews()
+            +uploadCompanyLogo()
+            +createCompany()
+            +updateCompanyProfile()
+            +getDashboardStats()
+            +checkCompanyHistory()
+            +calculateTrustScore()
+        }
+
+        class CompanyVerification {
+            +Int id
+            +Int companyId
+            +String businessDocument
+            +String documentType
+            +String documentName
+            +Boolean phoneVerified
+            +Boolean emailVerified
+            +String status
+            +String reviewNotes
+            +Int reviewedBy
+            +DateTime reviewedAt
+            +DateTime submittedAt
+            +DateTime createdAt
+            +DateTime updatedAt
+        }
+
+        class Review {
+            +Int id
+            +Int userId
+            +Int companyId
+            +Int rating
+            +String title
+            +String comment
+            +Boolean isAnonymous
+            +Boolean isApproved
+            +DateTime createdAt
+            +DateTime updatedAt
+            +Boolean isVisible
+            +String employerReply
+            +String flagReason
+            +DateTime flaggedAt
+            +Boolean isFlagged
+            +DateTime repliedAt
+            %% Methods
+            +createReview()
+            +getReviews()
+            +replyToReview()
+            +flagReview()
+        }
+
+        class Industry {
+            +Int id
+            +String name
+            +String slug
+            +String icon
+            +String description
+            +Boolean isActive
+            +DateTime createdAt
+            %% Methods
+            +getIndustries()
+            +createIndustry()
+            +updateIndustry()
+            +deleteIndustry()
+        }
     }
 
-    class UserLanguage {
-        +Int id
-        +Int userId
-        +Int languageId
+    namespace SubscriptionSystem {
+        class Subscription {
+            +Int id
+            +Int companyId
+            +PlanType planType
+            +SubscriptionStatus status
+            +String stripeCustomerId
+            +String stripeSubscriptionId
+            +String stripePriceId
+            +DateTime stripeCurrentPeriodEnd
+            +Int jobPostLimit
+            +Int jobPostsUsed
+            +Boolean canReplyToReviews
+            +DateTime billingCycleStart
+            +DateTime billingCycleEnd
+            +DateTime lastPaymentDate
+            +Float lastPaymentAmount
+            +DateTime createdAt
+            +DateTime updatedAt
+            +DateTime cancelledAt
+            %% Methods
+            +getCurrentSubscription()
+            +createCheckoutSession()
+            +cancelSubscription()
+            +webhookHandler()
+            +getSubscriptionStatus()
+        }
+
+        class SubscriptionPlan {
+            +Int id
+            +PlanType type
+            +String name
+            +Float price
+            +String currency
+            +Json features
+            +Boolean isActive
+            +DateTime createdAt
+            +DateTime updatedAt
+            %% Methods
+            +getPlans()
+            +updatePlan()
+        }
+
+        class Invoice {
+            +Int id
+            +Int subscriptionId
+            +String stripeInvoiceId
+            +Float amount
+            +String currency
+            +String status
+            +String invoiceUrl
+            +String invoicePdf
+            +DateTime paidAt
+            +DateTime createdAt
+        }
     }
 
-    class Industry {
-        +Int id
-        +String name
-        +String slug
-        +String icon
-        +String description
-        +Boolean isActive
-        +DateTime createdAt
-    }
-
-    class Report {
-        +Int id
-        +Int userId
-        +Int jobId
-        +ReportType reportType
-        +String description
-        +String evidence
-        +ReportStatus status
-        +Int reviewedBy
-        +DateTime reviewedAt
-        +String reviewNotes
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class UserIndustry {
-        +Int id
-        +Int userId
-        +Int industryId
-    }
-
-    class ResumeAnswer {
-        +Int id
-        +Int userId
-        +String questionId
-        +Json answer
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Company {
-        +Int id
-        +String name
-        +String slug
-        +String description
-        +String logo
-        +String website
-        +String email
-        +String phone
-        +String address
-        +String city
-        +String state
-        +String postcode
-        +CompanySize companySize
-        +Boolean isVerified
-        +Boolean isActive
-        +DateTime createdAt
-        +DateTime updatedAt
-        +Int userId
-        +Int industryId
-        +Boolean onboardingCompleted
-        +Int onboardingStep
-        +String verificationDocument
-        +String verificationStatus
-        +String verificationRemark
-        +DateTime verifiedDate
-        +Boolean hasCompletedInitialSubscription
-    }
-
-    class CompanyVerification {
-        +Int id
-        +Int companyId
-        +String businessDocument
-        +String documentType
-        +String documentName
-        +Boolean phoneVerified
-        +Boolean emailVerified
-        +String status
-        +String reviewNotes
-        +Int reviewedBy
-        +DateTime reviewedAt
-        +DateTime submittedAt
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Job {
-        +Int id
-        +String title
-        +String slug
-        +String description
-        +String requirements
-        +String benefits
-        +Int industryId
-        +Int companyId
-        +JobType jobType
-        +WorkingHours workingHours
-        +ExperienceLevel experienceLevel
-        +String address
-        +String city
-        +String state
-        +String postcode
-        +Boolean isRemote
-        +Int salaryMin
-        +Int salaryMax
-        +SalaryType salaryType
-        +Boolean isActive
-        +Boolean isFeatured
-        +DateTime applicationDeadline
-        +DateTime startDate
-        +Int viewCount
-        +Int applicationCount
-        +DateTime createdAt
-        +DateTime updatedAt
-        +Int estimatedHireDaysMin
-        +Int estimatedHireDaysMax
-        +Int createdBy
-        +Int updatedBy
-        +String skills
-        +ApprovalStatus approvalStatus
-        +DateTime approvedAt
-        +DateTime rejectedAt
-        +Int rejectedBy
-        +String rejectionReason
-        +Boolean isSuspended
-        +DateTime suspendedAt
-        +String suspendedBy
-        +String suspensionReason
-        +Float latitude
-        +Float longitude
-    }
-
-    class JobApplication {
-        +Int id
-        +Int userId
-        +Int jobId
-        +ApplicationStatus status
-        +String coverLetter
-        +String resumeUrl
-        +DateTime appliedAt
-        +DateTime updatedAt
-        +String employerNote
-        +DateTime interviewDate
-    }
-
-    class SavedJob {
-        +Int id
-        +Int userId
-        +Int jobId
-        +DateTime savedAt
-    }
-
-    class Notification {
-        +Int id
-        +Int userId
-        +String title
-        +String message
-        +NotificationType type
-        +Boolean isRead
-        +String actionUrl
-        +DateTime createdAt
-        +String metadata
-    }
-
-    class Review {
-        +Int id
-        +Int userId
-        +Int companyId
-        +Int rating
-        +String title
-        +String comment
-        +Boolean isAnonymous
-        +Boolean isApproved
-        +DateTime createdAt
-        +DateTime updatedAt
-        +Boolean isVisible
-        +String employerReply
-        +String flagReason
-        +DateTime flaggedAt
-        +Boolean isFlagged
-        +DateTime repliedAt
-    }
-
-    class AdminAction {
-        +Int id
-        +String adminEmail
-        +AdminActionType actionType
-        +String targetType
-        +Int targetId
-        +String reason
-        +String notes
-        +DateTime createdAt
-    }
-
-    class Appeal {
-        +Int id
-        +Int reportId
-        +Int employerId
-        +String explanation
-        +String evidence
-        +AppealStatus status
-        +Int reviewedBy
-        +DateTime reviewedAt
-        +String reviewNotes
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Language {
-        +Int id
-        +String name
-        +Boolean isActive
-        +DateTime createdAt
-    }
-
-    class ResumeQuestion {
-        +Int id
-        +String questionId
-        +String question
-        +String type
-        +Json options
-        +Boolean required
-        +String conditionalOn
-        +String conditionalValue
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Skill {
-        +Int id
-        +String name
-        +Boolean isActive
-        +DateTime createdAt
-    }
-
-    class JobAppeal {
-        +Int id
-        +Int jobId
-        +Int employerId
-        +String explanation
-        +String evidence
-        +Json updatedJobData
-        +AppealStatus status
-        +AppealType appealType
-        +Int reviewedBy
-        +DateTime reviewedAt
-        +String reviewNotes
-        +String adminDecision
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Conversation {
-        +Int id
-        +Int applicationId
-        +Int employerId
-        +Int jobSeekerId
-        +Int jobId
-        +DateTime createdAt
-        +DateTime updatedAt
-        +DateTime lastMessageAt
-        +Boolean isActive
-    }
-
-    class ChatMessage {
-        +Int id
-        +Int conversationId
-        +Int senderId
-        +String content
-        +MessageType messageType
-        +String attachmentUrl
-        +String attachmentName
-        +Int attachmentSize
-        +String attachmentType
-        +Boolean isRead
-        +DateTime readAt
-        +Boolean isEdited
-        +DateTime editedAt
-        +Boolean isDeleted
-        +DateTime deletedAt
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Subscription {
-        +Int id
-        +Int companyId
-        +PlanType planType
-        +SubscriptionStatus status
-        +String stripeCustomerId
-        +String stripeSubscriptionId
-        +String stripePriceId
-        +DateTime stripeCurrentPeriodEnd
-        +Int jobPostLimit
-        +Int jobPostsUsed
-        +Boolean canReplyToReviews
-        +DateTime billingCycleStart
-        +DateTime billingCycleEnd
-        +DateTime lastPaymentDate
-        +Float lastPaymentAmount
-        +DateTime createdAt
-        +DateTime updatedAt
-        +DateTime cancelledAt
-    }
-
-    class SubscriptionPlan {
-        +Int id
-        +PlanType type
-        +String name
-        +Float price
-        +String currency
-        +Json features
-        +Boolean isActive
-        +DateTime createdAt
-        +DateTime updatedAt
-    }
-
-    class Invoice {
-        +Int id
-        +Int subscriptionId
-        +String stripeInvoiceId
-        +Float amount
-        +String currency
-        +String status
-        +String invoiceUrl
-        +String invoicePdf
-        +DateTime paidAt
-        +DateTime createdAt
-    }
-
-    class JobOffer {
-        +Int id
-        +Int applicationId
-        +DateTime startDate
-        +String contractDuration
-        +Decimal salaryAmount
-        +String salaryCurrency
-        +String payFrequency
-        +OfferStatus applicantStatus
-        +DateTime createdAt
-    }
-
-    %% Controllers
-    class AdminActionController {
-        +getJobForReview()
-        +suspendJob()
-        +deleteJob()
-        +suspendEmployer()
-        +dismissReport()
-        +getAdminActionHistory()
-    }
-
-    class AdminController {
-        +login()
-        +getDashboard()
-        +getUsers()
-        +updateUserStatus()
-        +deleteUser()
-    }
-
-    class AIAssistantController {
-        +handleChat()
-        +executeTool()
-    }
-
-    class AppealController {
-        +submitAppeal()
-        +getEmployerAppeals()
-        +reviewAppeal()
-    }
-
-    class AuthController {
-        +initiateSignup()
-        +completeSignup()
-        +login()
-        +logout()
-        +refreshToken()
-        +verifyEmail()
-        +initiatePasswordReset()
-        +completePasswordReset()
-        +resendOTP()
-        +getCurrentUser()
-    }
-
-    class ChatController {
-        +createConversation()
-        +getConversations()
-        +getConversation()
-        +sendMessage()
-        +markAsRead()
-        +uploadAttachment()
-    }
-
-    class CompanyController {
-        +getAllCompanies()
-        +getCompanyById()
-        +updateCompany()
-        +verifyCompany()
-        +getCompanyJobs()
-        +getCompanyReviews()
-    }
-
-    class EmployerController {
-        +uploadCompanyLogo()
-        +createCompany()
-        +updateCompanyProfile()
-        +getDashboardStats()
-        +getApplicants()
-        +getApplicantDetail()
-        +updateApplicationStatus()
-        +getSubscriptionStatus()
-    }
-
-    class HireController {
-        +createOffer()
-        +getOffers()
-        +respondToOffer()
-    }
-
-    class IndustryController {
-        +getIndustries()
-        +createIndustry()
-        +updateIndustry()
-        +deleteIndustry()
-    }
-
-    class IntelligenceController {
-        +getApplicantQualityScore()
-        +getJobApplicantScores()
-        +getSalaryCompetitiveness()
-        +getRecruitmentPrediction()
-    }
-
-    class JobAppealController {
-        +submitJobAppeal()
-        +getJobAppeals()
-        +reviewJobAppeal()
-    }
-
-    class JobController {
-        +getAllJobs()
-        +createJob()
-        +updateJob()
-        +getJobById()
-        +deleteJob()
-        +applyForJob()
-        +saveJob()
-        +unsaveJob()
-    }
-
-    class LanguageController {
-        +getLanguages()
-        +updatePreferredLanguage()
-    }
-
-    class NotificationController {
-        +getNotifications()
-        +markNotificationAsRead()
-        +markAllAsRead()
-        +registerPushToken()
-    }
-
-    class OnboardingController {
-        +getIndustries()
-        +uploadProfilePicture()
-        +saveBasicInfo()
-        +savePreferences()
-        +completeOnboarding()
-        +generateResume()
-    }
-
-    class ReportController {
-        +createReport()
-        +getReports()
-        +getReportById()
-        +updateReportStatus()
-    }
-
-    class ReviewController {
-        +createReview()
-        +getReviews()
-        +replyToReview()
-        +flagReview()
-    }
-
-    class StatisticController {
-        +getOverviewStats()
-        +getJobPostRanking()
-        +getTrendData()
-        +getLanguageUsage()
-        +getShortageAnalysis()
-        +getHighlights()
-    }
-
-    class SubscriptionController {
-        +getPlans()
-        +getCurrentSubscription()
-        +createCheckoutSession()
-        +cancelSubscription()
-        +webhookHandler()
-    }
-
-    class SubscriptionPlanController {
-        +getPlans()
-        +updatePlan()
-    }
-
-    class UserController {
-        +getUserProfile()
-        +updateUserProfile()
-        +uploadResume()
-        +getSavedJobs()
-        +getApplications()
-        +changePassword()
-        +getUserPreferences()
-        +updateUserPreferences()
-    }
-
-    %% Services
-    class AdminService {
-        +getUsers()
-        +updateUserStatus()
-        +deleteUser()
-        +getDashboardAnalytics()
-    }
-
-    class AIAssistantService {
-        +generateAIResponse()
-    }
-
-    class AIJobVerificationService {
-        +verifyJob()
-        +checkRequiredFields()
-        +checkDuplicatePosts()
-        +checkCompanyHistory()
-        +analyzeJobContentWithAI()
-    }
-
-    class AIJobRefineService {
-        +refineJobDescription()
-    }
+    %% Relationships - User Management
+    User "1" -- "0..1" UserProfile : has
+    User "1" -- "*" UserSkill : has
+    User "1" -- "*" UserLanguage : speaks
+    User "1" -- "*" UserIndustry : interested_in
+    User "1" -- "*" ResumeAnswer : provides
+    User "1" -- "*" PasswordResetOTP : requests
     
-    class AIRefineService {
-        +refineAnswers()
-    }
+    UserProfile "1" -- "*" UserSkill : has
+    UserProfile "1" -- "*" UserLanguage : speaks
+    UserProfile "1" -- "*" UserIndustry : interested_in
+    
+    Skill "1" -- "*" UserSkill : possessed_by
+    Language "1" -- "*" UserLanguage : spoken_by
+    ResumeQuestion "1" -- "*" ResumeAnswer : answered_by
 
-    class ApplicantQualityService {
-        +calculateQualityScore()
-    }
+    %% Relationships - Communication
+    Conversation "1" -- "*" ChatMessage : contains
+    User "1" -- "*" ChatMessage : sends
+    
+    Job "1" -- "*" Conversation : about
+    JobApplication "1" -- "0..1" Conversation : initiates
+    
+    User "1" -- "*" Conversation : employer_side
+    User "1" -- "*" Conversation : jobseeker_side
+    
+    User "1" -- "*" Notification : receives
 
-    class ChatService {
-        +createConversation()
-        +getConversations()
-        +getConversation()
-        +sendMessage()
-        +markAsRead()
-    }
+    %% Relationships - Admin System
+    User "1" -- "*" Report : files
+    Job "1" -- "*" Report : reported
+    
+    Report "1" -- "*" Appeal : generates
+    User "1" -- "*" Appeal : files
+    User "1" -- "*" Appeal : reviews
+    
+    Job "1" -- "*" JobAppeal : appealed
+    User "1" -- "*" JobAppeal : files
+    User "1" -- "*" JobAppeal : reviews
 
-    class EmailService {
-        +sendEmailOtp()
-        +sendRegistrationOtp()
-        +sendPasswordResetEmail()
-        +sendWelcomeEmail()
-    }
+    %% Relationships - Job Management
+    Company "1" -- "*" Job : posts
+    Job "1" -- "0..1" Industry : categorized_in
+    Job "1" -- "1" Company : posted_by
+    
+    User "1" -- "*" JobApplication : submits
+    Job "1" -- "*" JobApplication : receives
+    
+    Job "1" -- "*" SavedJob : saved_by
+    User "1" -- "*" SavedJob : saves
+    
+    JobApplication "1" -- "0..1" JobOffer : receives
+    
+    User "1" -- "*" Job : creates
+    User "1" -- "*" Job : updates
 
-    class EmployerTrustScoreService {
-        +calculateTrustScore()
-    }
+    %% Relationships - Company Management
+    User "1" -- "0..1" Company : owns
+    Company "1" -- "0..1" CompanyVerification : has
+    Company "1" -- "0..1" Industry : belongs_to
+    
+    Company "1" -- "*" Review : receives
+    User "1" -- "*" Review : writes
+    
+    Industry "1" -- "*" UserIndustry : attracts
 
-    class GenerateResumeService {
-        +generateResumePDF()
-    }
-
-    class GoogleTranslationService {
-        +translateText()
-    }
-
-    class RecruitmentPredictionService {
-        +predictRecruitmentTime()
-    }
-
-    class S3Service {
-        +uploadFile()
-        +getSignedUrl()
-        +deleteFile()
-        +uploadResumeToS3()
-        +getResumeSignedUrl()
-        +uploadContractToS3()
-    }
-
-    class SalaryCompetitivenessService {
-        +analyzeSalary()
-    }
-
-    %% Relationships
-    User "1" -- "0..1" UserProfile : profile
-    User "1" -- "0..1" Company : company
-    User "1" -- "*" JobApplication : applications
-    User "1" -- "*" SavedJob : savedJobs
-    User "1" -- "*" Notification : notifications
-    User "1" -- "*" Report : reports
-    User "1" -- "*" Review : reviews
-    User "1" -- "*" Appeal : appeals
-    User "1" -- "*" JobAppeal : jobAppeals
-    User "1" -- "*" ChatMessage : sentMessages
-    User "1" -- "*" Conversation : conversations
-    
-    UserProfile "1" -- "*" UserSkill : skills
-    UserProfile "1" -- "*" UserLanguage : languages
-    UserProfile "1" -- "*" UserIndustry : industries
-    
-    Company "1" -- "*" Job : jobs
-    Company "1" -- "*" Review : reviews
-    Company "1" -- "0..1" Subscription : subscription
-    Company "1" -- "0..1" CompanyVerification : verification
-    
-    Job "1" -- "*" JobApplication : applications
-    Job "1" -- "*" SavedJob : savedBy
-    Job "1" -- "*" Report : reports
-    Job "1" -- "*" JobAppeal : appeals
-    Job "1" -- "*" Conversation : conversations
-    
-    JobApplication "1" -- "0..1" JobOffer : offer
-    JobApplication "1" -- "0..1" Conversation : conversation
-    
-    Conversation "1" -- "*" ChatMessage : messages
-    
-    Subscription "1" -- "*" Invoice : invoices
-    
-    Report "1" -- "*" Appeal : appeals
-    
-    %% Controller Dependencies
-    AdminActionController ..> AdminAction
-    AdminActionController ..> Job
-    AdminActionController ..> Report
-    AdminActionController ..> GoogleTranslationService
-    
-    AdminController ..> User
-    AdminController ..> AdminService
-    
-    AIAssistantController ..> AIAssistantService
-    
-    AppealController ..> Appeal
-    AppealController ..> Report
-    
-    AuthController ..> User
-    AuthController ..> EmailService
-    
-    ChatController ..> ChatService
-    ChatController ..> Conversation
-    ChatController ..> ChatMessage
-    
-    CompanyController ..> Company
-    CompanyController ..> Job
-    
-    EmployerController ..> Company
-    EmployerController ..> Job
-    EmployerController ..> JobApplication
-    EmployerController ..> EmployerTrustScoreService
-    
-    HireController ..> JobOffer
-    
-    IndustryController ..> Industry
-    
-    IntelligenceController ..> ApplicantQualityService
-    IntelligenceController ..> SalaryCompetitivenessService
-    IntelligenceController ..> RecruitmentPredictionService
-    
-    JobAppealController ..> JobAppeal
-    
-    JobController ..> Job
-    JobController ..> AIJobVerificationService
-    JobController ..> GoogleTranslationService
-    
-    LanguageController ..> Language
-    
-    NotificationController ..> Notification
-    
-    OnboardingController ..> UserProfile
-    OnboardingController ..> GenerateResumeService
-    OnboardingController ..> AIRefineService
-    OnboardingController ..> S3Service
-    
-    ReportController ..> Report
-    
-    ReviewController ..> Review
-    
-    StatisticController ..> Job
-    StatisticController ..> User
-    
-    SubscriptionController ..> Subscription
-    SubscriptionController ..> SubscriptionPlan
-    
-    SubscriptionPlanController ..> SubscriptionPlan
-    
-    UserController ..> UserProfile
-    UserController ..> S3Service
-    UserController ..> GoogleTranslationService
+    %% Relationships - Subscription System
+    Company "1" -- "0..1" Subscription : has
+    Subscription "1" -- "*" Invoice : generates
