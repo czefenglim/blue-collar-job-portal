@@ -74,16 +74,8 @@ To download, run, and view the app locally, follow these steps.
     # GOOGLE_APPLICATION_CREDENTIALS="path/to/google-credentials.json"
     ```
 
-4.  Initialize the Database:
-    ```bash
-    # Push the schema to the database
-    npx prisma db push
-    
-    # Seed initial data (Industries, Companies, Jobs)
-    npx prisma db seed
-    ```
 
-5.  Start the Backend Server:
+4.  Start the Backend Server:
     ```bash
     npm run dev
     ```

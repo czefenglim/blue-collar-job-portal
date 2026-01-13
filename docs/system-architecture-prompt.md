@@ -32,9 +32,9 @@ Please generate a high-level system architecture diagram for a **Blue Collar Job
 
 - **Real-Time Layer:** **Socket.io** for instant chat and notifications.
 - **AI Services:** `aiAssistantService`, `aiJobVerification`, `recruitmentPrediction`, `salaryCompetitivenessService`
-- **Core Services:** `s3Service` (Storage), `emailService` (Notifications), `chatService` (Messaging)
+- **Core Services:** `s3Service` (Storage), `emailService` (Notifications), `chatService` (Messaging), `paymentService` (Subscriptions)
 - **Translation:** `googleTranslation` (Multi-language support)
-- **PDF Generation:** `Puppeteer` service for creating resume PDFs.
+- **PDF Generation:** `PDFKit` service for creating resume PDFs.
 
 ## 4. Database Layer
 
@@ -55,6 +55,7 @@ Please generate a high-level system architecture diagram for a **Blue Collar Job
 - **Payments:** **Stripe API** for subscriptions and secure payments.
 - **Storage:** **Amazon S3** (Resumes, Profile Pictures, Company Logos).
 - **Notifications:** **Firebase Cloud Messaging (FCM)** for push notifications.
+- **SendGrid:** For emails (e.g., account confirmations, password resets).
 
 ## Data Flow & Connections
 
